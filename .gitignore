@@ -1,0 +1,62 @@
+# 忽略编译生成的文件
+*.o
+*.obj
+*.so
+*.a
+*.out
+*.exe
+*.dll
+*.dylib
+*.lib
+*.pdb
+*.idb
+*.class
+
+# 忽略临时文件
+*.log
+*.tmp
+*.swp
+*.swo
+
+# 忽略 Visual Studio Code 配置文件
+.vscode/
+
+# 忽略 CMake 构建目录
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+CTestTestfile.cmake
+
+# 忽略 Qt 构建目录
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+
+# 忽略编译器临时生成的文件
+*.d
+*.depend
+*.i
+*.gcno
+*.gcda
+*.gcov
+
+# 忽略依赖文件（如 ccache 临时文件）
+*.ccache
+*.log
+*.pch
+*.dmp
+
+# 忽略 IDE 特定文件（如果使用 CLion、Qt Creator 等其他 IDE）
+.idea/
+*.pro.user
+*.pro.user.*
+*.qmake.stash
+
+# 忽略 Mac OS X 特定文件
+.DS_Store
+
+# 忽略 Linux 下的特定文件
+*~
+
+build/

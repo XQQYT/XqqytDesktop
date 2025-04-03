@@ -2,7 +2,7 @@
 # You are in Driver/CMakeLists.txt
 
 add_library(Driver STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/websocket.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/WebSocket.cpp
 )
 
 target_include_directories(Driver PUBLIC

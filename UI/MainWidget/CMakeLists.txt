@@ -5,6 +5,8 @@ add_library(MainWidget STATIC
     MainWidget.cpp
 )
 
+find_package(nlohmann_json REQUIRED)
+
 # 添加 RemoteControlWidget 的头文件目录
 target_include_directories(MainWidget PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -12,4 +14,9 @@ target_include_directories(MainWidget PUBLIC
 )
 
 # 链接 RemoteControlWidget 库
-target_link_libraries(MainWidget RemoteControlWidget Qt5::Widgets)
+target_link_libraries(MainWidget 
+RemoteControlWidget 
+Qt5::Widgets 
+Driver
+nlohmann_json::nlohmann_json
+)

@@ -9,7 +9,8 @@ WebSocket::WebSocket()
 
 WebSocket::~WebSocket()
 {
-    closeSocket();
+    if(ws_socket && ws_socket->is_open())
+        closeSocket();
 }
 
 WebSocket::WebSocket(WebSocket&& obj) noexcept
@@ -39,22 +40,25 @@ void WebSocket::initSocket(const std::string& address, const std::string& port)
     this->port = port;
 }
 
-void WebSocket::connectToServer()
+void WebSocket::connectToServer(std::function<void(bool)> callback)
 {
     try {
         auto self = shared_from_this(); // 确保 `this` 对象在异步操作完成前不会被销毁
         resolver->async_resolve(address, port,
-            [this, self](beast::error_code ec, tcp::resolver::results_type results) {
+            [this, self, callback](beast::error_code ec, tcp::resolver::results_type results) {
                 if (!ec) {
                     asio::async_connect(ws_socket->next_layer(), results.begin(), results.end(),
-                        [this, self](beast::error_code ec, const tcp::endpoint&) {
+                        [this, self, callback](beast::error_code ec, const boost::asio::ip::basic_resolver_iterator<boost::asio::ip::tcp>
+                        ) {
                             if (!ec) {
                                 ws_socket->async_handshake(address, "/",
-                                    [this, self](beast::error_code ec) {
+                                    [this, self, callback](beast::error_code ec) {
                                         if (!ec) {
                                             std::cout << "Connected to WebSocket server.\n";
+                                            callback(true);
                                         } else {
                                             std::cerr << "Handshake failed: " << ec.message() << std::endl;
+                                            callback(false);
                                         }
                                     });
                             } else {

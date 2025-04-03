@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "RemoteControlWidget.h"
-
+#include "websocket.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWidget; }
 QT_END_NAMESPACE
@@ -20,5 +20,6 @@ private slots:
 private:
     Ui::MainWidget *ui;
     RemoteControlWidget* w;
+    std::shared_ptr<WebSocket> ws_ptr;
 };
 #endif // WIDGET_H

@@ -1,6 +1,5 @@
 #include "MainWidget.h"
 #include "ui_MainWidget.h"
-#include <QDebug>
 
 MainWidget::MainWidget(QWidget *parent)
     : QWidget(parent)
@@ -15,7 +14,7 @@ MainWidget::~MainWidget()
     delete ui;
 }
 
-void MainWidget::on_pushButton_clicked()
+void MainWidget::on_btn_connect_clicked()
 {
     if(w==nullptr)
     {

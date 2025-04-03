@@ -16,10 +16,9 @@ public:
     MainWidget(QWidget *parent = nullptr);
     ~MainWidget();
 private slots:
-    void on_pushButton_clicked();
+    void on_btn_connect_clicked();
 private:
     Ui::MainWidget *ui;
     RemoteControlWidget* w;
-    std::shared_ptr<WebSocket> ws_ptr;
 };
 #endif // WIDGET_H

@@ -11,6 +11,7 @@ add_library(UI STATIC
 target_include_directories(UI PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/MainWidget
     ${CMAKE_CURRENT_SOURCE_DIR}/RemoteControlWidget  # 确保包含 RemoteControlWidget 的头文件
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Driver/include
 )
 
-target_link_libraries(UI Qt5::Widgets)
+target_link_libraries(UI Qt5::Widgets Driver)

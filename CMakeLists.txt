@@ -18,10 +18,14 @@ set(CMAKE_AUTOUIC ON)
 
 
 # 添加包含目录
-include_directories(UI/MainWidget)
+include_directories(UI/MainWidget
+Driver/include
+Driver_Interface)
 
 # 添加子项目
 add_subdirectory(UI)
+add_subdirectory(Driver_Interface)
+add_subdirectory(Driver)
 
 # Define the executable target
 add_executable(${PROJECT_NAME}
@@ -29,4 +33,4 @@ add_executable(${PROJECT_NAME}
 )
 
 # Link against Qt5 Widgets
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets UI RemoteControlWidget)
+target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets UI RemoteControlWidget Driver)

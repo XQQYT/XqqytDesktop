@@ -1,6 +1,7 @@
 #include "MainWidget.h"
 #include "ui_MainWidget.h"
 #include <QDebug>
+
 MainWidget::MainWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MainWidget)
@@ -21,6 +22,5 @@ void MainWidget::on_pushButton_clicked()
         w=new RemoteControlWidget();
         w->show();
     }
-    qDebug()<<"clicked";
 }
 

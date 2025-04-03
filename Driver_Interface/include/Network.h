@@ -1,3 +1,6 @@
+#ifndef _NETWORK_H
+#define _NETWORK_H
+
 #include <memory>
 #include <functional>
 #include <string>
@@ -19,3 +22,5 @@ protected:
     std::string address;
     std::string port;
 };
+
+#endif

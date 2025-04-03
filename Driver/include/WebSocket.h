@@ -1,3 +1,6 @@
+#ifndef _WEBSOCKET_H
+#define _WEBSOCKET_H
+
 #include <boost/beast.hpp>
 #include <boost/asio.hpp>
 #include <iostream>
@@ -30,3 +33,5 @@ private:
     std::unique_ptr<websocket::stream<tcp::socket>> ws_socket;
     std::unique_ptr<tcp::resolver> resolver;
 };
+
+#endif

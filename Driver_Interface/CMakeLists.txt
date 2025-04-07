@@ -3,6 +3,7 @@
 
 add_library(Driver_Interface STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/source/Network.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/JsonFactory.cpp
 )
 
 target_include_directories(Driver_Interface PUBLIC

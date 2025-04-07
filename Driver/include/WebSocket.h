@@ -24,7 +24,7 @@ public:
     void initSocket(const std::string& address,const std::string& port) override;
     void connectToServer(std::function<void(bool)> callback = nullptr) override;
     void sendMsg(const std::string& msg) override;
-    void recvMsg(std::function<void(std::string)> callback) override;
+    void recvMsg(std::function<void(std::string&&)> callback) override;
     void closeSocket() override;
     ~WebSocket();
 private:

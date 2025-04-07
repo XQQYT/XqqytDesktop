@@ -54,10 +54,8 @@ void WebSocket::connectToServer(std::function<void(bool)> callback)
                                 ws_socket->async_handshake(address, "/",
                                     [this, self, callback](beast::error_code ec) {
                                         if (!ec) {
-                                            std::cout << "Connected to WebSocket server.\n";
                                             callback(true);
                                         } else {
-                                            std::cerr << "Handshake failed: " << ec.message() << std::endl;
                                             callback(false);
                                         }
                                     });
@@ -92,7 +90,7 @@ void WebSocket::sendMsg(const std::string& msg)
     });
 }
 
-void WebSocket::recvMsg(std::function<void(std::string)> callback)
+void WebSocket::recvMsg(std::function<void(std::string&&)> callback)
 {
     auto self = shared_from_this();
     auto buffer = std::make_shared<beast::flat_buffer>();

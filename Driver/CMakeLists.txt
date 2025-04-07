@@ -7,6 +7,7 @@ add_library(Driver STATIC
 
 target_include_directories(Driver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Driver_Interface/include
 )
 
 target_link_libraries(Driver Driver_Interface boost_system)

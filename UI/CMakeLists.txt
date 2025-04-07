@@ -14,4 +14,4 @@ target_include_directories(UI PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../Driver/include
 )
 
-target_link_libraries(UI Qt5::Widgets Driver)
+target_link_libraries(UI Qt5::Widgets)

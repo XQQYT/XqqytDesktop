@@ -11,12 +11,13 @@ find_package(nlohmann_json REQUIRED)
 target_include_directories(MainWidget PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../RemoteControlWidget 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Control/include
 )
 
 # 链接 RemoteControlWidget 库
 target_link_libraries(MainWidget 
 RemoteControlWidget 
 Qt5::Widgets 
-Driver
+Control
 nlohmann_json::nlohmann_json
 )

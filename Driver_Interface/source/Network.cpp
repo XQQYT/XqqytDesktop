@@ -16,7 +16,7 @@ void NetworkInterface::sendMsg(const std::string& msg)
 {
 
 }
-void NetworkInterface::recvMsg(std::function<void(std::string)> callback)
+void NetworkInterface::recvMsg(std::function<void(std::string&&)> callback)
 {
 
 }

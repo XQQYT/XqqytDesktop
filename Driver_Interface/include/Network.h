@@ -16,7 +16,7 @@ public:
     virtual void initSocket(const std::string& address,const std::string& port);
     virtual void connectToServer(std::function<void(bool)> callback = nullptr);
     virtual void sendMsg(const std::string& msg);
-    virtual void recvMsg(std::function<void(std::string)> callback);
+    virtual void recvMsg(std::function<void(std::string&&)> callback);
     virtual void closeSocket();
 protected:
     std::string address;

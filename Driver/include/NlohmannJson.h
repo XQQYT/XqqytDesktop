@@ -5,11 +5,11 @@
 
 using json = nlohmann::json;
 
-class NlohamnnJson : public JsonFactory{
+class NlohmannJson : public JsonFactory{
 public:
-    NlohamnnJson();
-    ~NlohamnnJson();
-    NlohamnnJson(const NlohamnnJson&) = delete;
+    NlohmannJson();
+    ~NlohmannJson();
+    NlohmannJson(const NlohmannJson&) = delete;
     std::shared_ptr<std::string> ws_register(const std::string&& id) override;
 };
 

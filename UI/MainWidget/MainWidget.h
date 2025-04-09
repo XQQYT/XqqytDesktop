@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "RemoteControlWidget.h"
+#include "EventBus.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWidget; }
 QT_END_NAMESPACE

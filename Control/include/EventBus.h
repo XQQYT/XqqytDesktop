@@ -48,6 +48,8 @@ struct function_traits<std::_Bind<Callable(Args...)>>
 
 using callback_id = size_t;
 
+class NetworkController;
+
 class EventBus {
 public:
     EventBus(const EventBus&) = delete;
@@ -55,18 +57,16 @@ public:
     EventBus& operator=(const EventBus&) = delete;
     EventBus& operator=(EventBus&&) = delete;
 
-    static EventBus& getInstance()
-    {
+    static EventBus& getInstance() {
         static EventBus instance;
         return instance;
     }
 
-    void registerEvent(const std::string& eventName) {
-        if (registered_events.find(eventName) == registered_events.end()) {
-            registered_events.emplace(eventName);
-            callbacks_map[eventName] = std::vector<CallbackWrapper>();
-            callbacks_map[eventName].reserve(4);
-            std::cout << "register " << eventName << std::endl;
+    void registerEvent(std::string eventName) {
+        auto [it, inserted] = registered_events.emplace(std::move(eventName));
+        if (inserted) {
+            callbacks_map.try_emplace(*it).first->second.reserve(4);
+            std::cout << "register " << *it << std::endl;
         }
     }
 
@@ -83,9 +83,25 @@ public:
 
     // 自动推导 Callback 类型的 subscribe
     template<typename Callback>
-    callback_id subscribe(const std::string& eventName, Callback&& callback) {
+    callback_id subscribe(std::string eventName, Callback&& callback) {
         using signature = typename function_traits<std::decay_t<Callback>>::signature;
         return subscribe(eventName, std::function<signature>(std::forward<Callback>(callback)));
+    }
+
+    // 安全订阅版本（自动注册事件）
+    template<typename... Args>
+    callback_id subscribeSafe(const std::string& eventName, std::function<void(Args...)> callback) {
+        if (!isEventRegistered(eventName)) {
+            registerEvent(eventName);
+        }
+        return subscribe(eventName, callback);
+    }
+    
+    // 自动推导的安全订阅版本
+    template<typename Callback>
+    callback_id subscribeSafe(std::string eventName, Callback&& callback) {
+        using signature = typename function_traits<std::decay_t<Callback>>::signature;
+        return subscribeSafe(eventName, std::function<signature>(std::forward<Callback>(callback)));
     }
 
     template<typename... Args>
@@ -121,9 +137,10 @@ public:
         return false;
     }
 
+    void initModuleSubscribe();
 private:
-    EventBus(){};
-    ~EventBus(){};
+    EventBus();
+    ~EventBus();
     struct CallbackWrapper {
         callback_id id;
         std::any callback;
@@ -131,6 +148,8 @@ private:
     std::unordered_map<std::string, std::vector<CallbackWrapper>> callbacks_map;
     std::unordered_set<std::string> registered_events;
     std::atomic<callback_id> next_id{0};
+
+    NetworkController *network_controller;
 };
 
 #endif

@@ -3,6 +3,7 @@
 
 add_library(Control STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/source/NetworkController.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/EventBus.cpp
 )
 
 target_include_directories(Control PUBLIC

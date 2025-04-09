@@ -1,16 +1,16 @@
 #include "NlohmannJson.h"
 
-NlohamnnJson::NlohamnnJson()
+NlohmannJson::NlohmannJson()
 {
 
 }
 
-NlohamnnJson::~NlohamnnJson()
+NlohmannJson::~NlohmannJson()
 {
 
 }
 
-std::shared_ptr<std::string> NlohamnnJson::ws_register(const std::string&& id)
+std::shared_ptr<std::string> NlohmannJson::ws_register(const std::string&& id)
 {
     json msg={{"type", "register"},{"id",id}};
     return std::make_shared<std::string>(msg.dump());

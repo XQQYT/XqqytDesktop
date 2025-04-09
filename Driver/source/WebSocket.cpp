@@ -74,20 +74,26 @@ void WebSocket::connectToServer(std::function<void(bool)> callback)
     }
 }
 
-void WebSocket::sendMsg(const std::string& msg)
+void WebSocket::sendMsg(std::string msg)  // 按值传递，既接受左值也接受右值
 {
     if (!ws_socket || !ioc || !resolver) {
         throw std::runtime_error("WebSocket is not initialized");
     }
 
     auto self = shared_from_this();
-    asio::post(*ioc, [this, self, msg]() {
-        try {
-            ws_socket->write(asio::buffer(msg));
-        } catch (const std::exception& e) {
-            std::cerr << "Send failed: " << e.what() << std::endl;
+    auto msg_ptr = std::make_shared<std::string>(std::move(msg));
+
+    asio::post(*ioc, 
+        [this, self, msg_ptr]() mutable {
+            try {
+                // 将消息移动到缓冲区中
+                auto buffer = asio::buffer(*msg_ptr);
+                ws_socket->write(buffer);
+            } catch (const std::exception& e) {
+                std::cerr << "Send failed: " << e.what() << std::endl;
+            }
         }
-    });
+    );
 }
 
 void WebSocket::recvMsg(std::function<void(std::string&&)> callback)

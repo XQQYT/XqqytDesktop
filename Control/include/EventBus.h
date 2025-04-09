@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <any>
+#include <atomic>
 #include <memory>
 #include <type_traits>
 
@@ -49,6 +50,17 @@ using callback_id = size_t;
 
 class EventBus {
 public:
+    EventBus(const EventBus&) = delete;
+    EventBus(EventBus&&) = delete;
+    EventBus& operator=(const EventBus&) = delete;
+    EventBus& operator=(EventBus&&) = delete;
+
+    static EventBus& getInstance()
+    {
+        static EventBus instance;
+        return instance;
+    }
+
     void registerEvent(const std::string& eventName) {
         if (registered_events.find(eventName) == registered_events.end()) {
             registered_events.emplace(eventName);
@@ -110,6 +122,8 @@ public:
     }
 
 private:
+    EventBus(){};
+    ~EventBus(){};
     struct CallbackWrapper {
         callback_id id;
         std::any callback;

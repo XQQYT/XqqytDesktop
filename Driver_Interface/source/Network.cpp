@@ -12,7 +12,7 @@ void NetworkInterface::connectToServer(std::function<void(bool)> callback)
 {
 
 }
-void NetworkInterface::sendMsg(const std::string& msg)
+void NetworkInterface::sendMsg(std::string msg)
 {
 
 }

@@ -16,10 +16,6 @@ MainWidget::~MainWidget()
 
 void MainWidget::on_btn_connect_clicked()
 {
-    if(w==nullptr)
-    {
-        w=new RemoteControlWidget();
-        w->show();
-    }
+    EventBus::getInstance().publish("/network/connect_to_server",ui->lineEdit_id->text().toStdString());
 }
 

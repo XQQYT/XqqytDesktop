@@ -4,7 +4,8 @@ NetworkController::NetworkController()
 {
     //使用websocket驱动
     network_interface = WebSocket::create();
-    json_factory = std::make_shared<NlohmannJson>();
+    json_factory = std::make_unique<NlohmannJson>();
+    msg_parser = std::make_unique<MessageParser>(*this);
     recv_thread = nullptr;
     is_recv_thread_running = false;
 }
@@ -14,14 +15,14 @@ NetworkController::~NetworkController()
     stopRecvMsg();
 }
 
-void NetworkController::connectToHost(std::string target_id)
+void NetworkController::connectToServer(std::string user_id)
 {
     network_interface->initSocket(server_address,server_port);
-    network_interface->connectToServer([this,target_id = std::move(target_id)](bool ret){
+    network_interface->connectToServer([this,user_id = std::move(user_id)](bool ret){
         if(ret){
             startRecvMsg();
             //发送注册消息
-            sendMsg(*json_factory->ws_register(std::move(target_id)));
+            sendMsg(*json_factory->ws_register(std::move(user_id)));
             std::cout<<"success to connect server"<<std::endl;
         }
         else{
@@ -30,15 +31,10 @@ void NetworkController::connectToHost(std::string target_id)
     });
 }
 
-void NetworkController::onRecvMsg(std::string&& recv_msg)
-{
-    std::cout<<recv_msg<<std::endl;
-}
-
 void NetworkController::startRecvMsg()
 {
     std::function<void(std::string&&)> recv_callback = [this](std::string&& recv_msg){
-        onRecvMsg(std::move(recv_msg));
+        msg_parser->parserMsg(std::move(recv_msg));
     };
     network_interface->recvMsg(recv_callback);
 }
@@ -61,16 +57,23 @@ void NetworkController::sendMsg(std::string msg)
 
 void NetworkController::initNetworkSubscribe()
 {
-    EventBus::getInstance().subscribe("/network/connect_to_server",std::bind(
+    EventBus::getInstance().subscribe("/network/connect_to_server_and_target",std::bind(
         &NetworkController::onConnectToServer,
         this,
-        std::placeholders::_1
+        std::placeholders::_1,
+        std::placeholders::_2
     ));
 }
 
 
-void NetworkController::onConnectToServer(std::string id)
+void NetworkController::onConnectToServer(std::string user_id, std::string target_id)
 {
-    std::cout<<id<<std::endl;
-    connectToHost(std::move(id));
+    UserInfoManager::getInstance().setCurrentUserId(user_id);
+    UserInfoManager::getInstance().setCurrentTargetId(target_id);
+    connectToServer(std::move(user_id));
+}
+
+void NetworkController::sendToServer(std::string msg)
+{
+    sendMsg(std::move(msg));
 }

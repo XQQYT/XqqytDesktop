@@ -5,7 +5,7 @@
 //注册必需事件
 void initEventBusRegisterEvent()
 {
-    EventBus::getInstance().registerEvent("/network/connect_to_server");
+    EventBus::getInstance().registerEvent("/network/connect_to_server_and_target");
 }
 //使模块订阅好事件
 void initModuleSubscribe()

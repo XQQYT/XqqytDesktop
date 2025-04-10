@@ -16,6 +16,8 @@ MainWidget::~MainWidget()
 
 void MainWidget::on_btn_connect_clicked()
 {
-    EventBus::getInstance().publish("/network/connect_to_server",ui->lineEdit_id->text().toStdString());
+    EventBus::getInstance().publish("/network/connect_to_server_and_target",
+        ui->lineEdit_id->text().toStdString(),
+        ui->lineEdit_target_id->text().toStdString());
 }
 

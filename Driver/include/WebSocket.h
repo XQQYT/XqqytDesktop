@@ -19,8 +19,7 @@ public:
         return std::shared_ptr<WebSocket>(new WebSocket());
     }
     WebSocket(const WebSocket& obj) = delete;
-    WebSocket(WebSocket&& obj) noexcept;
-    WebSocket& operator=(WebSocket&& obj) noexcept;
+    WebSocket& operator=(WebSocket& obj) = delete;
     void initSocket(const std::string& address,const std::string& port) override;
     void connectToServer(std::function<void(bool)> callback = nullptr) override;
     void sendMsg(std::string msg) override;
@@ -29,6 +28,8 @@ public:
     ~WebSocket();
 private:
     WebSocket();
+    std::optional<asio::executor_work_guard<asio::io_context::executor_type>> work_guard;
+    std::thread io_thread;
     std::unique_ptr<asio::io_context> ioc;
     std::unique_ptr<websocket::stream<tcp::socket>> ws_socket;
     std::unique_ptr<tcp::resolver> resolver;

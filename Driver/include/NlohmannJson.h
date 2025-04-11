@@ -27,7 +27,7 @@ public:
     std::unique_ptr<Parser> getParser() override;
     std::shared_ptr<std::string> ws_register(const std::string&& id) override;
     std::shared_ptr<std::string> ws_message(const std::string&& user_id,const std::string&& target_id,const std::string&& msg) override;
-
+    std::shared_ptr<std::string> ws_get_target_status(const std::string&& user_id,const std::string&& target_id) override;
 };
 
 #endif

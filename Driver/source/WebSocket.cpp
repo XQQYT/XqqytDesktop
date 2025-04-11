@@ -5,33 +5,20 @@ WebSocket::WebSocket()
       ws_socket(std::make_unique<websocket::stream<tcp::socket>>(*ioc)),
       resolver(std::make_unique<tcp::resolver>(*ioc))
 {
+    work_guard.emplace(asio::make_work_guard(*ioc));  // 防止 ioc 退出
+    io_thread = std::thread([this]() { ioc->run(); });  // 启动 ioc 线程
 }
 
 WebSocket::~WebSocket()
 {
     if(ws_socket && ws_socket->is_open())
         closeSocket();
-}
-
-WebSocket::WebSocket(WebSocket&& obj) noexcept
-    : ioc(std::move(obj.ioc)),
-      ws_socket(std::move(obj.ws_socket)),
-      resolver(std::move(obj.resolver))
-{
-    this->address = std::move(obj.address);
-    this->port = std::move(obj.port);
-}
-
-WebSocket& WebSocket::operator=(WebSocket&& obj) noexcept
-{
-    if (this != &obj) {
-        ioc = std::move(obj.ioc);
-        ws_socket = std::move(obj.ws_socket);
-        resolver = std::move(obj.resolver);
-        address = std::move(obj.address);
-        port = std::move(obj.port);
+    if (work_guard) {
+        work_guard.reset();  // 允许 ioc 退出
     }
-    return *this;
+    if (io_thread.joinable()) {
+        io_thread.join();    // 等待线程结束
+    }
 }
 
 void WebSocket::initSocket(const std::string& address, const std::string& port)
@@ -68,14 +55,12 @@ void WebSocket::connectToServer(std::function<void(bool)> callback)
                 }
             });
 
-        std::thread([this]() { this->ioc->run(); }).detach();
     } catch (const std::exception& e) {
         std::cerr << "Failed to connect: " << e.what() << std::endl;
     }
 }
 
-void WebSocket::sendMsg(std::string msg)  // 按值传递，既接受左值也接受右值
-{
+void WebSocket::sendMsg(std::string msg) {
     if (!ws_socket || !ioc || !resolver) {
         throw std::runtime_error("WebSocket is not initialized");
     }
@@ -83,17 +68,18 @@ void WebSocket::sendMsg(std::string msg)  // 按值传递，既接受左值也�
     auto self = shared_from_this();
     auto msg_ptr = std::make_shared<std::string>(std::move(msg));
 
-    asio::post(*ioc, 
-        [this, self, msg_ptr]() mutable {
-            try {
-                // 将消息移动到缓冲区中
-                auto buffer = asio::buffer(*msg_ptr);
-                ws_socket->write(buffer);
-            } catch (const std::exception& e) {
-                std::cerr << "Send failed: " << e.what() << std::endl;
+    asio::post(*ioc, [this, self, msg_ptr]() {
+        try {
+            if (!ws_socket->is_open()) {
+                std::cerr << "WebSocket is closed" << std::endl;
+                return;
             }
+            ws_socket->write(asio::buffer(*msg_ptr));
+            std::cout<<"发送  "<<*msg_ptr<<std::endl<<std::endl;
+        } catch (const std::exception& e) {
+            std::cerr << "Send failed: " << e.what() << std::endl;
         }
-    );
+    });
 }
 
 void WebSocket::recvMsg(std::function<void(std::string&&)> callback)
@@ -105,6 +91,9 @@ void WebSocket::recvMsg(std::function<void(std::string&&)> callback)
         [this, self, buffer, callback](beast::error_code ec, std::size_t bytes_transferred) {
             if (!ec) {
                 callback(beast::buffers_to_string(buffer->data()));
+                recvMsg(callback);
+                std::cout<<"接收  "<<beast::buffers_to_string(buffer->data())<<std::endl<<std::endl;
+
             } else {
                 std::cerr << "Receive failed: " << ec.message() << std::endl;
             }

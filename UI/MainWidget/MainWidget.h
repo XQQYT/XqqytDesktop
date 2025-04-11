@@ -18,6 +18,11 @@ public:
 private slots:
     void on_btn_connect_clicked();
 private:
+    void initSubscribe();
+private:
+    void onTargetOffline();
+    void onRegistrationRejected();
+private:
     Ui::MainWidget *ui;
     RemoteControlWidget* w;
 };

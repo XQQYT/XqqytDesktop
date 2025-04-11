@@ -22,6 +22,7 @@ public:
     virtual std::unique_ptr<Parser> getParser();
     virtual std::shared_ptr<std::string> ws_register(const std::string&& id);
     virtual std::shared_ptr<std::string> ws_message(const std::string&& user_id,const std::string&& target_id,const std::string&& msg);
+    virtual std::shared_ptr<std::string> ws_get_target_status(const std::string&& user_id,const std::string&& target_id);
 };
 
 #endif

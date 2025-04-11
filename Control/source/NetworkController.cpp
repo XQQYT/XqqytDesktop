@@ -4,10 +4,12 @@ NetworkController::NetworkController()
 {
     //使用websocket驱动
     network_interface = WebSocket::create();
+    network_interface->initSocket(server_address,server_port);
     json_factory = std::make_unique<NlohmannJson>();
     msg_parser = std::make_unique<MessageParser>(*this);
     recv_thread = nullptr;
     is_recv_thread_running = false;
+    is_first_connect = true;
 }
 
 NetworkController::~NetworkController()
@@ -17,8 +19,9 @@ NetworkController::~NetworkController()
 
 void NetworkController::connectToServer(std::string user_id)
 {
-    network_interface->initSocket(server_address,server_port);
-    network_interface->connectToServer([this,user_id = std::move(user_id)](bool ret){
+    if(is_first_connect)
+    {
+        network_interface->connectToServer([this,user_id = std::move(user_id)](bool ret){
         if(ret){
             startRecvMsg();
             //发送注册消息
@@ -28,7 +31,14 @@ void NetworkController::connectToServer(std::string user_id)
         else{
             std::cout<<"failed to connect server"<<std::endl;
         }
-    });
+        });
+        is_first_connect = false;
+    }
+    else
+    {
+        sendToServer(*json_factory->ws_get_target_status(std::move(UserInfoManager::getInstance().getCurrentUserId()),
+        std::move(UserInfoManager::getInstance().getCurrentTargetId())));
+    }
 }
 
 void NetworkController::startRecvMsg()
@@ -76,4 +86,10 @@ void NetworkController::onConnectToServer(std::string user_id, std::string targe
 void NetworkController::sendToServer(std::string msg)
 {
     sendMsg(std::move(msg));
+}
+
+void NetworkController::dispatch_void(const std::string event_name)
+{
+    EventBus::getInstance().publish(event_name);
+    std::cout<<"send "<<event_name<<std::endl;
 }

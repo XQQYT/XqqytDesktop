@@ -9,7 +9,7 @@ add_library(Control STATIC
 
 target_include_directories(Control PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Driver/include
+    ${CMAKE_SOURCE_DIR}/Driver/include
 )
 
 target_link_libraries(Control Driver)

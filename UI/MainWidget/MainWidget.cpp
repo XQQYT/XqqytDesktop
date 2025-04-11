@@ -7,6 +7,14 @@ MainWidget::MainWidget(QWidget *parent)
 {
     w=nullptr;
     ui->setupUi(this);
+
+    this->setFixedSize(800, 600);
+    this->setGeometry(QStyle::alignedRect(
+    Qt::LeftToRight,
+    Qt::AlignCenter,
+    this->size(),
+    QGuiApplication::primaryScreen()->availableGeometry()
+));
     initSubscribe();
 }
 
@@ -31,9 +39,12 @@ void MainWidget::on_btn_connect_clicked()
 void MainWidget::onTargetOffline()
 {
     std::cout<<"target is offline"<<std::endl;
+    bubble_message.error(this,"Target is offline");
 }
 
 void MainWidget::onRegistrationRejected()
 {
     std::cout<<"registration is rejected"<<std::endl;
+    bubble_message.error(this,"Target is offline");
+
 }

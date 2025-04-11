@@ -8,13 +8,15 @@
 #include "MessageParser.h"
 #include "UserInfo.h"
 #include "NetworkOperator.h"
-
 const std::string server_address = "127.0.0.1";
 const std::string server_port = "8888";
 
 class NetworkController : public NetworkOperator{
+//NetworkOperator
 public:
     void sendToServer(std::string msg);
+    void dispatch_void(const std::string event_name);
+//NetworkController
 public:
     NetworkController();
     ~NetworkController();
@@ -24,6 +26,7 @@ public:
     void stopRecvMsg();
     void sendMsg(std::string msg);
     void initNetworkSubscribe();
+    
 private:
     void onConnectToServer(std::string id, std::string target_id);
 private:
@@ -32,6 +35,7 @@ private:
     bool is_recv_thread_running;
     std::unique_ptr<JsonFactory> json_factory;
     std::unique_ptr<MessageParser> msg_parser;
+    bool is_first_connect;
 };
 
 #endif

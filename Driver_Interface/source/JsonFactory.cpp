@@ -30,6 +30,11 @@ std::shared_ptr<std::string> JsonFactory::ws_message(const std::string&& user_id
     return nullptr;
 }
 
+std::shared_ptr<std::string> JsonFactory::ws_get_target_status(const std::string&& user_id,const std::string&& target_id)
+{
+    return nullptr;
+}
+
 std::unique_ptr<Parser> JsonFactory::getParser()
 {
     return nullptr;

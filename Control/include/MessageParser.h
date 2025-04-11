@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <functional>
 #include "NetworkOperator.h"
+#include "UserInfo.h"
 class MessageParser{
 public:
     MessageParser(NetworkOperator& base_operator);
@@ -13,6 +14,8 @@ public:
 private:
     void initTypeFuncMap();
     void onRegisterResult(std::unique_ptr<Parser> parser);
+    void onTargetStatusResult(std::unique_ptr<Parser> parser);
+
 private:
     std::unique_ptr<JsonFactory> json_factory;
     std::unordered_map<std::string,std::function<void(std::unique_ptr<Parser>)>> type_func_map;

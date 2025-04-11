@@ -8,6 +8,7 @@ class NetworkOperator
 public:
     virtual ~NetworkOperator() = default;
     virtual void sendToServer(std::string formattedMsg) = 0;
+    virtual void dispatch_void(const std::string event_name) = 0;
 };
 
 

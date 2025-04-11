@@ -6,6 +6,8 @@
 void initEventBusRegisterEvent()
 {
     EventBus::getInstance().registerEvent("/network/connect_to_server_and_target");
+    EventBus::getInstance().registerEvent("/network/registration_rejected");
+    EventBus::getInstance().registerEvent("/network/target_is_offline");
 }
 //使模块订阅好事件
 void initModuleSubscribe()

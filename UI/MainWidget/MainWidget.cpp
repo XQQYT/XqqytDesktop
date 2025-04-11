@@ -7,11 +7,18 @@ MainWidget::MainWidget(QWidget *parent)
 {
     w=nullptr;
     ui->setupUi(this);
+    initSubscribe();
 }
 
 MainWidget::~MainWidget()
 {
     delete ui;
+}
+
+void MainWidget::initSubscribe()
+{
+    EventBus::getInstance().subscribe("/network/target_is_offline",std::bind(&MainWidget::onTargetOffline,this));
+    EventBus::getInstance().subscribe("/network/registration_rejected",std::bind(&MainWidget::onRegistrationRejected,this));
 }
 
 void MainWidget::on_btn_connect_clicked()
@@ -21,3 +28,12 @@ void MainWidget::on_btn_connect_clicked()
         ui->lineEdit_target_id->text().toStdString());
 }
 
+void MainWidget::onTargetOffline()
+{
+    std::cout<<"target is offline"<<std::endl;
+}
+
+void MainWidget::onRegistrationRejected()
+{
+    std::cout<<"registration is rejected"<<std::endl;
+}

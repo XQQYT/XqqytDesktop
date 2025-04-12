@@ -26,6 +26,7 @@ private:
     void initSubscribe();
 private:
     void onTargetOffline();
+    void onConnectServerFailed();
     void onRegistrationRejected();
 private:
     Ui::MainWidget *ui;

@@ -16,6 +16,7 @@ MainWidget::MainWidget(QWidget *parent)
     QGuiApplication::primaryScreen()->availableGeometry()
 ));
     initSubscribe();
+    EventBus::getInstance().publish("/ui/mainwidget_init_done",std::string("7788"));
 }
 
 MainWidget::~MainWidget()
@@ -27,24 +28,28 @@ void MainWidget::initSubscribe()
 {
     EventBus::getInstance().subscribe("/network/target_is_offline",std::bind(&MainWidget::onTargetOffline,this));
     EventBus::getInstance().subscribe("/network/registration_rejected",std::bind(&MainWidget::onRegistrationRejected,this));
+    EventBus::getInstance().subscribe("/network/failed_to_connect_server",std::bind(&MainWidget::onConnectServerFailed,this));
+
 }
 
 void MainWidget::on_btn_connect_clicked()
 {
-    EventBus::getInstance().publish("/network/connect_to_server_and_target",
+    EventBus::getInstance().publish("/network/connect_to_target",
         ui->lineEdit_id->text().toStdString(),
         ui->lineEdit_target_id->text().toStdString());
 }
 
 void MainWidget::onTargetOffline()
 {
-    std::cout<<"target is offline"<<std::endl;
     bubble_message.error(this,"Target is offline");
 }
 
 void MainWidget::onRegistrationRejected()
 {
-    std::cout<<"registration is rejected"<<std::endl;
     bubble_message.error(this,"Target is offline");
+}
 
+void MainWidget::onConnectServerFailed()
+{
+    bubble_message.error(this,"Failed to connect Server");
 }

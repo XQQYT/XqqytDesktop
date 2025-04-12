@@ -28,7 +28,7 @@ public:
     void initNetworkSubscribe();
     
 private:
-    void onConnectToServer(std::string id, std::string target_id);
+    void connectToTarget(std::string id, std::string target_id);
 private:
     std::shared_ptr<NetworkInterface> network_interface;
     std::thread *recv_thread;

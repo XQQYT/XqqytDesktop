@@ -5,9 +5,11 @@
 //注册必需事件
 void initEventBusRegisterEvent()
 {
-    EventBus::getInstance().registerEvent("/network/connect_to_server_and_target");
+    EventBus::getInstance().registerEvent("/ui/mainwidget_init_done");
+    EventBus::getInstance().registerEvent("/network/connect_to_target");
     EventBus::getInstance().registerEvent("/network/registration_rejected");
     EventBus::getInstance().registerEvent("/network/target_is_offline");
+    EventBus::getInstance().registerEvent("/network/failed_to_connect_server");
 }
 //使模块订阅好事件
 void initModuleSubscribe()

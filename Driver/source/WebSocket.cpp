@@ -37,18 +37,15 @@ void WebSocket::connectToServer(std::function<void(bool)> callback)
                     asio::async_connect(ws_socket->next_layer(), results.begin(), results.end(),
                         [this, self, callback](beast::error_code ec, const boost::asio::ip::basic_resolver_iterator<boost::asio::ip::tcp>
                         ) {
-                            if (!ec) {
-                                ws_socket->async_handshake(address, "/",
-                                    [this, self, callback](beast::error_code ec) {
-                                        if (!ec) {
-                                            callback(true);
-                                        } else {
-                                            callback(false);
-                                        }
-                                    });
-                            } else {
-                                std::cerr << "Connection failed: " << ec.message() << std::endl;
-                            }
+                            ws_socket->async_handshake(address, "/",
+                                [this, self, callback](beast::error_code ec) {
+                                    if (!ec) {
+                                        callback(true);
+                                    } else {
+                                        callback(false);
+                                    }
+                                });
+
                         });
                 } else {
                     std::cerr << "Resolve failed: " << ec.message() << std::endl;

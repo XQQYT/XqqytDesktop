@@ -1,3 +1,5 @@
-/network/connect_to_server_and_target
+/ui/mainwidget_init_done
+/network/connect_to_target
+/network/failed_to_connect_server
 /network/registration_rejected
 /network/target_is_offline

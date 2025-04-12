@@ -44,9 +44,10 @@ void MessageParser::onRegisterResult(std::unique_ptr<Parser> parser)
 {
     if(parser->getKey("status") == "success")
     {
-        std::string current_user_id = std::move(UserInfoManager::getInstance().getCurrentUserId());
-        std::string current_target_id = std::move(UserInfoManager::getInstance().getCurrentTargetId());
-        network_operator.sendToServer(*json_factory->ws_get_target_status(std::move(current_user_id),std::move(current_target_id)));
+        // std::string current_user_id = std::move(UserInfoManager::getInstance().getCurrentUserId());
+        // std::string current_target_id = std::move(UserInfoManager::getInstance().getCurrentTargetId());
+        // network_operator.sendToServer(*json_factory->ws_get_target_status(std::move(current_user_id),std::move(current_target_id)));
+        std::cout<<"success to connect server"<<std::endl;
     }
     else
     {

@@ -27,17 +27,14 @@ void NetworkController::connectToServer(std::string user_id)
             //发送注册消息
             sendMsg(*json_factory->ws_register(std::move(user_id)));
             std::cout<<"success to connect server"<<std::endl;
+            is_first_connect = false;
         }
         else{
+            EventBus::getInstance().publish("/network/failed_to_connect_server");
             std::cout<<"failed to connect server"<<std::endl;
         }
         });
-        is_first_connect = false;
-    }
-    else
-    {
-        sendToServer(*json_factory->ws_get_target_status(std::move(UserInfoManager::getInstance().getCurrentUserId()),
-        std::move(UserInfoManager::getInstance().getCurrentTargetId())));
+        
     }
 }
 
@@ -67,20 +64,26 @@ void NetworkController::sendMsg(std::string msg)
 
 void NetworkController::initNetworkSubscribe()
 {
-    EventBus::getInstance().subscribe("/network/connect_to_server_and_target",std::bind(
-        &NetworkController::onConnectToServer,
+    EventBus::getInstance().subscribe("/network/connect_to_target",std::bind(
+        &NetworkController::connectToTarget,
         this,
         std::placeholders::_1,
         std::placeholders::_2
     ));
+    EventBus::getInstance().subscribe("/ui/mainwidget_init_done",std::bind(
+        &NetworkController::connectToServer,
+        this,
+        std::placeholders::_1
+    ));
 }
 
 
-void NetworkController::onConnectToServer(std::string user_id, std::string target_id)
+void NetworkController::connectToTarget(std::string user_id, std::string target_id)
 {
     UserInfoManager::getInstance().setCurrentUserId(user_id);
     UserInfoManager::getInstance().setCurrentTargetId(target_id);
-    connectToServer(std::move(user_id));
+    sendToServer(*json_factory->ws_get_target_status(std::move(UserInfoManager::getInstance().getCurrentUserId()),
+        std::move(UserInfoManager::getInstance().getCurrentTargetId())));
 }
 
 void NetworkController::sendToServer(std::string msg)

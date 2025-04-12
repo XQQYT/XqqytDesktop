@@ -46,7 +46,7 @@
          <item>
           <widget class="QLineEdit" name="lineEdit_id">
            <property name="text">
-            <string/>
+            <string>7788</string>
            </property>
           </widget>
          </item>

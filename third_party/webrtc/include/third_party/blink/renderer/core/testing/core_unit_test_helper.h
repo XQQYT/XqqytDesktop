@@ -17,7 +17,6 @@
 #include "third_party/blink/renderer/core/html/html_element.h"
 #include "third_party/blink/renderer/core/layout/geometry/logical_rect.h"
 #include "third_party/blink/renderer/core/layout/geometry/physical_rect.h"
-#include "third_party/blink/renderer/core/layout/hit_test_result.h"
 #include "third_party/blink/renderer/core/layout/inline/inline_node.h"
 #include "third_party/blink/renderer/core/layout/layout_view.h"
 #include "third_party/blink/renderer/core/loader/empty_clients.h"
@@ -96,9 +95,7 @@ class RenderingTestChromeClient : public EmptyChromeClient {
       CompositorElementId scrollable_area_element_id,
       WebInputEvent::Type injected_type) override;
 
-  void ScheduleAnimation(const LocalFrameView*,
-                         base::TimeDelta,
-                         bool) override {
+  void ScheduleAnimation(const LocalFrameView*, base::TimeDelta) override {
     animation_scheduled_ = true;
   }
   bool AnimationScheduled() const { return animation_scheduled_; }
@@ -114,7 +111,6 @@ class RenderingTest : public PageTestBase {
   USING_FAST_MALLOC(RenderingTest);
 
  public:
-  RenderingTest(base::test::TaskEnvironment::TimeSource time_source);
   virtual FrameSettingOverrideFunction SettingOverrider() const {
     return nullptr;
   }
@@ -123,7 +119,7 @@ class RenderingTest : public PageTestBase {
   explicit RenderingTest(LocalFrameClient* = nullptr);
 
   const Node* HitTest(int x, int y);
-  const HitTestResult::NodeSet& RectBasedHitTest(const PhysicalRect& rect);
+  HitTestResult::NodeSet RectBasedHitTest(const PhysicalRect& rect);
 
  protected:
   void SetUp() override;
@@ -177,9 +173,10 @@ class RenderingTest : public PageTestBase {
     return GetDisplayItemClientFromLayoutObject(GetLayoutObjectByElementId(id));
   }
 
-  // Create a `ConstraintSpace` for the given available inline size. The
+  // Create a `NGConstraintSpace` for the given available inline size. The
   // available block sizes is `LayoutUnit::Max()`.
-  ConstraintSpace ConstraintSpaceForAvailableSize(LayoutUnit inline_size) const;
+  NGConstraintSpace ConstraintSpaceForAvailableSize(
+      LayoutUnit inline_size) const;
 
  private:
   Persistent<LocalFrameClient> local_frame_client_;
@@ -202,19 +199,6 @@ constexpr PhysicalSize::PhysicalSize(int width, int height)
     : width(width), height(height) {}
 constexpr PhysicalRect::PhysicalRect(int left, int top, int width, int height)
     : offset(left, top), size(width, height) {}
-
-// Returns the rect that should have raster invalidated whenever this object
-// changes. The rect is in the coordinate space of the document's scrolling
-// contents. This method deals with outlines and overflow.
-PhysicalRect VisualRectInDocument(const LayoutObject& object,
-                                  VisualRectFlags = kDefaultVisualRectFlags);
-
-// Returns the rect that should have raster invalidated whenever the specified
-// object changes. The rect is in the object's local physical coordinate space.
-// This is for non-SVG objects and LayoutSVGRoot only. SVG objects (except
-// LayoutSVGRoot) should use VisualRectInLocalSVGCoordinates() and map with
-// SVG transforms instead.
-PhysicalRect LocalVisualRect(const LayoutObject& object);
 
 }  // namespace blink
 

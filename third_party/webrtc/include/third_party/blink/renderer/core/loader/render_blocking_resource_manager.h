@@ -7,13 +7,10 @@
 
 #include "base/time/time.h"
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/dom/element.h"
-#include "third_party/blink/renderer/core/loader/render_blocking_element_link_map.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_set.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/timer.h"
-#include "third_party/blink/renderer/platform/wtf/text/atomic_string_hash.h"
 
 namespace blink {
 
@@ -22,7 +19,6 @@ class FontFace;
 class PendingLinkPreload;
 class Node;
 class ScriptElementBase;
-class HTMLLinkElement;
 
 // https://html.spec.whatwg.org/#render-blocking-mechanism with some extensions.
 class CORE_EXPORT RenderBlockingResourceManager final
@@ -40,8 +36,7 @@ class CORE_EXPORT RenderBlockingResourceManager final
   }
   bool HasNonFontRenderBlockingResources() const {
     return pending_stylesheet_owner_nodes_.size() || pending_scripts_.size() ||
-           element_render_blocking_links_->HasElement(
-               RenderBlockingLevel::kBlock);
+           blocked_on_main_document_parsing_;
   }
   bool HasRenderBlockingFonts() const {
     return pending_font_preloads_.size() || imperative_font_loading_count_;
@@ -75,20 +70,15 @@ class CORE_EXPORT RenderBlockingResourceManager final
   void EnsureStartFontPreloadMaxFCPDelayTimer();
   void FontPreloadingTimerFired(TimerBase*);
 
-  void AddPendingParsingElementLink(const AtomicString& id,
-                                    const HTMLLinkElement* element,
-                                    RenderBlockingLevel blocking_level);
-  void RemovePendingParsingElement(const AtomicString& id, Element* element);
-  void RemovePendingParsingElementLink(const AtomicString& id,
-                                       const HTMLLinkElement* element);
-  void ClearPendingParsingElements();
+  // Notifies whether rendering should remain blocked until main Document
+  // parsing is complete.
+  void SetMainDocumentParsingIsRenderBlocking(bool blocking);
 
   void Trace(Visitor* visitor) const;
 
  private:
   friend class RenderBlockingResourceManagerTest;
 
-  void OnRenderBlockingElementLinkEmpty(RenderBlockingLevel level);
   void RenderBlockingResourceUnblocked();
 
   // Exposed to unit tests only.
@@ -109,10 +99,6 @@ class CORE_EXPORT RenderBlockingResourceManager final
   // Tracks the currently pending render-blocking font preloads.
   HeapHashSet<WeakMember<const PendingLinkPreload>> pending_font_preloads_;
 
-  // Tracks the currently pending render-blocking element ids and the links that
-  // caused them to be blocking.
-  Member<RenderBlockingElementLinkMap> element_render_blocking_links_;
-
   Member<Document> document_;
 
   unsigned imperative_font_loading_count_ = 0;
@@ -123,6 +109,7 @@ class CORE_EXPORT RenderBlockingResourceManager final
       font_preload_max_fcp_delay_timer_;
   base::TimeDelta font_preload_timeout_;
   bool font_preload_timer_has_fired_ = false;
+  bool blocked_on_main_document_parsing_ = false;
 };
 
 }  // namespace blink

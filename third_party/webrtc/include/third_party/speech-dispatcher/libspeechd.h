@@ -27,7 +27,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "third_party/speech-dispatcher/speechd_types.h"
+#include "libspeechd_version.h"
+#include "speechd_types.h"
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

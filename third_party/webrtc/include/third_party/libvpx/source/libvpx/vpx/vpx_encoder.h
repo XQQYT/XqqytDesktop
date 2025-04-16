@@ -29,8 +29,9 @@
 extern "C" {
 #endif
 
-#include "./vpx_codec.h"  // IWYU pragma: export
+#include "./vpx_codec.h"
 #include "./vpx_ext_ratectrl.h"
+#include "./vpx_tpl.h"
 
 /*! Temporal Scalability: Maximum length of the sequence defining frame
  * layer membership
@@ -56,15 +57,10 @@ extern "C" {
  * must be bumped.  Examples include, but are not limited to, changing
  * types, removing or reassigning enums, adding/removing/rearranging
  * fields to structures
- *
- * \note
- * VPX_ENCODER_ABI_VERSION has a VPX_EXT_RATECTRL_ABI_VERSION component
- * because the VP9E_SET_EXTERNAL_RATE_CONTROL codec control uses
- * vpx_rc_funcs_t.
  */
-#define VPX_ENCODER_ABI_VERSION \
-  (18 + VPX_CODEC_ABI_VERSION + \
-   VPX_EXT_RATECTRL_ABI_VERSION) /**<\hideinitializer*/
+#define VPX_ENCODER_ABI_VERSION                                \
+  (16 + VPX_CODEC_ABI_VERSION + VPX_EXT_RATECTRL_ABI_VERSION + \
+   VPX_TPL_ABI_VERSION) /**<\hideinitializer*/
 
 /*! \brief Encoder capabilities bitfield
  *
@@ -464,8 +460,6 @@ typedef struct vpx_codec_enc_cfg {
   /*!\brief Target data rate
    *
    * Target bitrate to use for this stream, in kilobits per second.
-   * Internally capped to the smaller of the uncompressed bitrate and
-   * 1000000 kilobits per second.
    */
   unsigned int rc_target_bitrate;
 
@@ -976,36 +970,21 @@ vpx_codec_err_t vpx_codec_enc_config_set(vpx_codec_ctx_t *ctx,
  *
  * Retrieves a stream level global header packet, if supported by the codec.
  *
- * \li VP8: Unsupported
- * \li VP9: Returns a buffer of <tt>ID (1 byte)|Length (1 byte)|Length
- * bytes</tt> values. The function should be called after encoding to retrieve
- * the most accurate information.
- *
  * \param[in]    ctx     Pointer to this instance's context
  *
  * \retval NULL
  *     Encoder does not support global header
  * \retval Non-NULL
- *     Pointer to buffer containing global header packet. The buffer pointer
- *     and its contents are only valid for the lifetime of \a ctx. The contents
- *     may change in subsequent calls to the function.
- * \sa
- * https://www.webmproject.org/docs/container/#vp9-codec-feature-metadata-codecprivate
+ *     Pointer to buffer containing global header packet
  */
 vpx_fixed_buf_t *vpx_codec_get_global_headers(vpx_codec_ctx_t *ctx);
 
-/*!\brief Encode Deadline
- *
- * This type indicates a deadline, in microseconds, to be passed to
- * vpx_codec_encode().
- */
-typedef unsigned long vpx_enc_deadline_t;
 /*!\brief deadline parameter analogous to VPx REALTIME mode. */
-#define VPX_DL_REALTIME 1ul
+#define VPX_DL_REALTIME (1)
 /*!\brief deadline parameter analogous to  VPx GOOD QUALITY mode. */
-#define VPX_DL_GOOD_QUALITY 1000000ul
+#define VPX_DL_GOOD_QUALITY (1000000)
 /*!\brief deadline parameter analogous to VPx BEST QUALITY mode. */
-#define VPX_DL_BEST_QUALITY 0ul
+#define VPX_DL_BEST_QUALITY (0)
 /*!\brief Encode a frame
  *
  * Encodes a video frame at the given "presentation time." The presentation
@@ -1030,8 +1009,6 @@ typedef unsigned long vpx_enc_deadline_t;
  *
  * \param[in]    ctx       Pointer to this instance's context
  * \param[in]    img       Image data to encode, NULL to flush.
- *                         Encoding sample values outside the range
- *                         [0..(1<<img->bit_depth)-1] is undefined behavior.
  * \param[in]    pts       Presentation time stamp, in timebase units.
  * \param[in]    duration  Duration to show frame, in timebase units.
  * \param[in]    flags     Flags to use for encoding this frame.
@@ -1047,7 +1024,7 @@ typedef unsigned long vpx_enc_deadline_t;
 vpx_codec_err_t vpx_codec_encode(vpx_codec_ctx_t *ctx, const vpx_image_t *img,
                                  vpx_codec_pts_t pts, unsigned long duration,
                                  vpx_enc_frame_flags_t flags,
-                                 vpx_enc_deadline_t deadline);
+                                 unsigned long deadline);
 
 /*!\brief Set compressed data output buffer
  *
@@ -1091,12 +1068,6 @@ vpx_codec_err_t vpx_codec_encode(vpx_codec_ctx_t *ctx, const vpx_image_t *img,
  *     The buffer was set successfully.
  * \retval #VPX_CODEC_INVALID_PARAM
  *     A parameter was NULL, the image format is unsupported, etc.
- *
- * \note
- * `duration` and `deadline` are of the unsigned long type, which can be 32
- * or 64 bits. `duration` and `deadline` must be less than or equal to
- * UINT32_MAX so that their ranges are independent of the size of unsigned
- * long.
  */
 vpx_codec_err_t vpx_codec_set_cx_data_buf(vpx_codec_ctx_t *ctx,
                                           const vpx_fixed_buf_t *buf,

@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_ENCRYPTED_MEDIA_REQUEST_H_
 
 #include <memory>
-#include <vector>
 
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 
@@ -16,13 +15,15 @@ class SecurityOrigin;
 class WebContentDecryptionModuleAccess;
 struct WebMediaKeySystemConfiguration;
 class WebString;
+template <typename T>
+class WebVector;
 
 class EncryptedMediaRequest : public GarbageCollected<EncryptedMediaRequest> {
  public:
   virtual ~EncryptedMediaRequest() = default;
 
   virtual WebString KeySystem() const = 0;
-  virtual const std::vector<WebMediaKeySystemConfiguration>&
+  virtual const WebVector<WebMediaKeySystemConfiguration>&
   SupportedConfigurations() const = 0;
 
   virtual const SecurityOrigin* GetSecurityOrigin() const = 0;

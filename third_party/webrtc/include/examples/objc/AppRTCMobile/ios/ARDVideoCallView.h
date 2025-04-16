@@ -39,10 +39,8 @@
 @interface ARDVideoCallView : UIView
 
 @property(nonatomic, readonly) UILabel *statusLabel;
-@property(nonatomic, readonly) RTC_OBJC_TYPE(RTCCameraPreviewView) *
-    localVideoView;
-@property(nonatomic, readonly)
-    __kindof UIView<RTC_OBJC_TYPE(RTCVideoRenderer)> *remoteVideoView;
+@property(nonatomic, readonly) RTC_OBJC_TYPE(RTCCameraPreviewView) * localVideoView;
+@property(nonatomic, readonly) __kindof UIView<RTC_OBJC_TYPE(RTCVideoRenderer)> *remoteVideoView;
 @property(nonatomic, readonly) ARDStatsView *statsView;
 @property(nonatomic, weak) id<ARDVideoCallViewDelegate> delegate;
 

@@ -14,10 +14,9 @@ let authenticatorArgs = {
 };
 
 window.onload = async function() {
-  test_driver.set_test_context(parent);
-  const authenticator = await window.test_driver.add_virtual_authenticator(authenticatorArgs);
+  await window.test_driver.add_virtual_authenticator(authenticatorArgs);
   let enabled = true;
-  let name = `OK`;
+  let message = `OK`;
   try {
     const publicKey = {
       rp: {
@@ -54,9 +53,8 @@ window.onload = async function() {
     });
   } catch (e) {
     enabled = false;
-    name = e.name;
+    message = e.name + '#' + e.message;
   }
-  await window.test_driver.remove_virtual_authenticator(authenticator);
-  parent.postMessage({ type: 'availability-result', enabled, name }, '*');
+  parent.postMessage({ type: 'availability-result', enabled, message }, '*');
 }
 </script>

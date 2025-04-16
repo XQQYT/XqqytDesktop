@@ -18,8 +18,9 @@
 
 namespace mediapipe {
 
-inline constexpr char kGpuSharedTagName[] = "GPU_SHARED";
-inline constexpr char kGpuSharedSidePacketName[] = "gpu_shared";
+static constexpr char kGpuSharedTagName[] = "GPU_SHARED";
+static constexpr char kGpuSharedSidePacketName[] = "gpu_shared";
+static constexpr char kGpuExecutorName[] = "__gpu";
 
 }  // namespace mediapipe
 

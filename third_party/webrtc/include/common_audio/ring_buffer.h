@@ -14,7 +14,7 @@
 #ifndef COMMON_AUDIO_RING_BUFFER_H_
 #define COMMON_AUDIO_RING_BUFFER_H_
 
-// TODO(https://issues.webrtc.org/379542219): Remove when AECm gets removed.
+// TODO(alessiob): Used by AEC, AECm and AudioRingBuffer. Remove when possible.
 
 #ifdef __cplusplus
 extern "C" {

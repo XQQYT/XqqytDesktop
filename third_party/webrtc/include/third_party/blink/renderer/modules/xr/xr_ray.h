@@ -7,7 +7,6 @@
 
 #include <memory>
 
-#include "third_party/blink/renderer/core/typed_arrays/array_buffer_view_helpers.h"
 #include "third_party/blink/renderer/core/typed_arrays/dom_typed_array.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
@@ -36,7 +35,7 @@ class XRRay final : public ScriptWrappable {
 
   DOMPointReadOnly* origin() const { return origin_.Get(); }
   DOMPointReadOnly* direction() const { return direction_.Get(); }
-  NotShared<DOMFloat32Array> matrix();
+  DOMFloat32Array* matrix();
 
   // Calling |RawMatrix()| is equivalent to calling |matrix()| w.r.t. the data
   // that will be returned, the only difference is the returned type.
@@ -58,7 +57,7 @@ class XRRay final : public ScriptWrappable {
 
   Member<DOMPointReadOnly> origin_;
   Member<DOMPointReadOnly> direction_;
-  NotShared<DOMFloat32Array> matrix_;
+  Member<DOMFloat32Array> matrix_;
   std::unique_ptr<gfx::Transform> raw_matrix_;
 };
 

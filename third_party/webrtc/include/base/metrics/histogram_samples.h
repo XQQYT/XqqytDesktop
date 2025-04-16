@@ -11,11 +11,9 @@
 #include <limits>
 #include <memory>
 #include <string>
-#include <string_view>
 
 #include "base/atomicops.h"
 #include "base/base_export.h"
-#include "base/gtest_prod_util.h"
 #include "base/memory/raw_ptr.h"
 #include "base/metrics/histogram_base.h"
 
@@ -73,7 +71,7 @@ class BASE_EXPORT HistogramSamples {
     // Adds a given count to the held bucket. If not possible, it returns false
     // and leaves the parts unchanged. Once extracted/disabled, this always
     // returns false. This in an "acquire/release" operation.
-    bool Accumulate(size_t bucket, HistogramBase::Count32 count);
+    bool Accumulate(size_t bucket, HistogramBase::Count count);
 
     // Returns if the sample has been "disabled" (via Extract) and thus not
     // allowed to accept further accumulation.
@@ -103,7 +101,7 @@ class BASE_EXPORT HistogramSamples {
     // to have multiple sample-sets representing subsets of the data.
     uint64_t id;
 
-    // The sum of all the entries, effectively the sum(sample * count) for
+    // The sum of all the entries, effectivly the sum(sample * count) for
     // all samples. Despite being atomic, no guarantees are made on the
     // accuracy of this value; there may be races during histogram
     // accumulation and snapshotting that we choose to accept. It should
@@ -142,22 +140,21 @@ class BASE_EXPORT HistogramSamples {
   HistogramSamples& operator=(const HistogramSamples&) = delete;
   virtual ~HistogramSamples();
 
-  virtual void Accumulate(HistogramBase::Sample32 value,
-                          HistogramBase::Count32 count) = 0;
-  virtual HistogramBase::Count32 GetCount(
-      HistogramBase::Sample32 value) const = 0;
-  virtual HistogramBase::Count32 TotalCount() const = 0;
+  virtual void Accumulate(HistogramBase::Sample value,
+                          HistogramBase::Count count) = 0;
+  virtual HistogramBase::Count GetCount(HistogramBase::Sample value) const = 0;
+  virtual HistogramBase::Count TotalCount() const = 0;
 
-  bool Add(const HistogramSamples& other);
+  void Add(const HistogramSamples& other);
 
   // Add from serialized samples.
   bool AddFromPickle(PickleIterator* iter);
 
-  bool Subtract(const HistogramSamples& other);
+  void Subtract(const HistogramSamples& other);
 
   // Adds the samples from |other| while also resetting |other|'s sample counts
   // to 0.
-  bool Extract(HistogramSamples& other);
+  void Extract(HistogramSamples& other);
 
   // Returns an iterator to read the sample counts.
   virtual std::unique_ptr<SampleCountIterator> Iterator() const = 0;
@@ -189,7 +186,7 @@ class BASE_EXPORT HistogramSamples {
   // Returns ASCII representation of histograms data for histogram samples.
   // The dictionary returned will be of the form
   // {"name":<string>, "header":<string>, "body": <string>}
-  base::Value::Dict ToGraphDict(std::string_view histogram_name,
+  base::Value::Dict ToGraphDict(StringPiece histogram_name,
                                 int32_t flags) const;
 
   // Accessor functions.
@@ -201,7 +198,7 @@ class BASE_EXPORT HistogramSamples {
     return meta_->sum;
 #endif
   }
-  HistogramBase::Count32 redundant_count() const {
+  HistogramBase::Count redundant_count() const {
     return subtle::NoBarrier_Load(&meta_->redundant_count);
   }
 
@@ -229,16 +226,16 @@ class BASE_EXPORT HistogramSamples {
   // Accumulates to the embedded single-sample field if possible. Returns true
   // on success, false otherwise. Sum and redundant-count are also updated in
   // the success case.
-  bool AccumulateSingleSample(HistogramBase::Sample32 value,
-                              HistogramBase::Count32 count,
+  bool AccumulateSingleSample(HistogramBase::Sample value,
+                              HistogramBase::Count count,
                               size_t bucket);
 
   // Atomically adjust the sum and redundant-count.
-  void IncreaseSumAndCount(int64_t sum, HistogramBase::Count32 count);
+  void IncreaseSumAndCount(int64_t sum, HistogramBase::Count count);
 
   // Record a negative-sample observation and the reason why.
   void RecordNegativeSample(NegativeSampleReason reason,
-                            HistogramBase::Count32 increment);
+                            HistogramBase::Count increment);
 
   AtomicSingleSample& single_sample() { return meta_->single_sample; }
   const AtomicSingleSample& single_sample() const {
@@ -246,13 +243,13 @@ class BASE_EXPORT HistogramSamples {
   }
 
   // Produces an actual graph (set of blank vs non blank char's) for a bucket.
-  static void WriteAsciiBucketGraph(double x_count,
-                                    int line_length,
-                                    std::string* output);
+  void WriteAsciiBucketGraph(double x_count,
+                             int line_length,
+                             std::string* output) const;
 
   // Writes textual description of the bucket contents (relative to histogram).
   // Output is the count in the buckets, as well as the percentage.
-  void WriteAsciiBucketValue(HistogramBase::Count32 current,
+  void WriteAsciiBucketValue(HistogramBase::Count current,
                              double scaled_sum,
                              std::string* output) const;
 
@@ -260,25 +257,23 @@ class BASE_EXPORT HistogramSamples {
   virtual std::string GetAsciiBody() const;
 
   // Gets a header message describing this histogram samples.
-  virtual std::string GetAsciiHeader(std::string_view histogram_name,
+  virtual std::string GetAsciiHeader(StringPiece histogram_name,
                                      int32_t flags) const;
 
   // Returns a string description of what goes in a given bucket.
   const std::string GetSimpleAsciiBucketRange(
-      HistogramBase::Sample32 sample) const;
+      HistogramBase::Sample sample) const;
 
   Metadata* meta() { return meta_; }
 
  private:
-  FRIEND_TEST_ALL_PREFIXES(HistogramSamplesTest, WriteAsciiBucketGraph);
-
   // Depending on derived class `meta_` can come from:
   // - Local storage: Then `meta_owned_` is set and meta_ points to it.
   // - External storage: Then `meta_owned_` is null, and `meta_` point toward an
   //   external object. The callers guarantees the value will outlive this
   //   instance.
   std::unique_ptr<Metadata> meta_owned_;
-  raw_ptr<Metadata> meta_;
+  raw_ptr<Metadata, LeakedDanglingUntriaged> meta_;
 };
 
 class BASE_EXPORT SampleCountIterator {
@@ -293,12 +288,12 @@ class BASE_EXPORT SampleCountIterator {
   // full int32_t range and bucket max is exclusive, so it needs to support
   // values up to MAXINT32+1.
   // Requires: !Done();
-  virtual void Get(HistogramBase::Sample32* min,
+  virtual void Get(HistogramBase::Sample* min,
                    int64_t* max,
-                   HistogramBase::Count32* count) = 0;
-  static_assert(std::numeric_limits<HistogramBase::Sample32>::max() <
+                   HistogramBase::Count* count) = 0;
+  static_assert(std::numeric_limits<HistogramBase::Sample>::max() <
                     std::numeric_limits<int64_t>::max(),
-                "Get() |max| must be able to hold Histogram::Sample32 max + 1");
+                "Get() |max| must be able to hold Histogram::Sample max + 1");
 
   // Get the index of current histogram bucket.
   // For histograms that don't use predefined buckets, it returns false.
@@ -308,9 +303,9 @@ class BASE_EXPORT SampleCountIterator {
 
 class BASE_EXPORT SingleSampleIterator : public SampleCountIterator {
  public:
-  SingleSampleIterator(HistogramBase::Sample32 min,
+  SingleSampleIterator(HistogramBase::Sample min,
                        int64_t max,
-                       HistogramBase::Count32 count,
+                       HistogramBase::Count count,
                        size_t bucket_index,
                        bool value_was_extracted);
   ~SingleSampleIterator() override;
@@ -318,19 +313,19 @@ class BASE_EXPORT SingleSampleIterator : public SampleCountIterator {
   // SampleCountIterator:
   bool Done() const override;
   void Next() override;
-  void Get(HistogramBase::Sample32* min,
+  void Get(HistogramBase::Sample* min,
            int64_t* max,
-           HistogramBase::Count32* count) override;
+           HistogramBase::Count* count) override;
 
   // SampleVector uses predefined buckets so iterator can return bucket index.
   bool GetBucketIndex(size_t* index) const override;
 
  private:
   // Information about the single value to return.
-  const HistogramBase::Sample32 min_;
+  const HistogramBase::Sample min_;
   const int64_t max_;
   const size_t bucket_index_;
-  HistogramBase::Count32 count_;
+  HistogramBase::Count count_;
 
   // Whether the value that this iterator holds was extracted from the
   // underlying data (i.e., reset to 0).

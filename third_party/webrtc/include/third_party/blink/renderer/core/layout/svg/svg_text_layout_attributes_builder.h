@@ -12,6 +12,7 @@
 
 namespace blink {
 
+class InlineItem;
 class InlineNode;
 class LayoutBlockFlow;
 
@@ -33,7 +34,8 @@ class SvgTextLayoutAttributesBuilder final {
  public:
   explicit SvgTextLayoutAttributesBuilder(InlineNode ifc);
 
-  void Build(const String& ifc_text_content, const InlineItems& items);
+  void Build(const String& ifc_text_content,
+             const HeapVector<InlineItem>& items);
 
   // This function can be called just once after Build().
   SvgInlineNodeData* CreateSvgInlineNodeData();

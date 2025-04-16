@@ -31,18 +31,15 @@
 namespace perfetto {
 namespace profiling {
 
-bool ParseLlvmSymbolizerJsonLine(const std::string& line,
-                                 std::vector<SymbolizedFrame>* result);
-enum BinaryType {
-  kElf,
-  kMachO,
-  kMachODsym,
-};
+bool ParseLlvmSymbolizerLine(const std::string& line,
+                             std::string* file_name,
+                             uint32_t* line_no);
+std::vector<std::string> GetLines(
+    std::function<int64_t(char*, size_t)> fn_read);
 
 struct FoundBinary {
   std::string file_name;
   uint64_t load_bias;
-  BinaryType type;
 };
 
 class BinaryFinder {

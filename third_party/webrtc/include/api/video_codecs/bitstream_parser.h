@@ -14,8 +14,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/array_view.h"
 
 namespace webrtc {
@@ -29,8 +28,8 @@ class BitstreamParser {
   virtual void ParseBitstream(rtc::ArrayView<const uint8_t> bitstream) = 0;
 
   // Get the last extracted QP value from the parsed bitstream. If no QP
-  // value could be parsed, returns std::nullopt.
-  virtual std::optional<int> GetLastSliceQp() const = 0;
+  // value could be parsed, returns absl::nullopt.
+  virtual absl::optional<int> GetLastSliceQp() const = 0;
 };
 
 }  // namespace webrtc

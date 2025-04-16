@@ -5,12 +5,11 @@
 #ifndef IPCZ_SRC_IPCZ_ROUTE_EDGE_H_
 #define IPCZ_SRC_IPCZ_ROUTE_EDGE_H_
 
-#include <optional>
-
 #include "ipcz/router_link.h"
 #include "ipcz/sequence_number.h"
 #include "ipcz/sublink_id.h"
 #include "third_party/abseil-cpp/absl/base/macros.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "util/ref_counted.h"
 
 namespace ipcz {
@@ -79,12 +78,12 @@ class RouteEdge {
     decaying_link_->incoming_length = length;
   }
 
-  std::optional<SequenceNumber> length_to_decaying_link() const {
-    return decaying_link_ ? decaying_link_->outgoing_length : std::nullopt;
+  absl::optional<SequenceNumber> length_to_decaying_link() const {
+    return decaying_link_ ? decaying_link_->outgoing_length : absl::nullopt;
   }
 
-  std::optional<SequenceNumber> length_from_decaying_link() const {
-    return decaying_link_ ? decaying_link_->incoming_length : std::nullopt;
+  absl::optional<SequenceNumber> length_from_decaying_link() const {
+    return decaying_link_ ? decaying_link_->incoming_length : absl::nullopt;
   }
 
   // Sets the primary link for this edge. Only valid to call if the edge does
@@ -145,7 +144,7 @@ class RouteEdge {
     // decaying link must be used to transmit any new parcels with a
     // SequenceNumber in the range [0, 4] inclusive. Beyond that point the
     // primary link must be used.
-    std::optional<SequenceNumber> outgoing_length;
+    absl::optional<SequenceNumber> outgoing_length;
 
     // If present, the length of the parcel sequence after which this edge can
     // stop expecting to receive parcels over `decaying_link_`. If this is 7,
@@ -153,7 +152,7 @@ class RouteEdge {
     // from the decaying link as long as it is missing any parcel in the range
     // [0, 6] inclusive. Beyond that point parcels should only be expected from
     // the primary link.
-    std::optional<SequenceNumber> incoming_length;
+    absl::optional<SequenceNumber> incoming_length;
   };
 
   // The primary link over which this edge transmits and accepts parcels and

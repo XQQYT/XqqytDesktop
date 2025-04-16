@@ -73,13 +73,9 @@
      ["", NaN],
      ["0000-12", NaN],
      ["2019-00", NaN],
-     ["2019-12", 599],
-     ["1969-12", -1],
+     ["2019-12", 599]
    ]);
-   testValueAsNumberSetter("month", monthInput, [
-     [599, "2019-12"],
-     [-1, "1969-12"],
-   ]);
+   testValueAsNumberSetter("month", monthInput, [[599, "2019-12"]]);
 
    const weekInput = document.getElementById("input_week");
    testValueAsNumberGetter("week", weekInput, [
@@ -87,13 +83,11 @@
      ["0000-W50", NaN],
      ["2019-W00", NaN],
      ["2019-W60", NaN],
-     ["2019-W50", 1575849600000],
-     ["1969-W20", -20217600000],
+     ["2019-W50", 1575849600000]
    ]);
    testValueAsNumberSetter("week", weekInput, [
      [0, "1970-W01"],
-     [1575849600000, "2019-W50"],
-     [-20217600000, "1969-W20"],
+     [1575849600000, "2019-W50"]
    ]);
 
    const timeInput = document.getElementById("input_time");

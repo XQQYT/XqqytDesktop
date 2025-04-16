@@ -18,12 +18,12 @@
 /*--start constants--*/
 #define PY_MAJOR_VERSION        3
 #define PY_MINOR_VERSION        11
-#define PY_MICRO_VERSION        9
+#define PY_MICRO_VERSION        5
 #define PY_RELEASE_LEVEL        PY_RELEASE_LEVEL_FINAL
 #define PY_RELEASE_SERIAL       0
 
 /* Version as a string */
-#define PY_VERSION              "3.11.9"
+#define PY_VERSION              "3.11.5"
 /*--end constants--*/
 
 /* Version as a single 4-byte hex number, e.g. 0x010502B2 == 1.5.2b2.
@@ -33,3 +33,13 @@
                         (PY_MICRO_VERSION <<  8) | \
                         (PY_RELEASE_LEVEL <<  4) | \
                         (PY_RELEASE_SERIAL << 0))
+
+/* Infra-specific extension: if a version override is provided, replace prefer
+   it over our hard-coded PY_VERSION.
+
+   We define this here so diffs aren't upset when PY_VERSION changes. */
+#include "pyconfig.h"
+#if defined(PY_VERSION_OVERRIDE)
+#undef PY_VERSION
+#define PY_VERSION PY_VERSION_OVERRIDE
+#endif /* PY_VERSION_OVERRIDE */

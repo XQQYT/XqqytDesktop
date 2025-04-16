@@ -5,6 +5,7 @@
 #ifndef IPCZ_SRC_UTIL_STRONG_ALIAS_H_
 #define IPCZ_SRC_UTIL_STRONG_ALIAS_H_
 
+#include <ostream>
 #include <utility>
 
 namespace ipcz {
@@ -55,6 +56,12 @@ class StrongAlias {
  protected:
   UnderlyingType value_;
 };
+
+template <typename TagType, typename UnderlyingType>
+std::ostream& operator<<(std::ostream& stream,
+                         const StrongAlias<TagType, UnderlyingType>& alias) {
+  return stream << alias.value();
+}
 
 }  // namespace ipcz
 

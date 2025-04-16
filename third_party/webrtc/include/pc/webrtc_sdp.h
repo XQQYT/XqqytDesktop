@@ -31,6 +31,14 @@
 #include "rtc_base/strings/string_builder.h"
 #include "rtc_base/system/rtc_export.h"
 
+namespace cricket {
+class Candidate;
+}  // namespace cricket
+
+namespace rtc {
+class StringBuilder;
+}  // namespace rtc
+
 namespace webrtc {
 class IceCandidateInterface;
 class JsepIceCandidate;
@@ -50,7 +58,8 @@ std::string SdpSerializeCandidate(const IceCandidateInterface& candidate);
 
 // Serializes a cricket Candidate.
 // candidate - The candidate to be serialized.
-RTC_EXPORT std::string SdpSerializeCandidate(const Candidate& candidate);
+RTC_EXPORT std::string SdpSerializeCandidate(
+    const cricket::Candidate& candidate);
 
 // Deserializes the passed in SDP string to a JsepSessionDescription.
 // message - SDP string to be Deserialized.
@@ -82,7 +91,7 @@ RTC_EXPORT bool SdpDeserializeCandidate(absl::string_view message,
 // return - true on success, false on failure.
 RTC_EXPORT bool SdpDeserializeCandidate(absl::string_view transport_name,
                                         absl::string_view message,
-                                        Candidate* candidate,
+                                        cricket::Candidate* candidate,
                                         SdpParseError* error);
 
 // Parses `message` according to the grammar defined in RFC 5245, Section 15.1
@@ -92,7 +101,7 @@ RTC_EXPORT bool SdpDeserializeCandidate(absl::string_view transport_name,
 // If `is_raw` is false, `message` is expected to be prefixed with "a=".
 // If `is_raw` is true, no prefix is expected in `messaage`.
 RTC_EXPORT bool ParseCandidate(absl::string_view message,
-                               Candidate* candidate,
+                               cricket::Candidate* candidate,
                                SdpParseError* error,
                                bool is_raw);
 
@@ -100,13 +109,8 @@ RTC_EXPORT bool ParseCandidate(absl::string_view message,
 // parameters are not considered to be part of the FMTP line, see the function
 // IsFmtpParam(). Returns true if the set of FMTP parameters is nonempty, false
 // otherwise.
-bool WriteFmtpParameters(const webrtc::CodecParameterMap& parameters,
-                         StringBuilder* os);
-
-// Parses a string into an FMTP parameter set, in key-value format.
-bool ParseFmtpParameterSet(absl::string_view line_params,
-                           webrtc::CodecParameterMap& codec_params,
-                           SdpParseError* error);
+bool WriteFmtpParameters(const cricket::CodecParameterMap& parameters,
+                         rtc::StringBuilder* os);
 
 }  // namespace webrtc
 

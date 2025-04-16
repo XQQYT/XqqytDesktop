@@ -126,7 +126,7 @@ bool ContainedRangeMap<AddressType, EntryType>::StoreRange(
   // Optimization: if the iterators are equal, no child ranges would be
   // moved.  Create the new child range with a NULL map to conserve space
   // in leaf nodes, of which there will be many.
-  AddressToRangeMap* child_map = nullptr;
+  AddressToRangeMap* child_map = NULL;
 
   if (iterator_base != iterator_high) {
     // The children of this range that are contained by the new range must
@@ -203,7 +203,7 @@ void ContainedRangeMap<AddressType, EntryType>::Clear() {
       delete child->second;
 
     delete map_;
-    map_ = nullptr;
+    map_ = NULL;
   }
 }
 

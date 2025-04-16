@@ -5,17 +5,13 @@
 #ifndef BASE_WIN_PE_IMAGE_READER_H_
 #define BASE_WIN_PE_IMAGE_READER_H_
 
-#include <windows.h>
-
 #include <stddef.h>
 #include <stdint.h>
+#include <windows.h>
 
 #include <memory>
 
 #include "base/base_export.h"
-#include "base/containers/span.h"
-#include "base/memory/raw_span.h"
-#include "base/numerics/safe_math.h"
 
 namespace base {
 namespace win {
@@ -39,11 +35,11 @@ class BASE_EXPORT PeImageReader {
   // |certificate_data_size| bytes). |context| is the value provided by the
   // caller to EnumCertificates(). Implementations must return true to continue
   // the enumeration, or false to abort.
-  using EnumCertificatesCallback =
-      bool (*)(uint16_t revision,
-               uint16_t certificate_type,
-               base::span<const uint8_t> certificate_data,
-               void* context);
+  using EnumCertificatesCallback = bool (*)(uint16_t revision,
+                                            uint16_t certificate_type,
+                                            const uint8_t* certificate_data,
+                                            size_t certificate_data_size,
+                                            void* context);
 
   PeImageReader();
 
@@ -53,7 +49,7 @@ class BASE_EXPORT PeImageReader {
   ~PeImageReader();
 
   // Returns false if the given data does not appear to be a valid PE image.
-  bool Initialize(span<const uint8_t> image_data);
+  bool Initialize(const uint8_t* image_data, size_t image_size);
 
   // Returns the machine word size for the image.
   WordSize GetWordSize();
@@ -61,21 +57,19 @@ class BASE_EXPORT PeImageReader {
   const IMAGE_DOS_HEADER* GetDosHeader();
   const IMAGE_FILE_HEADER* GetCoffFileHeader();
 
-  // Returns the optional header data.
-  span<const uint8_t> GetOptionalHeaderData();
+  // Returns a pointer to the optional header and its size.
+  const uint8_t* GetOptionalHeaderData(size_t* optional_data_size);
   size_t GetNumberOfSections();
   const IMAGE_SECTION_HEADER* GetSectionHeaderAt(size_t index);
 
-  // Returns the image's export data (.edata) section, or an empty span if the
-  // section is not present.
-  span<const uint8_t> GetExportSection();
+  // Returns a pointer to the image's export data (.edata) section and its size,
+  // or nullptr if the section is not present.
+  const uint8_t* GetExportSection(size_t* section_size);
 
   size_t GetNumberOfDebugEntries();
-  // Returns a pointer to the |index|'th debug directory entry, or nullptr if
-  // |index| is out of bounds. |raw_data| is an out-param which will be filled
-  // with the corresponding raw data.
   const IMAGE_DEBUG_DIRECTORY* GetDebugEntry(size_t index,
-                                             span<const uint8_t>& raw_data);
+                                             const uint8_t** raw_data,
+                                             size_t* raw_data_size);
 
   // Invokes |callback| once per attribute certificate entry. |context| is a
   // caller-specific value that is passed to |callback|. Returns true if all
@@ -141,8 +135,9 @@ class BASE_EXPORT PeImageReader {
   // section.
   const IMAGE_SECTION_HEADER* FindSectionFromRva(uint32_t relative_address);
 
-  // Returns the bytes referenced by the |index|'th data directory entry.
-  span<const uint8_t> GetImageData(size_t index);
+  // Returns a pointer to the |data_length| bytes referenced by the |index|'th
+  // data directory entry.
+  const uint8_t* GetImageData(size_t index, size_t* data_length);
 
   // Populates |structure| with a pointer to a desired structure of type T at
   // the given offset if the image is sufficiently large to contain it. Returns
@@ -161,18 +156,16 @@ class BASE_EXPORT PeImageReader {
   bool GetStructureAt(size_t offset,
                       size_t structure_size,
                       const T** structure) {
-    size_t remaining_bytes = 0;
-    if (!CheckSub(image_data_.size(), offset).AssignIfValid(&remaining_bytes)) {
+    if (offset > image_size_)
       return false;
-    }
-    if (structure_size > remaining_bytes) {
+    if (structure_size > image_size_ - offset)
       return false;
-    }
-    *structure = reinterpret_cast<const T*>(image_data_.subspan(offset).data());
+    *structure = reinterpret_cast<const T*>(image_data_ + offset);
     return true;
   }
 
-  raw_span<const uint8_t> image_data_;
+  const uint8_t* image_data_ = nullptr;
+  size_t image_size_ = 0;
   uint32_t validation_state_ = 0;
   std::unique_ptr<OptionalHeader> optional_header_;
 };

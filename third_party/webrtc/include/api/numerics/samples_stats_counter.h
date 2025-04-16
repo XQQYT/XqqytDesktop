@@ -11,9 +11,6 @@
 #ifndef API_NUMERICS_SAMPLES_STATS_COUNTER_H_
 #define API_NUMERICS_SAMPLES_STATS_COUNTER_H_
 
-#include <stddef.h>
-#include <stdint.h>
-
 #include <map>
 #include <string>
 #include <vector>

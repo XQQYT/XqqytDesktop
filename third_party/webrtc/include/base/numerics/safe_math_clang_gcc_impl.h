@@ -5,17 +5,14 @@
 #ifndef BASE_NUMERICS_SAFE_MATH_CLANG_GCC_IMPL_H_
 #define BASE_NUMERICS_SAFE_MATH_CLANG_GCC_IMPL_H_
 
-// IWYU pragma: private
-
-#include <stdint.h>
-
+#include <cassert>
 #include <limits>
 #include <type_traits>
 
 #include "base/numerics/safe_conversions.h"
 
 #if !defined(__native_client__) && (defined(__ARMEL__) || defined(__arch64__))
-#include "base/numerics/safe_math_arm_impl.h"  // IWYU pragma: export
+#include "base/numerics/safe_math_arm_impl.h"
 #define BASE_HAS_ASSEMBLER_SAFE_MATH (1)
 #else
 #define BASE_HAS_ASSEMBLER_SAFE_MATH (0)
@@ -95,10 +92,10 @@ struct CheckedMulFastOp {
   // https://crbug.com/613003
   // We can support intptr_t, uintptr_t, or a smaller common type.
   static const bool is_supported =
-      (kIsTypeInRangeForNumericType<intptr_t, T> &&
-       kIsTypeInRangeForNumericType<intptr_t, U>) ||
-      (kIsTypeInRangeForNumericType<uintptr_t, T> &&
-       kIsTypeInRangeForNumericType<uintptr_t, U>);
+      (IsTypeInRangeForNumericType<intptr_t, T>::value &&
+       IsTypeInRangeForNumericType<intptr_t, U>::value) ||
+      (IsTypeInRangeForNumericType<uintptr_t, T>::value &&
+       IsTypeInRangeForNumericType<uintptr_t, U>::value);
 #else
   static const bool is_supported = true;
 #endif

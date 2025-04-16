@@ -51,7 +51,7 @@ class MediaTiming : public GarbageCollectedMixin {
   virtual base::TimeTicks GetFirstVideoFrameTime() const = 0;
 
   // Returns the loading priority used for the image.
-  virtual std::optional<WebURLRequest::Priority> RequestPriority() const = 0;
+  virtual absl::optional<WebURLRequest::Priority> RequestPriority() const = 0;
 
   virtual bool IsDataUrl() const = 0;
 
@@ -66,6 +66,10 @@ class MediaTiming : public GarbageCollectedMixin {
   virtual base::TimeTicks LoadStart() const = 0;
 
   virtual base::TimeTicks LoadEnd() const = 0;
+
+  virtual bool IsLoadedFromMemoryCache() const = 0;
+
+  virtual bool IsPreloadedWithEarlyHints() const = 0;
 };
 
 }  // namespace blink

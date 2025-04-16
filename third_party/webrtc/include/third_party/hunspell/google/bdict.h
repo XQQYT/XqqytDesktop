@@ -8,7 +8,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "base/containers/span.h"
 #include "base/hash/md5.h"
 
 // BDict (binary dictionary) format. All offsets are little endian.
@@ -33,7 +32,7 @@
 //     Array of NULL terminated strings. It will end in a double-NULL.
 //
 //   Affix rules table:
-//     List of LF terminated lines. NULL terminated.
+//     List of LF termianted lines. NULL terminated.
 //
 //   Replacements table:
 //     List of pairs of NULL teminated words. The end is indicated by a
@@ -43,7 +42,7 @@
 //     for replacing ("foo" with "bar") and ("a" with "b").
 //
 //   Other rules table:
-//     List of LF terminated lines. NULL terminated.
+//     List of LF termianted lines. NULL terminated.
 //
 //
 // Dic table. This stores the .dic file which contains the words in the
@@ -204,7 +203,7 @@ class BDict {
 
   // Verifies the specified BDICT is sane. This function checks the BDICT header
   // and compares the MD5 digest of the data with the one in the header.
-  static bool Verify(base::span<const uint8_t> bdict_data);
+  static bool Verify(const char* bdict_data, size_t bdict_length);
 };
 
 #pragma pack(pop)

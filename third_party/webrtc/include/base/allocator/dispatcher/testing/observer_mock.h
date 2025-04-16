@@ -5,13 +5,12 @@
 #ifndef BASE_ALLOCATOR_DISPATCHER_TESTING_OBSERVER_MOCK_H_
 #define BASE_ALLOCATOR_DISPATCHER_TESTING_OBSERVER_MOCK_H_
 
+#include "base/allocator/dispatcher/subsystem.h"
 #include "testing/gmock/include/gmock/gmock.h"
 
-namespace base::allocator::dispatcher {
-class AllocationNotificationData;
-class FreeNotificationData;
+#include <cstddef>
 
-namespace testing {
+namespace base::allocator::dispatcher::testing {
 
 // ObserverMock is a small mock class based on GoogleMock.
 // It complies to the interface enforced by the dispatcher. The template
@@ -20,14 +19,14 @@ template <typename T = void>
 struct ObserverMock {
   MOCK_METHOD(void,
               OnAllocation,
-              (const AllocationNotificationData& notification_data),
+              (void* address,
+               size_t size,
+               AllocationSubsystem sub_system,
+               const char* type_name),
               ());
-  MOCK_METHOD(void,
-              OnFree,
-              (const FreeNotificationData& notification_data),
-              ());
+  MOCK_METHOD(void, OnFree, (void* address), ());
 };
-}  // namespace testing
-}  // namespace base::allocator::dispatcher
+
+}  // namespace base::allocator::dispatcher::testing
 
 #endif  // BASE_ALLOCATOR_DISPATCHER_TESTING_OBSERVER_MOCK_H_

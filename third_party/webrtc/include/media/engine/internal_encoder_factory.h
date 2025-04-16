@@ -12,13 +12,9 @@
 #define MEDIA_ENGINE_INTERNAL_ENCODER_FACTORY_H_
 
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
-#include "api/environment/environment.h"
-#include "api/video_codecs/sdp_video_format.h"
-#include "api/video_codecs/video_encoder.h"
 #include "api/video_codecs/video_encoder_factory.h"
 #include "rtc_base/system/rtc_export.h"
 
@@ -28,9 +24,9 @@ class RTC_EXPORT InternalEncoderFactory : public VideoEncoderFactory {
   std::vector<SdpVideoFormat> GetSupportedFormats() const override;
   CodecSupport QueryCodecSupport(
       const SdpVideoFormat& format,
-      std::optional<std::string> scalability_mode) const override;
-  std::unique_ptr<VideoEncoder> Create(const Environment& env,
-                                       const SdpVideoFormat& format) override;
+      absl::optional<std::string> scalability_mode) const override;
+  std::unique_ptr<VideoEncoder> CreateVideoEncoder(
+      const SdpVideoFormat& format) override;
 };
 
 }  // namespace webrtc

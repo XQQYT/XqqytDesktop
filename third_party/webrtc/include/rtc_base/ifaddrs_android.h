@@ -12,7 +12,7 @@
 #define RTC_BASE_IFADDRS_ANDROID_H_
 
 #include <stdio.h>
-#include <sys/socket.h>  // no-presubmit-check
+#include <sys/socket.h>
 
 // Implementation of getifaddrs for Android.
 // Fills out a list of ifaddr structs (see below) which contain information

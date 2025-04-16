@@ -1,28 +1,17 @@
 // Copyright 2016 The Chromium Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef BSSL_PKI_TRUST_STORE_H_
 #define BSSL_PKI_TRUST_STORE_H_
 
-#include <optional>
-
-#include <openssl/base.h>
+#include "fillins/openssl_util.h"
 
 #include "cert_issuer_source.h"
 #include "parsed_certificate.h"
+#include <optional>
 
-BSSL_NAMESPACE_BEGIN
+namespace bssl {
 
 enum class CertificateTrustType {
   // This certificate is explicitly blocked (distrusted).
@@ -111,7 +100,7 @@ struct OPENSSL_EXPORT CertificateTrust {
   std::string ToDebugString() const;
 
   static std::optional<CertificateTrust> FromDebugString(
-      const std::string &trust_string);
+      const std::string& trust_string);
 
   // The overall type of trust.
   CertificateTrustType type = CertificateTrustType::UNSPECIFIED;
@@ -138,17 +127,17 @@ class OPENSSL_EXPORT TrustStore : public CertIssuerSource {
  public:
   TrustStore();
 
-  TrustStore(const TrustStore &) = delete;
-  TrustStore &operator=(const TrustStore &) = delete;
+  TrustStore(const TrustStore&) = delete;
+  TrustStore& operator=(const TrustStore&) = delete;
 
   // Returns the trusted of |cert|, which must be non-null.
-  virtual CertificateTrust GetTrust(const ParsedCertificate *cert) = 0;
+  virtual CertificateTrust GetTrust(const ParsedCertificate* cert) = 0;
 
   // Disable async issuers for TrustStore, as it isn't needed.
-  void AsyncGetIssuersOf(const ParsedCertificate *cert,
-                         std::unique_ptr<Request> *out_req) final;
+  void AsyncGetIssuersOf(const ParsedCertificate* cert,
+                         std::unique_ptr<Request>* out_req) final;
 };
 
-BSSL_NAMESPACE_END
+}  // namespace net
 
 #endif  // BSSL_PKI_TRUST_STORE_H_

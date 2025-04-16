@@ -23,6 +23,7 @@
 
 #include "libavutil/tx.h"
 #include "avfilter.h"
+#include "internal.h"
 
 typedef struct Coeffs {
     float *val;

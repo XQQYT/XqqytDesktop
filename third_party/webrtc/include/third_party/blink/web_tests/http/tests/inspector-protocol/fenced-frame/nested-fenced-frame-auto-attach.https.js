@@ -1,4 +1,4 @@
-(async function(/** @type {import('test_runner').TestRunner} */ testRunner) {
+(async function (testRunner) {
   const { session, dp } = await testRunner.startURL('resources/page-with-nested-fenced-frame.html',
     'Tests that auto-attach with nested fenced frames works correctly');
   await dp.Page.enable();

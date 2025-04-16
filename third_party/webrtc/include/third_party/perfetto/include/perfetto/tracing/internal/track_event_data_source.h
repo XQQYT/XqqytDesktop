@@ -17,8 +17,8 @@
 #ifndef INCLUDE_PERFETTO_TRACING_INTERNAL_TRACK_EVENT_DATA_SOURCE_H_
 #define INCLUDE_PERFETTO_TRACING_INTERNAL_TRACK_EVENT_DATA_SOURCE_H_
 
+#include "perfetto/base/compiler.h"
 #include "perfetto/base/template_util.h"
-#include "perfetto/base/thread_annotations.h"
 #include "perfetto/protozero/message_handle.h"
 #include "perfetto/tracing/core/data_source_config.h"
 #include "perfetto/tracing/data_source.h"
@@ -76,8 +76,7 @@ template <>
 struct TraceTimestampTraits<uint64_t> {
   static inline TraceTimestamp ConvertTimestampToTraceTimeNs(
       const uint64_t& timestamp) {
-    return {static_cast<uint32_t>(internal::TrackEventInternal::GetClockId()),
-            timestamp};
+    return {static_cast<uint32_t>(internal::TrackEventInternal::GetClockId()), timestamp};
   }
 };
 
@@ -109,15 +108,14 @@ static constexpr bool IsValidNormalTrack() {
 // Because the user can use arbitrary timestamp types, we can't compare against
 // any known base type here. Instead, we check that a track or a trace lambda
 // isn't being interpreted as a timestamp.
-template <
-    typename T,
-    typename CanBeConvertedToNsCheck =
-        decltype(::perfetto::TraceTimestampTraits<typename base::remove_cvref_t<
-                     T>>::ConvertTimestampToTraceTimeNs(std::declval<T>())),
-    typename NotTrackCheck =
-        typename std::enable_if<!IsValidNormalTrack<T>()>::type,
-    typename NotLambdaCheck =
-        typename std::enable_if<!IsValidTraceLambda<T>()>::type>
+template <typename T,
+          typename CanBeConvertedToNsCheck = decltype(
+              ::perfetto::TraceTimestampTraits<typename base::remove_cvref_t<
+                  T>>::ConvertTimestampToTraceTimeNs(std::declval<T>())),
+          typename NotTrackCheck =
+              typename std::enable_if<!IsValidNormalTrack<T>()>::type,
+          typename NotLambdaCheck =
+              typename std::enable_if<!IsValidTraceLambda<T>()>::type>
 static constexpr bool IsValidTimestamp() {
   return true;
 }
@@ -330,13 +328,14 @@ class TrackEventDataSource
   }
 
   static void Flush() {
-    Base::Trace([](typename Base::TraceContext ctx) { ctx.Flush(); });
+    Base::template Trace([](typename Base::TraceContext ctx) { ctx.Flush(); });
   }
 
   // Determine if *any* tracing category is enabled.
   static bool IsEnabled() {
     bool enabled = false;
-    Base::CallIfEnabled([&](uint32_t /*instances*/) { enabled = true; });
+    Base::template CallIfEnabled(
+        [&](uint32_t /*instances*/) { enabled = true; });
     return enabled;
   }
 
@@ -350,7 +349,7 @@ class TrackEventDataSource
   static bool IsDynamicCategoryEnabled(
       const DynamicCategory& dynamic_category) {
     bool enabled = false;
-    Base::Trace([&](typename Base::TraceContext ctx) {
+    Base::template Trace([&](typename Base::TraceContext ctx) {
       enabled = enabled || IsDynamicCategoryEnabled(&ctx, dynamic_category);
     });
     return enabled;
@@ -497,11 +496,32 @@ class TrackEventDataSource
                                  const protos::gen::TrackDescriptor& desc) {
     PERFETTO_DCHECK(track.uuid == desc.uuid());
     TrackRegistry::Get()->UpdateTrack(track, desc.SerializeAsString());
-    Base::Trace([&](typename Base::TraceContext ctx) {
+    Base::template Trace([&](typename Base::TraceContext ctx) {
       TrackEventInternal::WriteTrackDescriptor(
           track, ctx.tls_inst_->trace_writer.get(), ctx.GetIncrementalState(),
           *ctx.GetCustomTlsState(), TrackEventInternal::GetTraceTime());
     });
+  }
+
+  // DEPRECATED. Only kept for backwards compatibility.
+  static void SetTrackDescriptor(
+      const Track& track,
+      std::function<void(protos::pbzero::TrackDescriptor*)> callback) {
+    SetTrackDescriptorImpl(track, std::move(callback));
+  }
+
+  // DEPRECATED. Only kept for backwards compatibility.
+  static void SetProcessDescriptor(
+      std::function<void(protos::pbzero::TrackDescriptor*)> callback,
+      const ProcessTrack& track = ProcessTrack::Current()) {
+    SetTrackDescriptorImpl(std::move(track), std::move(callback));
+  }
+
+  // DEPRECATED. Only kept for backwards compatibility.
+  static void SetThreadDescriptor(
+      std::function<void(protos::pbzero::TrackDescriptor*)> callback,
+      const ThreadTrack& track = ThreadTrack::Current()) {
+    SetTrackDescriptorImpl(std::move(track), std::move(callback));
   }
 
   static void EraseTrackDescriptor(const Track& track) {
@@ -1027,11 +1047,25 @@ class TrackEventDataSource
                                  Lambda lambda) PERFETTO_ALWAYS_INLINE {
     using CatTraits = CategoryTraits<CategoryType>;
     if (CatTraits::kIsDynamic) {
-      Base::TraceWithInstances(instances, std::move(lambda));
+      Base::template TraceWithInstances(instances, std::move(lambda));
     } else {
       Base::template TraceWithInstances<CategoryTracePointTraits>(
           instances, std::move(lambda), {CatTraits::GetStaticIndex(category)});
     }
+  }
+
+  // Records a track descriptor into the track descriptor registry and, if we
+  // are tracing, also mirrors the descriptor into the trace.
+  template <typename TrackType>
+  static void SetTrackDescriptorImpl(
+      const TrackType& track,
+      std::function<void(protos::pbzero::TrackDescriptor*)> callback) {
+    TrackRegistry::Get()->UpdateTrack(track, std::move(callback));
+    Base::template Trace([&](typename Base::TraceContext ctx) {
+      TrackEventInternal::WriteTrackDescriptor(
+          track, ctx.tls_inst_->trace_writer.get(), ctx.GetIncrementalState(),
+          *ctx.GetCustomTlsState(), TrackEventInternal::GetTraceTime());
+    });
   }
 
   // Determines if the given dynamic category is enabled, first by checking the
@@ -1046,9 +1080,6 @@ class TrackEventDataSource
       // We haven't seen this category before. Let's figure out if it's enabled.
       // This requires grabbing a lock to read the session's trace config.
       auto ds = ctx->GetDataSourceLocked();
-      if (!ds) {
-        return false;
-      }
       Category category{Category::FromDynamicCategory(dynamic_category)};
       bool enabled = TrackEventInternal::IsCategoryEnabled(
           *Registry, ds->config_, category);

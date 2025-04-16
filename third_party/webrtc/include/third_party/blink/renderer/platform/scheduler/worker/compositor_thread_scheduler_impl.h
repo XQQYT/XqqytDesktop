@@ -10,6 +10,7 @@
 #include "third_party/blink/renderer/platform/scheduler/common/single_thread_idle_task_runner.h"
 #include "third_party/blink/renderer/platform/scheduler/public/compositor_thread_scheduler.h"
 #include "third_party/blink/renderer/platform/scheduler/public/thread_type.h"
+#include "third_party/blink/renderer/platform/scheduler/worker/compositor_metrics_helper.h"
 #include "third_party/blink/renderer/platform/scheduler/worker/non_main_thread_scheduler_base.h"
 
 namespace base {
@@ -51,7 +52,8 @@ class PLATFORM_EXPORT CompositorThreadSchedulerImpl
   void PostDelayedIdleTask(const base::Location&,
                            base::TimeDelta delay,
                            Thread::IdleTask) override;
-  void RemoveCancelledIdleTasks() override;
+  void PostNonNestableIdleTask(const base::Location&,
+                               Thread::IdleTask) override;
   base::TimeTicks MonotonicallyIncreasingVirtualTime() override;
   void SetV8Isolate(v8::Isolate* isolate) override;
   void Shutdown() override;
@@ -67,6 +69,9 @@ class PLATFORM_EXPORT CompositorThreadSchedulerImpl
   base::TimeTicks WillProcessIdleTask() override;
   void DidProcessIdleTask() override;
   base::TimeTicks NowTicks() override;
+
+ private:
+  CompositorMetricsHelper compositor_metrics_helper_;
 };
 
 }  // namespace scheduler

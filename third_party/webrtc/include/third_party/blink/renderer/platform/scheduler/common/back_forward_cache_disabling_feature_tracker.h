@@ -105,7 +105,7 @@ class PLATFORM_EXPORT BackForwardCacheDisablingFeatureTracker {
   // TODO(crbug.com/1366675): Remove back_forward_cache_disabling_features_.
   std::bitset<static_cast<size_t>(SchedulingPolicy::Feature::kMaxValue) + 1>
       back_forward_cache_disabling_features_{};
-  TraceableState<bool, TRACE_DISABLED_BY_DEFAULT("renderer.scheduler")>
+  TraceableState<bool, TracingCategory::kInfo>
       opted_out_from_back_forward_cache_;
 
   // The last set of features passed to FrameOrWorkerScheduler::Delegate::
@@ -119,7 +119,8 @@ class PLATFORM_EXPORT BackForwardCacheDisablingFeatureTracker {
   BFCacheBlockingFeatureAndLocations non_sticky_features_and_js_locations_;
   BFCacheBlockingFeatureAndLocations sticky_features_and_js_locations_;
 
-  base::WeakPtr<FrameOrWorkerScheduler::Delegate> delegate_ = nullptr;
+  raw_ptr<FrameOrWorkerScheduler::Delegate, DanglingUntriaged> delegate_ =
+      nullptr;
   raw_ptr<ThreadSchedulerBase, DanglingUntriaged> scheduler_;
 
   base::WeakPtrFactory<BackForwardCacheDisablingFeatureTracker> weak_factory_{

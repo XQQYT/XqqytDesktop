@@ -29,7 +29,6 @@
 #include "mpegvideo.h"
 #include "mpeg4videodsp.h"
 
-#include "libavutil/mem_internal.h"
 
 typedef struct Mpeg4DecContext {
     MpegEncContext m;
@@ -60,8 +59,6 @@ typedef struct Mpeg4DecContext {
     int enhancement_type;
     int scalability;
 
-    int quant_precision;
-
     /// QP above which the ac VLC should be used for intra dc
     int intra_dc_threshold;
 
@@ -86,7 +83,7 @@ typedef struct Mpeg4DecContext {
 
     Mpeg4VideoDSPContext mdsp;
 
-    DECLARE_ALIGNED(8, int32_t, block32)[12][64];
+    int32_t block32[12][64];
     // 0 = DCT, 1 = DPCM top to bottom scan, -1 = DPCM bottom to top scan
     int dpcm_direction;
     int16_t dpcm_macroblock[3][256];

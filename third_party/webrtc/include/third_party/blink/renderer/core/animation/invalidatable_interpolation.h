@@ -53,22 +53,19 @@ class CORE_EXPORT InvalidatableInterpolation : public Interpolation {
   bool IsInvalidatableInterpolation() const override { return true; }
 
   const TypedInterpolationValue* GetCachedValueForTesting() const {
-    return cached_value_.Get();
+    return cached_value_.get();
   }
 
   void Trace(Visitor* visitor) const override {
     visitor->Trace(start_keyframe_);
     visitor->Trace(end_keyframe_);
-    visitor->Trace(cached_pair_conversion_);
-    visitor->Trace(conversion_checkers_);
-    visitor->Trace(cached_value_);
     Interpolation::Trace(visitor);
   }
 
  private:
   using ConversionCheckers = InterpolationType::ConversionCheckers;
 
-  TypedInterpolationValue* MaybeConvertUnderlyingValue(
+  std::unique_ptr<TypedInterpolationValue> MaybeConvertUnderlyingValue(
       const InterpolationEnvironment&) const;
   const TypedInterpolationValue* EnsureValidConversion(
       InterpolationEnvironment&,
@@ -78,10 +75,10 @@ class CORE_EXPORT InvalidatableInterpolation : public Interpolation {
   bool IsConversionCacheValid(const InterpolationEnvironment&,
                               const UnderlyingValueOwner&) const;
   bool IsNeutralKeyframeActive() const;
-  PairwisePrimitiveInterpolation* MaybeConvertPairwise(
+  std::unique_ptr<PairwisePrimitiveInterpolation> MaybeConvertPairwise(
       const InterpolationEnvironment&,
       const UnderlyingValueOwner&) const;
-  TypedInterpolationValue* ConvertSingleKeyframe(
+  std::unique_ptr<TypedInterpolationValue> ConvertSingleKeyframe(
       const PropertySpecificKeyframe&,
       const InterpolationEnvironment&,
       const UnderlyingValueOwner&) const;
@@ -97,9 +94,9 @@ class CORE_EXPORT InvalidatableInterpolation : public Interpolation {
   Member<PropertySpecificKeyframe> end_keyframe_;
   double current_fraction_;
   mutable bool is_conversion_cached_;
-  mutable Member<PrimitiveInterpolation> cached_pair_conversion_;
+  mutable std::unique_ptr<PrimitiveInterpolation> cached_pair_conversion_;
   mutable ConversionCheckers conversion_checkers_;
-  mutable Member<TypedInterpolationValue> cached_value_;
+  mutable std::unique_ptr<TypedInterpolationValue> cached_value_;
 };
 
 template <>

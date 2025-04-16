@@ -11,7 +11,6 @@
 #ifndef RTC_BASE_BORINGSSL_CERTIFICATE_H_
 #define RTC_BASE_BORINGSSL_CERTIFICATE_H_
 
-#include <openssl/base.h>
 #include <openssl/ossl_typ.h>
 #include <stddef.h>
 #include <stdint.h>

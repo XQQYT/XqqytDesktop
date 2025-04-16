@@ -20,7 +20,6 @@
 #include <stdint.h>
 
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "perfetto/base/logging.h"
@@ -42,9 +41,7 @@ struct ConstChars {
   // Allow implicit conversion to perfetto's base::StringView without depending
   // on perfetto/base or viceversa.
   static constexpr bool kConvertibleToStringView = true;
-  static constexpr bool kHashable = true;
-  std::string ToStdString() const { return {data, size}; }
-  std::string_view ToStdStringView() const { return {data, size}; }
+  std::string ToStdString() const { return std::string(data, size); }
 
   const char* data;
   size_t size;

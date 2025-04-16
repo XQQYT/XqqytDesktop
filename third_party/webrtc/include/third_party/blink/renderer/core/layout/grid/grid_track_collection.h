@@ -8,9 +8,11 @@
 #include "base/check_op.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/style/computed_style.h"
-#include "third_party/blink/renderer/platform/wtf/wtf_size_t.h"
+#include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
 namespace blink {
+
+struct GridPlacementData;
 
 // |GridTrackCollectionBase| provides an implementation for some shared
 // functionality on grid collections, specifically binary search on the
@@ -86,9 +88,8 @@ class CORE_EXPORT GridRangeBuilder {
   GridRangeBuilder() = delete;
 
   GridRangeBuilder(const ComputedStyle& grid_style,
-                   GridTrackSizingDirection track_direction,
-                   wtf_size_t auto_repetitions,
-                   wtf_size_t start_offset);
+                   const GridPlacementData& placement_data,
+                   GridTrackSizingDirection track_direction);
 
   // Ensures that after FinalizeRanges is called, a range will start at the
   // |start_line|, a range will end at |start_line| + |span_length|.
@@ -120,15 +121,15 @@ class CORE_EXPORT GridRangeBuilder {
     wtf_size_t* grid_item_range_index_to_cache;
   };
 
+  // This constructor is used exclusively in testing.
   GridRangeBuilder(const NGGridTrackList& explicit_tracks,
                    const NGGridTrackList& implicit_tracks,
-                   wtf_size_t auto_repetitions,
-                   wtf_size_t start_offset = 0);
+                   wtf_size_t auto_repetitions);
 
   wtf_size_t auto_repetitions_;
   wtf_size_t start_offset_;
 
-  bool must_sort_grid_lines_{false};
+  bool must_sort_grid_lines_ : 1;
 
   // Stores the grid's explicit and implicit tracks.
   const NGGridTrackList& explicit_tracks_;
@@ -189,14 +190,19 @@ class CORE_EXPORT GridLayoutTrackCollection : public GridTrackCollectionBase {
   LayoutUnit MajorBaseline(wtf_size_t set_index) const;
   LayoutUnit MinorBaseline(wtf_size_t set_index) const;
 
+  bool HasCachedSetsGeometry() const { return !sets_geometry_.empty(); }
+
   // Increase by |delta| the offset of every set with index > |set_index|.
   void AdjustSetOffsets(wtf_size_t set_index, LayoutUnit delta);
 
   // Returns the total size of all sets in the collection.
-  LayoutUnit CalculateSetSpanSize() const;
+  LayoutUnit ComputeSetSpanSize() const;
   // Returns the total size of all sets with index in the range [begin, end).
-  LayoutUnit CalculateSetSpanSize(wtf_size_t begin_set_index,
-                                  wtf_size_t end_set_index) const;
+  LayoutUnit ComputeSetSpanSize(wtf_size_t begin_set_index,
+                                wtf_size_t end_set_index) const;
+  // Checks whether any set in the range [begin, end) is indefinite.
+  bool IsSpanningIndefiniteSet(wtf_size_t begin_set_index,
+                               wtf_size_t end_set_index) const;
 
   // Creates a track collection containing every |Range| with index in the range
   // [begin, end], including their respective |SetGeometry| and baselines.
@@ -213,10 +219,9 @@ class CORE_EXPORT GridLayoutTrackCollection : public GridTrackCollectionBase {
   LayoutUnit GutterSize() const { return gutter_size_; }
 
   bool HasFlexibleTrack() const;
-  bool HasIndefiniteSet() const;
   bool HasIntrinsicTrack() const;
-  bool HasNonDefiniteTrack() const;
   bool IsDependentOnAvailableSize() const;
+  bool IsSpanningOnlyDefiniteTracks() const;
 
  protected:
   struct Baselines {
@@ -227,10 +232,6 @@ class CORE_EXPORT GridLayoutTrackCollection : public GridTrackCollectionBase {
   explicit GridLayoutTrackCollection(GridTrackSizingDirection track_direction)
       : track_direction_(track_direction) {}
 
-  // Checks whether any set in the range [begin, end) is indefinite.
-  bool IsSpanningIndefiniteSet(wtf_size_t begin_set_index,
-                               wtf_size_t end_set_index) const;
-
   LayoutUnit gutter_size_;
   GridRangeVector ranges_;
   TrackSpanProperties properties_;
@@ -238,7 +239,7 @@ class CORE_EXPORT GridLayoutTrackCollection : public GridTrackCollectionBase {
   GridTrackSizingDirection track_direction_;
 
   // Baselines are only created when there are items with baseline alignment.
-  std::optional<Baselines> baselines_;
+  absl::optional<Baselines> baselines_;
 
   // Initially we only know some of the set sizes - others will be indefinite.
   // To represent this we store a vector of the last indefinite indices for each
@@ -317,7 +318,7 @@ struct CORE_EXPORT GridSet {
           const GridTrackSize& track_definition,
           bool is_available_size_indefinite);
 
-  float FlexFactor() const;
+  double FlexFactor() const;
   LayoutUnit BaseSize() const;
   LayoutUnit GrowthLimit() const;
 
@@ -392,9 +393,7 @@ class CORE_EXPORT GridSizingTrackCollection final
   typedef SetIteratorBase<true> ConstSetIterator;
 
   GridSizingTrackCollection() = delete;
-  GridSizingTrackCollection(GridSizingTrackCollection&&) = default;
   GridSizingTrackCollection(const GridSizingTrackCollection&) = delete;
-  GridSizingTrackCollection& operator=(GridSizingTrackCollection&&) = default;
   GridSizingTrackCollection& operator=(const GridSizingTrackCollection&) =
       delete;
 
@@ -423,7 +422,8 @@ class CORE_EXPORT GridSizingTrackCollection final
   LayoutUnit TotalTrackSize() const;
 
   void BuildSets(const ComputedStyle& grid_style,
-                 const LogicalSize& grid_available_size);
+                 LayoutUnit grid_available_size,
+                 LayoutUnit gutter_size);
   void SetIndefiniteGrowthLimitsToBaseSize();
 
   // Caches the geometry of definite sets; this is useful when building the sets
@@ -444,7 +444,6 @@ class CORE_EXPORT GridSizingTrackCollection final
  private:
   friend class GridLayoutAlgorithmTest;
   friend class GridTrackCollectionTest;
-  friend class MasonryLayoutAlgorithmTest;
 
   // These methods are internal implementations also used in testing.
   void BuildSets(const NGGridTrackList& explicit_track_list,

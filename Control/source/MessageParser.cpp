@@ -2,7 +2,7 @@
 #include <iostream>
 
 //使用nlohamnnJson的驱动
-MessageParser::MessageParser(NetworkOperator& base_operator):
+MessageParser::MessageParser(Operator& base_operator):
 json_factory(std::make_unique<NlohmannJson>()),
 network_operator(base_operator)
 {
@@ -65,6 +65,6 @@ void MessageParser::onTargetStatusResult(std::unique_ptr<Parser> parser)
     //目标在线
     else
     {
-        
+        network_operator.dispatch_void("/network/target_is_online");
     }
 }

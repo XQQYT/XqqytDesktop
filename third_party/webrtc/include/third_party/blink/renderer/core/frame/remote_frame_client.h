@@ -15,7 +15,6 @@
 #include "third_party/blink/renderer/core/frame/frame_client.h"
 #include "third_party/blink/renderer/core/frame/frame_types.h"
 #include "third_party/blink/renderer/platform/graphics/touch_action.h"
-#include "third_party/blink/renderer/platform/wtf/vector.h"
 
 namespace blink {
 
@@ -31,7 +30,7 @@ class RemoteFrameClient : public FrameClient {
   // when we pass a RemoteFrame handle outside of blink.
   virtual void CreateRemoteChild(
       const RemoteFrameToken& token,
-      const std::optional<FrameToken>& opener_frame_token,
+      const absl::optional<FrameToken>& opener_frame_token,
       mojom::blink::TreeScopeType tree_scope_type,
       mojom::blink::FrameReplicationStatePtr replication_state,
       mojom::blink::FrameOwnerPropertiesPtr owner_properties,

@@ -11,26 +11,17 @@
 #ifndef TEST_NETWORK_CROSS_TRAFFIC_H_
 #define TEST_NETWORK_CROSS_TRAFFIC_H_
 
-#include <cmath>
-#include <cstddef>
-#include <deque>
-#include <functional>
-#include <list>
+#include <algorithm>
 #include <map>
-#include <set>
+#include <memory>
 
 #include "api/sequence_checker.h"
-#include "api/task_queue/task_queue_base.h"
-#include "api/test/network_emulation/cross_traffic.h"
-#include "api/test/network_emulation/network_emulation_interfaces.h"
 #include "api/test/network_emulation_manager.h"
 #include "api/units/data_rate.h"
 #include "api/units/data_size.h"
 #include "api/units/time_delta.h"
 #include "api/units/timestamp.h"
 #include "rtc_base/random.h"
-#include "rtc_base/thread_annotations.h"
-#include "system_wrappers/include/clock.h"
 #include "test/network/network_emulation.h"
 #include "test/scenario/column_printer.h"
 

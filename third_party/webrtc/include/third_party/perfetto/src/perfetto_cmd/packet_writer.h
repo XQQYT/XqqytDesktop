@@ -17,6 +17,7 @@
 #ifndef SRC_PERFETTO_CMD_PACKET_WRITER_H_
 #define SRC_PERFETTO_CMD_PACKET_WRITER_H_
 
+#include <memory>
 #include <vector>
 
 #include <stdio.h>
@@ -27,9 +28,9 @@ namespace perfetto {
 
 class PacketWriter {
  public:
-  explicit PacketWriter(FILE* fd) : fd_(fd) {}
-  ~PacketWriter();
-  bool WritePackets(const std::vector<TracePacket>& packets) {
+  PacketWriter();
+  virtual ~PacketWriter();
+  virtual bool WritePackets(const std::vector<TracePacket>& packets) {
     for (const TracePacket& packet : packets) {
       if (!WritePacket(packet)) {
         return false;
@@ -37,11 +38,12 @@ class PacketWriter {
     }
     return true;
   }
-  bool WritePacket(const TracePacket& packets);
-
- private:
-  FILE* fd_;
+  virtual bool WritePacket(const TracePacket& packets) = 0;
 };
+
+std::unique_ptr<PacketWriter> CreateFilePacketWriter(FILE*);
+std::unique_ptr<PacketWriter> CreateZipPacketWriter(
+    std::unique_ptr<PacketWriter>);
 
 }  // namespace perfetto
 

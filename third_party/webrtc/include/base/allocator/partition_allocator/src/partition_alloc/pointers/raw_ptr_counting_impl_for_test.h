@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_POINTERS_RAW_PTR_COUNTING_IMPL_FOR_TEST_H_
-#define PARTITION_ALLOC_POINTERS_RAW_PTR_COUNTING_IMPL_FOR_TEST_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_POINTERS_RAW_PTR_COUNTING_IMPL_FOR_TEST_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_POINTERS_RAW_PTR_COUNTING_IMPL_FOR_TEST_H_
 
 #include <climits>
 
-#include "partition_alloc/pointers/raw_ptr.h"
-#include "partition_alloc/pointers/raw_ptr_noop_impl.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/pointers/raw_ptr.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/pointers/raw_ptr_noop_impl.h"
 
 namespace base::test {
 
@@ -25,68 +25,53 @@ struct RawPtrCountingImplForTest : public base::internal::RawPtrNoOpImpl {
   static constexpr bool kMustZeroOnDestruct = false;
 
   template <typename T>
-  PA_ALWAYS_INLINE static constexpr T* WrapRawPtr(T* ptr) {
+  PA_ALWAYS_INLINE static T* WrapRawPtr(T* ptr) {
     ++wrap_raw_ptr_cnt;
     return SuperImpl::WrapRawPtr(ptr);
   }
 
   template <typename T>
-  PA_ALWAYS_INLINE static constexpr void ReleaseWrappedPtr(T* ptr) {
+  PA_ALWAYS_INLINE static void ReleaseWrappedPtr(T* ptr) {
     ++release_wrapped_ptr_cnt;
     SuperImpl::ReleaseWrappedPtr(ptr);
   }
 
   template <typename T>
-  PA_ALWAYS_INLINE static constexpr T* SafelyUnwrapPtrForDereference(
-      T* wrapped_ptr) {
+  PA_ALWAYS_INLINE static T* SafelyUnwrapPtrForDereference(T* wrapped_ptr) {
     ++get_for_dereference_cnt;
     return SuperImpl::SafelyUnwrapPtrForDereference(wrapped_ptr);
   }
 
   template <typename T>
-  PA_ALWAYS_INLINE static constexpr T* SafelyUnwrapPtrForExtraction(
-      T* wrapped_ptr) {
+  PA_ALWAYS_INLINE static T* SafelyUnwrapPtrForExtraction(T* wrapped_ptr) {
     ++get_for_extraction_cnt;
     return SuperImpl::SafelyUnwrapPtrForExtraction(wrapped_ptr);
   }
 
   template <typename T>
-  PA_ALWAYS_INLINE static constexpr T* UnsafelyUnwrapPtrForComparison(
-      T* wrapped_ptr) {
+  PA_ALWAYS_INLINE static T* UnsafelyUnwrapPtrForComparison(T* wrapped_ptr) {
     ++get_for_comparison_cnt;
     return SuperImpl::UnsafelyUnwrapPtrForComparison(wrapped_ptr);
   }
 
   PA_ALWAYS_INLINE static void IncrementSwapCountForTest() {
     ++wrapped_ptr_swap_cnt;
-    SuperImpl::IncrementSwapCountForTest();
   }
 
   PA_ALWAYS_INLINE static void IncrementLessCountForTest() {
     ++wrapped_ptr_less_cnt;
-    SuperImpl::IncrementLessCountForTest();
   }
 
   template <typename T>
-  PA_ALWAYS_INLINE static constexpr T* WrapRawPtrForDuplication(T* ptr) {
+  PA_ALWAYS_INLINE static T* WrapRawPtrForDuplication(T* ptr) {
     ++wrap_raw_ptr_for_dup_cnt;
     return SuperImpl::WrapRawPtrForDuplication(ptr);
   }
 
   template <typename T>
-  PA_ALWAYS_INLINE static constexpr T* UnsafelyUnwrapPtrForDuplication(
-      T* wrapped_ptr) {
+  PA_ALWAYS_INLINE static T* UnsafelyUnwrapPtrForDuplication(T* wrapped_ptr) {
     ++get_for_duplication_cnt;
     return SuperImpl::UnsafelyUnwrapPtrForDuplication(wrapped_ptr);
-  }
-
-  template <typename T>
-  static constexpr void Trace(uint64_t owner_id, T* wrapped_ptr) {
-    SuperImpl::Trace(owner_id, wrapped_ptr);
-  }
-
-  static constexpr void Untrace(uint64_t owner_id) {
-    SuperImpl::Untrace(owner_id);
   }
 
   static void ClearCounters() {
@@ -116,4 +101,4 @@ struct RawPtrCountingImplForTest : public base::internal::RawPtrNoOpImpl {
 
 }  // namespace base::test
 
-#endif  // PARTITION_ALLOC_POINTERS_RAW_PTR_COUNTING_IMPL_FOR_TEST_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_POINTERS_RAW_PTR_COUNTING_IMPL_FOR_TEST_H_

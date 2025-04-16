@@ -25,7 +25,7 @@ class MODULES_EXPORT DeviceOrientationEventPump
   // sufficiently different.
   static const double kOrientationThreshold;
 
-  DeviceOrientationEventPump(LocalFrame&, bool absolute);
+  explicit DeviceOrientationEventPump(LocalFrame&, bool absolute);
 
   DeviceOrientationEventPump(const DeviceOrientationEventPump&) = delete;
   DeviceOrientationEventPump& operator=(const DeviceOrientationEventPump&) =

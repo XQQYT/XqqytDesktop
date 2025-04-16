@@ -27,15 +27,17 @@ class CORE_EXPORT ImageElementBase : public CanvasImageSource,
   // base for both elements.
   static Image::ImageDecodingMode ParseImageDecodingMode(const AtomicString&);
 
-  ImageBitmapSourceStatus CheckUsability() const override;
-  ScriptPromise<ImageBitmap> CreateImageBitmap(ScriptState*,
-                                               std::optional<gfx::Rect>,
-                                               const ImageBitmapOptions*,
-                                               ExceptionState&) override;
+  gfx::Size BitmapSourceSize() const override;
+  ScriptPromise CreateImageBitmap(ScriptState*,
+                                  absl::optional<gfx::Rect>,
+                                  const ImageBitmapOptions*,
+                                  ExceptionState&) override;
 
-  scoped_refptr<Image> GetSourceImageForCanvas(FlushReason,
-                                               SourceImageStatus*,
-                                               const gfx::SizeF&) override;
+  scoped_refptr<Image> GetSourceImageForCanvas(
+      FlushReason,
+      SourceImageStatus*,
+      const gfx::SizeF&,
+      const AlphaDisposition alpha_disposition = kPremultiplyAlpha) override;
 
   bool WouldTaintOrigin() const override;
 

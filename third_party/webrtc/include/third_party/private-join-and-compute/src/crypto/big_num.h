@@ -21,7 +21,6 @@
 #include <memory>
 #include <string>
 
-#include "third_party/private-join-and-compute/base/private_join_and_compute_export.h"
 #include "third_party/private-join-and-compute/src/crypto/openssl.inc"
 #include "third_party/private-join-and-compute/src/util/status.inc"
 
@@ -32,7 +31,7 @@ namespace private_join_and_compute {
 // Makes use of a BN_CTX structure that holds temporary BIGNUMs needed for
 // arithmetic operations as dynamic memory allocation to create BIGNUMs is
 // expensive.
-class PRIVATE_COMPUTE_EXPORT BigNum {
+class BigNum {
  public:
   // Deletes a BIGNUM.
   class BnDeleter {

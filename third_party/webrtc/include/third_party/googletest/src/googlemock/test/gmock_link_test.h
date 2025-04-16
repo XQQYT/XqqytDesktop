@@ -116,7 +116,7 @@
 
 #include "gmock/gmock.h"
 
-#ifndef GTEST_OS_WINDOWS_MOBILE
+#if !GTEST_OS_WINDOWS_MOBILE
 #include <errno.h>
 #endif
 
@@ -181,12 +181,11 @@ using testing::WithArg;
 using testing::WithArgs;
 using testing::WithoutArgs;
 
-#ifndef GTEST_OS_WINDOWS_MOBILE
+#if !GTEST_OS_WINDOWS_MOBILE
 using testing::SetErrnoAndReturn;
 #endif
 
 #if GTEST_HAS_EXCEPTIONS
-using testing::Rethrow;
 using testing::Throw;
 #endif
 
@@ -195,7 +194,7 @@ using testing::MatchesRegex;
 
 class Interface {
  public:
-  virtual ~Interface() = default;
+  virtual ~Interface() {}
   virtual void VoidFromString(char* str) = 0;
   virtual char* StringFromString(char* str) = 0;
   virtual int IntFromString(char* str) = 0;
@@ -209,7 +208,7 @@ class Interface {
 
 class Mock : public Interface {
  public:
-  Mock() = default;
+  Mock() {}
 
   MOCK_METHOD1(VoidFromString, void(char* str));
   MOCK_METHOD1(StringFromString, char*(char* str));
@@ -222,8 +221,7 @@ class Mock : public Interface {
   MOCK_METHOD1(VoidFromVector, void(const std::vector<int>& v));
 
  private:
-  Mock(const Mock&) = delete;
-  Mock& operator=(const Mock&) = delete;
+  GTEST_DISALLOW_COPY_AND_ASSIGN_(Mock);
 };
 
 class InvokeHelper {
@@ -307,7 +305,7 @@ TEST(LinkTest, TestSetArrayArgument) {
   mock.VoidFromString(&ch);
 }
 
-#ifndef GTEST_OS_WINDOWS_MOBILE
+#if !GTEST_OS_WINDOWS_MOBILE
 
 // Tests the linkage of the SetErrnoAndReturn action.
 TEST(LinkTest, TestSetErrnoAndReturn) {
@@ -417,14 +415,6 @@ TEST(LinkTest, TestThrow) {
   EXPECT_CALL(mock, VoidFromString(_)).WillOnce(Throw(42));
   EXPECT_THROW(mock.VoidFromString(nullptr), int);
 }
-// Tests the linkage of the Rethrow action.
-TEST(LinkTest, TestRethrow) {
-  Mock mock;
-
-  EXPECT_CALL(mock, VoidFromString(_))
-      .WillOnce(Rethrow(std::make_exception_ptr(42)));
-  EXPECT_THROW(mock.VoidFromString(nullptr), int);
-}
 #endif  // GTEST_HAS_EXCEPTIONS
 
 // The ACTION*() macros trigger warning C4100 (unreferenced formal
@@ -432,7 +422,10 @@ TEST(LinkTest, TestRethrow) {
 // the macro definition, as the warnings are generated when the macro
 // is expanded and macro expansion cannot contain #pragma.  Therefore
 // we suppress them here.
-GTEST_DISABLE_MSC_WARNINGS_PUSH_(4100)
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4100)
+#endif
 
 // Tests the linkage of actions created using ACTION macro.
 namespace {
@@ -465,7 +458,9 @@ ACTION_P2(ReturnEqualsEitherOf, first, second) {
 }
 }  // namespace
 
-GTEST_DISABLE_MSC_WARNINGS_POP_()  // 4100
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 TEST(LinkTest, TestActionP2Macro) {
   Mock mock;

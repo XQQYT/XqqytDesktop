@@ -70,8 +70,8 @@ struct SequenceBoundBindTraits {
   }
 
   template <template <typename> class CallbackType>
-  static constexpr bool IsCrossThreadTask =
-      IsCrossThreadOnceFunction<CallbackType<void()>>::value;
+  using EnableIfIsCrossThreadTask =
+      std::enable_if_t<IsCrossThreadOnceFunction<CallbackType<void()>>::value>;
 };
 
 }  // namespace internal

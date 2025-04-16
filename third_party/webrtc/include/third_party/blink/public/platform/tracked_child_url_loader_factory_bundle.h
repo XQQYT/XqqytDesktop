@@ -11,11 +11,9 @@
 #include <unordered_map>
 #include <utility>
 
-#include "base/memory/weak_ptr.h"
 #include "base/task/sequenced_task_runner.h"
 #include "mojo/public/cpp/bindings/pending_associated_remote.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
-#include "third_party/blink/public/mojom/loader/local_resource_loader_config.mojom.h"
 #include "third_party/blink/public/platform/child_url_loader_factory_bundle.h"
 #include "third_party/blink/public/platform/web_common.h"
 
@@ -50,7 +48,6 @@ class BLINK_PLATFORM_EXPORT TrackedChildPendingURLLoaderFactoryBundle
           pending_keep_alive_loader_factory,
       mojo::PendingAssociatedRemote<blink::mojom::FetchLaterLoaderFactory>
           pending_fetch_later_loader_factory,
-      mojom::LocalResourceLoaderConfigPtr local_resource_loader_config,
       std::unique_ptr<HostPtrAndTaskRunner> main_thread_host_bundle,
       bool bypass_redirect_checks);
   TrackedChildPendingURLLoaderFactoryBundle(
@@ -81,8 +78,9 @@ class BLINK_PLATFORM_EXPORT TrackedChildPendingURLLoaderFactoryBundle
 // be used to create a tracked bundle to the original host bundle. These two
 // classes are required to bring bundles back online in the event of Network
 // Service crash.
-class BLINK_PLATFORM_EXPORT TrackedChildURLLoaderFactoryBundle final
-    : public ChildURLLoaderFactoryBundle {
+class BLINK_PLATFORM_EXPORT TrackedChildURLLoaderFactoryBundle
+    : public ChildURLLoaderFactoryBundle,
+      public base::SupportsWeakPtr<TrackedChildURLLoaderFactoryBundle> {
  public:
   using HostPtrAndTaskRunner =
       std::pair<base::WeakPtr<HostChildURLLoaderFactoryBundle>,
@@ -122,16 +120,15 @@ class BLINK_PLATFORM_EXPORT TrackedChildURLLoaderFactoryBundle final
   // |WeakPtr| and |TaskRunner| of the host bundle. Can be copied and passed
   // across sequences.
   std::unique_ptr<HostPtrAndTaskRunner> main_thread_host_bundle_;
-  base::WeakPtrFactory<TrackedChildURLLoaderFactoryBundle> weak_ptr_factory_{
-      this};
 };
 
 // |HostChildURLLoaderFactoryBundle| lives entirely on the main thread, and all
 // methods should be invoked on the main thread or through PostTask. See
 // comments in |TrackedChildURLLoaderFactoryBundle| for details about the
 // tracking logic.
-class BLINK_PLATFORM_EXPORT HostChildURLLoaderFactoryBundle final
-    : public ChildURLLoaderFactoryBundle {
+class BLINK_PLATFORM_EXPORT HostChildURLLoaderFactoryBundle
+    : public ChildURLLoaderFactoryBundle,
+      public base::SupportsWeakPtr<HostChildURLLoaderFactoryBundle> {
  public:
   HostChildURLLoaderFactoryBundle(const HostChildURLLoaderFactoryBundle&) =
       delete;
@@ -181,7 +178,6 @@ class BLINK_PLATFORM_EXPORT HostChildURLLoaderFactoryBundle final
   std::unique_ptr<ObserverList> observer_list_;
 
   scoped_refptr<base::SequencedTaskRunner> task_runner_;
-  base::WeakPtrFactory<HostChildURLLoaderFactoryBundle> weak_ptr_factory_{this};
 };
 
 }  // namespace blink

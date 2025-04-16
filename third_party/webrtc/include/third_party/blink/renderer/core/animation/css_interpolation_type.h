@@ -48,7 +48,20 @@ class CORE_EXPORT CSSInterpolationType : public InterpolationType {
     // abstract declaration so the return type can be changed to
     // const CSSValue&.
     NOTREACHED();
+    return nullptr;
   }
+
+ protected:
+  CSSInterpolationType(PropertyHandle, const PropertyRegistration* = nullptr);
+
+  const CSSProperty& CssProperty() const {
+    return GetProperty().GetCSSProperty();
+  }
+
+  InterpolationValue MaybeConvertSingle(const PropertySpecificKeyframe&,
+                                        const InterpolationEnvironment&,
+                                        const InterpolationValue& underlying,
+                                        ConversionCheckers&) const final;
 
   // The interpolation stack has an optimization where we perform compositing
   // after interpolation. This is against spec, but it works for simple addition
@@ -66,21 +79,8 @@ class CORE_EXPORT CSSInterpolationType : public InterpolationType {
     return value;
   }
 
- protected:
-  explicit CSSInterpolationType(PropertyHandle,
-                                const PropertyRegistration* = nullptr);
-
-  const CSSProperty& CssProperty() const {
-    return GetProperty().GetCSSProperty();
-  }
-
-  InterpolationValue MaybeConvertSingle(const PropertySpecificKeyframe&,
-                                        const InterpolationEnvironment&,
-                                        const InterpolationValue& underlying,
-                                        ConversionCheckers&) const final;
-
   InterpolationValue MaybeConvertUnderlyingValue(
-      const InterpolationEnvironment&) const override;
+      const InterpolationEnvironment&) const final;
   virtual InterpolationValue MaybeConvertStandardPropertyUnderlyingValue(
       const ComputedStyle&) const = 0;
 
@@ -100,7 +100,6 @@ class CORE_EXPORT CSSInterpolationType : public InterpolationType {
 
   InterpolationValue MaybeConvertCustomPropertyDeclaration(
       const CSSValue&,
-      const TreeScope* keyframe_tree_scope,
       const InterpolationEnvironment&,
       ConversionCheckers&) const;
 

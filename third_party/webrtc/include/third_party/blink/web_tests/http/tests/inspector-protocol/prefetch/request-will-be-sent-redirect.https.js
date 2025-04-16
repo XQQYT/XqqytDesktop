@@ -1,4 +1,4 @@
-(async function(/** @type {import('test_runner').TestRunner} */ testRunner) {
+(async function(testRunner) {
   const {page, session, dp} = await testRunner.startBlank(
         'Tests that appropriate Network domain events are dispatched during speculation rules prefetch while following redirects');
 

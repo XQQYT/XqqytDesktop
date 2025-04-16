@@ -7,26 +7,33 @@
 
 #include "third_party/blink/public/common/scheduler/task_attribution_id.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
-#include "third_party/blink/renderer/platform/platform_export.h"
-
-namespace blink {
-class SoftNavigationContext;
-}  // namespace blink
+#include "third_party/blink/renderer/platform/heap/member.h"
+#include "third_party/blink/renderer/platform/heap/prefinalizer.h"
+#include "third_party/blink/renderer/platform/heap/visitor.h"
+#include "third_party/blink/renderer/platform/scheduler/public/task_attribution_tracker.h"
 
 namespace blink::scheduler {
 
-// Interface for task state that can be propagated to descendant tasks and
-// continuations.
-class PLATFORM_EXPORT TaskAttributionInfo : public GarbageCollectedMixin {
- public:
-  // Returns an id for this object, which is unique for the associated tracker.
-  // This is primarily used for tracking task state across IPCs, e.g. for
-  // navigation and postMessage.
-  virtual TaskAttributionId Id() const = 0;
+class TaskAttributionInfo final : public GarbageCollected<TaskAttributionInfo> {
+  USING_PRE_FINALIZER(TaskAttributionInfo, Dispose);
 
-  // Returns the `SoftNavigationContext` associated with the task state, which
-  // can be null.
-  virtual SoftNavigationContext* GetSoftNavigationContext() = 0;
+ public:
+  TaskAttributionInfo(TaskAttributionId task_id, TaskAttributionInfo* parent)
+      : task_id_(task_id), parent_(parent) {}
+
+  ~TaskAttributionInfo() = default;
+
+  PLATFORM_EXPORT void Dispose();
+  TaskAttributionId Id() const { return task_id_; }
+  TaskAttributionInfo* Parent() const { return parent_.Get(); }
+
+  void Trace(Visitor* visitor) const {
+    visitor->Trace(parent_);
+  }
+
+ private:
+  const TaskAttributionId task_id_;
+  const Member<TaskAttributionInfo> parent_;
 };
 
 }  // namespace blink::scheduler

@@ -4,6 +4,8 @@
 'use strict';
 
 promise_test(async t => {
-  await test_driver.set_permission({ name: 'system-wake-lock' }, 'granted');
+  await test_driver.set_permission(
+      { name: 'system-wake-lock' }, 'granted', false);
+
   await fetch_tests_from_worker(new Worker('resources/idlharness-worker.js'));
 }, 'Run idlharness tests in a worker.');

@@ -23,7 +23,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSS_PAGE_RULE_H_
 
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/css/css_grouping_rule.h"
 #include "third_party/blink/renderer/core/css/css_rule.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
@@ -37,7 +36,7 @@ class ExecutionContext;
 class StyleRulePage;
 class StyleRuleCSSStyleDeclaration;
 
-class CORE_EXPORT CSSPageRule final : public CSSGroupingRule {
+class CORE_EXPORT CSSPageRule final : public CSSRule {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
@@ -51,8 +50,6 @@ class CORE_EXPORT CSSPageRule final : public CSSGroupingRule {
 
   String selectorText() const;
   void setSelectorText(const ExecutionContext*, const String&);
-
-  StyleRulePage* GetStyleRulePage() const { return page_rule_.Get(); }
 
   void Trace(Visitor*) const override;
 

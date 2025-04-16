@@ -5,16 +5,15 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_MODULES_MEDIASTREAM_WEB_MEDIA_STREAM_SINK_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_MODULES_MEDIASTREAM_WEB_MEDIA_STREAM_SINK_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/platform/modules/mediastream/web_media_stream_source.h"
 #include "third_party/blink/public/platform/modules/mediastream/web_media_stream_track.h"
 #include "third_party/blink/public/platform/web_common.h"
 
 namespace blink {
 
-// WebMediaStreamSink is the base interface for WebMediaStreamAudioSink and
-// WebMediaStreamVideoSink. It allows an implementation to receive notifications
+// MediaStreamSink is the base interface for MediaStreamAudioSink and
+// MediaStreamVideoSink. It allows an implementation to receive notifications
 // about state changes on a WebMediaStreamSource object or such an
 // object underlying a WebMediaStreamTrack.
 class BLINK_PLATFORM_EXPORT WebMediaStreamSink {
@@ -27,8 +26,8 @@ class BLINK_PLATFORM_EXPORT WebMediaStreamSink {
   // OnVideoConstraintsChanged is called when constraints set on the source
   // MediaStreamVideoTrack change. Never called in case the sink isn't connected
   // to a video track.
-  virtual void OnVideoConstraintsChanged(std::optional<double> min_fps,
-                                         std::optional<double> max_fps) {}
+  virtual void OnVideoConstraintsChanged(absl::optional<double> min_fps,
+                                         absl::optional<double> max_fps) {}
 
  protected:
   virtual ~WebMediaStreamSink() {}

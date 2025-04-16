@@ -21,19 +21,19 @@ class TestUnderlyingSource final : public UnderlyingSourceBase {
       : UnderlyingSourceBase(script_state) {}
 
   // Just expose the controller methods for easy testing
-  void Enqueue(ScriptValue value) { Controller()->Enqueue(value.V8Value()); }
+  void Enqueue(ScriptValue value) { Controller()->Enqueue(value); }
   void Close() { Controller()->Close(); }
-  void Error(ScriptValue value) { Controller()->Error(value.V8Value()); }
+  void Error(ScriptValue value) { Controller()->Error(value); }
   double DesiredSize() { return Controller()->DesiredSize(); }
 
-  ScriptPromise<IDLUndefined> Start(ScriptState* script_state) override {
+  ScriptPromise Start(ScriptState* script_state) override {
     DCHECK(!is_start_called_);
     is_start_called_ = true;
-    return ToResolvedUndefinedPromise(script_state);
+    return ScriptPromise::CastUndefined(script_state);
   }
-  ScriptPromise<IDLUndefined> Cancel(ScriptState* script_state,
-                                     ScriptValue reason,
-                                     ExceptionState&) override {
+  ScriptPromise Cancel(ScriptState* script_state,
+                       ScriptValue reason,
+                       ExceptionState&) override {
     DCHECK(!is_cancelled_);
     DCHECK(!is_cancelled_with_undefined_);
     DCHECK(!is_cancelled_with_null_);
@@ -41,7 +41,7 @@ class TestUnderlyingSource final : public UnderlyingSourceBase {
     is_cancelled_ = true;
     is_cancelled_with_undefined_ = reason.V8Value()->IsUndefined();
     is_cancelled_with_null_ = reason.V8Value()->IsNull();
-    return ToResolvedUndefinedPromise(script_state);
+    return ScriptPromise::CastUndefined(script_state);
   }
 
   bool IsStartCalled() const { return is_start_called_; }

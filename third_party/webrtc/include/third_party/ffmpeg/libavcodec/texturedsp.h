@@ -39,6 +39,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "avcodec.h"
+
 #define TEXTURE_BLOCK_W 4
 #define TEXTURE_BLOCK_H 4
 
@@ -60,19 +62,12 @@ typedef struct TextureDSPContext {
     int (*dxn3dc_block)      (uint8_t *dst, ptrdiff_t stride, const uint8_t *block);
 } TextureDSPContext;
 
-typedef struct TextureDSPEncContext {
-    int (*dxt1_block)        (uint8_t *dst, ptrdiff_t stride, const uint8_t *block);
-    int (*dxt5_block)        (uint8_t *dst, ptrdiff_t stride, const uint8_t *block);
-    int (*dxt5ys_block)      (uint8_t *dst, ptrdiff_t stride, const uint8_t *block);
-} TextureDSPEncContext;
-
 typedef struct TextureDSPThreadContext {
     union {
         const uint8_t *in;       // Input frame data
         uint8_t *out;            // Output frame data
     } frame_data;
     ptrdiff_t stride;            // Frame linesize
-    int width, height;           // Frame width / height
     union {
         const uint8_t *in;       // Compressed texture for decompression
         uint8_t *out;            // Compressed texture of compression
@@ -86,12 +81,9 @@ typedef struct TextureDSPThreadContext {
 } TextureDSPThreadContext;
 
 void ff_texturedsp_init(TextureDSPContext *c);
-void ff_texturedspenc_init(TextureDSPEncContext *c);
+void ff_texturedspenc_init(TextureDSPContext *c);
 
-struct AVCodecContext;
-int ff_texturedsp_exec_decompress_threads(struct AVCodecContext *avctx,
-                                          TextureDSPThreadContext *ctx);
-int ff_texturedsp_exec_compress_threads(struct AVCodecContext *avctx,
-                                        TextureDSPThreadContext *ctx);
+int ff_texturedsp_decompress_thread(AVCodecContext *avctx, void *arg, int slice, int thread_nb);
+int ff_texturedsp_compress_thread(AVCodecContext *avctx, void *arg, int slice, int thread_nb);
 
 #endif /* AVCODEC_TEXTUREDSP_H */

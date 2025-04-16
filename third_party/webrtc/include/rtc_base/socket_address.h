@@ -14,6 +14,9 @@
 #include <string>
 
 #include "absl/strings/string_view.h"
+#ifdef WEBRTC_UNIT_TEST
+#include <ostream>  // no-presubmit-check TODO(webrtc:8982)
+#endif              // WEBRTC_UNIT_TEST
 #include "rtc_base/ip_address.h"
 #include "rtc_base/system/rtc_export.h"
 
@@ -22,7 +25,7 @@
 struct sockaddr_in;
 struct sockaddr_storage;
 
-namespace webrtc {
+namespace rtc {
 
 // Records an IP address and port.
 class RTC_EXPORT SocketAddress {
@@ -130,6 +133,13 @@ class RTC_EXPORT SocketAddress {
   // Parses hostname:port and [hostname]:port.
   bool FromString(absl::string_view str);
 
+#ifdef WEBRTC_UNIT_TEST
+  inline std::ostream& operator<<(  // no-presubmit-check TODO(webrtc:8982)
+      std::ostream& os) {           // no-presubmit-check TODO(webrtc:8982)
+    return os << HostAsURIString() << ":" << port();
+  }
+#endif  // WEBRTC_UNIT_TEST
+
   // Determines whether this represents a missing / any IP address.
   // That is, 0.0.0.0 or ::.
   // Hostname and/or port may be set.
@@ -194,14 +204,6 @@ RTC_EXPORT bool SocketAddressFromSockAddrStorage(const sockaddr_storage& saddr,
                                                  SocketAddress* out);
 SocketAddress EmptySocketAddressWithFamily(int family);
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace rtc {
-using ::webrtc::EmptySocketAddressWithFamily;
-using ::webrtc::SocketAddress;
-using ::webrtc::SocketAddressFromSockAddrStorage;
 }  // namespace rtc
 
 #endif  // RTC_BASE_SOCKET_ADDRESS_H_

@@ -7,7 +7,7 @@ enum FINDDATA_FLAGS {
 
 struct FindData
 {
-  std::wstring Name;
+  wchar Name[NM];
   uint64 Size;
   uint FileAttr;
   bool IsDir;
@@ -28,10 +28,10 @@ class FindFile
 {
   private:
 #ifdef _WIN_ALL
-    static HANDLE Win32Find(HANDLE hFind,const std::wstring &Mask,FindData *fd);
+    static HANDLE Win32Find(HANDLE hFind,const wchar *Mask,FindData *fd);
 #endif
 
-    std::wstring FindMask;
+    wchar FindMask[NM];
     bool FirstCall;
 #ifdef _WIN_ALL
     HANDLE hFind;
@@ -41,9 +41,9 @@ class FindFile
   public:
     FindFile();
     ~FindFile();
-    void SetMask(const std::wstring &Mask);
+    void SetMask(const wchar *Mask);
     bool Next(FindData *fd,bool GetSymLink=false);
-    static bool FastFind(const std::wstring &FindMask,FindData *fd,bool GetSymLink=false);
+    static bool FastFind(const wchar *FindMask,FindData *fd,bool GetSymLink=false);
 };
 
 #endif

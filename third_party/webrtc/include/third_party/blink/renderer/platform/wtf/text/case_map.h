@@ -10,7 +10,6 @@
 
 namespace WTF {
 
-class String;
 class TextOffsetMap;
 
 // This class performs the full Unicode case-mapping.

@@ -29,8 +29,6 @@
 #include "base/notreached.h"
 #include "third_party/blink/public/mojom/input/scroll_direction.mojom-blink.h"
 #include "third_party/blink/public/mojom/scroll/scroll_enums.mojom-blink.h"
-#include "third_party/blink/renderer/platform/runtime_enabled_features.h"
-#include "ui/gfx/geometry/vector2d_conversions.h"
 #include "ui/gfx/geometry/vector2d_f.h"
 
 namespace blink {
@@ -54,7 +52,8 @@ enum ScrollDirectionPhysical {
 inline bool IsExplicitScrollType(mojom::blink::ScrollType scroll_type) {
   return scroll_type == mojom::blink::ScrollType::kUser ||
          scroll_type == mojom::blink::ScrollType::kProgrammatic ||
-         scroll_type == mojom::blink::ScrollType::kCompositor;
+         scroll_type == mojom::blink::ScrollType::kCompositor ||
+         scroll_type == mojom::blink::ScrollType::kSequenced;
 }
 
 // Convert logical scroll direction to physical. Physical scroll directions are
@@ -115,6 +114,7 @@ inline ScrollDirectionPhysical ToPhysicalDirection(
       return kScrollRight;
     default:
       NOTREACHED();
+      break;
   }
   return kScrollUp;
 }
@@ -132,6 +132,7 @@ inline mojom::blink::ScrollDirection ToScrollDirection(
       return mojom::blink::ScrollDirection::kScrollRightIgnoringWritingMode;
     default:
       NOTREACHED();
+      break;
   }
   return mojom::blink::ScrollDirection::kScrollUpIgnoringWritingMode;
 }
@@ -166,6 +167,11 @@ enum ScrollbarPart {
   kScrollbarBGPart = 1 << 7,  // For custom scrollbars only.
   kTrackBGPart = 1 << 8,
   kAllParts = 0xffffffff
+};
+
+enum ScrollbarOverlayColorTheme {
+  kScrollbarOverlayColorThemeDark,
+  kScrollbarOverlayColorThemeLight
 };
 
 // The result of an attempt to scroll. If didScroll is true, then
@@ -211,18 +217,6 @@ inline ScrollOffset ToScrollDelta(ScrollDirectionPhysical dir, float delta) {
 
   return (dir == kScrollLeft || dir == kScrollRight) ? ScrollOffset(delta, 0)
                                                      : ScrollOffset(0, delta);
-}
-
-// ScrollableArea supports storing scroll offsets with subpixel precision;
-// however, the web has historically only allowed scroll offsets matching
-// physical pixels.
-inline gfx::Vector2d SnapScrollOffsetToPhysicalPixels(
-    const gfx::Vector2dF& offset) {
-  if (RuntimeEnabledFeatures::RoundScrollOffsetsEnabled()) {
-    return gfx::ToRoundedVector2d(offset);
-  }
-
-  return gfx::ToFlooredVector2d(offset);
 }
 
 }  // namespace blink

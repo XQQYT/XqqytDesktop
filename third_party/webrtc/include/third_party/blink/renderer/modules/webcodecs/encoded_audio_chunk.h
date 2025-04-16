@@ -16,7 +16,6 @@ namespace blink {
 
 class EncodedAudioChunkInit;
 class ExceptionState;
-class V8EncodedAudioChunkType;
 
 class MODULES_EXPORT EncodedAudioChunk final : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
@@ -29,10 +28,10 @@ class MODULES_EXPORT EncodedAudioChunk final : public ScriptWrappable {
                                    ExceptionState& exception_state);
 
   // encoded_audio_chunk.idl implementation.
-  V8EncodedAudioChunkType type() const;
+  String type() const;
   int64_t timestamp() const;
   uint64_t byteLength() const;
-  std::optional<uint64_t> duration() const;
+  absl::optional<uint64_t> duration() const;
   void copyTo(const AllowSharedBufferSource* destination,
               ExceptionState& exception_state);
 

@@ -13,7 +13,7 @@
 
 #include <stddef.h>
 
-#include <optional>
+#include "absl/types/optional.h"
 
 namespace webrtc {
 
@@ -23,18 +23,18 @@ struct AudioEncoderRuntimeConfig {
   ~AudioEncoderRuntimeConfig();
   AudioEncoderRuntimeConfig& operator=(const AudioEncoderRuntimeConfig& other);
   bool operator==(const AudioEncoderRuntimeConfig& other) const;
-  std::optional<int> bitrate_bps;
-  std::optional<int> frame_length_ms;
+  absl::optional<int> bitrate_bps;
+  absl::optional<int> frame_length_ms;
   // Note: This is what we tell the encoder. It doesn't have to reflect
   // the actual NetworkMetrics; it's subject to our decision.
-  std::optional<float> uplink_packet_loss_fraction;
-  std::optional<bool> enable_fec;
-  std::optional<bool> enable_dtx;
+  absl::optional<float> uplink_packet_loss_fraction;
+  absl::optional<bool> enable_fec;
+  absl::optional<bool> enable_dtx;
 
   // Some encoders can encode fewer channels than the actual input to make
   // better use of the bandwidth. `num_channels` sets the number of channels
   // to encode.
-  std::optional<size_t> num_channels;
+  absl::optional<size_t> num_channels;
 
   // This is true if the last frame length change was an increase, and otherwise
   // false.

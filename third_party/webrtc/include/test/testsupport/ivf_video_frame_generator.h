@@ -12,11 +12,9 @@
 #define TEST_TESTSUPPORT_IVF_VIDEO_FRAME_GENERATOR_H_
 
 #include <memory>
-#include <optional>
 #include <string>
 
-#include "absl/strings/string_view.h"
-#include "api/environment/environment.h"
+#include "absl/types/optional.h"
 #include "api/sequence_checker.h"
 #include "api/test/frame_generator_interface.h"
 #include "api/video/video_codec_type.h"
@@ -32,18 +30,14 @@ namespace test {
 // All methods except constructor must be used from the same thread.
 class IvfVideoFrameGenerator : public FrameGeneratorInterface {
  public:
-  // Allow to specify a `fps_hint` in case the fps of the video is known.
-  IvfVideoFrameGenerator(const Environment& env,
-                         absl::string_view file_name,
-                         std::optional<int> fps_hint);
+  explicit IvfVideoFrameGenerator(const std::string& file_name);
   ~IvfVideoFrameGenerator() override;
 
   VideoFrameData NextFrame() override;
-  void SkipNextFrame() override;
   void ChangeResolution(size_t width, size_t height) override;
   Resolution GetResolution() const override;
 
-  std::optional<int> fps() const override { return fps_hint_; }
+  absl::optional<int> fps() const override { return absl::nullopt; }
 
  private:
   class DecodedCallback : public DecodedImageCallback {
@@ -54,27 +48,23 @@ class IvfVideoFrameGenerator : public FrameGeneratorInterface {
     int32_t Decoded(VideoFrame& decoded_image) override;
     int32_t Decoded(VideoFrame& decoded_image, int64_t decode_time_ms) override;
     void Decoded(VideoFrame& decoded_image,
-                 std::optional<int32_t> decode_time_ms,
-                 std::optional<uint8_t> qp) override;
+                 absl::optional<int32_t> decode_time_ms,
+                 absl::optional<uint8_t> qp) override;
 
    private:
     IvfVideoFrameGenerator* const reader_;
   };
 
   void OnFrameDecoded(const VideoFrame& decoded_frame);
+  static std::unique_ptr<VideoDecoder> CreateVideoDecoder(
+      VideoCodecType codec_type);
 
   DecodedCallback callback_;
   std::unique_ptr<IvfFileReader> file_reader_;
   std::unique_ptr<VideoDecoder> video_decoder_;
 
-  // Resolution of IVF. Initially readed from IVF header and then set to
-  // resolution of decoded frame.
-  Resolution original_resolution_;
-  // Resolution of output frames. When set, the decoded frames scaled to
-  // `output_resolution_`. Otherwise the decoded resolution, which may vary from
-  // frame to frame, is preserved.
-  std::optional<Resolution> output_resolution_;
-  std::optional<int> fps_hint_;
+  size_t width_;
+  size_t height_;
 
   // This lock is used to ensure that all API method will be called
   // sequentially. It is required because we need to ensure that generator
@@ -90,8 +80,8 @@ class IvfVideoFrameGenerator : public FrameGeneratorInterface {
   // frame was sent to decoder and decoder callback was invoked.
   Mutex frame_decode_lock_;
 
-  Event next_frame_decoded_;
-  std::optional<VideoFrame> next_frame_ RTC_GUARDED_BY(frame_decode_lock_);
+  rtc::Event next_frame_decoded_;
+  absl::optional<VideoFrame> next_frame_ RTC_GUARDED_BY(frame_decode_lock_);
 };
 
 }  // namespace test

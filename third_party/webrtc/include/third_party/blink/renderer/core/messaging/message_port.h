@@ -28,8 +28,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_MESSAGING_MESSAGE_PORT_H_
 
 #include <memory>
-#include <vector>
-
 #include "base/memory/scoped_refptr.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/unguessable_token.h"
@@ -38,6 +36,7 @@
 #include "third_party/blink/public/common/messaging/message_port_channel.h"
 #include "third_party/blink/public/common/messaging/message_port_descriptor.h"
 #include "third_party/blink/public/common/scheduler/task_attribution_id.h"
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/blink/renderer/bindings/core/v8/active_script_wrappable.h"
 #include "third_party/blink/renderer/bindings/core/v8/serialization/serialized_script_value.h"
 #include "third_party/blink/renderer/core/core_export.h"
@@ -54,9 +53,7 @@ struct BlinkTransferableMessage;
 class ExceptionState;
 class ExecutionContext;
 class PostMessageOptions;
-class ScriptObject;
 class ScriptState;
-class ScriptValue;
 
 class CORE_EXPORT MessagePort : public EventTarget,
                                 public mojo::MessageReceiver,
@@ -72,7 +69,7 @@ class CORE_EXPORT MessagePort : public EventTarget,
 
   void postMessage(ScriptState*,
                    const ScriptValue& message,
-                   HeapVector<ScriptObject> transfer,
+                   HeapVector<ScriptValue>& transfer,
                    ExceptionState&);
   void postMessage(ScriptState*,
                    const ScriptValue& message,
@@ -82,7 +79,6 @@ class CORE_EXPORT MessagePort : public EventTarget,
   void start();
   void close();
 
-  void OnConnectionError();
   void Entangle(MessagePortDescriptor, MessagePort*);
   void Entangle(MessagePortChannel);
   MessagePortChannel Disentangle();
@@ -94,10 +90,10 @@ class CORE_EXPORT MessagePort : public EventTarget,
                                                      ExceptionState&);
 
   // Returns an empty array if the passed array is empty.
-  static GCedMessagePortArray* EntanglePorts(ExecutionContext&,
-                                             Vector<MessagePortChannel>);
-  static GCedMessagePortArray* EntanglePorts(ExecutionContext&,
-                                             std::vector<MessagePortChannel>);
+  static MessagePortArray* EntanglePorts(ExecutionContext&,
+                                         Vector<MessagePortChannel>);
+  static MessagePortArray* EntanglePorts(ExecutionContext&,
+                                         WebVector<MessagePortChannel>);
 
   bool Started() const { return started_; }
 
@@ -112,8 +108,6 @@ class CORE_EXPORT MessagePort : public EventTarget,
 
   // ExecutionContextLifecycleObserver implementation.
   void ContextDestroyed() override { close(); }
-
-  DEFINE_ATTRIBUTE_EVENT_LISTENER(close, kClose)
 
   void setOnmessage(EventListener* listener) {
     SetAttributeEventListener(event_type_names::kMessage, listener);
@@ -151,7 +145,7 @@ class CORE_EXPORT MessagePort : public EventTarget,
     void AddPostMessageTask(scheduler::TaskAttributionInfo* task);
 
     scheduler::TaskAttributionInfo* GetAndDecrementPostMessageTask(
-        std::optional<scheduler::TaskAttributionId> id);
+        absl::optional<scheduler::TaskAttributionId> id);
 
     void Trace(Visitor* visitor) const { visitor->Trace(post_message_tasks_); }
 

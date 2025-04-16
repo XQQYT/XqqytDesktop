@@ -65,8 +65,6 @@
 #include <stdint.h>
 #include <time.h>
 
-#include <compare>
-#include <concepts>
 #include <iosfwd>
 #include <limits>
 #include <ostream>
@@ -78,8 +76,6 @@
 #include "base/compiler_specific.h"
 #include "base/numerics/clamped_math.h"
 #include "build/build_config.h"
-// TODO(crbug.com/354842935): Remove this include once other modules don't
-// accidentally (transitively) depend on it anymore.
 #include "build/chromeos_buildflags.h"
 
 #if BUILDFLAG(IS_FUCHSIA)
@@ -98,8 +94,8 @@
 #endif
 
 #if BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
-#include <sys/time.h>
 #include <unistd.h>
+#include <sys/time.h>
 #endif
 
 #if BUILDFLAG(IS_WIN)
@@ -118,9 +114,7 @@ struct TimeSpan;
 
 namespace base {
 
-#if BUILDFLAG(IS_WIN)
 class PlatformThreadHandle;
-#endif
 class TimeDelta;
 
 template <typename T>
@@ -134,7 +128,7 @@ constexpr bool isnan(double d) {
   return d != d;
 }
 
-}  // namespace
+}
 
 // TimeDelta ------------------------------------------------------------------
 
@@ -144,7 +138,7 @@ class BASE_EXPORT TimeDelta {
 
 #if BUILDFLAG(IS_WIN)
   static TimeDelta FromQPCValue(LONGLONG qpc_value);
-  // TODO(crbug.com/40638442): Avoid base::TimeDelta factory functions
+  // TODO(crbug.com/989694): Avoid base::TimeDelta factory functions
   // based on absolute time
   static TimeDelta FromFileTime(FILETIME ft);
   static TimeDelta FromWinrtDateTime(ABI::Windows::Foundation::DateTime dt);
@@ -175,7 +169,7 @@ class BASE_EXPORT TimeDelta {
   // large number that doesn't do this. TimeDelta math saturates at the end
   // points so adding to TimeDelta::Max() leaves the value unchanged.
   // Subtracting should leave the value unchanged but currently changes it
-  // TODO(crbug.com/41405098).
+  // TODO(https://crbug.com/869387).
   static constexpr TimeDelta Max();
 
   // Returns the minimum time delta, which should be less than than any
@@ -262,9 +256,8 @@ class BASE_EXPORT TimeDelta {
     return *this = (*this - other);
   }
   constexpr TimeDelta operator-() const {
-    if (!is_inf()) {
+    if (!is_inf())
       return TimeDelta(-delta_);
-    }
     return (delta_ < 0) ? Max() : Min();
   }
 
@@ -301,9 +294,8 @@ class BASE_EXPORT TimeDelta {
     return ToDouble() / a.ToDouble();
   }
   constexpr int64_t IntDiv(TimeDelta a) const {
-    if (!is_inf() && !a.is_zero()) {
+    if (!is_inf() && !a.is_zero())
       return int64_t{delta_ / a.delta_};
-    }
 
     // For consistency, use the same edge case CHECKs and behavior as the code
     // above.
@@ -323,9 +315,24 @@ class BASE_EXPORT TimeDelta {
   }
 
   // Comparison operators.
-  friend constexpr bool operator==(TimeDelta, TimeDelta) = default;
-  friend constexpr std::strong_ordering operator<=>(TimeDelta,
-                                                    TimeDelta) = default;
+  constexpr bool operator==(TimeDelta other) const {
+    return delta_ == other.delta_;
+  }
+  constexpr bool operator!=(TimeDelta other) const {
+    return delta_ != other.delta_;
+  }
+  constexpr bool operator<(TimeDelta other) const {
+    return delta_ < other.delta_;
+  }
+  constexpr bool operator<=(TimeDelta other) const {
+    return delta_ <= other.delta_;
+  }
+  constexpr bool operator>(TimeDelta other) const {
+    return delta_ > other.delta_;
+  }
+  constexpr bool operator>=(TimeDelta other) const {
+    return delta_ >= other.delta_;
+  }
 
   // Returns this delta, ceiled/floored/rounded-away-from-zero to the nearest
   // multiple of |interval|.
@@ -344,9 +351,8 @@ class BASE_EXPORT TimeDelta {
   // Returns a double representation of this TimeDelta's tick count.  In
   // particular, Max()/Min() are converted to +/-infinity.
   constexpr double ToDouble() const {
-    if (!is_inf()) {
+    if (!is_inf())
       return static_cast<double>(delta_);
-    }
     return (delta_ < 0) ? -std::numeric_limits<double>::infinity()
                         : std::numeric_limits<double>::infinity();
   }
@@ -356,9 +362,8 @@ class BASE_EXPORT TimeDelta {
 };
 
 constexpr TimeDelta TimeDelta::operator+(TimeDelta other) const {
-  if (!other.is_inf()) {
+  if (!other.is_inf())
     return TimeDelta(delta_ + other.delta_);
-  }
 
   // Additions involving two infinities are only valid if signs match.
   CHECK(!is_inf() || (delta_ == other.delta_));
@@ -366,9 +371,8 @@ constexpr TimeDelta TimeDelta::operator+(TimeDelta other) const {
 }
 
 constexpr TimeDelta TimeDelta::operator-(TimeDelta other) const {
-  if (!other.is_inf()) {
+  if (!other.is_inf())
     return TimeDelta(delta_ - other.delta_);
-  }
 
   // Subtractions involving two infinities are only valid if signs differ.
   CHECK_NE(int64_t{delta_}, int64_t{other.delta_});
@@ -394,7 +398,7 @@ namespace time_internal {
 // classes. Each subclass provides for strong type-checking to ensure
 // semantically meaningful comparison/math of time values from the same clock
 // source or timeline.
-template <class TimeClass>
+template<class TimeClass>
 class TimeBase {
  public:
   static constexpr int64_t kHoursPerDay = 24;
@@ -416,12 +420,10 @@ class TimeBase {
       kMicrosecondsPerHour * kHoursPerDay;
   static constexpr int64_t kMicrosecondsPerWeek = kMicrosecondsPerDay * 7;
   static constexpr int64_t kNanosecondsPerMicrosecond = 1000;
-  static constexpr int64_t kNanosecondsPerMillisecond =
-      kNanosecondsPerMicrosecond * kMicrosecondsPerMillisecond;
   static constexpr int64_t kNanosecondsPerSecond =
       kNanosecondsPerMicrosecond * kMicrosecondsPerSecond;
 
-  // TODO(crbug.com/40247732): Remove concept of "null" from base::Time.
+  // TODO(https://crbug.com/1392437): Remove concept of "null" from base::Time.
   //
   // Warning: Be careful when writing code that performs math on time values,
   // since it's possible to produce a valid "zero" result that should not be
@@ -437,8 +439,8 @@ class TimeBase {
   constexpr bool is_min() const { return *this == Min(); }
   constexpr bool is_inf() const { return is_min() || is_max(); }
 
-  // Returns the maximum/minimum times, which should be non-null and
-  // greater/less than than any reasonable time with which we might compare it.
+  // Returns the maximum/minimum times, which should be greater/less than than
+  // any reasonable time with which we might compare it.
   static constexpr TimeClass Max() {
     return TimeClass(std::numeric_limits<int64_t>::max());
   }
@@ -465,8 +467,7 @@ class TimeBase {
 #if !defined(__aarch64__) && BUILDFLAG(IS_ANDROID)
   NOINLINE  // https://crbug.com/1369775
 #endif
-      constexpr TimeDelta
-      operator-(const TimeBase<TimeClass>& other) const;
+  constexpr TimeDelta operator-(const TimeBase<TimeClass>& other) const;
 
   // Return a new time modified by some delta.
   constexpr TimeClass operator+(TimeDelta delta) const;
@@ -481,9 +482,24 @@ class TimeBase {
   }
 
   // Comparison operators
-  friend constexpr bool operator==(const TimeBase&, const TimeBase&) = default;
-  friend constexpr std::strong_ordering operator<=>(const TimeBase&,
-                                                    const TimeBase&) = default;
+  constexpr bool operator==(const TimeBase<TimeClass>& other) const {
+    return us_ == other.us_;
+  }
+  constexpr bool operator!=(const TimeBase<TimeClass>& other) const {
+    return us_ != other.us_;
+  }
+  constexpr bool operator<(const TimeBase<TimeClass>& other) const {
+    return us_ < other.us_;
+  }
+  constexpr bool operator<=(const TimeBase<TimeClass>& other) const {
+    return us_ <= other.us_;
+  }
+  constexpr bool operator>(const TimeBase<TimeClass>& other) const {
+    return us_ > other.us_;
+  }
+  constexpr bool operator>=(const TimeBase<TimeClass>& other) const {
+    return us_ >= other.us_;
+  }
 
  protected:
   constexpr explicit TimeBase(int64_t us) : us_(us) {}
@@ -597,7 +613,7 @@ class BASE_EXPORT Time : public time_internal::TimeBase<Time> {
     bool HasValidValues() const;
   };
 
-  // TODO(crbug.com/40247732): Remove concept of "null" from base::Time.
+  // TODO(https://crbug.com/1392437): Remove concept of "null" from base::Time.
   //
   // Warning: Be careful when writing code that performs math on time values,
   // since it's possible to produce a valid "zero" result that should not be
@@ -653,8 +669,8 @@ class BASE_EXPORT Time : public time_internal::TimeBase<Time> {
   // Converts time to/from a number of seconds since the Unix epoch (Jan 1,
   // 1970).
   //
-  // TODO(crbug.com/40286582): Add integral versions and use them.
-  // TODO(crbug.com/40286584): Add ...PreservingNull() versions; see comments in
+  // TODO(crbug.com/1495550): Add integral versions and use them.
+  // TODO(crbug.com/1495554): Add ...PreservingNull() versions; see comments in
   // the implementation of FromSecondsSinceUnixEpoch().
   static constexpr Time FromSecondsSinceUnixEpoch(double dt);
   constexpr double InSecondsFSinceUnixEpoch() const;
@@ -668,7 +684,7 @@ class BASE_EXPORT Time : public time_internal::TimeBase<Time> {
 #endif
 
   // Converts to/from a number of milliseconds since the Unix epoch.
-  // TODO(crbug.com/40286584): Add ...PreservingNull() versions; see comments in
+  // TODO(crbug.com/1495554): Add ...PreservingNull() versions; see comments in
   // the implementation of FromMillisecondsSinceUnixEpoch().
   static constexpr Time FromMillisecondsSinceUnixEpoch(int64_t dt);
   static constexpr Time FromMillisecondsSinceUnixEpoch(double dt);
@@ -676,10 +692,11 @@ class BASE_EXPORT Time : public time_internal::TimeBase<Time> {
   // version; otherwise such calls would need to manually cast their args to
   // int64_t, since the compiler isn't sure whether to promote to int64_t or
   // double.
-  template <typename T>
-    requires(std::integral<T> && !std::same_as<T, int64_t> &&
-             (sizeof(T) < sizeof(int64_t) ||
-              (sizeof(T) == sizeof(int64_t) && std::is_signed_v<T>)))
+  template <typename T,
+            typename = std::enable_if_t<
+                std::is_integral_v<T> && !std::is_same_v<T, int64_t> &&
+                (sizeof(T) < sizeof(int64_t) ||
+                 (sizeof(T) == sizeof(int64_t) && std::is_signed_v<T>))>>
   static constexpr Time FromMillisecondsSinceUnixEpoch(T ms_since_epoch) {
     return FromMillisecondsSinceUnixEpoch(int64_t{ms_since_epoch});
   }
@@ -690,7 +707,7 @@ class BASE_EXPORT Time : public time_internal::TimeBase<Time> {
   // InMillisecondsFSinceUnixEpochIgnoringNull() unless you have a very good
   // reason to use InMillisecondsFSinceUnixEpoch().
   //
-  // TODO(crbug.com/40286584): Rename the no-suffix version to
+  // TODO(crbug.com/1495554): Rename the no-suffix version to
   // "...PreservingNull()" and remove the suffix from the other version, to
   // guide people to the preferable API.
   constexpr double InMillisecondsFSinceUnixEpoch() const;
@@ -964,9 +981,8 @@ constexpr int TimeDelta::InMinutes() const {
 }
 
 constexpr double TimeDelta::InSecondsF() const {
-  if (!is_inf()) {
+  if (!is_inf())
     return static_cast<double>(delta_) / Time::kMicrosecondsPerSecond;
-  }
   return (delta_ < 0) ? -std::numeric_limits<double>::infinity()
                       : std::numeric_limits<double>::infinity();
 }
@@ -1073,9 +1089,8 @@ constexpr TimeClass TimeBase<TimeClass>::operator-(TimeDelta delta) const {
 
 // static
 constexpr Time Time::FromTimeT(time_t tt) {
-  if (tt == 0) {
+  if (tt == 0)
     return Time();  // Preserve 0 so we can tell it doesn't exist.
-  }
   return (tt == std::numeric_limits<time_t>::max())
              ? Max()
              : (UnixEpoch() + Seconds(tt));
@@ -1096,7 +1111,7 @@ constexpr time_t Time::ToTimeT() const {
 constexpr Time Time::FromSecondsSinceUnixEpoch(double dt) {
   // Preserve 0.
   //
-  // TODO(crbug.com/40286584): This is an unfortunate artifact of WebKit using 0
+  // TODO(crbug.com/1495554): This is an unfortunate artifact of WebKit using 0
   // to mean "no time". Add a "...PreservingNull()" version that does this,
   // convert the minimum necessary set of callers to use it, and remove the zero
   // check here.
@@ -1125,7 +1140,7 @@ constexpr Time Time::FromTimeSpec(const timespec& ts) {
 
 // static
 constexpr Time Time::FromMillisecondsSinceUnixEpoch(int64_t dt) {
-  // TODO(crbug.com/40286584): The lack of zero-preservation here doesn't match
+  // TODO(crbug.com/1495554): The lack of zero-preservation here doesn't match
   // InMillisecondsSinceUnixEpoch(), which is dangerous since it means
   // round-trips are not necessarily idempotent. Add "...PreservingNull()"
   // versions that explicitly check for zeros, convert the minimum necessary set
@@ -1191,19 +1206,6 @@ class BASE_EXPORT TimeTicks : public time_internal::TimeBase<TimeTicks> {
   // microsecond.
   static TimeTicks Now();
 
-  // Lower overhead, lower resolution platform-dependent tick count representing
-  // "right now." The resolution may be as coarse as ~15.6ms on Windows and
-  // single digit ms on other platforms. LowResolutionNow() can be used in place
-  // of Now() to reduce overhead of high frequency timekeeping where the finer
-  // resolution of Now() is not required. Generally, prefer to use Now() over
-  // LowResolutionNow() unless profiling shows measurable overhead.
-  //
-  // Note: LowResolutionNow() and Now() are NOT comparable. They use different
-  // underlying clocks on some platforms (e.g. Mac, iOS). On other platforms the
-  // monotonically non-decreasing property of TimeTicks does not hold for mixed
-  // comparisons.
-  static TimeTicks LowResolutionNow();
-
   // Returns true if the high resolution clock is working on this system and
   // Now() will return high resolution values. Note that, on systems where the
   // high resolution clock works but is deemed inefficient, the low resolution
@@ -1239,14 +1241,14 @@ class BASE_EXPORT TimeTicks : public time_internal::TimeBase<TimeTicks> {
 
 #endif  // BUILDFLAG(IS_APPLE)
 
-#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_CHROMEOS_ASH)
   // Converts to TimeTicks the value obtained from SystemClock.uptimeMillis().
   // Note: this conversion may be non-monotonic in relation to previously
   // obtained TimeTicks::Now() values because of the truncation (to
   // milliseconds) performed by uptimeMillis().
   static TimeTicks FromUptimeMillis(int64_t uptime_millis_value);
 
-#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_CHROMEOS)
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_CHROMEOS_ASH)
 
 #if BUILDFLAG(IS_ANDROID)
   // Converts to TimeTicks the value obtained from System.nanoTime(). This
@@ -1278,14 +1280,6 @@ class BASE_EXPORT TimeTicks : public time_internal::TimeBase<TimeTicks> {
   // realtime clock to establish a reference point.  This function will return
   // the same value for the duration of the application, but will be different
   // in future application runs.
-  // DEPRECATED:
-  // Because TimeTicks increments can get suspended on some platforms (e.g. Mac)
-  // and because this function returns a static value, this value will not get
-  // suspension time into account on those platforms.
-  // As TimeTicks is intended to be used to track a process duration and not an
-  // absolute time, if you plan to use this function, please consider using a
-  // Time instead.
-  // TODO(crbug.com/355423207): Remove function.
   static TimeTicks UnixEpoch();
 
   static void SetSharedUnixEpoch(TimeTicks);
@@ -1349,26 +1343,10 @@ class BASE_EXPORT LiveTicks : public time_internal::TimeBase<LiveTicks> {
   constexpr explicit LiveTicks(int64_t us) : TimeBase(us) {}
 };
 
-// For logging use only.
-BASE_EXPORT std::ostream& operator<<(std::ostream& os, LiveTicks live_ticks);
-
 // ThreadTicks ----------------------------------------------------------------
 
-// Represents a thread-specific clock that runs only while the thread is
-// scheduled. This has the effect of counting time spent actually executing
-// code, but not time spent blocked (e.g. on I/O), or ready and waiting to be
-// run.
-//
-// Note: This is typically significantly more expensive than TimeTicks. For
-// instance, on Linux-based systems, it requires a true system call, whereas
-// TimeTicks::Now() calls are usually handled through the vDSO. This does not
-// matter if a couple us of overhead is not important to you, but do not call
-// this in a tight loop, or for sub-microsecond intervals.
-//
-// For instance, in 2024 on a Linux system, in a simple loop:
-// - TimeTicks::Now() takes 27ns per loop iteration
-// - ThreadTicks::Now() takes 875ns per loop iteration. Actual cost is likely
-//   higher in Chromium due to the sandbox (seccomp-BPF).
+// Represents a clock, specific to a particular thread, than runs only while the
+// thread is running.
 class BASE_EXPORT ThreadTicks : public time_internal::TimeBase<ThreadTicks> {
  public:
   constexpr ThreadTicks() : TimeBase(0) {}

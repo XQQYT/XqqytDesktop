@@ -33,11 +33,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_HTML_FORMS_INPUT_TYPE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_HTML_FORMS_INPUT_TYPE_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/mojom/forms/form_control_type.mojom-blink.h"
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/dom/element.h"
 #include "third_party/blink/renderer/core/frame/web_feature_forward.h"
 #include "third_party/blink/renderer/core/html/forms/color_chooser_client.h"
 #include "third_party/blink/renderer/core/html/forms/step_range.h"
@@ -115,17 +113,20 @@ class CORE_EXPORT InputType : public GarbageCollected<InputType> {
         base::to_underlying(type_));
   }
 
-  virtual bool IsInteractiveContent() const;
-  virtual bool IsAutoDirectionalityFormAssociated() const;
+  // Type query functions
 
-  bool IsButton() const {
-    return type_ == Type::kButton || type_ == Type::kImage ||
-           type_ == Type::kReset || type_ == Type::kSubmit;
-  }
-  bool IsTextButton() const {
-    return type_ == Type::kButton || type_ == Type::kReset ||
-           type_ == Type::kSubmit;
-  }
+  // Any time we are using one of these functions it's best to refactor
+  // to add a virtual function to allow the input type object to do the
+  // work instead, or at least make a query function that asks a higher
+  // level question. These functions make the HTMLInputElement class
+  // inflexible because it's harder to add new input types if there is
+  // scattered code with special cases for various types.
+
+  virtual bool IsInteractiveContent() const;
+  virtual bool IsTextButton() const;
+  virtual bool IsTextField() const;
+  virtual bool ShouldAutoDirUseValue() const;
+
   bool IsButtonInputType() const { return type_ == Type::kButton; }
   bool IsColorInputType() const { return type_ == Type::kColor; }
   bool IsFileInputType() const { return type_ == Type::kFile; }
@@ -189,7 +190,7 @@ class CORE_EXPORT InputType : public GarbageCollected<InputType> {
   virtual ValueMode GetValueMode() const = 0;
 
   virtual double ValueAsDate() const;
-  virtual void SetValueAsDate(const std::optional<base::Time>&,
+  virtual void SetValueAsDate(const absl::optional<base::Time>&,
                               ExceptionState&) const;
   virtual double ValueAsDouble() const;
   virtual void SetValueAsDouble(double,
@@ -256,9 +257,7 @@ class CORE_EXPORT InputType : public GarbageCollected<InputType> {
   virtual void WarnIfValueIsInvalid(const String&) const;
   void WarnIfValueIsInvalidAndElementIsVisible(const String&) const;
 
-  virtual bool IsKeyboardFocusableSlow(
-      Element::UpdateBehavior update_behavior =
-          Element::UpdateBehavior::kStyleAndLayout) const;
+  virtual bool IsKeyboardFocusable() const;
   virtual bool MayTriggerVirtualKeyboard() const;
   virtual bool CanBeSuccessfulSubmitButton();
   virtual bool MatchesDefaultPseudoClass();
@@ -267,7 +266,6 @@ class CORE_EXPORT InputType : public GarbageCollected<InputType> {
 
   virtual bool LayoutObjectIsNeeded();
   virtual void CountUsage();
-  virtual void DidRecalcStyle(const StyleRecalcChange);
   virtual void SanitizeValueInResponseToMinOrMaxAttributeChange();
   virtual bool ShouldRespectAlignAttribute();
   virtual FileList* Files();
@@ -360,8 +358,7 @@ class CORE_EXPORT InputType : public GarbageCollected<InputType> {
  private:
   // Helper for stepUp()/stepDown(). Adds step value * count to the current
   // value.
-  void ApplyStep(const Decimal& current,
-                 const bool current_was_invalid,
+  void ApplyStep(const Decimal&,
                  double count,
                  AnyStepHandling,
                  TextFieldEventBehavior,

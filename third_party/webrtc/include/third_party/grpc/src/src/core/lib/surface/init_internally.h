@@ -26,21 +26,10 @@ extern bool (*IsInitializedInternally)();
 
 class KeepsGrpcInitialized {
  public:
-  explicit KeepsGrpcInitialized(bool enabled = true) : enabled_(enabled) {
-    if (enabled_) {
-      InitInternally();
-    }
-  }
-  ~KeepsGrpcInitialized() {
-    if (enabled_) {
-      ShutdownInternally();
-    }
-  }
+  KeepsGrpcInitialized() { InitInternally(); }
+  ~KeepsGrpcInitialized() { ShutdownInternally(); }
   KeepsGrpcInitialized(const KeepsGrpcInitialized&) = delete;
   KeepsGrpcInitialized& operator=(const KeepsGrpcInitialized&) = delete;
-
- private:
-  bool enabled_;
 };
 
 }  // namespace grpc_core

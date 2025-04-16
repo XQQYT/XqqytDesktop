@@ -32,7 +32,6 @@
 
 #include "hb.hh"
 #include "hb-unicode.hh"
-#include "hb-bit-set.hh"
 #include "hb-set-digest.hh"
 
 
@@ -53,7 +52,6 @@ enum hb_buffer_scratch_flags_t {
   HB_BUFFER_SCRATCH_FLAG_HAS_CGJ			= 0x00000010u,
   HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS		= 0x00000020u,
   HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE		= 0x00000040u,
-  HB_BUFFER_SCRATCH_FLAG_HAS_VARIATION_SELECTOR_FALLBACK= 0x00000080u,
 
   /* Reserved for shapers' internal use. */
   HB_BUFFER_SCRATCH_FLAG_SHAPER0			= 0x01000000u,
@@ -82,7 +80,6 @@ struct hb_buffer_t
   hb_codepoint_t replacement; /* U+FFFD or something else. */
   hb_codepoint_t invisible; /* 0 or something else. */
   hb_codepoint_t not_found; /* 0 or something else. */
-  hb_codepoint_t not_found_variation_selector; /* HB_CODEPOINT_INVALID or something else. */
 
   /*
    * Buffer contents
@@ -119,7 +116,6 @@ struct hb_buffer_t
 
   uint8_t allocated_var_bits;
   uint8_t serial;
-  uint32_t random_state;
   hb_buffer_scratch_flags_t scratch_flags; /* Have space-fallback, etc. */
   unsigned int max_len; /* Maximum allowed len. */
   int max_ops; /* Maximum allowed operations. */
@@ -183,24 +179,22 @@ struct hb_buffer_t
     allocated_var_bits = 0;
   }
 
-  __attribute__((always_inline))
   hb_glyph_info_t &cur (unsigned int i = 0) { return info[idx + i]; }
-  __attribute__((always_inline))
   hb_glyph_info_t cur (unsigned int i = 0) const { return info[idx + i]; }
 
-  __attribute__((always_inline))
   hb_glyph_position_t &cur_pos (unsigned int i = 0) { return pos[idx + i]; }
-  __attribute__((always_inline))
   hb_glyph_position_t cur_pos (unsigned int i = 0) const { return pos[idx + i]; }
 
-  __attribute__((always_inline))
   hb_glyph_info_t &prev ()      { return out_info[out_len ? out_len - 1 : 0]; }
-  __attribute__((always_inline))
   hb_glyph_info_t prev () const { return out_info[out_len ? out_len - 1 : 0]; }
 
-  template <typename set_t>
-  void collect_codepoints (set_t &d) const
-  { d.clear (); d.add_array (&info[0].codepoint, len, sizeof (info[0])); }
+  hb_set_digest_t digest () const
+  {
+    hb_set_digest_t d;
+    d.init ();
+    d.add_array (&info[0].codepoint, len, sizeof (info[0]));
+    return d;
+  }
 
   HB_INTERNAL void similar (const hb_buffer_t &src);
   HB_INTERNAL void reset ();

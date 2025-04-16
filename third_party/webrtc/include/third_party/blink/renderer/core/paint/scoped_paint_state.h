@@ -5,10 +5,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_PAINT_SCOPED_PAINT_STATE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_PAINT_SCOPED_PAINT_STATE_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/layout/layout_box.h"
-#include "third_party/blink/renderer/core/layout/physical_box_fragment.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_physical_box_fragment.h"
 #include "third_party/blink/renderer/core/mobile_metrics/mobile_friendliness_checker.h"
 #include "third_party/blink/renderer/core/paint/paint_info.h"
 #include "third_party/blink/renderer/platform/graphics/paint/scoped_paint_chunk_properties.h"
@@ -36,7 +35,7 @@ class ScopedPaintState {
                          paint_info,
                          DetermineFragmentToPaint(object, paint_info)) {}
 
-  ScopedPaintState(const PhysicalBoxFragment& fragment,
+  ScopedPaintState(const NGPhysicalBoxFragment& fragment,
                    const PaintInfo& paint_info)
       : ScopedPaintState(*fragment.GetLayoutObject(),
                          paint_info,
@@ -100,8 +99,8 @@ class ScopedPaintState {
   const FragmentData* fragment_to_paint_;
   const PaintInfo& input_paint_info_;
   PhysicalOffset paint_offset_;
-  std::optional<PaintInfo> adjusted_paint_info_;
-  std::optional<ScopedPaintChunkProperties> chunk_properties_;
+  absl::optional<PaintInfo> adjusted_paint_info_;
+  absl::optional<ScopedPaintChunkProperties> chunk_properties_;
   bool paint_offset_translation_as_drawing_ = false;
 };
 
@@ -125,7 +124,7 @@ class ScopedBoxContentsPaintState : public ScopedPaintState {
 
  private:
   void AdjustForBoxContents(const LayoutBox&);
-  std::optional<MobileFriendlinessChecker::IgnoreBeyondViewportScope>
+  absl::optional<MobileFriendlinessChecker::IgnoreBeyondViewportScope>
       mf_ignore_scope_;
 };
 

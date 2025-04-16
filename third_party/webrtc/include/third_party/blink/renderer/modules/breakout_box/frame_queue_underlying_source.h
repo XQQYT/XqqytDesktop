@@ -19,8 +19,6 @@
 
 namespace blink {
 
-MODULES_EXPORT BASE_DECLARE_FEATURE(kBreakoutBoxInsertVideoCaptureTimestamp);
-
 template <typename NativeFrameType>
 class FrameQueueUnderlyingSource : public UnderlyingSourceBase {
  public:
@@ -41,11 +39,11 @@ class FrameQueueUnderlyingSource : public UnderlyingSourceBase {
       delete;
 
   // UnderlyingSourceBase
-  ScriptPromise<IDLUndefined> Pull(ScriptState*, ExceptionState&) override;
-  ScriptPromise<IDLUndefined> Start(ScriptState*) override;
-  ScriptPromise<IDLUndefined> Cancel(ScriptState*,
-                                     ScriptValue reason,
-                                     ExceptionState&) override;
+  ScriptPromise pull(ScriptState*) override;
+  ScriptPromise Start(ScriptState*) override;
+  ScriptPromise Cancel(ScriptState*,
+                       ScriptValue reason,
+                       ExceptionState&) override;
 
   // ExecutionLifecycleObserver
   void ContextDestroyed() override;
@@ -116,13 +114,11 @@ class FrameQueueUnderlyingSource : public UnderlyingSourceBase {
   enum class NewFrameAction { kPush, kReplace, kDrop };
   NewFrameAction AnalyzeNewFrameLocked(
       const NativeFrameType& media_frame,
-      const std::optional<NativeFrameType>& old_frame);
+      const absl::optional<NativeFrameType>& old_frame);
 
   // Creates a JS frame (VideoFrame or AudioData) backed by |media_frame|.
   // Must be called on |realm_task_runner_|.
   ScriptWrappable* MakeBlinkFrame(NativeFrameType media_frame);
-
-  void EnqueueBlinkFrame(ScriptWrappable* blink_frame) const;
 
   bool is_closed_ = false;
 
@@ -150,8 +146,6 @@ class FrameQueueUnderlyingSource : public UnderlyingSourceBase {
   // Maximum number of distinct frames allowed to be used by this source.
   // This limit applies only when |device_id_| is nonempty.
   const wtf_size_t frame_pool_size_ = 0;
-
-  std::optional<base::TimeTicks> first_frame_ticks_;
 };
 
 template <>

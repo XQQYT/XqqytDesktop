@@ -5,10 +5,7 @@
 #ifndef BASE_CONTAINERS_EXTEND_H_
 #define BASE_CONTAINERS_EXTEND_H_
 
-#include <algorithm>
 #include <iterator>
-#include <ranges>
-#include <type_traits>
 #include <vector>
 
 namespace base {
@@ -22,16 +19,11 @@ void Extend(std::vector<T>& dst, std::vector<T>&& src) {
   src.clear();
 }
 
-// Appends `range` to `dst`, copying them out of `range`.
-template <typename T, typename Range, typename Proj = std::identity>
-  requires std::ranges::range<Range> &&
-           std::indirectly_unary_invocable<Proj, std::ranges::iterator_t<Range>>
-void Extend(std::vector<T>& dst, Range&& range, Proj proj = {}) {
-  if constexpr (std::ranges::sized_range<Range>) {
-    dst.reserve(dst.size() + std::ranges::size(range));
-  }
-  std::ranges::transform(std::forward<Range>(range), std::back_inserter(dst),
-                         std::move(proj));
+// Append to |dst| all elements of |src| by copying them out of |src|. |src| is
+// not changed.
+template <typename T>
+void Extend(std::vector<T>& dst, const std::vector<T>& src) {
+  dst.insert(dst.end(), src.begin(), src.end());
 }
 
 }  // namespace base

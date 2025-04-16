@@ -17,6 +17,7 @@ class SkPath;
 namespace blink {
 
 class ComputedStyle;
+class Document;
 class DisplayItemClient;
 class GraphicsContext;
 class Path;
@@ -31,7 +32,8 @@ class CORE_EXPORT OutlinePainter {
                                 const DisplayItemClient&,
                                 const Vector<PhysicalRect>&,
                                 const LayoutObject::OutlineInfo&,
-                                const ComputedStyle&);
+                                const ComputedStyle&,
+                                const Document&);
 
   static void PaintFocusRingPath(GraphicsContext&,
                                  const Path&,

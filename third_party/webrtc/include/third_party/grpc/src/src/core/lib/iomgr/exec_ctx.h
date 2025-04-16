@@ -23,32 +23,18 @@
 
 #include <limits>
 
-#if __APPLE__
-// Provides TARGET_OS_IPHONE
-#include <TargetConditionals.h>
-#endif
-
 #include <grpc/impl/grpc_types.h>
 #include <grpc/support/atm.h>
 #include <grpc/support/cpu.h>
+#include <grpc/support/log.h>
 #include <grpc/support/time.h>
 
-#include "absl/log/check.h"
-#include "src/core/lib/experiments/experiments.h"
+#include "src/core/lib/gpr/time_precise.h"
+#include "src/core/lib/gprpp/crash.h"
+#include "src/core/lib/gprpp/debug_location.h"
+#include "src/core/lib/gprpp/fork.h"
+#include "src/core/lib/gprpp/time.h"
 #include "src/core/lib/iomgr/closure.h"
-#include "src/core/util/debug_location.h"
-#include "src/core/util/fork.h"
-#include "src/core/util/latent_see.h"
-#include "src/core/util/time.h"
-#include "src/core/util/time_precise.h"
-
-#if !defined(_WIN32) || !defined(_DLL)
-#define EXEC_CTX exec_ctx_
-#define CALLBACK_EXEC_CTX callback_exec_ctx_
-#else
-#define EXEC_CTX exec_ctx()
-#define CALLBACK_EXEC_CTX callback_exec_ctx()
-#endif
 
 /// A combiner represents a list of work to be executed later.
 /// Forward declared here to avoid a circular dependency with combiner.h.
@@ -108,23 +94,17 @@ class Combiner;
 ///               since that implies a core re-entry outside of application
 ///               callbacks.
 ///
-class GRPC_DLL ExecCtx : public latent_see::ParentScope {
+class ExecCtx {
  public:
   /// Default Constructor
 
-  ExecCtx()
-      : latent_see::ParentScope(GRPC_LATENT_SEE_METADATA("ExecCtx")),
-        flags_(GRPC_EXEC_CTX_FLAG_IS_FINISHED) {
+  ExecCtx() : flags_(GRPC_EXEC_CTX_FLAG_IS_FINISHED) {
     Fork::IncExecCtxCount();
     Set(this);
   }
 
   /// Parameterised Constructor
-  explicit ExecCtx(uintptr_t fl)
-      : ExecCtx(fl, GRPC_LATENT_SEE_METADATA("ExecCtx")) {}
-
-  explicit ExecCtx(uintptr_t fl, latent_see::Metadata* latent_see_metadata)
-      : latent_see::ParentScope(latent_see_metadata), flags_(fl) {
+  explicit ExecCtx(uintptr_t fl) : flags_(fl) {
     if (!(GRPC_EXEC_CTX_FLAG_IS_INTERNAL_THREAD & flags_)) {
       Fork::IncExecCtxCount();
     }
@@ -144,6 +124,13 @@ class GRPC_DLL ExecCtx : public latent_see::ParentScope {
   /// Disallow copy and assignment operators
   ExecCtx(const ExecCtx&) = delete;
   ExecCtx& operator=(const ExecCtx&) = delete;
+
+  unsigned starting_cpu() {
+    if (starting_cpu_ == std::numeric_limits<unsigned>::max()) {
+      starting_cpu_ = gpr_cpu_current_cpu();
+    }
+    return starting_cpu_;
+  }
 
   struct CombinerData {
     // currently active combiner: updated only via combiner.c
@@ -189,27 +176,17 @@ class GRPC_DLL ExecCtx : public latent_see::ParentScope {
     }
   }
 
-  void SetReadyToFinishFlag() { flags_ |= GRPC_EXEC_CTX_FLAG_IS_FINISHED; }
-
   Timestamp Now() { return Timestamp::Now(); }
-
-  void InvalidateNow() {
-    if (time_cache_.has_value()) time_cache_->InvalidateCache();
-  }
-
+  void InvalidateNow() { time_cache_.InvalidateCache(); }
   void SetNowIomgrShutdown() {
     // We get to do a test only set now on this path just because iomgr
     // is getting removed and no point adding more interfaces for it.
-    TestOnlySetNow(Timestamp::InfFuture());
+    time_cache_.TestOnlySetNow(Timestamp::InfFuture());
   }
-
-  void TestOnlySetNow(Timestamp now) {
-    if (!time_cache_.has_value()) time_cache_.emplace();
-    time_cache_->TestOnlySetNow(now);
-  }
+  void TestOnlySetNow(Timestamp now) { time_cache_.TestOnlySetNow(now); }
 
   /// Gets pointer to current exec_ctx.
-  static ExecCtx* Get() { return EXEC_CTX; }
+  static ExecCtx* Get() { return exec_ctx_; }
 
   static void Run(const DebugLocation& location, grpc_closure* closure,
                   grpc_error_handle error);
@@ -224,36 +201,133 @@ class GRPC_DLL ExecCtx : public latent_see::ParentScope {
   static void operator delete(void* /* p */) { abort(); }
 
  private:
-  /// Set EXEC_CTX to ctx.
-  static void Set(ExecCtx* ctx) { EXEC_CTX = ctx; }
+  /// Set exec_ctx_ to exec_ctx.
+  static void Set(ExecCtx* exec_ctx) { exec_ctx_ = exec_ctx; }
 
   grpc_closure_list closure_list_ = GRPC_CLOSURE_LIST_INIT;
   CombinerData combiner_data_ = {nullptr, nullptr};
   uintptr_t flags_;
 
-  std::optional<ScopedTimeCache> time_cache_;
+  unsigned starting_cpu_ = std::numeric_limits<unsigned>::max();
 
-#if !defined(_WIN32) || !defined(_DLL)
+  ScopedTimeCache time_cache_;
   static thread_local ExecCtx* exec_ctx_;
-#else
-  // cannot be thread_local data member (e.g. exec_ctx_) on windows
-  static ExecCtx*& exec_ctx();
-#endif
   ExecCtx* last_exec_ctx_ = Get();
 };
 
-template <typename F>
-void EnsureRunInExecCtx(F f) {
-  if (ExecCtx::Get() == nullptr) {
-    ExecCtx exec_ctx;
-    f();
-  } else {
-    f();
-  }
-}
+/// Application-callback execution context.
+/// A bag of data that collects information along a callstack.
+/// It is created on the stack at core entry points, and stored internally
+/// as a thread-local variable.
+///
+/// There are three key differences between this structure and ExecCtx:
+///   1. ApplicationCallbackExecCtx builds a list of application-level
+///      callbacks, but ExecCtx builds a list of internal callbacks to invoke.
+///   2. ApplicationCallbackExecCtx invokes its callbacks only at destruction;
+///      there is no explicit Flush method.
+///   3. If more than one ApplicationCallbackExecCtx is created on the thread's
+///      stack, only the one closest to the base of the stack is actually
+///      active and this is the only one that enqueues application callbacks.
+///      (Unlike ExecCtx, it is not feasible to prevent multiple of these on the
+///      stack since the executing application callback may itself enter core.
+///      However, the new one created will just pass callbacks through to the
+///      base one and those will not be executed until the return to the
+///      destructor of the base one, preventing unlimited stack growth.)
+///
+/// This structure exists because application callbacks may themselves cause a
+/// core re-entry (e.g., through a public API call) and if that call in turn
+/// causes another application-callback, there could be arbitrarily growing
+/// stacks of core re-entries. Instead, any application callbacks instead should
+/// not be invoked until other core work is done and other application callbacks
+/// have completed. To accomplish this, any application callback should be
+/// enqueued using ApplicationCallbackExecCtx::Enqueue .
+///
+/// CONVENTIONS:
+/// - Instances of this must ALWAYS be constructed on the stack, never
+///   heap allocated.
+/// - Instances of this are generally constructed before ExecCtx when needed.
+///   The only exception is for ExecCtx's that are explicitly flushed and
+///   that survive beyond the scope of the function that can cause application
+///   callbacks to be invoked (e.g., in the timer thread).
+///
+/// Generally, core entry points that may trigger application-level callbacks
+/// will have the following declarations:
+///
+/// ApplicationCallbackExecCtx callback_exec_ctx;
+/// ExecCtx exec_ctx;
+///
+/// This ordering is important to make sure that the ApplicationCallbackExecCtx
+/// is destroyed after the ExecCtx (to prevent the re-entry problem described
+/// above, as well as making sure that ExecCtx core callbacks are invoked first)
+///
+///
 
-#undef EXEC_CTX
-#undef CALLBACK_EXEC_CTX
+class ApplicationCallbackExecCtx {
+ public:
+  /// Default Constructor
+  ApplicationCallbackExecCtx() { Set(this, flags_); }
+
+  /// Parameterised Constructor
+  explicit ApplicationCallbackExecCtx(uintptr_t fl) : flags_(fl) {
+    Set(this, flags_);
+  }
+
+  ~ApplicationCallbackExecCtx() {
+    if (Get() == this) {
+      while (head_ != nullptr) {
+        auto* f = head_;
+        head_ = f->internal_next;
+        if (f->internal_next == nullptr) {
+          tail_ = nullptr;
+        }
+        (*f->functor_run)(f, f->internal_success);
+      }
+      callback_exec_ctx_ = nullptr;
+      if (!(GRPC_APP_CALLBACK_EXEC_CTX_FLAG_IS_INTERNAL_THREAD & flags_)) {
+        Fork::DecExecCtxCount();
+      }
+    } else {
+      GPR_DEBUG_ASSERT(head_ == nullptr);
+      GPR_DEBUG_ASSERT(tail_ == nullptr);
+    }
+  }
+
+  uintptr_t Flags() { return flags_; }
+
+  static ApplicationCallbackExecCtx* Get() { return callback_exec_ctx_; }
+
+  static void Set(ApplicationCallbackExecCtx* exec_ctx, uintptr_t flags) {
+    if (Get() == nullptr) {
+      if (!(GRPC_APP_CALLBACK_EXEC_CTX_FLAG_IS_INTERNAL_THREAD & flags)) {
+        Fork::IncExecCtxCount();
+      }
+      callback_exec_ctx_ = exec_ctx;
+    }
+  }
+
+  static void Enqueue(grpc_completion_queue_functor* functor, int is_success) {
+    functor->internal_success = is_success;
+    functor->internal_next = nullptr;
+
+    ApplicationCallbackExecCtx* ctx = Get();
+
+    if (ctx->head_ == nullptr) {
+      ctx->head_ = functor;
+    }
+    if (ctx->tail_ != nullptr) {
+      ctx->tail_->internal_next = functor;
+    }
+    ctx->tail_ = functor;
+  }
+
+  static bool Available() { return Get() != nullptr; }
+
+ private:
+  uintptr_t flags_{0u};
+  grpc_completion_queue_functor* head_{nullptr};
+  grpc_completion_queue_functor* tail_{nullptr};
+  static thread_local ApplicationCallbackExecCtx* callback_exec_ctx_;
+};
 
 }  // namespace grpc_core
 

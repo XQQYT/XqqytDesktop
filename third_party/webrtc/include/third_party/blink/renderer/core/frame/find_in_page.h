@@ -27,6 +27,7 @@
 namespace blink {
 
 class WebLocalFrameImpl;
+class WebString;
 
 class CORE_EXPORT FindInPage final : public GarbageCollected<FindInPage>,
                                      public mojom::blink::FindInPage {
@@ -36,7 +37,7 @@ class CORE_EXPORT FindInPage final : public GarbageCollected<FindInPage>,
   FindInPage& operator=(const FindInPage&) = delete;
 
   bool FindInternal(int identifier,
-                    const String& search_text,
+                    const WebString& search_text,
                     const mojom::blink::FindOptions&,
                     bool wrap_within_frame,
                     bool* active_now = nullptr);
@@ -45,7 +46,7 @@ class CORE_EXPORT FindInPage final : public GarbageCollected<FindInPage>,
   // layout space, which means they differ by device scale factor from the
   // CSS space.
   void SetTickmarks(const WebElement& target,
-                    const std::vector<gfx::Rect>& tickmarks_in_layout_space);
+                    const WebVector<gfx::Rect>& tickmarks_in_layout_space);
 
   int FindMatchMarkersVersion() const;
 

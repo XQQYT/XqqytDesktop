@@ -158,15 +158,16 @@ tr.exportTo('tr.v.ui', function() {
       height: 1em;
       vertical-align: text-top;
       stroke-width: 4;
+      fill: rgba(0, 0, 0, 0);
     }
     #significance #insignificant {
-      fill: gray;
+      stroke: black;
     }
     #significance #significantly_better {
-      fill: green;
+      stroke: green;
     }
     #significance #significantly_worse {
-      fill: red;
+      stroke: red;
     }
 
     #warning {
@@ -189,17 +190,28 @@ tr.exportTo('tr.v.ui', function() {
     <span id="content"></span>
 
     <span id="significance">
-      <!-- show nothing for insignificant -->
-      <svg viewbox="0 0 128 128" id="insignificant"></svg>
-
-      <!-- green upward facing triangle (better could mean increase or decrease) -->
-      <svg viewbox="0 0 128 128" id="significantly_better">
-        <polygon points="64,0 128,128 0,128"/>
+      <!-- Neutral face -->
+      <svg viewbox="0 0 128 128" id="insignificant">
+        <circle r="60" cx="64" cy="64"/>
+        <circle r="4" cx="44" cy="44"/>
+        <circle r="4" cx="84" cy="44"/>
+        <line x1="36" x2="92" y1="80" y2="80"/>
       </svg>
 
-      <!-- red downward facing triangle (worse could mean increase or decrease) -->
+      <!-- Smiling face -->
+      <svg viewbox="0 0 128 128" id="significantly_better">
+        <circle r="60" cx="64" cy="64"/>
+        <circle r="4" cx="44" cy="44"/>
+        <circle r="4" cx="84" cy="44"/>
+        <path d="M 28 64 Q 64 128 100 64"/>
+      </svg>
+
+      <!-- Frowning face -->
       <svg viewbox="0 0 128 128" id="significantly_worse">
-        <polygon points="64,128 128,0 0,0"/>
+        <circle r="60" cx="64" cy="64"/>
+        <circle r="4" cx="44" cy="44"/>
+        <circle r="4" cx="84" cy="44"/>
+        <path d="M 36 96 Q 64 48 92 96"/>
       </svg>
     </span>
 

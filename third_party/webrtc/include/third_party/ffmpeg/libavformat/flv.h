@@ -103,7 +103,6 @@ enum {
     FLV_CODECID_NELLYMOSER           = 6 << FLV_AUDIO_CODECID_OFFSET,
     FLV_CODECID_PCM_ALAW             = 7 << FLV_AUDIO_CODECID_OFFSET,
     FLV_CODECID_PCM_MULAW            = 8 << FLV_AUDIO_CODECID_OFFSET,
-    FLV_CODECID_EX_HEADER            = 9 << FLV_AUDIO_CODECID_OFFSET,
     FLV_CODECID_AAC                  = 10<< FLV_AUDIO_CODECID_OFFSET,
     FLV_CODECID_SPEEX                = 11<< FLV_AUDIO_CODECID_OFFSET,
 };
@@ -117,9 +116,6 @@ enum {
     FLV_CODECID_H264    = 7,
     FLV_CODECID_REALH263= 8,
     FLV_CODECID_MPEG4   = 9,
-
-    // non-standard protocol extension that is in use in the wild
-    FLV_CODECID_X_HEVC  = 12,
 };
 
 enum {
@@ -129,26 +125,6 @@ enum {
     PacketTypeCodedFramesX          = 3,
     PacketTypeMetadata              = 4,
     PacketTypeMPEG2TSSequenceStart  = 5,
-    PacketTypeMultitrack            = 6,
-};
-
-enum {
-    AudioPacketTypeSequenceStart      = 0,
-    AudioPacketTypeCodedFrames        = 1,
-    AudioPacketTypeMultichannelConfig = 4,
-    AudioPacketTypeMultitrack         = 5,
-};
-
-enum {
-    AudioChannelOrderUnspecified = 0,
-    AudioChannelOrderNative      = 1,
-    AudioChannelOrderCustom      = 2,
-};
-
-enum {
-    MultitrackTypeOneTrack             = 0x00,
-    MultitrackTypeManyTracks           = 0x10,
-    MultitrackTypeManyTracksManyCodecs = 0x20,
 };
 
 enum {

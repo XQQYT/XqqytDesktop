@@ -29,10 +29,18 @@
 #include "config.h"
 #include <libxml/xmlversion.h>
 
-#if defined(__has_attribute)
-#define XML_HAS_ATTRIBUTE(x) __has_attribute(x)
-#else
-#define XML_HAS_ATTRIBUTE(x) 0
+/*
+ * Due to some Autotools limitations, this variable must be passed as
+ * compiler flag. Define a default value if the macro wasn't set by the
+ * build system.
+ */
+#ifndef SYSCONFDIR
+  #define SYSCONFDIR "/etc"
+#endif
+
+#ifdef WITH_TRIO
+  #define TRIO_REPLACE_STDIO
+  #include "trio.h"
 #endif
 
 #if !defined(_WIN32) && \
@@ -44,41 +52,11 @@
   #define XML_HIDDEN
 #endif
 
-#if __GNUC__ * 100 + __GNUC_MINOR__ >= 207 || defined(__clang__)
-  #define ATTRIBUTE_UNUSED __attribute__((unused))
-#else
-  #define ATTRIBUTE_UNUSED
-#endif
-
-#ifdef HAVE_FUNC_ATTRIBUTE_DESTRUCTOR
-  #define ATTRIBUTE_DESTRUCTOR __attribute__((destructor))
-#endif
-
-#if XML_HAS_ATTRIBUTE(__counted_by__)
-  #define ATTRIBUTE_COUNTED_BY(c) __attribute__((__counted_by__(c)))
-#else
-  #define ATTRIBUTE_COUNTED_BY(c)
-#endif
-
 #if defined(__clang__) || \
-    (defined(__GNUC__) && (__GNUC__ >= 8) && !defined(__EDG__))
+    (defined(__GNUC__) && (__GNUC__ >= 8))
   #define ATTRIBUTE_NO_SANITIZE(arg) __attribute__((no_sanitize(arg)))
 #else
   #define ATTRIBUTE_NO_SANITIZE(arg)
-#endif
-
-#ifdef __clang__
-  #if (!defined(__apple_build_version__) && __clang_major__ >= 12) || \
-      (defined(__apple_build_version__) && __clang_major__ >= 13)
-    #define ATTRIBUTE_NO_SANITIZE_INTEGER \
-      ATTRIBUTE_NO_SANITIZE("unsigned-integer-overflow") \
-      ATTRIBUTE_NO_SANITIZE("unsigned-shift-base")
-  #else
-    #define ATTRIBUTE_NO_SANITIZE_INTEGER \
-      ATTRIBUTE_NO_SANITIZE("unsigned-integer-overflow")
-  #endif
-#else
-  #define ATTRIBUTE_NO_SANITIZE_INTEGER
 #endif
 
 #endif /* ! __XML_LIBXML_H__ */

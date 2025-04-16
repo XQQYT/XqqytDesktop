@@ -11,10 +11,6 @@
 #ifndef MODULES_AUDIO_DEVICE_FINE_AUDIO_BUFFER_H_
 #define MODULES_AUDIO_DEVICE_FINE_AUDIO_BUFFER_H_
 
-#include <cstddef>
-#include <cstdint>
-#include <optional>
-
 #include "api/array_view.h"
 #include "rtc_base/buffer.h"
 
@@ -65,12 +61,7 @@ class FineAudioBuffer {
   // 5ms of data and sends a total of 10ms to WebRTC and clears the internal
   // cache. Call #3 restarts the scheme above.
   void DeliverRecordedData(rtc::ArrayView<const int16_t> audio_buffer,
-                           int record_delay_ms) {
-    DeliverRecordedData(audio_buffer, record_delay_ms, std::nullopt);
-  }
-  void DeliverRecordedData(rtc::ArrayView<const int16_t> audio_buffer,
-                           int record_delay_ms,
-                           std::optional<int64_t> capture_time_ns);
+                           int record_delay_ms);
 
  private:
   // Device buffer that works with 10ms chunks of data both for playout and

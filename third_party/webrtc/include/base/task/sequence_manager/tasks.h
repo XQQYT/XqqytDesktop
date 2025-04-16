@@ -5,9 +5,6 @@
 #ifndef BASE_TASK_SEQUENCE_MANAGER_TASKS_H_
 #define BASE_TASK_SEQUENCE_MANAGER_TASKS_H_
 
-#include <optional>
-#include <variant>
-
 #include "base/base_export.h"
 #include "base/check.h"
 #include "base/containers/intrusive_heap.h"
@@ -17,6 +14,8 @@
 #include "base/task/sequence_manager/delayed_task_handle_delegate.h"
 #include "base/task/sequence_manager/enqueue_order.h"
 #include "base/task/sequenced_task_runner.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
+#include "third_party/abseil-cpp/absl/types/variant.h"
 
 namespace base {
 namespace sequence_manager {
@@ -54,16 +53,16 @@ struct BASE_EXPORT PostedTask {
   ~PostedTask();
 
   bool is_delayed() const {
-    return std::holds_alternative<TimeTicks>(delay_or_delayed_run_time)
-               ? !std::get<TimeTicks>(delay_or_delayed_run_time).is_null()
-               : !std::get<TimeDelta>(delay_or_delayed_run_time).is_zero();
+    return absl::holds_alternative<TimeTicks>(delay_or_delayed_run_time)
+               ? !absl::get<TimeTicks>(delay_or_delayed_run_time).is_null()
+               : !absl::get<TimeDelta>(delay_or_delayed_run_time).is_zero();
   }
 
   OnceClosure callback;
   Location location;
   Nestable nestable = Nestable::kNestable;
   TaskType task_type = kTaskTypeNone;
-  std::variant<TimeDelta, TimeTicks> delay_or_delayed_run_time;
+  absl::variant<TimeDelta, TimeTicks> delay_or_delayed_run_time;
   subtle::DelayPolicy delay_policy = subtle::DelayPolicy::kFlexibleNoSooner;
   // The task runner this task is running on. Can be used by task runners that
   // support posting back to the "current sequence".

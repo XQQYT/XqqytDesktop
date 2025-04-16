@@ -15,14 +15,16 @@
 #ifndef GRPC_SRC_CORE_LIB_EVENT_ENGINE_COMMON_CLOSURES_H
 #define GRPC_SRC_CORE_LIB_EVENT_ENGINE_COMMON_CLOSURES_H
 
-#include <grpc/event_engine/event_engine.h>
 #include <grpc/support/port_platform.h>
 
 #include <utility>
 
 #include "absl/functional/any_invocable.h"
 
-namespace grpc_event_engine::experimental {
+#include <grpc/event_engine/event_engine.h>
+
+namespace grpc_event_engine {
+namespace experimental {
 
 class AnyInvocableClosure : public EventEngine::Closure {
  public:
@@ -63,6 +65,7 @@ class SelfDeletingClosure : public EventEngine::Closure {
   absl::AnyInvocable<void()> dest_cb_;
 };
 
-}  // namespace grpc_event_engine::experimental
+}  // namespace experimental
+}  // namespace grpc_event_engine
 
 #endif  // GRPC_SRC_CORE_LIB_EVENT_ENGINE_COMMON_CLOSURES_H

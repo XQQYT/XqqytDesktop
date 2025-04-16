@@ -14,8 +14,8 @@ test(t => {
 
   watcher.requestClose();
 
-  assert_array_equals(events, ["cancel[cancelable=true]", "close"]);
-}, "requestClose() with no user activation");
+  assert_array_equals(events, ["close"]);
+}, "requestClose() with no user activation only fires close");
 
 test(t => {
   let events = [];
@@ -25,7 +25,7 @@ test(t => {
   watcher.requestClose();
 
   assert_array_equals(events, []);
-}, "destroy() then requestClose()");
+}, "destroy() then requestClose() fires no events");
 
 test(t => {
   let events = [];
@@ -36,18 +36,18 @@ test(t => {
 
   watcher.requestClose();
   assert_array_equals(events, ["close"]);
-}, "close() then requestClose()");
+}, "close() then requestClose() fires only one close event");
 
 test(t => {
   let events = [];
   let watcher = createRecordingCloseWatcher(t, events);
 
   watcher.requestClose();
-  assert_array_equals(events, ["cancel[cancelable=true]", "close"]);
+  assert_array_equals(events, ["close"]);
 
   watcher.destroy();
-  assert_array_equals(events, ["cancel[cancelable=true]", "close"]);
-}, "requestClose() then destroy()");
+  assert_array_equals(events, ["close"]);
+}, "requestClose() then destroy() fires only one close event");
 
 test(t => {
   let events = [];
@@ -58,7 +58,7 @@ test(t => {
 
   watcher.destroy();
   assert_array_equals(events, ["close"]);
-}, "close() then destroy()");
+}, "close() then destroy() fires only one close event");
 
 promise_test(async t => {
   let events = [];
@@ -68,7 +68,7 @@ promise_test(async t => {
   await sendCloseRequest();
 
   assert_array_equals(events, []);
-}, "destroy() then close request");
+}, "destroy() then close request fires no events");
 
 promise_test(async t => {
   let events = [];
@@ -77,6 +77,6 @@ promise_test(async t => {
   await sendCloseRequest();
   watcher.destroy();
 
-  assert_array_equals(events, ["cancel[cancelable=false]", "close"]);
-}, "Close request then destroy()");
+  assert_array_equals(events, ["close"]);
+}, "Close request then destroy() fires only one close event");
 </script>

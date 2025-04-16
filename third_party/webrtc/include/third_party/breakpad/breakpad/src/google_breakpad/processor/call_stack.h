@@ -44,8 +44,7 @@
 #ifndef GOOGLE_BREAKPAD_PROCESSOR_CALL_STACK_H__
 #define GOOGLE_BREAKPAD_PROCESSOR_CALL_STACK_H__
 
-#include <stdint.h>
-
+#include <cstdint>
 #include <vector>
 
 namespace google_breakpad {

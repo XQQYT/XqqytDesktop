@@ -11,9 +11,10 @@
 #ifndef TEST_IOS_TEST_SUPPORT_H_
 #define TEST_IOS_TEST_SUPPORT_H_
 
-#include <optional>
 #include <string>
 #include <vector>
+
+#include "absl/types/optional.h"
 
 namespace rtc {
 namespace test {
@@ -27,7 +28,7 @@ void InitTestSuite(int (*test_suite)(void),
                    bool save_chartjson_result,
                    bool export_perf_results_new_api,
                    std::string webrtc_test_metrics_output_path,
-                   std::optional<std::vector<std::string>> metrics_to_plot);
+                   absl::optional<std::vector<std::string>> metrics_to_plot);
 
 // Returns true if unittests should be run by the XCTest runnner.
 bool ShouldRunIOSUnittestsWithXCTest();

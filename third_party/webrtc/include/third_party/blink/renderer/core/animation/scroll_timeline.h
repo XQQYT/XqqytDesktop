@@ -72,24 +72,15 @@ class CORE_EXPORT ScrollTimeline : public ScrollSnapshotTimeline {
 
   ScrollAxis GetAxis() const override;
 
-  std::optional<double> GetMaximumScrollPosition() const;
+  absl::optional<double> GetMaximumScrollPosition() const;
 
   void AnimationAttached(Animation*) override;
   void AnimationDetached(Animation*) override;
 
-  std::optional<double> GetCurrentScrollPosition() const;
-
-  Node* ComputeResolvedSource() const;
-
   void Trace(Visitor*) const override;
 
-  TimelineState ComputeTimelineState() const override;
-
-  static ScrollOrientation ToPhysicalScrollOrientation(
-      ScrollAxis axis,
-      const LayoutBox& source_box);
-
  protected:
+  Node* ComputeResolvedSource() const;
 
   // Scroll offsets corresponding to 0% and 100% progress. By default, these
   // correspond to the scroll range of the container.
@@ -115,6 +106,8 @@ class CORE_EXPORT ScrollTimeline : public ScrollSnapshotTimeline {
   //
   // See Node::[Un]RegisterScrollTimeline.
   Element* RetainingElement() const;
+
+  TimelineState ComputeTimelineState() const override;
 
   ReferenceType reference_type_;
   Member<Element> reference_element_;

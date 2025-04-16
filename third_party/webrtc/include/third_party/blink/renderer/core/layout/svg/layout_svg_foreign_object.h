@@ -49,16 +49,12 @@ class LayoutSVGForeignObject final : public LayoutSVGBlock {
 
  private:
   // LayoutObject override:
-  SVGLayoutResult UpdateSVGLayout(const SVGLayoutInfo&) override;
+  void UpdateLayout() override;
   // Update LayoutObject state after layout has completed. Returns true if
   // boundaries needs to be propagated (because of a change to the transform).
-  bool UpdateAfterSVGLayout(const SVGLayoutInfo&, bool bounds_changed);
-
+  bool UpdateAfterSvgLayout(bool bounds_changed);
   const char* GetName() const override;
-  bool IsSVGForeignObject() const final {
-    NOT_DESTROYED();
-    return true;
-  }
+  bool IsOfType(LayoutObjectType type) const override;
   bool IsChildAllowed(LayoutObject* child,
                       const ComputedStyle& style) const override;
   gfx::RectF ObjectBoundingBox() const override;
@@ -79,9 +75,8 @@ class LayoutSVGForeignObject final : public LayoutSVGBlock {
   // 'transform' has been applied but without zoom-adjustment).
   gfx::RectF viewport_;
 
-  // Override of LayoutBox::frame_location_.
-  // A physical fragment for <foreignObject> doesn't have the owner
-  // PhysicalFragmentLink.
+  // Override of LayoutBox::frame_rect_.location_.
+  // A physical fragment for <foreignObject> doesn't have the owner NGLink.
   LayoutPoint overridden_location_;
 };
 

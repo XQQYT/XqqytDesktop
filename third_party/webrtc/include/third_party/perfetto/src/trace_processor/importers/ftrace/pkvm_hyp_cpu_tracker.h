@@ -46,6 +46,8 @@ class PkvmHypervisorCpuTracker {
   void ParseHostSmc(uint32_t cpu, protozero::ConstBytes blob);
   void ParseHostMemAbort(uint32_t cpu, protozero::ConstBytes blob);
 
+  TrackId GetHypCpuTrackId(uint32_t cpu);
+
   TraceProcessorContext* context_;
   const StringId category_;
   const StringId slice_name_;

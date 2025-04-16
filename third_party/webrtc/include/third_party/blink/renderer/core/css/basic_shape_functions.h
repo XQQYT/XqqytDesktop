@@ -41,8 +41,9 @@ class StyleResolverState;
 class ComputedStyle;
 
 CSSValue* ValueForBasicShape(const ComputedStyle&, const BasicShape*);
-CORE_EXPORT BasicShape* BasicShapeForValue(const StyleResolverState&,
-                                           const CSSValue&);
+CORE_EXPORT scoped_refptr<BasicShape> BasicShapeForValue(
+    const StyleResolverState&,
+    const CSSValue&);
 
 }  // namespace blink
 

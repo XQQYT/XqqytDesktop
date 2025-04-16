@@ -40,8 +40,7 @@ promise_test(async _ => {
         if (option.sysex) {
           assert_equals(permission.sysex, 'denied');
         } else {
-          assert_true((permission.midi == 'denied') ||
-                      (permission.sysex == 'denied'));
+          assert_equals(permission.midi, 'denied');
         }
       }
     }

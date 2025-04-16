@@ -17,12 +17,11 @@
 #include <pthread.h>
 #endif
 
-#include <optional>
-
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "rtc_base/platform_thread_types.h"
 
-namespace webrtc {
+namespace rtc {
 
 enum class ThreadPriority {
   kLow = 1,
@@ -71,7 +70,7 @@ class PlatformThread final {
   // For a PlatformThread that's been spawned joinable, the destructor suspends
   // the calling thread until the created thread exits unless the thread has
   // already exited.
-  ~PlatformThread();
+  virtual ~PlatformThread();
 
   // Finalizes any allocated resources.
   // For a PlatformThread that's been spawned joinable, Finalize() suspends
@@ -98,7 +97,7 @@ class PlatformThread final {
       ThreadAttributes attributes = ThreadAttributes());
 
   // Returns the base platform thread handle of this thread.
-  std::optional<Handle> GetHandle() const;
+  absl::optional<Handle> GetHandle() const;
 
 #if defined(WEBRTC_WIN)
   // Queue a Windows APC function that runs when the thread is alertable.
@@ -112,18 +111,10 @@ class PlatformThread final {
                                     ThreadAttributes attributes,
                                     bool joinable);
 
-  std::optional<Handle> handle_;
+  absl::optional<Handle> handle_;
   bool joinable_ = false;
 };
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace rtc {
-using ::webrtc::PlatformThread;
-using ::webrtc::ThreadAttributes;
-using ::webrtc::ThreadPriority;
 }  // namespace rtc
 
 #endif  // RTC_BASE_PLATFORM_THREAD_H_

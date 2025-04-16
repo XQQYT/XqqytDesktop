@@ -11,14 +11,11 @@
 #ifndef MEDIA_BASE_VIDEO_BROADCASTER_H_
 #define MEDIA_BASE_VIDEO_BROADCASTER_H_
 
-#include <optional>
-
+#include "api/media_stream_interface.h"
 #include "api/scoped_refptr.h"
-#include "api/video/video_frame.h"
+#include "api/sequence_checker.h"
 #include "api/video/video_frame_buffer.h"
-#include "api/video/video_sink_interface.h"
 #include "api/video/video_source_interface.h"
-#include "api/video_track_source_constraints.h"
 #include "media/base/video_source_base.h"
 #include "rtc_base/synchronization/mutex.h"
 #include "rtc_base/thread_annotations.h"
@@ -76,7 +73,7 @@ class VideoBroadcaster : public VideoSourceBase,
   rtc::scoped_refptr<webrtc::VideoFrameBuffer> black_frame_buffer_;
   bool previous_frame_sent_to_all_sinks_ RTC_GUARDED_BY(sinks_and_wants_lock_) =
       true;
-  std::optional<webrtc::VideoTrackSourceConstraints> last_constraints_
+  absl::optional<webrtc::VideoTrackSourceConstraints> last_constraints_
       RTC_GUARDED_BY(sinks_and_wants_lock_);
 };
 

@@ -8,8 +8,6 @@
 #include "third_party/blink/public/platform/web_encrypted_media_key_information.h"
 #include "third_party/blink/public/platform/web_encrypted_media_types.h"
 #include "third_party/blink/public/platform/web_media_key_system_configuration.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_media_key_status.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_media_keys_requirement.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
@@ -52,9 +50,7 @@ constexpr const char* kEncryptedMediaPermissionsPolicyConsoleWarning =
     "applied to the current document. See https://goo.gl/EuHzyv for more "
     "details.";
 
-class ExecutionContext;
 class LocalDOMWindow;
-class V8MediaKeyStatus;
 class WebEncryptedMediaClient;
 
 class EncryptedMediaUtils {
@@ -69,22 +65,21 @@ class EncryptedMediaUtils {
       const String& session_type);
   static String ConvertFromSessionType(WebEncryptedMediaSessionType);
 
-  static V8MediaKeyStatus ConvertKeyStatusToEnum(
+  static String ConvertKeyStatusToString(
       const WebEncryptedMediaKeyInformation::KeyStatus);
 
   static WebMediaKeySystemConfiguration::Requirement
-      ConvertToMediaKeysRequirement(V8MediaKeysRequirement::Enum);
-  static V8MediaKeysRequirement::Enum ConvertMediaKeysRequirementToEnum(
+  ConvertToMediaKeysRequirement(const String&);
+  static String ConvertMediaKeysRequirementToString(
       WebMediaKeySystemConfiguration::Requirement);
 
   static WebEncryptedMediaClient* GetEncryptedMediaClientFromLocalDOMWindow(
       LocalDOMWindow*);
 
-  static void ReportUsage(EmeApiType api_type,
-                          ExecutionContext* execution_context,
-                          const String& key_system,
-                          bool use_hardware_secure_codecs,
-                          bool is_persistent_session);
+  // Get interface and property name for |type|, e.t. "MediaKeys" and "load",
+  // respectively.
+  static const char* GetInterfaceName(EmeApiType type);
+  static const char* GetPropertyName(EmeApiType type);
 };
 
 }  // namespace blink

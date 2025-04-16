@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_MODULES_REMOTEPLAYBACK_REMOTE_PLAYBACK_SOURCE_H_
 
 namespace blink {
-
 inline constexpr char kRemotePlaybackPresentationUrlScheme[] =
     "remote-playback";
 // The path for RemotePlayback Urls on both Android and Desktop.
@@ -18,7 +17,6 @@ inline constexpr char kRemotePlaybackPresentationUrlPath[] =
 // The format for RemotePlayback Urls on desktop.
 inline constexpr char kRemotePlaybackDesktopUrlFormat[] =
     "remote-playback:media-session?video_codec=%s&audio_codec=%s&tab_id=%d";
-
 }  // namespace blink
 
 #endif  // THIRD_PARTY_BLINK_PUBLIC_PLATFORM_MODULES_REMOTEPLAYBACK_REMOTE_PLAYBACK_SOURCE_H_

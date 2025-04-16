@@ -5,29 +5,19 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_EDITING_FINDER_FIND_BUFFER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_EDITING_FINDER_FIND_BUFFER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
+#include "third_party/blink/renderer/core/display_lock/display_lock_context.h"
 #include "third_party/blink/renderer/core/editing/finder/find_options.h"
 #include "third_party/blink/renderer/core/editing/iterators/text_searcher_icu.h"
 #include "third_party/blink/renderer/core/editing/position.h"
 
 namespace blink {
 
-class CorpusChunk;
-class FindResults;
 class LayoutBlockFlow;
 class Node;
 class OffsetMapping;
-
-enum class RubySupport {
-  // No support.
-  kDisabled,
-  // Support if a target IFC contains a <ruby>.
-  kEnabledIfNecessary,
-  // Support always.
-  kEnabledForcefully,
-};
+class WebString;
 
 // Buffer for find-in-page, collects text until it meets a block/other
 // delimiters. Uses TextSearcherICU to find match in buffer.
@@ -36,14 +26,13 @@ class CORE_EXPORT FindBuffer {
   STACK_ALLOCATED();
 
  public:
-  explicit FindBuffer(const EphemeralRangeInFlatTree& range,
-                      RubySupport ruby_support = RubySupport::kDisabled);
+  explicit FindBuffer(const EphemeralRangeInFlatTree& range);
 
   static EphemeralRangeInFlatTree FindMatchInRange(
       const EphemeralRangeInFlatTree& range,
       String search_text,
       const FindOptions,
-      std::optional<base::TimeDelta> timeout_ms = std::nullopt);
+      absl::optional<base::TimeDelta> timeout_ms = absl::nullopt);
 
   // Returns the closest ancestor of |start_node| (including the node itself)
   // that is block level.
@@ -60,25 +49,95 @@ class CORE_EXPORT FindBuffer {
   static Node* ForwardVisibleTextNode(Node& start_node);
   static Node* BackwardVisibleTextNode(Node& start_node);
 
-  static bool ShouldIgnoreContents(const Node& node);
-  static std::optional<UChar> CharConstantForNode(const Node& node);
+  // A match result, containing the starting position of the match and
+  // the length of the match.
+  struct BufferMatchResult {
+    const unsigned start;
+    const unsigned length;
+
+    bool operator==(const BufferMatchResult& other) const {
+      return start == other.start && length == other.length;
+    }
+
+    bool operator!=(const BufferMatchResult& other) const {
+      return !operator==(other);
+    }
+  };
+
+  // All match results for this buffer. We can iterate through the
+  // BufferMatchResults one by one using the Iterator.
+  class CORE_EXPORT Results {
+    STACK_ALLOCATED();
+
+   public:
+    Results();
+
+    Results(const FindBuffer& find_buffer,
+            TextSearcherICU* text_searcher,
+            const Vector<UChar>& buffer,
+            const String& search_text,
+            const blink::FindOptions options);
+
+    class CORE_EXPORT Iterator {
+      STACK_ALLOCATED();
+
+     public:
+      using iterator_category = std::forward_iterator_tag;
+      using value_type = BufferMatchResult;
+      using difference_type = std::ptrdiff_t;
+      using pointer = BufferMatchResult*;
+      using reference = BufferMatchResult&;
+
+      Iterator() = default;
+      Iterator(const FindBuffer& find_buffer, TextSearcherICU* text_searcher);
+
+      bool operator==(const Iterator& other) const {
+        return has_match_ == other.has_match_;
+      }
+
+      bool operator!=(const Iterator& other) const {
+        return has_match_ != other.has_match_;
+      }
+
+      const BufferMatchResult operator*() const;
+
+      void operator++();
+
+     private:
+      const FindBuffer* find_buffer_;
+      TextSearcherICU* text_searcher_;
+      MatchResultICU match_;
+      bool has_match_ = false;
+    };
+
+    Iterator begin() const;
+
+    Iterator end() const;
+
+    bool IsEmpty() const;
+
+    BufferMatchResult front() const;
+
+    BufferMatchResult back() const;
+
+    unsigned CountForTesting() const;
+
+   private:
+    String search_text_;
+    const FindBuffer* find_buffer_;
+    TextSearcherICU* text_searcher_;
+    bool empty_result_ = false;
+  };
 
   // Finds all the match for |search_text| in |buffer_|.
-  FindResults FindMatches(const String& search_text,
-                          const blink::FindOptions options);
+  Results FindMatches(const WebString& search_text,
+                      const blink::FindOptions options);
 
   // Gets a flat tree range corresponding to text in the [start_index,
   // end_index) of |buffer|.
   EphemeralRangeInFlatTree RangeFromBufferIndex(unsigned start_index,
                                                 unsigned end_index) const;
 
-  // Returns a position at which the next FindBuffer should start.
-  //
-  // This function returns the node next to the end node of the specified
-  // `range`. If the end position of the `range` points the middle of a Text
-  // node, this function skips a part of the Text after the position. Usually
-  // this behavior won't cause problems because we don't need to search text
-  // after the end position.
   PositionInFlatTree PositionAfterBlock() const {
     if (!node_after_block_)
       return PositionInFlatTree();
@@ -87,20 +146,16 @@ class CORE_EXPORT FindBuffer {
 
   bool IsInvalidMatch(MatchResultICU match) const;
 
-  Vector<String> BuffersForTesting() const;
-
  private:
   // Collects text for one LayoutBlockFlow located within |range| to |buffer_|,
   // might be stopped without finishing one full LayoutBlockFlow  if we
   // encountered another LayoutBLockFlow, or if the end of |range| is
   // surpassed. Saves the next starting node after the block (first node in
   // another LayoutBlockFlow or after |end_position|) to |node_after_block_|.
-  void CollectTextUntilBlockBoundary(const EphemeralRangeInFlatTree& range,
-                                     RubySupport ruby_support);
+  void CollectTextUntilBlockBoundary(const EphemeralRangeInFlatTree& range);
 
   // Replaces nodes that should be ignored with appropriate char constants.
-  static void ReplaceNodeWithCharConstants(const Node& node,
-                                           Vector<UChar>& buffer);
+  void ReplaceNodeWithCharConstants(const Node& node);
 
   // Mapping for position in buffer -> actual node where the text came from,
   // along with the offset in the OffsetMapping of this find_buffer.
@@ -138,22 +193,13 @@ class CORE_EXPORT FindBuffer {
 
   PositionInFlatTree PositionAtEndOfCharacterAtIndex(unsigned index) const;
 
-  Vector<UChar> SerializeLevelInGraph(
-      const HeapVector<Member<CorpusChunk>>& chunk_list,
-      const String& level,
-      const EphemeralRangeInFlatTree& range);
-
-  // Adds text in |text_node| that are located within |range| to |buffer|.
+  // Adds text in |text_node| that are located within |range| to |buffer_|.
   void AddTextToBuffer(const Text& text_node,
-                       const EphemeralRangeInFlatTree& range,
-                       Vector<UChar>& buffer,
-                       Vector<BufferNodeMapping>* mappings);
+                       LayoutBlockFlow& block_flow,
+                       const EphemeralRangeInFlatTree& range);
 
-  const Node* node_after_block_ = nullptr;
+  Node* node_after_block_ = nullptr;
   Vector<UChar> buffer_;
-  // buffer_list_ is usually empty. It contains items only if an element
-  // with display:ruby-text exists.
-  Vector<Vector<UChar>> buffer_list_;
   Vector<BufferNodeMapping> buffer_node_mappings_;
   TextSearcherICU text_searcher_;
 

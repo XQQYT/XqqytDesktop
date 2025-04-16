@@ -108,6 +108,7 @@ class MODULES_EXPORT UserMediaRequest final
                    MediaConstraints audio,
                    MediaConstraints video,
                    bool should_prefer_current_tab,
+                   bool auto_select_all_screens,
                    CaptureController* capture_controller,
                    Callbacks*,
                    IdentifiableSurface surface);
@@ -198,6 +199,8 @@ class MODULES_EXPORT UserMediaRequest final
     return suppress_local_audio_playback_;
   }
 
+  bool auto_select_all_screens() const { return auto_select_all_screens_; }
+
   // Mark this request as an GetOpenDevice request for initializing a
   // TransferredMediaStreamTrack from the deviced identified by session_id.
   void SetTransferData(const base::UnguessableToken& session_id,
@@ -207,10 +210,10 @@ class MODULES_EXPORT UserMediaRequest final
     transferred_track_transfer_id_ = transfer_id;
     transferred_track_ = track;
   }
-  std::optional<base::UnguessableToken> GetSessionId() const {
+  absl::optional<base::UnguessableToken> GetSessionId() const {
     return transferred_track_session_id_;
   }
-  std::optional<base::UnguessableToken> GetTransferId() const {
+  absl::optional<base::UnguessableToken> GetTransferId() const {
     return transferred_track_transfer_id_;
   }
   bool IsTransferredTrackRequest() const {
@@ -248,8 +251,8 @@ class MODULES_EXPORT UserMediaRequest final
   IdentifiableSurface surface_;
   bool is_resolved_ = false;
 
-  std::optional<base::UnguessableToken> transferred_track_session_id_;
-  std::optional<base::UnguessableToken> transferred_track_transfer_id_;
+  absl::optional<base::UnguessableToken> transferred_track_session_id_;
+  absl::optional<base::UnguessableToken> transferred_track_transfer_id_;
   Member<TransferredMediaStreamTrack> transferred_track_;
 };
 

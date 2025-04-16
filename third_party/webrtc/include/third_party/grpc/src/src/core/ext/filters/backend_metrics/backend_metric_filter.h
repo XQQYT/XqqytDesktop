@@ -17,10 +17,11 @@
 
 #include <grpc/support/port_platform.h>
 
-#include <optional>
 #include <string>
 
 #include "absl/status/statusor.h"
+#include "absl/types/optional.h"
+
 #include "src/core/ext/filters/backend_metrics/backend_metric_provider.h"
 #include "src/core/lib/channel/channel_args.h"
 #include "src/core/lib/channel/channel_fwd.h"
@@ -30,25 +31,20 @@
 
 namespace grpc_core {
 
-class BackendMetricFilter : public ImplementChannelFilter<BackendMetricFilter> {
+class BackendMetricFilter : public ChannelFilter {
  public:
   static const grpc_channel_filter kFilter;
 
-  static absl::string_view TypeName() { return "backend_metric"; }
+  static absl::StatusOr<BackendMetricFilter> Create(const ChannelArgs& args,
+                                                    ChannelFilter::Args);
 
-  static absl::StatusOr<std::unique_ptr<BackendMetricFilter>> Create(
-      const ChannelArgs& args, ChannelFilter::Args);
+  // Construct a promise for one call.
+  ArenaPromise<ServerMetadataHandle> MakeCallPromise(
+      CallArgs call_args, NextPromiseFactory next_promise_factory) override;
 
-  class Call {
-   public:
-    static inline const NoInterceptor OnClientInitialMetadata;
-    static inline const NoInterceptor OnServerInitialMetadata;
-    void OnServerTrailingMetadata(ServerMetadata& md);
-    static inline const NoInterceptor OnClientToServerMessage;
-    static inline const NoInterceptor OnClientToServerHalfClose;
-    static inline const NoInterceptor OnServerToClientMessage;
-    static inline const NoInterceptor OnFinalize;
-  };
+ private:
+  absl::optional<std::string> MaybeSerializeBackendMetrics(
+      BackendMetricProvider* provider) const;
 };
 
 }  // namespace grpc_core

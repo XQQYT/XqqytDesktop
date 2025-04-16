@@ -24,8 +24,6 @@
 #include <string>
 #include <vector>
 
-#include "perfetto/ext/base/scoped_file.h"
-
 namespace perfetto {
 
 namespace base {
@@ -125,8 +123,7 @@ class KernelSymbolMap {
   static size_t kTokenIndexSampling;
 
   // Parses a kallsyms file. Returns the number of valid symbols decoded.
-  // Does not take ownership of the fd.
-  size_t Parse(int fd);
+  size_t Parse(const std::string& kallsyms_path);
 
   // Looks up the closest symbol (i.e. the one with the highest address <=
   // |addr|) from its absolute 64-bit address.

@@ -36,6 +36,7 @@
 #ifndef GOOGLE_BREAKPAD_PROCESSOR_DISASSEMBLER_X86_H_
 #define GOOGLE_BREAKPAD_PROCESSOR_DISASSEMBLER_X86_H_
 
+#include <stddef.h>
 #include <sys/types.h>
 
 #include "google_breakpad/common/breakpad_types.h"
@@ -78,7 +79,7 @@ class DisassemblerX86 {
     // Returns the current instruction as defined in libdis.h,
     // or NULL if the current instruction is not valid.
     const libdis::x86_insn_t* currentInstruction() {
-      return instr_valid_ ? &current_instr_ : nullptr;
+      return instr_valid_ ? &current_instr_ : NULL;
     }
 
     // Returns the type of the current instruction as defined in libdis.h.

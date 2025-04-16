@@ -53,7 +53,6 @@ class BLINK_EXPORT WebElementCollection {
   }
 
   bool IsNull() const { return private_.IsNull(); }
-  explicit operator bool() const { return !IsNull(); }
 
   void Reset();
   void Assign(const WebElementCollection&);

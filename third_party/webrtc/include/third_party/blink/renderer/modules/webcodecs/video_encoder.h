@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_WEBCODECS_VIDEO_ENCODER_H_
 
 #include <memory>
-#include <optional>
 
 #include "base/containers/flat_map.h"
 #include "base/time/time.h"
@@ -14,8 +13,7 @@
 #include "media/base/video_color_space.h"
 #include "media/base/video_encoder.h"
 #include "media/base/video_frame_pool.h"
-#include "media/video/video_encoder_info.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_encoded_video_chunk_output_callback.h"
 #include "third_party/blink/renderer/modules/webcodecs/encoder_base.h"
 #include "third_party/blink/renderer/modules/webcodecs/hardware_preference.h"
@@ -31,11 +29,9 @@ struct VideoEncoderOutput;
 
 namespace blink {
 
-class VideoEncoderBuffer;
 class VideoEncoderConfig;
 class VideoEncoderInit;
 class VideoEncoderEncodeOptions;
-class VideoEncoderSupport;
 class WebGraphicsContext3DVideoFramePool;
 class BackgroundReadback;
 
@@ -50,11 +46,10 @@ class MODULES_EXPORT VideoEncoderTraits {
 
     media::VideoEncoder::Options options;
     String codec_string;
-    std::optional<gfx::Size> display_size;
+    absl::optional<gfx::Size> display_size;
 
-    std::optional<String> not_supported_error_message;
+    absl::optional<String> not_supported_error_message;
 
-    String ToString();
     void Trace(Visitor*) const {}
   };
 
@@ -81,11 +76,9 @@ class MODULES_EXPORT VideoEncoder : public EncoderBase<VideoEncoderTraits> {
   VideoEncoder(ScriptState*, const VideoEncoderInit*, ExceptionState&);
   ~VideoEncoder() override;
 
-  static ScriptPromise<VideoEncoderSupport>
-  isConfigSupported(ScriptState*, const VideoEncoderConfig*, ExceptionState&);
-
-  HeapVector<Member<VideoEncoderBuffer>> getAllFrameBuffers(ScriptState*,
-                                                            ExceptionState&);
+  static ScriptPromise isConfigSupported(ScriptState*,
+                                         const VideoEncoderConfig*,
+                                         ExceptionState&);
 
   // EventTarget interface
   const AtomicString& InterfaceName() const override;
@@ -96,11 +89,8 @@ class MODULES_EXPORT VideoEncoder : public EncoderBase<VideoEncoderTraits> {
   // GarbageCollected override.
   void Trace(Visitor*) const override;
 
-  // If `is_error_message_from_software_codec` is true, `error_message` will be
-  // updated to include `status.message()` if non-empty.
   void ReportError(const char* error_message,
-                   const media::EncoderStatus& status,
-                   bool is_error_message_from_software_codec);
+                   const media::EncoderStatus& status);
 
   std::unique_ptr<media::VideoEncoderMetricsProvider> encoder_metrics_provider_
       GUARDED_BY_CONTEXT(sequence_checker_);
@@ -114,13 +104,12 @@ class MODULES_EXPORT VideoEncoder : public EncoderBase<VideoEncoderTraits> {
       ParsedConfig* active_config,
       uint32_t reset_count,
       media::VideoEncoderOutput output,
-      std::optional<media::VideoEncoder::CodecDescription> codec_desc);
+      absl::optional<media::VideoEncoder::CodecDescription> codec_desc);
   bool ReadyToProcessNextRequest() override;
   void ProcessEncode(Request* request) override;
   void ProcessConfigure(Request* request) override;
   void ProcessReconfigure(Request* request) override;
   void ResetInternal(DOMException* ex) override;
-  void OnNewEncode(VideoFrame* input, ExceptionState& exception_state) override;
 
   void OnEncodeDone(Request* request, media::EncoderStatus status);
   media::VideoEncoder::EncodeOptions CreateEncodeOptions(Request* request);
@@ -129,29 +118,28 @@ class MODULES_EXPORT VideoEncoder : public EncoderBase<VideoEncoderTraits> {
                       scoped_refptr<media::VideoFrame> txt_frame,
                       media::VideoEncoder::EncoderStatusCB done_callback,
                       scoped_refptr<media::VideoFrame> result_frame);
-  static media::EncoderStatus::Or<std::unique_ptr<media::VideoEncoder>>
-  CreateSoftwareVideoEncoder(VideoEncoder* self,
-                             bool fallback,
-                             media::VideoCodec codec);
+  static std::unique_ptr<media::VideoEncoder> CreateSoftwareVideoEncoder(
+      VideoEncoder* self,
+      bool fallback,
+      media::VideoCodec codec);
 
-  ParsedConfig* OnNewConfigure(const VideoEncoderConfig*,
-                               ExceptionState&) override;
+  ParsedConfig* ParseConfig(const VideoEncoderConfig*,
+                            ExceptionState&) override;
   bool VerifyCodecSupport(ParsedConfig*, String* js_error_message) override;
 
   // Virtual for UTs.
   // Returns the VideoEncoder.
-  virtual media::EncoderStatus::Or<std::unique_ptr<media::VideoEncoder>>
-  CreateMediaVideoEncoder(const ParsedConfig& config,
-                          media::GpuVideoAcceleratorFactories* gpu_factories,
-                          bool& is_platform_encoder);
+  virtual std::unique_ptr<media::VideoEncoder> CreateMediaVideoEncoder(
+      const ParsedConfig& config,
+      media::GpuVideoAcceleratorFactories* gpu_factories,
+      bool& is_platform_encoder);
   virtual std::unique_ptr<media::VideoEncoderMetricsProvider>
   CreateVideoEncoderMetricsProvider() const;
 
   void ContinueConfigureWithGpuFactories(
       Request* request,
       media::GpuVideoAcceleratorFactories* gpu_factories);
-  media::EncoderStatus::Or<std::unique_ptr<media::VideoEncoder>>
-  CreateAcceleratedVideoEncoder(
+  std::unique_ptr<media::VideoEncoder> CreateAcceleratedVideoEncoder(
       media::VideoCodecProfile profile,
       const media::VideoEncoder::Options& options,
       media::GpuVideoAcceleratorFactories* gpu_factories,
@@ -183,23 +171,12 @@ class MODULES_EXPORT VideoEncoder : public EncoderBase<VideoEncoderTraits> {
   // Per-frame metadata to be applied to outputs, linked by timestamp.
   struct FrameMetadata {
     base::TimeDelta duration;
-    media::VideoTransformation transformation;
   };
   base::flat_map<base::TimeDelta, FrameMetadata> frame_metadata_;
-
-  // Buffers returned by getAllFrameBuffers()
-  HeapVector<Member<VideoEncoderBuffer>> frame_reference_buffers_;
 
   // The color space corresponding to the last emitted output. Used to update
   // emitted VideoDecoderConfig when necessary.
   gfx::ColorSpace last_output_color_space_;
-
-  // The transformation corresponding to the last input received by
-  // ProcessEncode(). Used to request a key frame.
-  std::optional<media::VideoTransformation> first_input_transformation_;
-
-  // Latest VideoEncoderInfo reported by encoder
-  media::VideoEncoderInfo encoder_info_;
 };
 
 }  // namespace blink

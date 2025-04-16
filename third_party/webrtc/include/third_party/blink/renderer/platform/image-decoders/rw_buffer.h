@@ -28,10 +28,8 @@ class PLATFORM_EXPORT RWBuffer {
   class PLATFORM_EXPORT ROIter {
    public:
     explicit ROIter(RWBuffer*, size_t);
-
-    // Returns a span of the current continuous block of memory. The span will
-    // be empty if the iterator is exhausted.
-    base::span<const uint8_t> operator*() const;
+    size_t size() const;
+    const void* data() const;
     // Checks whether there is another block available and advances the iterator
     // if there is.
     bool Next();
@@ -40,8 +38,8 @@ class PLATFORM_EXPORT RWBuffer {
     bool HasNext() const;
 
    private:
-    raw_ptr<const RWBuffer> rw_buffer_;
-    raw_ptr<const RWBuffer::BufferBlock> block_;
+    raw_ptr<const RWBuffer, ExperimentalRenderer> rw_buffer_;
+    raw_ptr<RWBuffer::BufferBlock, ExperimentalRenderer> block_;
     size_t remaining_;
   };
 
@@ -49,7 +47,7 @@ class PLATFORM_EXPORT RWBuffer {
   // |writer| is a function used to initialize the RWBuffer.
   // |writer| is responsible for not writing off the edge of the buffer.
   // |writer| should return the amount of memory written to the buffer.
-  RWBuffer(base::OnceCallback<size_t(base::span<uint8_t>)> writer,
+  RWBuffer(base::OnceCallback<size_t(void*, size_t)> writer,
            size_t initial_capacity);
 
   ~RWBuffer();
@@ -60,14 +58,14 @@ class PLATFORM_EXPORT RWBuffer {
   size_t size() const { return total_used_; }
 
   /**
-   * Append bytes from |buffer|.
+   * Append |length| bytes from |buffer|.
    *
    * If the caller knows in advance how much more data they are going to
    * append, they can pass a |reserve| hint (representing the number of upcoming
    * bytes *in addition* to the current append), to minimize the number of
    * internal allocations.
    */
-  void Append(base::span<const uint8_t> buffer, size_t reserve = 0);
+  void Append(const void* buffer, size_t length, size_t reserve = 0);
 
   scoped_refptr<ROBuffer> MakeROBufferSnapshot() const;
 
@@ -80,8 +78,8 @@ class PLATFORM_EXPORT RWBuffer {
   void Validate() const;
 
  private:
-  raw_ptr<BufferHead> head_ = nullptr;
-  raw_ptr<BufferBlock> tail_ = nullptr;
+  raw_ptr<BufferHead, ExperimentalRenderer> head_ = nullptr;
+  raw_ptr<BufferBlock, ExperimentalRenderer> tail_ = nullptr;
   size_t total_used_ = 0;
 };
 
@@ -106,10 +104,16 @@ class PLATFORM_EXPORT ROBuffer : public WTF::ThreadSafeRefCounted<ROBuffer> {
     void Reset(const ROBuffer*);
 
     /**
-     * Returns a span of the current continuous block of memory. The span will
-     * be empty if the iterator is exhausted.
+     * Return the current continuous block of memory, or nullptr if the
+     * iterator is exhausted
      */
-    base::span<const uint8_t> operator*() const;
+    const void* data() const;
+
+    /**
+     * Returns the number of bytes in the current contiguous block of memory,
+     * or 0 if the iterator is exhausted.
+     */
+    size_t size() const;
 
     /**
      * Advance to the next contiguous block of memory, returning true if there
@@ -118,9 +122,9 @@ class PLATFORM_EXPORT ROBuffer : public WTF::ThreadSafeRefCounted<ROBuffer> {
     bool Next();
 
    private:
-    raw_ptr<const RWBuffer::BufferBlock> block_;
+    raw_ptr<const RWBuffer::BufferBlock, ExperimentalRenderer> block_;
     size_t remaining_;
-    raw_ptr<const ROBuffer> buffer_;
+    raw_ptr<const ROBuffer, ExperimentalRenderer> buffer_;
   };
 
  private:
@@ -130,9 +134,9 @@ class PLATFORM_EXPORT ROBuffer : public WTF::ThreadSafeRefCounted<ROBuffer> {
            const RWBuffer::BufferBlock* tail);
   ~ROBuffer();
 
-  raw_ptr<const RWBuffer::BufferHead> head_;
+  raw_ptr<const RWBuffer::BufferHead, ExperimentalRenderer> head_;
   const size_t available_;
-  raw_ptr<const RWBuffer::BufferBlock> tail_;
+  raw_ptr<const RWBuffer::BufferBlock, ExperimentalRenderer> tail_;
 
   friend class RWBuffer;
 };

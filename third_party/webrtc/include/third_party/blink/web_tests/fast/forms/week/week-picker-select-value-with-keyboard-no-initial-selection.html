@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<meta name=fuzzy content="maxDifference=0-3; totalPixels=0-1000">
+<html>
+<head>
 <script src="../../../resources/testharness.js"></script>
 <script src="../../../resources/testharnessreport.js"></script>
 <script src="../../../resources/testdriver.js"></script>
@@ -7,7 +8,8 @@
 <script src="../resources/common.js"></script>
 <script src="../resources/picker-common.js"></script>
 <script src="../calendar-picker/resources/calendar-picker-common.js"></script>
-
+</head>
+<body>
 <input type="week" id="week0" min="2019-W04" max="2019-W20">
 <input type="week" id="week1" min="5000-W04" max="5000-W20">
 <input type="week" id="week2" >
@@ -125,3 +127,5 @@ promise_test(() => {
 }, "Week picker: If the input's initial value is invalid due to step attribute, should select the nearest valid week");
 
 </script>
+</body>
+</html>

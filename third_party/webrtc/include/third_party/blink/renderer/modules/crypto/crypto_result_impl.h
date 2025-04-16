@@ -33,9 +33,6 @@
 
 #include "third_party/blink/public/platform/web_crypto.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
-#include "third_party/blink/renderer/core/execution_context/execution_context.h"
-#include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/bindings/exception_code.h"
 #include "third_party/blink/renderer/platform/crypto_result.h"
@@ -56,53 +53,36 @@ MODULES_EXPORT ExceptionCode WebCryptoErrorToExceptionCode(WebCryptoErrorType);
 //    another thread.
 //  * One of the CompleteWith***() functions must be called, or the
 //    |resolver_| will be leaked until the ExecutionContext is destroyed.
-class MODULES_EXPORT CryptoResultImpl final
-    : public CryptoResult,
-      public ExecutionContextLifecycleObserver {
+class MODULES_EXPORT CryptoResultImpl final : public CryptoResult {
  public:
-  enum class ResolverType { kAny, kTyped };
-
-  template <typename IDLType>
-  CryptoResultImpl(ScriptState* script_state,
-                   ScriptPromiseResolver<IDLType>* resolver)
-      : ExecutionContextLifecycleObserver(ExecutionContext::From(script_state)),
-        resolver_(resolver),
-        type_(std::is_same_v<IDLAny, IDLType> ? ResolverType::kAny
-                                              : ResolverType::kTyped),
-        cancel_(base::MakeRefCounted<CryptoResultCancel>()) {
-    // Sync cancellation state.
-    if (ExecutionContext::From(script_state)->IsContextDestroyed()) {
-      Cancel();
-    }
-  }
+  explicit CryptoResultImpl(ScriptState*);
   ~CryptoResultImpl() override;
 
   void CompleteWithError(WebCryptoErrorType, const WebString&) override;
-  void CompleteWithBuffer(base::span<const uint8_t> bytes) override;
-  void CompleteWithJson(std::string_view utf8_data) override;
+  void CompleteWithBuffer(const void* bytes, unsigned bytes_size) override;
+  void CompleteWithJson(const char* utf8_data, unsigned length) override;
   void CompleteWithBoolean(bool) override;
   void CompleteWithKey(const WebCryptoKey&) override;
   void CompleteWithKeyPair(const WebCryptoKey& public_key,
                            const WebCryptoKey& private_key) override;
-  WebCryptoWarningType GetWarning() override { return warning_code_; }
-  void SetWarning(WebCryptoWarningType code) override { warning_code_ = code; }
-  ExecutionContext* GetExecutionContext() const override {
-    return resolver_ ? resolver_->GetExecutionContext() : nullptr;
-  }
+
+  void CompleteWithError(ExceptionState&);
+
+  // If called after completion (including cancellation) will return an empty
+  // ScriptPromise.
+  ScriptPromise Promise();
 
   WebCryptoResult Result() { return WebCryptoResult(this, cancel_.get()); }
-
-  // ExecutionContextLifecycleObserver override:
-  void ContextDestroyed() override { Cancel(); }
 
   void Trace(Visitor*) const override;
 
  private:
+  class Resolver;
+
   void Cancel();
   void ClearResolver();
 
-  Member<ScriptPromiseResolverBase> resolver_;
-  const ResolverType type_;
+  Member<Resolver> resolver_;
 
   // Separately communicate cancellation to WebCryptoResults so as to
   // allow this result object, which will be on the Oilpan heap, to be
@@ -114,8 +94,6 @@ class MODULES_EXPORT CryptoResultImpl final
   // cancellation status object for the purpose, which will outlive the
   // result object and can be safely accessed by multiple threads.
   scoped_refptr<CryptoResultCancel> cancel_;
-
-  WebCryptoWarningType warning_code_;
 };
 
 }  // namespace blink

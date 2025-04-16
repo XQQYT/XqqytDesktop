@@ -50,9 +50,8 @@ class RefCountedDeleteOnSequence : public subtle::RefCountedThreadSafeBase {
   void AddRef() const { AddRefImpl(subtle::GetRefCountPreference<T>()); }
 
   void Release() const {
-    if (subtle::RefCountedThreadSafeBase::Release()) {
+    if (subtle::RefCountedThreadSafeBase::Release())
       DestructOnSequence();
-    }
   }
 
  protected:
@@ -69,11 +68,10 @@ class RefCountedDeleteOnSequence : public subtle::RefCountedThreadSafeBase {
  private:
   void DestructOnSequence() const {
     const T* t = static_cast<const T*>(this);
-    if (owning_task_runner_->RunsTasksInCurrentSequence()) {
+    if (owning_task_runner_->RunsTasksInCurrentSequence())
       delete t;
-    } else {
+    else
       owning_task_runner_->DeleteSoon(FROM_HERE, t);
-    }
   }
 
   void AddRefImpl(subtle::StartRefCountFromZeroTag) const {

@@ -37,8 +37,6 @@ template <typename Type,
 	  bool sorted=false>
 struct hb_vector_t
 {
-  static constexpr bool realloc_move = true;
-
   typedef Type item_t;
   static constexpr unsigned item_size = hb_static_size (Type);
   using array_t = typename std::conditional<sorted, hb_sorted_array_t<Type>, hb_array_t<Type>>::type;
@@ -78,7 +76,7 @@ struct hb_vector_t
     if (unlikely (in_error ())) return;
     copy_array (o);
   }
-  hb_vector_t (hb_vector_t &&o) noexcept
+  hb_vector_t (hb_vector_t &&o)
   {
     allocated = o.allocated;
     length = o.length;
@@ -122,7 +120,7 @@ struct hb_vector_t
     resize (0);
   }
 
-  friend void swap (hb_vector_t& a, hb_vector_t& b) noexcept
+  friend void swap (hb_vector_t& a, hb_vector_t& b)
   {
     hb_swap (a.allocated, b.allocated);
     hb_swap (a.length, b.length);
@@ -139,7 +137,7 @@ struct hb_vector_t
 
     return *this;
   }
-  hb_vector_t& operator = (hb_vector_t &&o) noexcept
+  hb_vector_t& operator = (hb_vector_t &&o)
   {
     hb_swap (*this, o);
     return *this;
@@ -270,9 +268,10 @@ struct hb_vector_t
     }
     return new_array;
   }
-  /* Specialization for types that can be moved using realloc(). */
+  /* Specialization for hb_vector_t<hb_{vector,array}_t<U>> to speed up. */
   template <typename T = Type,
-	    hb_enable_if (T::realloc_move)>
+	    hb_enable_if (hb_is_same (T, hb_vector_t<typename T::item_t>) ||
+			  hb_is_same (T, hb_array_t <typename T::item_t>))>
   Type *
   realloc_vector (unsigned new_allocated, hb_priority<1>)
   {

@@ -41,7 +41,6 @@
 
 #include "google_breakpad/common/breakpad_types.h"
 #include "google_breakpad/common/minidump_format.h"
-#include "google_breakpad/processor/stack_frame_cpu.h"
 #include "google_breakpad/processor/stackwalker.h"
 
 namespace google_breakpad {

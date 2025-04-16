@@ -28,7 +28,6 @@
 #ifndef MEDIAPIPE_UTIL_TRACKING_MEASURE_TIME_H_
 #define MEDIAPIPE_UTIL_TRACKING_MEASURE_TIME_H_
 
-#include <cstdint>
 #include <memory>
 #include <sstream>
 
@@ -38,6 +37,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
+#include "mediapipe/framework/port/integral_types.h"
 
 extern bool flags_measure_time;
 
@@ -133,10 +133,10 @@ class ScopedWallTimer {
   // While LogMessage is adequate for this, no good equivalent exists on
   // Android, so we employ a portable ostringstream for buffering.
   std::ostringstream stream_;
-  int64_t start_time_;
+  int64 start_time_;
   Accumulator* accumulator_;
 
-  int64_t GetWallTime() { return absl::GetCurrentTimeNanos(); }
+  int64 GetWallTime() { return absl::GetCurrentTimeNanos(); }
 };
 
 class MeasureTimeFilter {

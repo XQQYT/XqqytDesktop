@@ -14,7 +14,7 @@ namespace blink {
 class ExceptionState;
 
 // CSSStyleVariableReferenceValue represents a CSS var() value for CSS Typed OM.
-// The corresponding idl file is css_variable_reference_value.idl.
+// The corresponding idl file is CSSVariableReferenceValue.idl.
 class CORE_EXPORT CSSStyleVariableReferenceValue final
     : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();

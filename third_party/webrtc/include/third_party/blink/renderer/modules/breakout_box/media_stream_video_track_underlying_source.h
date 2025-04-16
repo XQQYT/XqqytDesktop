@@ -52,6 +52,7 @@ class MODULES_EXPORT MediaStreamVideoTrackUnderlyingSource
   FRIEND_TEST_ALL_PREFIXES(MediaStreamVideoTrackUnderlyingSourceTest,
                            FrameLimiter);
 
+  scoped_refptr<base::SequencedTaskRunner> GetIOTaskRunner();
   static std::string GetDeviceIdForMonitoring(const MediaStreamDevice& device);
   static wtf_size_t GetFramePoolSize(const MediaStreamDevice& device);
 

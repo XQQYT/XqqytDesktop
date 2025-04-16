@@ -4,13 +4,13 @@ PASS if no crash.
 if (window.localStorage.getItem("finish-during-reload") == null) {
   if (window.testRunner) {
     testRunner.dumpAsText();
-    internals.settings.setImagesEnabled(false);
+    testRunner.setImagesAllowed(false);
   }
 
   setTimeout(() => {
     window.localStorage.setItem("finish-during-reload", "reload");
-    if (window.internals)
-      internals.settings.setImagesEnabled(true);
+    if (window.testRunner)
+      testRunner.setImagesAllowed(true);
     internals.forceReload(false);
   }, 0);
 }

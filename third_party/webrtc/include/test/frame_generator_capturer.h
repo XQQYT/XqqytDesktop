@@ -11,20 +11,19 @@
 #define TEST_FRAME_GENERATOR_CAPTURER_H_
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
-#include <optional>
 
-#include "api/scoped_refptr.h"
-#include "api/task_queue/task_queue_base.h"
+#include "absl/types/optional.h"
 #include "api/task_queue/task_queue_factory.h"
 #include "api/test/frame_generator_interface.h"
 #include "api/video/color_space.h"
 #include "api/video/video_frame.h"
-#include "api/video/video_frame_buffer.h"
 #include "api/video/video_rotation.h"
 #include "api/video/video_sink_interface.h"
 #include "api/video/video_source_interface.h"
 #include "rtc_base/synchronization/mutex.h"
+#include "rtc_base/task_queue.h"
 #include "rtc_base/task_utils/repeating_task.h"
 #include "rtc_base/thread_annotations.h"
 #include "system_wrappers/include/clock.h"
@@ -50,8 +49,7 @@ class FrameGeneratorCapturer : public TestVideoCapturer {
       Clock* clock,
       std::unique_ptr<FrameGeneratorInterface> frame_generator,
       int target_fps,
-      TaskQueueFactory& task_queue_factory,
-      bool allow_zero_hertz = false);
+      TaskQueueFactory& task_queue_factory);
   virtual ~FrameGeneratorCapturer();
 
   void Start() override;
@@ -66,22 +64,23 @@ class FrameGeneratorCapturer : public TestVideoCapturer {
     int width;
     int height;
   };
-  std::optional<Resolution> GetResolution() const;
+  absl::optional<Resolution> GetResolution() const;
 
   void OnOutputFormatRequest(int width,
                              int height,
-                             const std::optional<int>& max_fps);
+                             const absl::optional<int>& max_fps);
 
   void SetSinkWantsObserver(SinkWantsObserver* observer);
 
   void AddOrUpdateSink(rtc::VideoSinkInterface<VideoFrame>* sink,
                        const rtc::VideoSinkWants& wants) override;
   void RemoveSink(rtc::VideoSinkInterface<VideoFrame>* sink) override;
-  void RequestRefreshFrame() override;
 
   void ForceFrame();
   void SetFakeRotation(VideoRotation rotation);
-  void SetFakeColorSpace(std::optional<ColorSpace> color_space);
+  void SetFakeColorSpace(absl::optional<ColorSpace> color_space);
+
+  int64_t first_frame_capture_time() const { return first_frame_capture_time_; }
 
   bool Init();
 
@@ -89,24 +88,27 @@ class FrameGeneratorCapturer : public TestVideoCapturer {
   void InsertFrame();
   static bool Run(void* obj);
   int GetCurrentConfiguredFramerate();
+  void UpdateFps(int max_fps) RTC_EXCLUSIVE_LOCKS_REQUIRED(&lock_);
 
   Clock* const clock_;
   RepeatingTaskHandle frame_task_;
-  bool sending_ RTC_GUARDED_BY(&lock_);
+  bool sending_;
   SinkWantsObserver* sink_wants_observer_ RTC_GUARDED_BY(&lock_);
 
   Mutex lock_;
   std::unique_ptr<FrameGeneratorInterface> frame_generator_;
-  rtc::scoped_refptr<VideoFrameBuffer> last_frame_captured_;
 
   int source_fps_ RTC_GUARDED_BY(&lock_);
   int target_capture_fps_ RTC_GUARDED_BY(&lock_);
+  absl::optional<int> wanted_fps_ RTC_GUARDED_BY(&lock_);
   VideoRotation fake_rotation_ = kVideoRotation_0;
-  std::optional<ColorSpace> fake_color_space_ RTC_GUARDED_BY(&lock_);
-  bool allow_zero_hertz_ = false;
-  int number_of_frames_skipped_ = 0;
+  absl::optional<ColorSpace> fake_color_space_ RTC_GUARDED_BY(&lock_);
 
-  std::unique_ptr<TaskQueueBase, TaskQueueDeleter> task_queue_;
+  int64_t first_frame_capture_time_;
+
+  // Must be the last field, so it will be deconstructed first as tasks
+  // in the TaskQueue access other fields of the instance of this class.
+  rtc::TaskQueue task_queue_;
 };
 }  // namespace test
 }  // namespace webrtc

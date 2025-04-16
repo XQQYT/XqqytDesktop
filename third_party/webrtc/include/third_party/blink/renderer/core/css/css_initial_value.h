@@ -26,10 +26,6 @@
 #include "third_party/blink/renderer/core/css/css_value.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 
-namespace WTF {
-class String;
-}  // namespace WTF
-
 namespace blink {
 
 class CORE_EXPORT CSSInitialValue : public CSSValue {
@@ -38,7 +34,7 @@ class CORE_EXPORT CSSInitialValue : public CSSValue {
 
   CSSInitialValue() : CSSValue(kInitialClass) {}
 
-  WTF::String CustomCSSText() const;
+  String CustomCSSText() const;
 
   bool Equals(const CSSInitialValue&) const { return true; }
 

@@ -1,34 +1,25 @@
 // Copyright 2016 The Chromium Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef BSSL_PKI_OCSP_H_
 #define BSSL_PKI_OCSP_H_
 
+#include "fillins/openssl_util.h"
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
-#include <openssl/base.h>
-#include <openssl/pki/ocsp.h>
 
+#include "ocsp_revocation_status.h"
+#include "ocsp_verify_result.h"
+#include "signature_algorithm.h"
 #include "input.h"
 #include "parse_values.h"
 #include "parser.h"
-#include "signature_algorithm.h"
+#include <optional>
 
-BSSL_NAMESPACE_BEGIN
+namespace bssl {
 
 class ParsedCertificate;
 
@@ -239,7 +230,8 @@ inline constexpr uint8_t kBasicOCSPResponseOid[] = {
 //
 // On failure |out| has an undefined state. Some of its fields may have been
 // updated during parsing, whereas others may not have been changed.
-OPENSSL_EXPORT bool ParseOCSPCertID(der::Input raw_tlv, OCSPCertID *out);
+OPENSSL_EXPORT bool ParseOCSPCertID(const der::Input& raw_tlv,
+                                        OCSPCertID* out);
 
 // Parses a DER-encoded OCSP "SingleResponse" as specified by RFC 6960. Returns
 // true on success and sets the results in |out|. The resulting |out|
@@ -248,8 +240,8 @@ OPENSSL_EXPORT bool ParseOCSPCertID(der::Input raw_tlv, OCSPCertID *out);
 //
 // On failure |out| has an undefined state. Some of its fields may have been
 // updated during parsing, whereas others may not have been changed.
-OPENSSL_EXPORT bool ParseOCSPSingleResponse(der::Input raw_tlv,
-                                            OCSPSingleResponse *out);
+OPENSSL_EXPORT bool ParseOCSPSingleResponse(const der::Input& raw_tlv,
+                                                OCSPSingleResponse* out);
 
 // Parses a DER-encoded OCSP "ResponseData" as specified by RFC 6960. Returns
 // true on success and sets the results in |out|. The resulting |out|
@@ -258,8 +250,8 @@ OPENSSL_EXPORT bool ParseOCSPSingleResponse(der::Input raw_tlv,
 //
 // On failure |out| has an undefined state. Some of its fields may have been
 // updated during parsing, whereas others may not have been changed.
-OPENSSL_EXPORT bool ParseOCSPResponseData(der::Input raw_tlv,
-                                          OCSPResponseData *out);
+OPENSSL_EXPORT bool ParseOCSPResponseData(const der::Input& raw_tlv,
+                                              OCSPResponseData* out);
 
 // Parses a DER-encoded "OCSPResponse" as specified by RFC 6960. Returns true
 // on success and sets the results in |out|. The resulting |out|
@@ -268,18 +260,45 @@ OPENSSL_EXPORT bool ParseOCSPResponseData(der::Input raw_tlv,
 //
 // On failure |out| has an undefined state. Some of its fields may have been
 // updated during parsing, whereas others may not have been changed.
-OPENSSL_EXPORT bool ParseOCSPResponse(der::Input raw_tlv, OCSPResponse *out);
+OPENSSL_EXPORT bool ParseOCSPResponse(const der::Input& raw_tlv,
+                                          OCSPResponse* out);
+
+// Checks the revocation status of the certificate |certificate_der| by using
+// the DER-encoded |raw_response|.
+//
+// Returns GOOD if the OCSP response indicates the certificate is not revoked,
+// REVOKED if it indicates it is revoked, or UNKNOWN for all other cases.
+//
+//  * |raw_response|: A DER encoded OCSPResponse.
+//  * |certificate_der|: The certificate being checked for revocation.
+//  * |issuer_certificate_der|: The certificate that signed |certificate_der|.
+//        The caller must have already performed path verification.
+//  * |verify_time_epoch_seconds|: The time as the difference in seconds from
+//        the POSIX epoch to use when checking revocation status.
+//  * |max_age_seconds|: The maximum age in seconds for a CRL, implemented as
+//        time since the |thisUpdate| field in the CRL TBSCertList. Responses
+//        older than |max_age_seconds| will be considered invalid.
+//  * |response_details|: Additional details about failures.
+[[nodiscard]] OPENSSL_EXPORT OCSPRevocationStatus
+CheckOCSP(std::string_view raw_response,
+          std::string_view certificate_der,
+          std::string_view issuer_certificate_der,
+          int64_t verify_time_epoch_seconds,
+          std::optional<int64_t> max_age_seconds,
+          OCSPVerifyResult::ResponseStatus* response_details);
 
 // Checks the revocation status of |certificate| by using the DER-encoded
 // |raw_response|.
 //
 // Arguments are the same as above, except that it takes already parsed
 // instances of the certificate and issuer certificate.
-[[nodiscard]] OPENSSL_EXPORT OCSPRevocationStatus CheckOCSP(
-    std::string_view raw_response, const ParsedCertificate *certificate,
-    const ParsedCertificate *issuer_certificate,
-    int64_t verify_time_epoch_seconds, std::optional<int64_t> max_age_seconds,
-    OCSPVerifyResult::ResponseStatus *response_details);
+[[nodiscard]] OPENSSL_EXPORT OCSPRevocationStatus
+CheckOCSP(std::string_view raw_response,
+          const ParsedCertificate* certificate,
+          const ParsedCertificate* issuer_certificate,
+          int64_t verify_time_epoch_seconds,
+          std::optional<int64_t> max_age_seconds,
+          OCSPVerifyResult::ResponseStatus* response_details);
 
 // Creates a DER-encoded OCSPRequest for |cert|. The request is fairly basic:
 //  * No signature
@@ -288,15 +307,16 @@ OPENSSL_EXPORT bool ParseOCSPResponse(der::Input raw_tlv, OCSPResponse *out);
 //  * Uses SHA1 for all hashes.
 //
 // Returns true on success and fills |request_der| with the resulting bytes.
-OPENSSL_EXPORT bool CreateOCSPRequest(const ParsedCertificate *cert,
-                                      const ParsedCertificate *issuer,
-                                      std::vector<uint8_t> *request_der);
+OPENSSL_EXPORT bool CreateOCSPRequest(const ParsedCertificate* cert,
+                                  const ParsedCertificate* issuer,
+                                  std::vector<uint8_t>* request_der);
 
 // Creates a URL to issue a GET request for OCSP information for |cert|.
 OPENSSL_EXPORT std::optional<std::string> CreateOCSPGetURL(
-    const ParsedCertificate *cert, const ParsedCertificate *issuer,
+    const ParsedCertificate* cert,
+    const ParsedCertificate* issuer,
     std::string_view ocsp_responder_url);
 
-BSSL_NAMESPACE_END
+}  // namespace net
 
 #endif  // BSSL_PKI_OCSP_H_

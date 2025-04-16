@@ -43,9 +43,9 @@ class CORE_EXPORT LayoutFlexibleBox : public LayoutBlock {
                       const ComputedStyle& style) const override;
   void RemoveChild(LayoutObject*) override;
 
-  bool IsFlexibleBox() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectFlexibleBox || LayoutBlock::IsOfType(type);
   }
 };
 

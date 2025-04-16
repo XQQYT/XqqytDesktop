@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Alliance for Open Media. All rights reserved.
+ * Copyright (c) 2016, Alliance for Open Media. All rights reserved
  *
  * This source code is subject to the terms of the BSD 2 Clause License and
  * the Alliance for Open Media Patent License 1.0. If the BSD 2 Clause License
@@ -31,11 +31,6 @@ typedef struct ConvolveParams {
   int bck_offset;
 } ConvolveParams;
 
-typedef struct WienerConvolveParams {
-  int round_0;
-  int round_1;
-} WienerConvolveParams;
-
 #define ROUND0_BITS 3
 #define COMPOUND_ROUND1_BITS 7
 #define WIENER_ROUND0_BITS 3
@@ -65,7 +60,7 @@ void av1_convolve_2d_facade(const uint8_t *src, int src_stride, uint8_t *dst,
                             const int subpel_y_qn, int y_step_q4, int scaled,
                             ConvolveParams *conv_params);
 
-static inline ConvolveParams get_conv_params_no_round(int cmp_index, int plane,
+static INLINE ConvolveParams get_conv_params_no_round(int cmp_index, int plane,
                                                       CONV_BUF_TYPE *dst,
                                                       int dst_stride,
                                                       int is_compound, int bd) {
@@ -99,13 +94,16 @@ static inline ConvolveParams get_conv_params_no_round(int cmp_index, int plane,
   return conv_params;
 }
 
-static inline ConvolveParams get_conv_params(int do_average, int plane,
+static INLINE ConvolveParams get_conv_params(int do_average, int plane,
                                              int bd) {
   return get_conv_params_no_round(do_average, plane, NULL, 0, 0, bd);
 }
 
-static inline WienerConvolveParams get_conv_params_wiener(int bd) {
-  WienerConvolveParams conv_params;
+static INLINE ConvolveParams get_conv_params_wiener(int bd) {
+  ConvolveParams conv_params;
+  (void)bd;
+  conv_params.do_average = 0;
+  conv_params.is_compound = 0;
   conv_params.round_0 = WIENER_ROUND0_BITS;
   conv_params.round_1 = 2 * FILTER_BITS - conv_params.round_0;
   const int intbufrange = bd + FILTER_BITS - conv_params.round_0 + 2;
@@ -114,6 +112,9 @@ static inline WienerConvolveParams get_conv_params_wiener(int bd) {
     conv_params.round_0 += intbufrange - 16;
     conv_params.round_1 -= intbufrange - 16;
   }
+  conv_params.dst = NULL;
+  conv_params.dst_stride = 0;
+  conv_params.plane = 0;
   return conv_params;
 }
 

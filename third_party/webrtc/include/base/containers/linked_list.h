@@ -5,8 +5,6 @@
 #ifndef BASE_CONTAINERS_LINKED_LIST_H_
 #define BASE_CONTAINERS_LINKED_LIST_H_
 
-#include <utility>
-
 #include "base/base_export.h"
 #include "base/memory/raw_ptr_exclusion.h"
 
@@ -84,9 +82,6 @@
 
 namespace base {
 
-template <typename T>
-class LinkedList;
-
 namespace internal {
 
 // Base class for LinkNode<T> type
@@ -111,10 +106,6 @@ class BASE_EXPORT LinkNodeBase {
 
   LinkNodeBase* previous_base() const { return previous_; }
   LinkNodeBase* next_base() const { return next_; }
-
-  // Make `previous_` and `next_` point to `this`. Can only be called when
-  // `next_` and `previous_` are nullptr or already point to `this`.
-  void MakeSelfReferencingBase();
 
  private:
   // `previous_` and `next_` are not a raw_ptr<...> for performance reasons:
@@ -153,15 +144,13 @@ class LinkNode : public internal::LinkNodeBase {
   LinkNode<T>* next() const { return static_cast<LinkNode<T>*>(next_base()); }
 
   // Cast from the node-type to the value type.
-  const T* value() const { return static_cast<const T*>(this); }
+  const T* value() const {
+    return static_cast<const T*>(this);
+  }
 
-  T* value() { return static_cast<T*>(this); }
-
- private:
-  friend class LinkedList<T>;
-
-  // Make this node point to itself like a LinkedList root node.
-  void MakeSelfReferencing() { MakeSelfReferencingBase(); }
+  T* value() {
+    return static_cast<T*>(this);
+  }
 };
 
 template <typename T>
@@ -174,21 +163,22 @@ class LinkedList {
   LinkedList(const LinkedList&) = delete;
   LinkedList& operator=(const LinkedList&) = delete;
 
-  // Use move constructor with care. Returning a LinkedList from a function may
-  // be unsafe if the nodes are allocated on the stack. This operation is O(1)
-  // as only head and tail nodes are modified. `other` is left empty.
-  LinkedList(LinkedList&& other) : root_(std::move(other.root_)) {
-    other.root_.MakeSelfReferencing();
+  // Appends |e| to the end of the linked list.
+  void Append(LinkNode<T>* e) {
+    e->InsertBefore(&root_);
   }
 
-  // Appends |e| to the end of the linked list.
-  void Append(LinkNode<T>* e) { e->InsertBefore(&root_); }
+  LinkNode<T>* head() const {
+    return root_.next();
+  }
 
-  LinkNode<T>* head() const { return root_.next(); }
+  LinkNode<T>* tail() const {
+    return root_.previous();
+  }
 
-  LinkNode<T>* tail() const { return root_.previous(); }
-
-  const LinkNode<T>* end() const { return &root_; }
+  const LinkNode<T>* end() const {
+    return &root_;
+  }
 
   bool empty() const { return head() == end(); }
 

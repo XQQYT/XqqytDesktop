@@ -9,10 +9,6 @@
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 
-namespace WTF {
-class String;
-}  // namespace WTF
-
 namespace blink {
 
 // This class exists to give MediaRecorder support for behavior related to
@@ -56,7 +52,7 @@ enum class MediaTrackContainerType {
 };
 
 MODULES_EXPORT MediaTrackContainerType
-GetMediaContainerTypeFromString(const WTF::String& type);
+GetMediaContainerTypeFromString(const String& type);
 
 }  // namespace blink
 

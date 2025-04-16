@@ -6,13 +6,11 @@
 #define THIRD_PARTY_BLINK_PUBLIC_WEB_MODULES_MEDIASTREAM_MEDIA_STREAM_VIDEO_SOURCE_H_
 
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "base/compiler_specific.h"
 #include "base/functional/callback.h"
-#include "base/memory/raw_ptr.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/threading/thread_checker.h"
@@ -21,6 +19,7 @@
 #include "media/base/video_frame.h"
 #include "media/capture/mojom/video_capture_types.mojom-shared.h"
 #include "media/capture/video_capture_types.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/common/media/video_capture.h"
 #include "third_party/blink/public/mojom/mediastream/media_devices.mojom-shared.h"
 #include "third_party/blink/public/mojom/mediastream/media_stream.mojom-shared.h"
@@ -66,12 +65,6 @@ class BLINK_MODULES_EXPORT MediaStreamVideoSource
   enum class RestartResult { IS_RUNNING, IS_STOPPED, INVALID_STATE };
   // RestartCallback is used for both the StopForRestart and Restart operations.
   using RestartCallback = base::OnceCallback<void(RestartResult)>;
-
-  // Callback for starting the source. It is used for video source only now, but
-  // can be extend to the audio source in the future.
-  using SourceStartCallback =
-      base::OnceCallback<void(WebPlatformMediaStreamSource* source,
-                              mojom::MediaStreamRequestResult result)>;
 
   explicit MediaStreamVideoSource(
       scoped_refptr<base::SingleThreadTaskRunner> main_task_runner);
@@ -168,7 +161,7 @@ class BLINK_MODULES_EXPORT MediaStreamVideoSource
   // Implementations must return the capture format if available.
   // Implementations supporting devices of type MEDIA_DEVICE_VIDEO_CAPTURE
   // must return a value.
-  virtual std::optional<media::VideoCaptureFormat> GetCurrentFormat() const;
+  virtual absl::optional<media::VideoCaptureFormat> GetCurrentFormat() const;
 
   // Returns true if encoded output can be enabled in the source.
   virtual bool SupportsEncodedOutput() const;
@@ -209,7 +202,7 @@ class BLINK_MODULES_EXPORT MediaStreamVideoSource
   // TODO(crbug.com/1332628): Make the sub-capture-target-version an
   // implementation detail that is not exposed to the entity
   // calling ApplySubCaptureTarget().
-  virtual std::optional<uint32_t> GetNextSubCaptureTargetVersion();
+  virtual absl::optional<uint32_t> GetNextSubCaptureTargetVersion();
 #endif
 
   // Returns the current sub-capture-target version.
@@ -239,8 +232,6 @@ class BLINK_MODULES_EXPORT MediaStreamVideoSource
     DCHECK(GetTaskRunner()->BelongsToCurrentThread());
     return tracks_.size();
   }
-
-  void SetStartCallback(SourceStartCallback callback);
 
   using WebPlatformMediaStreamSource::GetTaskRunner;
 
@@ -390,7 +381,7 @@ class BLINK_MODULES_EXPORT MediaStreamVideoSource
   State state_;
 
   struct PendingTrackInfo {
-    raw_ptr<MediaStreamVideoTrack> track;
+    MediaStreamVideoTrack* track;
     VideoCaptureDeliverFrameCB frame_callback;
     VideoCaptureNotifyFrameDroppedCB notify_frame_dropped_callback;
     EncodedVideoFrameCB encoded_frame_callback;
@@ -425,11 +416,6 @@ class BLINK_MODULES_EXPORT MediaStreamVideoSource
   // This flag enables a heuristic to detect device rotation based on frame
   // size.
   bool enable_device_rotation_detection_ = false;
-
-  // Callback that needs to trigger after starting the source. It is an
-  // optional callback so the client doesn't have to set if not interested in
-  // source start.
-  SourceStartCallback start_callback_;
 
   // Callback that needs to trigger after removing the track. If this object
   // died before this callback is resolved, we still need to trigger the

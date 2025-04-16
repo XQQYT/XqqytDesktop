@@ -16,8 +16,6 @@ namespace blink {
 
 class ExecutionContext;
 class HandwritingModelConstraint;
-class HandwritingRecognizer;
-class HandwritingRecognizerQueryResult;
 class ScriptState;
 
 class HandwritingRecognitionService final
@@ -31,16 +29,16 @@ class HandwritingRecognitionService final
   static HandwritingRecognitionService& From(Navigator&);
 
   // IDL Interface:
-  static ScriptPromise<HandwritingRecognizer> createHandwritingRecognizer(
+  static ScriptPromise createHandwritingRecognizer(
       ScriptState*,
       Navigator&,
       const HandwritingModelConstraint*,
       ExceptionState&);
-  static ScriptPromise<IDLNullable<HandwritingRecognizerQueryResult>>
-  queryHandwritingRecognizer(ScriptState*,
-                             Navigator&,
-                             const HandwritingModelConstraint*,
-                             ExceptionState&);
+  static ScriptPromise queryHandwritingRecognizer(
+      ScriptState*,
+      Navigator&,
+      const HandwritingModelConstraint*,
+      ExceptionState&);
 
   void Trace(Visitor* visitor) const override;
 
@@ -50,15 +48,14 @@ class HandwritingRecognitionService final
   // detached) and an exception will be thrown.
   // Otherwise returns true.
   bool BootstrapMojoConnectionIfNeeded(ScriptState*, ExceptionState&);
-  ScriptPromise<HandwritingRecognizer> CreateHandwritingRecognizer(
-      ScriptState*,
-      const HandwritingModelConstraint*,
-      ExceptionState&);
+  ScriptPromise CreateHandwritingRecognizer(ScriptState*,
+                                            const HandwritingModelConstraint*,
+                                            ExceptionState&);
 
-  ScriptPromise<IDLNullable<HandwritingRecognizerQueryResult>>
-  QueryHandwritingRecognizer(ScriptState*,
-                             const HandwritingModelConstraint* constraint,
-                             ExceptionState&);
+  ScriptPromise QueryHandwritingRecognizer(
+      ScriptState*,
+      const HandwritingModelConstraint* constraint,
+      ExceptionState&);
 
   HeapMojoRemote<handwriting::mojom::blink::HandwritingRecognitionService>
       remote_service_;

@@ -26,21 +26,24 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_TEXT_TEXT_BOUNDARIES_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_TEXT_TEXT_BOUNDARIES_H_
 
-#include "base/containers/span.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_uchar.h"
 
 namespace blink {
 
-// `chars` should be a string in logical order instead of visual order, since
-// these functions use ICU, which works on logical order strings
-PLATFORM_EXPORT int FindWordStartBoundary(base::span<const UChar> chars,
+// |UChar*| should be a string in logical order instead of visual order, since
+// |FindWordBoundary()| uses ICU, which works on logical order strings
+PLATFORM_EXPORT int FindWordStartBoundary(const UChar*,
+                                          unsigned len,
                                           int position);
-PLATFORM_EXPORT int FindWordEndBoundary(base::span<const UChar> chars,
+PLATFORM_EXPORT int FindWordEndBoundary(const UChar*,
+                                        unsigned len,
                                         int position);
-PLATFORM_EXPORT int FindNextWordBackward(base::span<const UChar> chars,
+PLATFORM_EXPORT int FindNextWordBackward(const UChar*,
+                                         unsigned len,
                                          int position);
-PLATFORM_EXPORT int FindNextWordForward(base::span<const UChar> chars,
+PLATFORM_EXPORT int FindNextWordForward(const UChar*,
+                                        unsigned len,
                                         int position);
 
 }  // namespace blink

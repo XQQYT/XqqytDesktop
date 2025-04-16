@@ -56,11 +56,6 @@ PERFETTO_PB_FIELD(perfetto_protos_DataSourceDescriptor,
                   handles_incremental_state_clear,
                   4);
 PERFETTO_PB_FIELD(perfetto_protos_DataSourceDescriptor,
-                  VARINT,
-                  bool,
-                  no_flush,
-                  9);
-PERFETTO_PB_FIELD(perfetto_protos_DataSourceDescriptor,
                   MSG,
                   perfetto_protos_GpuCounterDescriptor,
                   gpu_counter_descriptor,

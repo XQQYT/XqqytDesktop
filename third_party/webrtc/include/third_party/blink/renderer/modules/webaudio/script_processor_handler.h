@@ -19,7 +19,6 @@
 
 namespace base {
 class SingleThreadTaskRunner;
-class WaitableEvent;
 }
 
 namespace blink {
@@ -27,8 +26,11 @@ namespace blink {
 class AudioBuffer;
 class BaseAudioContext;
 class SharedAudioBuffer;
+class WaitableEvent;
 
-class ScriptProcessorHandler final : public AudioHandler {
+class ScriptProcessorHandler final
+    : public AudioHandler,
+      public base::SupportsWeakPtr<ScriptProcessorHandler> {
  public:
   static scoped_refptr<ScriptProcessorHandler> Create(
       AudioNode&,
@@ -47,7 +49,7 @@ class ScriptProcessorHandler final : public AudioHandler {
   uint32_t BufferSize() const { return buffer_size_; }
 
   void SetChannelCount(uint32_t, ExceptionState&) override;
-  void SetChannelCountMode(V8ChannelCountMode::Enum, ExceptionState&) override;
+  void SetChannelCountMode(const String&, ExceptionState&) override;
 
   uint32_t NumberOfOutputChannels() const override {
     return number_of_output_channels_;
@@ -65,7 +67,6 @@ class ScriptProcessorHandler final : public AudioHandler {
                          uint32_t number_of_output_channels,
                          const HeapVector<Member<AudioBuffer>>& input_buffers,
                          const HeapVector<Member<AudioBuffer>>& output_buffers);
-
   double TailTime() const override;
   double LatencyTime() const override;
   bool RequiresTailProcessing() const final;
@@ -92,8 +93,6 @@ class ScriptProcessorHandler final : public AudioHandler {
   scoped_refptr<AudioBus> internal_input_bus_;
 
   scoped_refptr<base::SingleThreadTaskRunner> task_runner_;
-
-  base::WeakPtrFactory<ScriptProcessorHandler> weak_ptr_factory_{this};
 
   FRIEND_TEST_ALL_PREFIXES(ScriptProcessorNodeTest, BufferLifetime);
 };

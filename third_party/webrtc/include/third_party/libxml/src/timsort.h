@@ -169,9 +169,7 @@ typedef struct {
 } TIM_SORT_RUN_T;
 
 
-XML_HIDDEN
 void BINARY_INSERTION_SORT(SORT_TYPE *dst, const size_t size);
-XML_HIDDEN
 void TIM_SORT(SORT_TYPE *dst, const size_t size);
 
 

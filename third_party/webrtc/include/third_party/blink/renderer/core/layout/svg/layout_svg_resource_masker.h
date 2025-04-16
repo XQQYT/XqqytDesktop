@@ -20,8 +20,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_SVG_LAYOUT_SVG_RESOURCE_MASKER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_SVG_LAYOUT_SVG_RESOURCE_MASKER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/layout/svg/layout_svg_resource_container.h"
 #include "third_party/blink/renderer/core/svg/svg_unit_types.h"
 #include "ui/gfx/geometry/rect_f.h"
@@ -57,7 +56,7 @@ class LayoutSVGResourceMasker final : public LayoutSVGResourceContainer {
   PaintRecord CreatePaintRecord();
 
  private:
-  std::optional<PaintRecord> cached_paint_record_;
+  absl::optional<PaintRecord> cached_paint_record_;
 };
 
 template <>

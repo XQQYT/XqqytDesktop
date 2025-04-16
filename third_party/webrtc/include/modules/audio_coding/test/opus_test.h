@@ -15,7 +15,7 @@
 
 #include <memory>
 
-#include "api/neteq/neteq.h"
+#include "modules/audio_coding/acm2/acm_receiver.h"
 #include "modules/audio_coding/acm2/acm_resampler.h"
 #include "modules/audio_coding/codecs/opus/opus_interface.h"
 #include "modules/audio_coding/test/PCMFile.h"
@@ -39,8 +39,7 @@ class OpusTest {
 
   void OpenOutFile(int test_number);
 
-  std::unique_ptr<NetEq> neteq_;
-  acm2::ResamplerHelper resampler_helper_;
+  std::unique_ptr<acm2::AcmReceiver> acm_receiver_;
   TestPackStereo* channel_a2b_;
   PCMFile in_file_stereo_;
   PCMFile in_file_mono_;

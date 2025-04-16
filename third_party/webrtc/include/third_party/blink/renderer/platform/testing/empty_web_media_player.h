@@ -19,7 +19,8 @@ namespace blink {
 // An empty WebMediaPlayer used only for tests. This class defines the methods
 // of WebMediaPlayer so that mock WebMediaPlayers don't need to redefine them if
 // they don't care their behavior.
-class EmptyWebMediaPlayer : public WebMediaPlayer {
+class EmptyWebMediaPlayer : public WebMediaPlayer,
+                            public base::SupportsWeakPtr<EmptyWebMediaPlayer> {
  public:
   ~EmptyWebMediaPlayer() override = default;
 
@@ -28,14 +29,13 @@ class EmptyWebMediaPlayer : public WebMediaPlayer {
                   CorsMode,
                   bool is_cache_disabled) override;
   void Play() override {}
-  void Pause(PauseReason pause_reason) override {}
+  void Pause() override {}
   void Seek(double seconds) override {}
   void SetRate(double) override {}
   void SetVolume(double) override {}
   void SetLatencyHint(double) override {}
   void SetPreservesPitch(bool) override {}
-  void SetWasPlayedWithUserActivationAndHighMediaEngagement(bool) override {}
-  void SetShouldPauseWhenFrameIsHidden(bool) override {}
+  void SetWasPlayedWithUserActivation(bool) override {}
   void OnRequestPictureInPicture() override {}
   WebTimeRanges Buffered() const override;
   WebTimeRanges Seekable() const override;
@@ -70,18 +70,15 @@ class EmptyWebMediaPlayer : public WebMediaPlayer {
   void SuspendForFrameClosed() override {}
   void Paint(cc::PaintCanvas*, const gfx::Rect&, cc::PaintFlags&) override {}
   scoped_refptr<media::VideoFrame> GetCurrentFrameThenUpdate() override;
-  std::optional<media::VideoFrame::ID> CurrentFrameId() const override;
+  absl::optional<media::VideoFrame::ID> CurrentFrameId() const override;
   bool HasAvailableVideoFrame() const override { return false; }
   bool HasReadableVideoFrame() const override { return false; }
   base::WeakPtr<WebMediaPlayer> AsWeakPtr() override {
-    return weak_ptr_factory_.GetWeakPtr();
+    return base::SupportsWeakPtr<EmptyWebMediaPlayer>::AsWeakPtr();
   }
   void RegisterFrameSinkHierarchy() override {}
   void UnregisterFrameSinkHierarchy() override {}
   bool PassedTimingAllowOriginCheck() const override { return true; }
-
- private:
-  base::WeakPtrFactory<EmptyWebMediaPlayer> weak_ptr_factory_{this};
 };
 
 }  // namespace blink

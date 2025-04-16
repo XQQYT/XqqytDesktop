@@ -1,19 +1,23 @@
 #ifndef _RAR_EXTINFO_
 #define _RAR_EXTINFO_
 
-bool IsRelativeSymlinkSafe(CommandData *Cmd,const std::wstring &SrcName,std::wstring PrepSrcName,const std::wstring &TargetName);
-bool ExtractSymlink(CommandData *Cmd,ComprDataIO &DataIO,Archive &Arc,const std::wstring &LinkName,bool &UpLink);
+bool IsRelativeSymlinkSafe(CommandData *Cmd,const wchar *SrcName,const wchar *PrepSrcName,const wchar *TargetName);
+bool ExtractSymlink(CommandData *Cmd,ComprDataIO &DataIO,Archive &Arc,const wchar *LinkName);
 #ifdef _UNIX
-void SetUnixOwner(Archive &Arc,const std::wstring &FileName);
+void SetUnixOwner(Archive &Arc,const wchar *FileName);
 #endif
 
-bool ExtractHardlink(CommandData *Cmd,const std::wstring &NameNew,const std::wstring &NameExisting);
+bool ExtractHardlink(wchar *NameNew,wchar *NameExisting,size_t NameExistingSize);
 
-std::wstring GetStreamNameNTFS(Archive &Arc);
+void GetStreamNameNTFS(Archive &Arc,wchar *StreamName,size_t MaxSize);
 
-void SetExtraInfo20(CommandData *Cmd,Archive &Arc,const std::wstring &Name);
-void SetExtraInfo(CommandData *Cmd,Archive &Arc,const std::wstring &Name);
-void SetFileHeaderExtra(CommandData *Cmd,Archive &Arc,const std::wstring &Name);
+#ifdef _WIN_ALL
+bool SetPrivilege(LPCTSTR PrivName);
+#endif
+
+void SetExtraInfo20(CommandData *Cmd,Archive &Arc,wchar *Name);
+void SetExtraInfo(CommandData *Cmd,Archive &Arc,wchar *Name);
+void SetFileHeaderExtra(CommandData *Cmd,Archive &Arc,wchar *Name);
 
 
 #endif

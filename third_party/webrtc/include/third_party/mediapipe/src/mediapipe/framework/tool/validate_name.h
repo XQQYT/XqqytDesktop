@@ -28,7 +28,7 @@
 
 namespace mediapipe {
 namespace internal {
-inline constexpr int kMaxCollectionItemId = 10000;
+constexpr int kMaxCollectionItemId = 10000;
 }  // namespace internal
 
 namespace tool {

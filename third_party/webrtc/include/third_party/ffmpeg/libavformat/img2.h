@@ -66,7 +66,7 @@ typedef struct VideoDemuxData {
 
 typedef struct IdStrMap {
     enum AVCodecID id;
-    char str[12];
+    const char *str;
 } IdStrMap;
 
 extern const IdStrMap ff_img_tags[];

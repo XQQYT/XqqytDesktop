@@ -23,7 +23,6 @@ class ComputedStyle;
 class LayoutInline;
 class LayoutObject;
 class LayoutText;
-class TransformedString;
 struct InlineNodeData;
 
 // InlineItemsBuilder builds a string and a list of InlineItem from inlines.
@@ -47,11 +46,13 @@ class InlineItemsBuilderTemplate {
 
  public:
   // Create a builder that appends items to |items|.
-  InlineItemsBuilderTemplate(
-      LayoutBlockFlow* block_flow,
-      InlineItems* items,
-      const String& previous_text_content = String(),
-      const SvgTextChunkOffsets* chunk_offsets = nullptr);
+  InlineItemsBuilderTemplate(LayoutBlockFlow* block_flow,
+                             HeapVector<InlineItem>* items,
+                             const SvgTextChunkOffsets* chunk_offsets = nullptr)
+      : block_flow_(block_flow),
+        items_(items),
+        text_chunk_offsets_(chunk_offsets),
+        is_text_combine_(block_flow_->IsLayoutTextCombine()) {}
   ~InlineItemsBuilderTemplate();
 
   LayoutBlockFlow* GetLayoutBlockFlow() const { return block_flow_; }
@@ -171,14 +172,14 @@ class InlineItemsBuilderTemplate {
 
     BoxInfo(unsigned item_index, const InlineItem& item);
     bool ShouldCreateBoxFragmentForChild(const BoxInfo& child) const;
-    void SetShouldCreateBoxFragment(InlineItems* items);
+    void SetShouldCreateBoxFragment(HeapVector<InlineItem>* items);
   };
 
  private:
   static bool NeedsBoxInfo();
 
   LayoutBlockFlow* const block_flow_;
-  InlineItems* items_;
+  HeapVector<InlineItem>* items_;
   StringBuilder text_;
 
   // |mapping_builder_| builds the whitespace-collapsed offset mapping
@@ -191,7 +192,6 @@ class InlineItemsBuilderTemplate {
 
   const SvgTextChunkOffsets* text_chunk_offsets_;
 
-  uint32_t ruby_text_nesting_level_ = 0;
   const bool is_text_combine_;
   bool has_bidi_controls_ = false;
   bool has_floats_ = false;
@@ -201,9 +201,6 @@ class InlineItemsBuilderTemplate {
   bool has_unicode_bidi_plain_text_ = false;
   bool is_bisect_line_break_disabled_ = false;
   bool is_score_line_break_disabled_ = false;
-  // True if `text_` contains non-latin1 characters other than
-  // kObjectReplacementCharacter.
-  bool has_non_orc_16bit_ = false;
 
   // Append a character.
   // Currently this function is for adding control characters such as
@@ -213,23 +210,17 @@ class InlineItemsBuilderTemplate {
   // LayoutObject.
   InlineItem& Append(InlineItem::InlineItemType, UChar, LayoutObject*);
 
-  void AppendText(const TransformedString& transformed, LayoutText&);
-  void AppendCollapseWhitespace(const TransformedString&,
+  void AppendCollapseWhitespace(const StringView,
                                 const ComputedStyle*,
                                 LayoutText*);
-  void AppendPreserveWhitespace(const TransformedString&,
+  void AppendPreserveWhitespace(const String&,
                                 const ComputedStyle*,
                                 LayoutText*);
-  void AppendPreserveNewline(const TransformedString&,
-                             const ComputedStyle*,
-                             LayoutText*);
+  void AppendPreserveNewline(const String&, const ComputedStyle*, LayoutText*);
 
   void AppendForcedBreakCollapseWhitespace(LayoutObject*);
   void AppendForcedBreak(LayoutObject*);
-  bool AppendTextChunks(const TransformedString& transformed,
-                        LayoutText& layout_text);
-  void AppendTransformedString(const TransformedString& transformed,
-                               const LayoutText& layout_text);
+  bool AppendTextChunks(const String& string, LayoutText& layout_text);
   void ExitAndEnterSvgTextChunk(LayoutText& layout_text);
   void EnterSvgTextChunk(const ComputedStyle* style);
 
@@ -242,9 +233,9 @@ class InlineItemsBuilderTemplate {
   void RestoreTrailingCollapsibleSpaceIfRemoved();
   void RestoreTrailingCollapsibleSpace(InlineItem*);
 
-  void AppendTextItem(const TransformedString&, LayoutText* layout_object);
+  void AppendTextItem(const StringView, LayoutText* layout_object);
   InlineItem& AppendTextItem(InlineItem::InlineItemType type,
-                             const TransformedString&,
+                             const StringView,
                              LayoutText* layout_object);
   void AppendEmptyTextItem(LayoutText* layout_object);
 
@@ -252,15 +243,16 @@ class InlineItemsBuilderTemplate {
 
   void Exit(LayoutObject*);
 
+  bool MayBeBidiEnabled() const;
+
   bool ShouldInsertBreakOpportunityAfterLeadingPreservedSpaces(
-      StringView,
+      const String&,
       const ComputedStyle&,
       unsigned index = 0) const;
-  void InsertBreakOpportunityAfterLeadingPreservedSpaces(
-      const TransformedString&,
-      const ComputedStyle&,
-      LayoutText*,
-      unsigned* start);
+  void InsertBreakOpportunityAfterLeadingPreservedSpaces(const String&,
+                                                         const ComputedStyle&,
+                                                         LayoutText*,
+                                                         unsigned* start);
 
   friend class InlineItemsBuilderTest;
 };

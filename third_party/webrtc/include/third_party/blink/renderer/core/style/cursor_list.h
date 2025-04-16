@@ -10,7 +10,7 @@
 
 namespace blink {
 
-using CursorList = GCedHeapVector<CursorData>;
+typedef HeapVector<CursorData> CursorList;
 
 }  // namespace blink
 

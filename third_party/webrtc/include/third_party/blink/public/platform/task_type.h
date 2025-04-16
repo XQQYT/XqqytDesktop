@@ -16,9 +16,11 @@ namespace blink {
 // * Set the new task type's value to "Next value"
 // * Update kMaxValue to point to the new task type
 // * Increment "Next value"
-// * Update TaskTypes.md
+// * in tools/metrics/histograms/enums.xml update the
+//   "RendererSchedulerTaskType" enum
+// * update TaskTypes.md
 //
-// Next value: 88
+// Next value: 84
 enum class TaskType : unsigned char {
   ///////////////////////////////////////
   // Speced tasks should use one of the following task types
@@ -51,11 +53,9 @@ enum class TaskType : unsigned char {
   // This is a part of Networking task that should not be frozen when a page is
   // frozen.
   kNetworkingUnfreezable = 75,
-  // Tasks associated with loading that should also block rendering. Split off
-  // from kNetworkingUnfreezable so tasks such as image loading can be
-  // prioritized above rendering. Note that not all render-blocking resources
-  // use this queue (e.g., script load tasks are not put here).
-  kNetworkingUnfreezableRenderBlockingLoading = 83,
+  // Tasks associated with image loading. Split off from kNetworkingUnfreezable
+  // so image loading tasks can be prioritized.
+  kNetworkingUnfreezableImageLoading = 83,
   // This task source is used for control messages between kNetworking tasks.
   kNetworkingControl = 4,
   // Tasks used to run low priority scripts.
@@ -184,12 +184,6 @@ enum class TaskType : unsigned char {
   // https://storage.spec.whatwg.org/#storage-task-source
   kStorage = 82,
 
-  // https://www.w3.org/TR/clipboard-apis/#clipboard-task-source
-  kClipboard = 85,
-
-  // https://www.w3.org/TR/webnn/#ml-task-source
-  kMachineLearning = 86,
-
   ///////////////////////////////////////
   // Not-speced tasks should use one of the following task types
   ///////////////////////////////////////
@@ -283,14 +277,6 @@ enum class TaskType : unsigned char {
   // Tasks related to renderer-initiated navigation cancellation.
   kInternalNavigationCancellation = 80,
 
-  // Tasks related to autofill.
-  //
-  // TODO(crbug.com/382342234): This was added to distinguish autofill tasks
-  // from kInternalUserInteraction tasks to exclude them from task deferral
-  // policies, but tasks with this type need to be synchronized with synchronous
-  // submission. Remove this if the autofill tasks become synchronous.
-  kInternalAutofill = 88,
-
   ///////////////////////////////////////
   // The following task types are only for thread-local queues.
   ///////////////////////////////////////
@@ -300,8 +286,7 @@ enum class TaskType : unsigned char {
   // get a task queue/runner.
 
   kMainThreadTaskQueueV8 = 37,
-  kMainThreadTaskQueueV8UserVisible = 84,
-  kMainThreadTaskQueueV8BestEffort = 87,
+  kMainThreadTaskQueueV8LowPriority = 84,
   kMainThreadTaskQueueCompositor = 38,
   kMainThreadTaskQueueDefault = 39,
   kMainThreadTaskQueueInput = 40,
@@ -320,7 +305,7 @@ enum class TaskType : unsigned char {
   kWorkerThreadTaskQueueV8 = 47,
   kWorkerThreadTaskQueueCompositor = 48,
 
-  kMaxValue = kInternalAutofill,
+  kMaxValue = kMainThreadTaskQueueV8LowPriority,
 };
 
 }  // namespace blink

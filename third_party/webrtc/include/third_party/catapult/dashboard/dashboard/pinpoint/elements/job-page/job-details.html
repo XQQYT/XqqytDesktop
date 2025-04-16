@@ -41,8 +41,8 @@ found in the LICENSE file.
       </template>
       <template is="dom-if" if="[[job.bug_id]]">
         <li>
-          <a href="[[getJobIssueLink(job)]]" target="_blank">
-            [[getJobIssueText(job)]]
+          <a href="https://crbug.com/[[getProject(job)]]/[[job.bug_id]]" target="_blank">
+            Issue [[getProject(job)]]:[[job.bug_id]]
           </a>
       </template>
       <li>
@@ -65,15 +65,6 @@ found in the LICENSE file.
         </template>
       </dl>
     </div>
-
-    <div class="section">
-      <h2>Repro via command line</h2>
-      <dl>
-        <template is="dom-repeat" items="[[getReproCmd(job)]]">
-          <dd>[[item]]
-        </template>
-      </div>
-    </div>
   </template>
 
   <script>
@@ -92,38 +83,6 @@ found in the LICENSE file.
           return false;
         }
         return !job.comparison_mode || job.comparison_mode === 'try';
-      },
-
-      getJobIssueLink(job) {
-        let link = ''
-        if (!job || !job.arguments || !job.arguments.bug_id) {
-          return link;
-        }
-        let bug_id = parseInt(job.arguments.bug_id);
-        if (bug_id > 2000000) {
-          link='https://b.corp.google.com/issues/'+bug_id;
-        }
-        else {
-          let project = this.getProject(job);
-          link='https://crbug.com/'+project+'/'+bug_id;
-        }
-        return link
-      },
-
-      getJobIssueText(job) {
-        let text = ''
-        if (!job || !job.arguments || !job.arguments.bug_id) {
-          return text;
-        }
-        let bug_id = parseInt(job.arguments.bug_id);
-        if (bug_id > 2000000) {
-          text='Issue '+bug_id;
-        }
-        else {
-          let project = this.getProject(job);
-          text='Issue '+project+':'+bug_id;
-        }
-        return text;
       },
 
       getCABELink(user, job) {
@@ -172,73 +131,6 @@ found in the LICENSE file.
           return 0;
         });
         return tuples;
-      },
-
-      getReproCmd(job) {
-        if (!job) {
-          return [];
-        }
-        if (!this.isTryJob(job)) {
-          return ['Bisect jobs are not supported at this time!'];
-        }
-        let argsList = ['pinpoint experiment-telemetry-start \\'];
-        const notesList = [];
-        for (const [key, value] of Object.entries(job.arguments)) {
-          if (value.trim().length === 0) {
-            continue;
-          }
-          switch (key){
-            case 'base_git_hash':
-            case 'start_git_hash':
-            case 'start_commit':
-              argsList.push(`-base-commit=${value} \\`);
-              break;
-            case 'base_patch':
-              argsList.push(`-base-patch-url=${value} \\`);
-              break;
-            case 'end_git_hash':
-            case 'end_commit':
-              argsList.push(`-exp-commit=${value} \\`);
-              break;
-            case 'experiment_patch':
-              argsList.push(`-exp-patch-url=${value} \\`);
-              break;
-            case 'benchmark':
-              argsList.push(`-benchmark=${value} \\`);
-              break;
-            case 'story':
-            case 'story_filter':
-              argsList.push(`-story=${value} \\`);
-              break;
-            case 'tags':
-            case 'story_tags':
-              argsList.push(`-story-tags=${value} \\`);
-              break;
-            case 'initial_attempt_count':
-              argsList.push(`-attempts=${value} \\`);
-              break;
-            case 'configuration':
-              argsList.push(`-cfg=${value} \\`);
-              break;
-            case 'base_extra_args':
-            case 'experiment_extra_args':
-            case 'test_extra_args':
-            case 'batch_id':
-            case 'project':
-              if (key === 'project' && value === 'chromium') {
-                // The default projet is Chromium.
-                continue;
-              }
-              notesList.push(`${key} argument is not supported at this time!`);
-              break;
-          }
-        }
-        let idx = argsList.length - 1;
-        argsList[idx] = argsList[idx].replace(' \\', '');
-        if (notesList.length > 0) {
-          argsList = argsList.concat('*** Notes:', notesList);
-        }
-        return argsList;
       }
     });
   </script>

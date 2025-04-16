@@ -31,9 +31,8 @@ class PLATFORM_EXPORT FontPerformance {
     return primary_font_in_style_;
   }
   static void AddPrimaryFontTime(base::TimeDelta time) {
-    if (!IsMainThread()) [[unlikely]] {
+    if (UNLIKELY(!IsMainThread()))
       return;
-    }
     if (in_style_)
       primary_font_in_style_ += time;
     else
@@ -43,9 +42,8 @@ class PLATFORM_EXPORT FontPerformance {
   // The aggregated time spent in |FallbackFontForCharacter|.
   static base::TimeDelta SystemFallbackFontTime() { return system_fallback_; }
   static void AddSystemFallbackFontTime(base::TimeDelta time) {
-    if (!IsMainThread()) [[unlikely]] {
+    if (UNLIKELY(!IsMainThread()))
       return;
-    }
     system_fallback_ += time;
   }
 

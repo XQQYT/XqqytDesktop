@@ -26,7 +26,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_WEBAUDIO_MEDIA_STREAM_AUDIO_DESTINATION_NODE_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_WEBAUDIO_MEDIA_STREAM_AUDIO_DESTINATION_NODE_H_
 
-#include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/modules/mediastream/media_stream.h"
 #include "third_party/blink/renderer/modules/webaudio/audio_node.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
@@ -37,14 +36,9 @@ namespace blink {
 class AudioContext;
 class AudioNodeOptions;
 class ExceptionState;
-class MediaStreamAudioDestinationHandler;
 
-// MediaStreamAudioDestinationNode is an AudioNode that represents an endpoint
-// in the Web Audio graph and also functions as an audio stream source for
-// MediaStream ecosystem. (e.g., WebRTC, MediaRecorder)
-class MODULES_EXPORT MediaStreamAudioDestinationNode final : public AudioNode {
+class MediaStreamAudioDestinationNode final : public AudioNode {
   DEFINE_WRAPPERTYPEINFO();
-  USING_PRE_FINALIZER(MediaStreamAudioDestinationNode, Dispose);
 
  public:
   static MediaStreamAudioDestinationNode* Create(AudioContext&,
@@ -60,20 +54,14 @@ class MODULES_EXPORT MediaStreamAudioDestinationNode final : public AudioNode {
   MediaStreamSource* source() const { return source_.Get(); }
 
   void Trace(Visitor*) const final;
-  void Dispose();
 
   // InspectorHelperMixin
   void ReportDidCreate() final;
   void ReportWillBeDestroyed() final;
 
  private:
-  MediaStreamAudioDestinationHandler& GetOwnHandler() const;
-
-  // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/media/capture/README.md#logs
-  void SendLogMessage(const char* const function_name, const String& message);
-
-  Member<MediaStreamSource> source_;
-  Member<MediaStream> stream_;
+  const Member<MediaStreamSource> source_;
+  const Member<MediaStream> stream_;
 };
 
 }  // namespace blink

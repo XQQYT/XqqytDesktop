@@ -22,7 +22,7 @@
 
 namespace blink {
 
-typedef HeapVector<LayoutOpportunity, 1> LayoutOpportunityVector;
+typedef HeapVector<LayoutOpportunity, 8> LayoutOpportunityVector;
 
 // This class is an implementation detail. For use of the exclusion space,
 // see ExclusionSpace below. ExclusionSpace was designed to be cheap
@@ -36,8 +36,6 @@ class CORE_EXPORT ExclusionSpaceInternal final {
   ExclusionSpaceInternal(ExclusionSpaceInternal&&) noexcept;
   ExclusionSpaceInternal& operator=(const ExclusionSpaceInternal&);
   ExclusionSpaceInternal& operator=(ExclusionSpaceInternal&&) noexcept;
-  // See `ExclusionSpace::CopyFrom()`.
-  void CopyFrom(const ExclusionSpaceInternal&);
   ~ExclusionSpaceInternal() = default;
 
   void Add(const ExclusionArea* exclusion);
@@ -97,6 +95,7 @@ class CORE_EXPORT ExclusionSpaceInternal final {
         return std::max(left_clear_offset_, right_clear_offset_);
       default:
         NOTREACHED();
+        return LayoutUnit::Min();
     }
   }
 
@@ -118,6 +117,7 @@ class CORE_EXPORT ExclusionSpaceInternal final {
                         initial_letter_right_clear_offset_);
       default:
         NOTREACHED();
+        return LayoutUnit::Min();
     }
   }
 
@@ -128,14 +128,11 @@ class CORE_EXPORT ExclusionSpaceInternal final {
     return initial_letter_right_clear_offset_;
   }
 
-  LayoutUnit NonHiddenClearanceOffsetIncludingInitialLetter() const {
-    return non_hidden_clear_offset_;
-  }
-
   void SetHasBreakBeforeFloat(EFloat type) {
     switch (type) {
       default:
         NOTREACHED();
+        [[fallthrough]];
       case EFloat::kLeft:
         has_break_before_left_float_ = true;
         break;
@@ -149,6 +146,7 @@ class CORE_EXPORT ExclusionSpaceInternal final {
     switch (type) {
       default:
         NOTREACHED();
+        [[fallthrough]];
       case EFloat::kLeft:
         has_break_inside_left_float_ = true;
         break;
@@ -163,6 +161,7 @@ class CORE_EXPORT ExclusionSpaceInternal final {
     switch (type) {
       default:
         NOTREACHED();
+        [[fallthrough]];
       case EClear::kNone:
         return false;
       case EClear::kLeft:
@@ -435,11 +434,6 @@ class CORE_EXPORT ExclusionSpaceInternal final {
   LayoutUnit initial_letter_left_clear_offset_ = LayoutUnit::Min();
   LayoutUnit initial_letter_right_clear_offset_ = LayoutUnit::Min();
 
-  // The clear offset for both left and right, including both floats and initial
-  // letters, for only content that isn't hidden for paint. Relevant for
-  // line-clamp.
-  LayoutUnit non_hidden_clear_offset_ = LayoutUnit::Min();
-
   // In order to reduce the amount of copies related to bookkeeping shape data,
   // we initially ignore exclusions with shape data. When we first see an
   // exclusion with shape data, we set this flag, and rebuild the
@@ -562,7 +556,6 @@ class CORE_EXPORT ExclusionSpace {
                              : nullptr) {}
   ExclusionSpace(ExclusionSpace&& other) noexcept = default;
 
-  // This moves the cached `derived_geometry_`, see also `CopyFrom()`.
   ExclusionSpace& operator=(const ExclusionSpace& other) {
     exclusion_space_ =
         other.exclusion_space_
@@ -571,10 +564,6 @@ class CORE_EXPORT ExclusionSpace {
     return *this;
   }
   ExclusionSpace& operator=(ExclusionSpace&& other) = default;
-  // Same as `operator=`, except that `operator=` moves the cached
-  // `derived_geometry_` for when the copied instance is more likely to be used,
-  // while `CopyFrom` doesn't.
-  void CopyFrom(const ExclusionSpace&);
 
   void Add(const ExclusionArea* exclusion) {
     if (!exclusion_space_)
@@ -655,13 +644,6 @@ class CORE_EXPORT ExclusionSpace {
     return exclusion_space_->ClearanceOffsetIncludingInitialLetter(clear_type);
   }
 
-  LayoutUnit NonHiddenClearanceOffsetIncludingInitialLetter() const {
-    if (!exclusion_space_) {
-      return LayoutUnit::Min();
-    }
-    return exclusion_space_->NonHiddenClearanceOffsetIncludingInitialLetter();
-  }
-
   LayoutUnit InitialLetterClearanceOffset(EClear clear_type) const {
     if (!exclusion_space_)
       return LayoutUnit::Min();
@@ -720,7 +702,7 @@ class CORE_EXPORT ExclusionSpace {
     exclusion_space_->MoveDerivedGeometry(*other.exclusion_space_);
   }
 
-  // This produces a new exclusion space for a |LayoutResult| which is being
+  // This produces a new exclusion space for a |NGLayoutResult| which is being
   // re-used for caching purposes.
   //
   // It takes:

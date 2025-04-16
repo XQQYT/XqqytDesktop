@@ -42,15 +42,10 @@ namespace blink {
 // are implemented in WebAnimations.
 class SVGColorProperty final : public SVGPropertyBase {
  public:
-  explicit SVGColorProperty(const WTF::String&);
+  explicit SVGColorProperty(const String&);
 
-  void Trace(Visitor* visitor) const override {
-    visitor->Trace(style_color_);
-    SVGPropertyBase::Trace(visitor);
-  }
-
-  SVGPropertyBase* CloneForAnimation(const WTF::String&) const override;
-  WTF::String ValueAsString() const override;
+  SVGPropertyBase* CloneForAnimation(const String&) const override;
+  String ValueAsString() const override;
 
   void Add(const SVGPropertyBase*, const SVGElement*) override;
   void CalculateAnimatedValue(

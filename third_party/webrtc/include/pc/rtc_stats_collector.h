@@ -16,11 +16,10 @@
 #include <cstdint>
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
-#include "api/audio/audio_device.h"
+#include "absl/types/optional.h"
 #include "api/data_channel_interface.h"
 #include "api/media_types.h"
 #include "api/scoped_refptr.h"
@@ -29,6 +28,7 @@
 #include "api/stats/rtcstats_objects.h"
 #include "call/call.h"
 #include "media/base/media_channel.h"
+#include "modules/audio_device/include/audio_device.h"
 #include "pc/data_channel_utils.h"
 #include "pc/peer_connection_internal.h"
 #include "pc/rtp_receiver.h"
@@ -56,12 +56,11 @@ class RtpReceiverInternal;
 // Stats are gathered on the signaling, worker and network threads
 // asynchronously. The callback is invoked on the signaling thread. Resulting
 // reports are cached for `cache_lifetime_` ms.
-class RTCStatsCollector : public RefCountInterface {
+class RTCStatsCollector : public rtc::RefCountInterface {
  public:
   static rtc::scoped_refptr<RTCStatsCollector> Create(
       PeerConnectionInternal* pc,
-      const Environment& env,
-      int64_t cache_lifetime_us = 50 * kNumMicrosecsPerMillisec);
+      int64_t cache_lifetime_us = 50 * rtc::kNumMicrosecsPerMillisec);
 
   // Gets a recent stats report. If there is a report cached that is still fresh
   // it is returned, otherwise new stats are gathered and returned. A report is
@@ -96,9 +95,7 @@ class RTCStatsCollector : public RefCountInterface {
                                      DataChannelInterface::DataState state);
 
  protected:
-  RTCStatsCollector(PeerConnectionInternal* pc,
-                    const Environment& env,
-                    int64_t cache_lifetime_us);
+  RTCStatsCollector(PeerConnectionInternal* pc, int64_t cache_lifetime_us);
   ~RTCStatsCollector();
 
   struct CertificateStatsPair {
@@ -172,11 +169,11 @@ class RTCStatsCollector : public RefCountInterface {
   // then `mid` and `transport_name` will be null.
   struct RtpTransceiverStatsInfo {
     rtc::scoped_refptr<RtpTransceiver> transceiver;
-    webrtc::MediaType media_type;
-    std::optional<std::string> mid;
-    std::optional<std::string> transport_name;
+    cricket::MediaType media_type;
+    absl::optional<std::string> mid;
+    absl::optional<std::string> transport_name;
     TrackMediaInfoMap track_media_info_map;
-    std::optional<RtpTransceiverDirection> current_direction;
+    absl::optional<RtpTransceiverDirection> current_direction;
   };
 
   void DeliverCachedReport(
@@ -243,7 +240,7 @@ class RTCStatsCollector : public RefCountInterface {
   void ProducePartialResultsOnSignalingThread(Timestamp timestamp);
   void ProducePartialResultsOnNetworkThread(
       Timestamp timestamp,
-      std::optional<std::string> sctp_transport_name);
+      absl::optional<std::string> sctp_transport_name);
   // Merges `network_report_` into `partial_report_` and completes the request.
   // This is a NO-OP if `network_report_` is null.
   void MergeNetworkReport_s();
@@ -255,11 +252,9 @@ class RTCStatsCollector : public RefCountInterface {
       rtc::scoped_refptr<RtpReceiverInternal> receiver_selector);
 
   PeerConnectionInternal* const pc_;
-  const Environment env_;
-  const bool stats_timestamp_with_environment_clock_;
-  Thread* const signaling_thread_;
-  Thread* const worker_thread_;
-  Thread* const network_thread_;
+  rtc::Thread* const signaling_thread_;
+  rtc::Thread* const worker_thread_;
+  rtc::Thread* const network_thread_;
 
   int num_pending_partial_reports_;
   int64_t partial_report_timestamp_us_;
@@ -277,7 +272,7 @@ class RTCStatsCollector : public RefCountInterface {
   // This is reset before async-invoking ProducePartialResultsOnNetworkThread()
   // and set when ProducePartialResultsOnNetworkThread() is complete, after it
   // has updated the value of `network_report_`.
-  Event network_report_event_;
+  rtc::Event network_report_event_;
 
   // Cleared and set in `PrepareTransceiverStatsInfosAndCallStats_s_w_n`,
   // starting out on the signaling thread, then network. Later read on the
@@ -298,7 +293,7 @@ class RTCStatsCollector : public RefCountInterface {
 
   Call::Stats call_stats_;
 
-  std::optional<AudioDeviceModule::Stats> audio_device_stats_;
+  absl::optional<AudioDeviceModule::Stats> audio_device_stats_;
 
   // A timestamp, in microseconds, that is based on a timer that is
   // monotonically increasing. That is, even if the system clock is modified the
@@ -322,10 +317,15 @@ class RTCStatsCollector : public RefCountInterface {
     uint32_t data_channels_closed;
     // Identifies channels that have been opened, whose internal id is stored in
     // the set until they have been fully closed.
-    flat_set<int> opened_data_channels;
+    webrtc::flat_set<int> opened_data_channels;
   };
   InternalRecord internal_record_;
 };
+
+const char* CandidateTypeToRTCIceCandidateTypeForTesting(
+    const std::string& type);
+const char* DataStateToRTCDataChannelStateForTesting(
+    DataChannelInterface::DataState state);
 
 }  // namespace webrtc
 

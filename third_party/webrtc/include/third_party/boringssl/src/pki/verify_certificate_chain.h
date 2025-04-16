@@ -1,31 +1,21 @@
 // Copyright 2015 The Chromium Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef BSSL_PKI_VERIFY_CERTIFICATE_CHAIN_H_
 #define BSSL_PKI_VERIFY_CERTIFICATE_CHAIN_H_
 
+#include "fillins/openssl_util.h"
 #include <set>
 
-#include <openssl/base.h>
-#include <openssl/evp.h>
-#include <openssl/pki/signature_verify_cache.h>
 
 #include "cert_errors.h"
-#include "input.h"
 #include "parsed_certificate.h"
+#include "signature_verify_cache.h"
+#include "input.h"
+#include <openssl/evp.h>
 
-BSSL_NAMESPACE_BEGIN
+namespace bssl {
 
 namespace der {
 struct GeneralizedTime;
@@ -40,13 +30,8 @@ enum class KeyPurpose {
   CLIENT_AUTH,
   SERVER_AUTH_STRICT,  // Skip ANY_EKU when checking, require EKU present in
                        // certificate.
-  SERVER_AUTH_STRICT_LEAF,  // Same as above, but only for leaf cert.
   CLIENT_AUTH_STRICT,  // Skip ANY_EKU when checking, require EKU present in
                        // certificate.
-  CLIENT_AUTH_STRICT_LEAF,  // Same as above, but only for leaf cert.
-  RCS_MLS_CLIENT_AUTH,      // Client auth for RCS-MLS.
-  C2PA_TIMESTAMPING,    // Leaf can sign timestamps for C2PA.
-  C2PA_MANIFEST,        // Leaf can sign manifests for C2PA.
 };
 
 enum class InitialExplicitPolicy {
@@ -69,36 +54,26 @@ enum class InitialAnyPolicyInhibit {
 class OPENSSL_EXPORT VerifyCertificateChainDelegate {
  public:
   // Implementations should return true if |signature_algorithm| is allowed for
-  // certificate signing, false otherwise. When false is returned, the caller
-  // will add a high severity error of kUnacceptableSignatureAlgorithm to
-  // |errors|. When returning false, implementations can optionally add warnings
-  // to errors to |errors| with details on why it was rejected.  Implementations
-  // may add any further details on why the signature algorithm was deemed
-  // unacceptable by adding warnings to |errors|.
+  // certificate signing, false otherwise. When returning false implementations
+  // can optionally add high-severity errors to |errors| with details on why it
+  // was rejected.
   virtual bool IsSignatureAlgorithmAcceptable(
-      SignatureAlgorithm signature_algorithm, CertErrors *errors) = 0;
+      SignatureAlgorithm signature_algorithm,
+      CertErrors* errors) = 0;
 
-  // Implementations should return true if |public_key| is acceptable, false
-  // otherwise. This is called for each certificate in the chain, including the
-  // target certificate.  When false is returned, the caller will add a high
-  // severity error of kUnacceptablePublicKey to |errors|. When returning false,
-  // implementations may add any further details on why the public key was
-  // deemed unacceptable by adding warnings to |errors|.  |public_key| can be
-  // assumed to be non-null.
-  virtual bool IsPublicKeyAcceptable(EVP_PKEY *public_key,
-                                     CertErrors *errors) = 0;
+  // Implementations should return true if |public_key| is acceptable. This is
+  // called for each certificate in the chain, including the target certificate.
+  // When returning false implementations can optionally add high-severity
+  // errors to |errors| with details on why it was rejected.
+  //
+  // |public_key| can be assumed to be non-null.
+  virtual bool IsPublicKeyAcceptable(EVP_PKEY* public_key,
+                                     CertErrors* errors) = 0;
 
   // This is called during verification to obtain a pointer to a signature
   // verification cache if one exists. nullptr may be returned indicating there
   // is no verification cache.
-  virtual SignatureVerifyCache *GetVerifyCache() = 0;
-
-  // This is called to determine if PreCertificates should be accepted, for the
-  // purpose of validating issued PreCertificates in a path. Most callers should
-  // return false here. This should never return true for TLS certificate
-  // validation. If this function returns true the CT precertificate poison
-  // extension will not prevent the certificate from being validated.
-  virtual bool AcceptPreCertificates() = 0;
+  virtual SignatureVerifyCache* GetVerifyCache() = 0;
 
   virtual ~VerifyCertificateChainDelegate();
 };
@@ -266,23 +241,26 @@ class OPENSSL_EXPORT VerifyCertificateChainDelegate {
 // The presence of any other unrecognized extension marked as critical fails
 // validation.
 OPENSSL_EXPORT void VerifyCertificateChain(
-    const ParsedCertificateList &certs, const CertificateTrust &last_cert_trust,
-    VerifyCertificateChainDelegate *delegate, const der::GeneralizedTime &time,
+    const ParsedCertificateList& certs,
+    const CertificateTrust& last_cert_trust,
+    VerifyCertificateChainDelegate* delegate,
+    const der::GeneralizedTime& time,
     KeyPurpose required_key_purpose,
     InitialExplicitPolicy initial_explicit_policy,
-    const std::set<der::Input> &user_initial_policy_set,
+    const std::set<der::Input>& user_initial_policy_set,
     InitialPolicyMappingInhibit initial_policy_mapping_inhibit,
     InitialAnyPolicyInhibit initial_any_policy_inhibit,
-    std::set<der::Input> *user_constrained_policy_set, CertPathErrors *errors);
+    std::set<der::Input>* user_constrained_policy_set,
+    CertPathErrors* errors);
 
 // Returns true if `cert` is self-signed. Returns false `cert` is not
 // self-signed or there was an error. If `errors` is non-null, it will contain
 // additional information about the problem. If `cache` is non-null, it will be
 // used to cache the signature verification step.
-OPENSSL_EXPORT bool VerifyCertificateIsSelfSigned(const ParsedCertificate &cert,
-                                                  SignatureVerifyCache *cache,
-                                                  CertErrors *errors);
+OPENSSL_EXPORT bool VerifyCertificateIsSelfSigned(const ParsedCertificate& cert,
+                                              SignatureVerifyCache* cache,
+                                              CertErrors* errors);
 
-BSSL_NAMESPACE_END
+}  // namespace net
 
 #endif  // BSSL_PKI_VERIFY_CERTIFICATE_CHAIN_H_

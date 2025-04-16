@@ -17,6 +17,8 @@ namespace blink {
 class ContainerNode;
 class EventTarget;
 class LocalFrame;
+class ScrollableArea;
+class PaintLayer;
 enum class DispatchEventResult;
 
 namespace event_handling_util {
@@ -31,6 +33,9 @@ WebInputEventResult MergeEventResult(WebInputEventResult result_a,
                                      WebInputEventResult result_b);
 WebInputEventResult ToWebInputEventResult(DispatchEventResult);
 
+PaintLayer* LayerForNode(Node*);
+ScrollableArea* AssociatedScrollableArea(const PaintLayer*);
+
 bool IsInDocument(EventTarget*);
 
 ContainerNode* ParentForClickEvent(const Node&);
@@ -43,6 +48,7 @@ MouseEventWithHitTestResults PerformMouseEventHitTest(LocalFrame*,
                                                       const WebMouseEvent&);
 
 LocalFrame* GetTargetSubframe(const MouseEventWithHitTestResults&,
+                              Node* capturing_node = nullptr,
                               bool* is_remote_frame = nullptr);
 
 LocalFrame* SubframeForTargetNode(Node*, bool* is_remote_frame = nullptr);
@@ -69,6 +75,7 @@ class PointerEventTarget {
   Member<Element> target_element;
   Member<LocalFrame> target_frame;
   Member<Scrollbar> scrollbar;
+  String region;
 };
 
 }  // namespace event_handling_util

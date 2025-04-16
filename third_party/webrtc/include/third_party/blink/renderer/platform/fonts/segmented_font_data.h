@@ -28,31 +28,29 @@
 
 #include "third_party/blink/renderer/platform/fonts/font_data.h"
 #include "third_party/blink/renderer/platform/fonts/font_data_for_range_set.h"
-#include "third_party/blink/renderer/platform/heap/collection_support/heap_vector.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 
-namespace blink {
-
 class SimpleFontData;
+
+namespace blink {
 
 class PLATFORM_EXPORT SegmentedFontData : public FontData {
  public:
-  SegmentedFontData() = default;
-
-  void Trace(Visitor* visitor) const override {
-    visitor->Trace(faces_);
-    FontData::Trace(visitor);
+  static scoped_refptr<SegmentedFontData> Create() {
+    return base::AdoptRef(new SegmentedFontData);
   }
 
-  void AppendFace(FontDataForRangeSet* font_data_for_range_set) {
+  void AppendFace(scoped_refptr<FontDataForRangeSet> font_data_for_range_set) {
     faces_.push_back(std::move(font_data_for_range_set));
   }
   unsigned NumFaces() const { return faces_.size(); }
-  FontDataForRangeSet* FaceAt(unsigned i) const { return faces_[i].Get(); }
+  scoped_refptr<FontDataForRangeSet> FaceAt(unsigned i) const { return faces_[i]; }
   bool ContainsCharacter(UChar32) const;
 
  private:
+  SegmentedFontData() = default;
+
   const SimpleFontData* FontDataForCharacter(UChar32) const override;
 
   bool IsCustomFont() const override;
@@ -61,7 +59,7 @@ class PLATFORM_EXPORT SegmentedFontData : public FontData {
   bool IsSegmented() const override;
   bool ShouldSkipDrawing() const override;
 
-  HeapVector<Member<FontDataForRangeSet>, 1> faces_;
+  Vector<scoped_refptr<FontDataForRangeSet>, 1> faces_;
 };
 
 template <>

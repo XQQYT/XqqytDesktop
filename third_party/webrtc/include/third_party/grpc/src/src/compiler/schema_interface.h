@@ -81,7 +81,6 @@ struct Service : public CommentHolder {
   virtual ~Service() {}
 
   virtual std::string name() const = 0;
-  virtual bool is_deprecated() const = 0;
 
   virtual int method_count() const = 0;
   virtual std::unique_ptr<const Method> method(int i) const = 0;

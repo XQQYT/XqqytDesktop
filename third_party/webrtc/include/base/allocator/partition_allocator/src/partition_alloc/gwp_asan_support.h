@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_GWP_ASAN_SUPPORT_H_
-#define PARTITION_ALLOC_GWP_ASAN_SUPPORT_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_GWP_ASAN_SUPPORT_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_GWP_ASAN_SUPPORT_H_
 
-#include "partition_alloc/buildflags.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_buildflags.h"
 
-#if PA_BUILDFLAG(ENABLE_GWP_ASAN_SUPPORT)
+#if BUILDFLAG(ENABLE_GWP_ASAN_SUPPORT)
 
 #include <cstddef>
 #include <cstdint>
@@ -111,11 +111,10 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC) GwpAsanSupport {
  public:
   static void* MapRegion(size_t slot_count, std::vector<uint16_t>& free_list);
   static bool CanReuse(uintptr_t slot_start);
-  static void DestructForTesting();
 };
 
 }  // namespace partition_alloc
 
-#endif  // PA_BUILDFLAG(ENABLE_GWP_ASAN_SUPPORT)
+#endif  // BUILDFLAG(ENABLE_GWP_ASAN_SUPPORT)
 
-#endif  // PARTITION_ALLOC_GWP_ASAN_SUPPORT_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_GWP_ASAN_SUPPORT_H_

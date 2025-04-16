@@ -5,7 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_CSS_PROPERTIES_CSS_DIRECTION_AWARE_RESOLVER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_PROPERTIES_CSS_DIRECTION_AWARE_RESOLVER_H_
 
-#include "third_party/blink/renderer/platform/text/writing_direction_mode.h"
+#include "third_party/blink/renderer/platform/text/text_direction.h"
+#include "third_party/blink/renderer/platform/text/writing_mode.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 
 namespace blink {
@@ -27,7 +28,7 @@ class CSSDirectionAwareResolver {
     bool Contains(CSSPropertyID) const;
 
    private:
-    const CSSProperty* const* properties_;
+    const CSSProperty** properties_;
   };
 
  public:
@@ -58,7 +59,6 @@ class CSSDirectionAwareResolver {
   static LogicalMapping<4> LogicalBorderRadiusMapping();
   static LogicalMapping<4> LogicalBorderStyleMapping();
   static LogicalMapping<4> LogicalBorderWidthMapping();
-  static LogicalMapping<4> LogicalCornerShapeMapping();
   static LogicalMapping<4> LogicalInsetMapping();
   static LogicalMapping<4> LogicalMarginMapping();
   static LogicalMapping<2> LogicalMaxSizeMapping();
@@ -69,6 +69,7 @@ class CSSDirectionAwareResolver {
   static LogicalMapping<4> LogicalScrollMarginMapping();
   static LogicalMapping<4> LogicalScrollPaddingMapping();
   static LogicalMapping<2> LogicalScrollStartMapping();
+  static LogicalMapping<2> LogicalScrollStartTargetMapping();
   static LogicalMapping<2> LogicalSizeMapping();
   static LogicalMapping<4> LogicalVisitedBorderColorMapping();
 
@@ -78,7 +79,6 @@ class CSSDirectionAwareResolver {
   static PhysicalMapping<4> PhysicalBorderStyleMapping();
   static PhysicalMapping<4> PhysicalBorderWidthMapping();
   static PhysicalMapping<2> PhysicalContainIntrinsicSizeMapping();
-  static PhysicalMapping<4> PhysicalCornerShapeMapping();
   static PhysicalMapping<4> PhysicalInsetMapping();
   static PhysicalMapping<4> PhysicalMarginMapping();
   static PhysicalMapping<2> PhysicalMaxSizeMapping();
@@ -89,65 +89,89 @@ class CSSDirectionAwareResolver {
   static PhysicalMapping<4> PhysicalScrollMarginMapping();
   static PhysicalMapping<4> PhysicalScrollPaddingMapping();
   static PhysicalMapping<2> PhysicalScrollStartMapping();
+  static PhysicalMapping<2> PhysicalScrollStartTargetMapping();
   static PhysicalMapping<2> PhysicalSizeMapping();
   static PhysicalMapping<4> PhysicalVisitedBorderColorMapping();
 
   // These resolvers expect a PhysicalMapping with box sides, in the following
   // order: top, right, bottom, left.
-  static const CSSProperty& ResolveInlineStart(WritingDirectionMode,
+  static const CSSProperty& ResolveInlineStart(TextDirection,
+                                               WritingMode,
                                                const PhysicalMapping<4>&);
-  static const CSSProperty& ResolveInlineEnd(WritingDirectionMode,
+  static const CSSProperty& ResolveInlineEnd(TextDirection,
+                                             WritingMode,
                                              const PhysicalMapping<4>&);
-  static const CSSProperty& ResolveBlockStart(WritingDirectionMode,
+  static const CSSProperty& ResolveBlockStart(TextDirection,
+                                              WritingMode,
                                               const PhysicalMapping<4>&);
-  static const CSSProperty& ResolveBlockEnd(WritingDirectionMode,
+  static const CSSProperty& ResolveBlockEnd(TextDirection,
+                                            WritingMode,
                                             const PhysicalMapping<4>&);
 
   // These resolvers expect a LogicalMapping with box sides, in the following
   // order: block-start, block-end, inline-start, inline-end.
-  static const CSSProperty& ResolveTop(WritingDirectionMode,
+  // TODO(layout-dev): Implement them, if needed.
+  static const CSSProperty& ResolveTop(TextDirection,
+                                       WritingMode,
                                        const LogicalMapping<4>&);
-  static const CSSProperty& ResolveBottom(WritingDirectionMode,
+  static const CSSProperty& ResolveBottom(TextDirection,
+                                          WritingMode,
                                           const LogicalMapping<4>&);
-  static const CSSProperty& ResolveLeft(WritingDirectionMode,
+  static const CSSProperty& ResolveLeft(TextDirection,
+                                        WritingMode,
                                         const LogicalMapping<4>&);
-  static const CSSProperty& ResolveRight(WritingDirectionMode,
+  static const CSSProperty& ResolveRight(TextDirection,
+                                         WritingMode,
                                          const LogicalMapping<4>&);
 
   // These resolvers expect a PhysicalMapping with dimensions, in the following
   // order: horizontal, vertical.
-  static const CSSProperty& ResolveInline(WritingDirectionMode,
+  static const CSSProperty& ResolveInline(TextDirection,
+                                          WritingMode,
                                           const PhysicalMapping<2>&);
-  static const CSSProperty& ResolveBlock(WritingDirectionMode,
+  static const CSSProperty& ResolveBlock(TextDirection,
+                                         WritingMode,
                                          const PhysicalMapping<2>&);
 
   // These resolvers expect a LogicalMapping with dimensions, in the following
   // order: block, inline.
-  static const CSSProperty& ResolveHorizontal(WritingDirectionMode,
+  // TODO(layout-dev): Implement them, if needed.
+  static const CSSProperty& ResolveHorizontal(TextDirection,
+                                              WritingMode,
                                               const LogicalMapping<2>&);
-  static const CSSProperty& ResolveVertical(WritingDirectionMode,
+  static const CSSProperty& ResolveVertical(TextDirection,
+                                            WritingMode,
                                             const LogicalMapping<2>&);
 
   // These resolvers expect a a PhysicalMapping with box corners, in the
   // following order: top-left, top-right, bottom-right, bottom-left.
-  static const CSSProperty& ResolveStartStart(WritingDirectionMode,
+  static const CSSProperty& ResolveStartStart(TextDirection,
+                                              WritingMode,
                                               const PhysicalMapping<4>&);
-  static const CSSProperty& ResolveStartEnd(WritingDirectionMode,
+  static const CSSProperty& ResolveStartEnd(TextDirection,
+                                            WritingMode,
                                             const PhysicalMapping<4>&);
-  static const CSSProperty& ResolveEndStart(WritingDirectionMode,
+  static const CSSProperty& ResolveEndStart(TextDirection,
+                                            WritingMode,
                                             const PhysicalMapping<4>&);
-  static const CSSProperty& ResolveEndEnd(WritingDirectionMode,
+  static const CSSProperty& ResolveEndEnd(TextDirection,
+                                          WritingMode,
                                           const PhysicalMapping<4>&);
 
   // These resolvers expect a a LogicalMapping with box corners, in the
   // following order: start-start, start-end, end-start, end-end.
-  static const CSSProperty& ResolveTopLeft(WritingDirectionMode,
+  // TODO(layout-dev): Implement them, if needed.
+  static const CSSProperty& ResolveTopLeft(TextDirection,
+                                           WritingMode,
                                            const LogicalMapping<4>&);
-  static const CSSProperty& ResolveTopRight(WritingDirectionMode,
+  static const CSSProperty& ResolveTopRight(TextDirection,
+                                            WritingMode,
                                             const LogicalMapping<4>&);
-  static const CSSProperty& ResolveBottomRight(WritingDirectionMode,
+  static const CSSProperty& ResolveBottomRight(TextDirection,
+                                               WritingMode,
                                                const LogicalMapping<4>&);
-  static const CSSProperty& ResolveBottomLeft(WritingDirectionMode,
+  static const CSSProperty& ResolveBottomLeft(TextDirection,
+                                              WritingMode,
                                               const LogicalMapping<4>&);
 };
 

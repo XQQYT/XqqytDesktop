@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_SCOPED_CLEAR_LAST_ERROR_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_SCOPED_CLEAR_LAST_ERROR_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_SCOPED_CLEAR_LAST_ERROR_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_SCOPED_CLEAR_LAST_ERROR_H_
 
-#include <cerrno>
+#include <errno.h>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "build/build_config.h"
 
 namespace partition_alloc::internal::base {
 
@@ -19,7 +19,7 @@ namespace partition_alloc::internal::base {
 
 // Common implementation of ScopedClearLastError for all platforms. Use
 // ScopedClearLastError instead.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ScopedClearLastErrorBase {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) ScopedClearLastErrorBase {
  public:
   ScopedClearLastErrorBase() : last_errno_(errno) { errno = 0; }
   ScopedClearLastErrorBase(const ScopedClearLastErrorBase&) = delete;
@@ -30,10 +30,10 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ScopedClearLastErrorBase {
   const int last_errno_;
 };
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 
 // Windows specific implementation of ScopedClearLastError.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ScopedClearLastError
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) ScopedClearLastError
     : public ScopedClearLastErrorBase {
  public:
   ScopedClearLastError();
@@ -45,12 +45,12 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ScopedClearLastError
   const unsigned long last_system_error_;
 };
 
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
 
 using ScopedClearLastError = ScopedClearLastErrorBase;
 
-#endif  // PA_BUILDFLAG(IS_WIN)
+#endif  // BUILDFLAG(IS_WIN)
 
 }  // namespace partition_alloc::internal::base
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_SCOPED_CLEAR_LAST_ERROR_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_SCOPED_CLEAR_LAST_ERROR_H_

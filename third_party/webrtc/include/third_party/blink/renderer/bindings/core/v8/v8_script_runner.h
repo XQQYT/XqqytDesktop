@@ -26,8 +26,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_BINDINGS_CORE_V8_V8_SCRIPT_RUNNER_H_
 #define THIRD_PARTY_BLINK_RENDERER_BINDINGS_CORE_V8_V8_SCRIPT_RUNNER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/bindings/core/v8/sanitize_script_errors.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
@@ -75,7 +74,7 @@ class CORE_EXPORT V8ScriptRunner final {
 
     // Rethrow errors flag is false.
     static RethrowErrorsOption DoNotRethrow() {
-      return RethrowErrorsOption(std::nullopt);
+      return RethrowErrorsOption(absl::nullopt);
     }
 
     // Rethrow errors flag is true.
@@ -100,11 +99,11 @@ class CORE_EXPORT V8ScriptRunner final {
     String Message() const { return *message_; }
 
    private:
-    explicit RethrowErrorsOption(std::optional<String> message)
+    explicit RethrowErrorsOption(absl::optional<String> message)
         : message_(std::move(message)) {}
 
     // `nullopt` <=> rethrow errors is false.
-    std::optional<String> message_;
+    absl::optional<String> message_;
   };
 
   // For the following methods, the caller sites have to hold
@@ -114,8 +113,7 @@ class CORE_EXPORT V8ScriptRunner final {
       const ClassicScript&,
       v8::ScriptOrigin,
       v8::ScriptCompiler::CompileOptions,
-      v8::ScriptCompiler::NoCacheReason,
-      bool can_use_crowdsourced_compile_hints = false);
+      v8::ScriptCompiler::NoCacheReason);
   static v8::MaybeLocal<v8::Module> CompileModule(
       v8::Isolate*,
       const ModuleScriptCreationParams&,

@@ -17,26 +17,19 @@
 #ifndef SRC_TRACE_PROCESSOR_UTIL_GZIP_UTILS_H_
 #define SRC_TRACE_PROCESSOR_UTIL_GZIP_UTILS_H_
 
-#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <vector>
 
-#include "perfetto/base/build_config.h"
-
 struct z_stream_s;
 
-namespace perfetto::trace_processor::util {
+namespace perfetto {
+namespace trace_processor {
+namespace util {
 
 // Returns whether gzip related functioanlity is supported with the current
 // build flags.
-constexpr bool IsGzipSupported() {
-#if PERFETTO_BUILDFLAG(PERFETTO_ZLIB)
-  return true;
-#else
-  return false;
-#endif
-}
+bool IsGzipSupported();
 
 // Usage: To decompress in a streaming way, there are two ways of using it:
 // 1. [Commonly used] - Feed the sequence of mem-blocks in 'FeedAndExtract' one
@@ -86,6 +79,9 @@ class GzipDecompressor {
   };
 
   explicit GzipDecompressor(InputMode = InputMode::kGzip);
+  ~GzipDecompressor();
+  GzipDecompressor(const GzipDecompressor&) = delete;
+  GzipDecompressor& operator=(const GzipDecompressor&) = delete;
 
   // Feed the next mem-block.
   void Feed(const uint8_t* data, size_t size);
@@ -93,8 +89,6 @@ class GzipDecompressor {
   // Feed the next mem-block and extract output in the callback consumer.
   // callback can get invoked multiple times if there are multiple
   // mem-blocks to output.
-  //
-  // Note the output of this function is guaranteed *not* to be kOk.
   template <typename Callback = void(const uint8_t* ptr, size_t size)>
   ResultCode FeedAndExtract(const uint8_t* data,
                             size_t size,
@@ -126,16 +120,12 @@ class GzipDecompressor {
   // which doesn't require streaming decompression.
   static std::vector<uint8_t> DecompressFully(const uint8_t* data, size_t len);
 
-  // Returns the amount of input bytes left unprocessed.
-  size_t AvailIn() const;
-
  private:
-  struct Deleter {
-    void operator()(z_stream_s*) const;
-  };
-  std::unique_ptr<z_stream_s, Deleter> z_stream_;
+  std::unique_ptr<z_stream_s> z_stream_;
 };
 
-}  // namespace perfetto::trace_processor::util
+}  // namespace util
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_UTIL_GZIP_UTILS_H_

@@ -40,7 +40,6 @@
 
 namespace blink {
 
-class AnchorEvaluator;
 class ComputedStyle;
 class FontDescription;
 class PseudoElement;
@@ -50,6 +49,8 @@ class PseudoElement;
 // access to other element-related information.
 class CORE_EXPORT StyleResolverState {
   STACK_ALLOCATED();
+
+  enum class ElementType { kElement, kPseudoElement };
 
  public:
   StyleResolverState(Document&,
@@ -61,7 +62,7 @@ class CORE_EXPORT StyleResolverState {
   ~StyleResolverState();
 
   bool IsForPseudoElement() const {
-    return pseudo_id_ != kPseudoIdNone || element_context_.GetPseudoElement();
+    return element_type_ == ElementType::kPseudoElement;
   }
   bool IsInheritedForUnset(const CSSProperty& property) const;
 
@@ -77,9 +78,6 @@ class CORE_EXPORT StyleResolverState {
   Element* GetStyledElement() const { return styled_element_; }
   // These are all just pass-through methods to ElementResolveContext.
   Element& GetElement() const { return element_context_.GetElement(); }
-  Element& GetUltimateOriginatingElementOrSelf() const {
-    return element_context_.GetUltimateOriginatingElementOrSelf();
-  }
   const Element* ParentElement() const {
     return element_context_.ParentElement();
   }
@@ -102,10 +100,6 @@ class CORE_EXPORT StyleResolverState {
     style_builder_.emplace(style);
     UpdateLengthConversionData();
   }
-
-  // Initialize the style builder. source_for_noninherited holds initial values
-  // to use for non-inherited properties. inherit_parent is simply the style to
-  // inherit from (either implicitly or explicitly).
   void CreateNewStyle(
       const ComputedStyle& source_for_noninherited,
       const ComputedStyle& inherit_parent,
@@ -152,7 +146,6 @@ class CORE_EXPORT StyleResolverState {
   PseudoElement* GetPseudoElement() const;
 
   void SetParentStyle(const ComputedStyle*);
-  void EnsureParentStyle();
   const ComputedStyle* ParentStyle() const { return parent_style_; }
 
   void SetLayoutParentStyle(const ComputedStyle*);
@@ -175,7 +168,6 @@ class CORE_EXPORT StyleResolverState {
   StyleImage* GetStyleImage(CSSPropertyID property_id, const CSSValue& value) {
     return element_style_resources_.GetStyleImage(property_id, value);
   }
-  SVGResource* GetSVGResource(CSSPropertyID, const cssvalue::CSSURIValue&);
 
   FontBuilder& GetFontBuilder() { return font_builder_; }
   const FontBuilder& GetFontBuilder() const { return font_builder_; }
@@ -189,10 +181,7 @@ class CORE_EXPORT StyleResolverState {
   void SetZoom(float);
   void SetEffectiveZoom(float);
   void SetWritingMode(WritingMode);
-  void SetTextSizeAdjust(TextSizeAdjust);
   void SetTextOrientation(ETextOrientation);
-  void SetPositionAnchor(ScopedCSSName*);
-  void SetPositionAreaOffsets(const std::optional<PositionAreaOffsets>&);
 
   CSSParserMode GetParserMode() const;
 
@@ -208,10 +197,7 @@ class CORE_EXPORT StyleResolverState {
   bool UsesHighlightPseudoInheritance() const {
     return uses_highlight_pseudo_inheritance_;
   }
-  // See StyleRecalcContext::is_outside_flat_tree.
-  bool IsOutsideFlatTree() const {
-    return style_recalc_context_ && style_recalc_context_->is_outside_flat_tree;
-  }
+  bool IsOutsideFlatTree() const { return is_outside_flat_tree_; }
 
   bool CanTriggerAnimations() const { return can_trigger_animations_; }
 
@@ -251,9 +237,16 @@ class CORE_EXPORT StyleResolverState {
 
   void UpdateLengthConversionData();
 
+  void SetIsResolvingPositionFallbackStyle() {
+    is_resolving_position_fallback_style_ = true;
+  }
+  bool IsResolvingPositionFallbackStyle() const {
+    return is_resolving_position_fallback_style_;
+  }
+
   float TextAutosizingMultiplier() const {
     const ComputedStyle* old_style = GetElement().GetComputedStyle();
-    if (!IsForPseudoElement() && old_style) {
+    if (element_type_ != ElementType::kPseudoElement && old_style) {
       return old_style->TextAutosizingMultiplier();
     } else {
       return 1.0f;
@@ -263,35 +256,14 @@ class CORE_EXPORT StyleResolverState {
   void SetHasTreeScopedReference() { has_tree_scoped_reference_ = true; }
   bool HasTreeScopedReference() const { return has_tree_scoped_reference_; }
 
-  void SetHasUnsupportedGuaranteedInvalid() {
-    has_unsupported_guaranteed_invalid_ = true;
-  }
-  bool HasUnsupportedGuaranteedInvalid() const {
-    return has_unsupported_guaranteed_invalid_;
-  }
-
-  // The element to start the search from, when looking for a CQ size container.
-  Element* NearestSizeContainer() const {
-    return style_recalc_context_ ? style_recalc_context_->container : nullptr;
-  }
-
-  // See StyleRequest.pseudo_id.
-  PseudoId GetPseudoId() const { return pseudo_id_; }
-
  private:
   CSSToLengthConversionData UnzoomedLengthConversionData(const FontSizeStyle&);
-  // When resolving cq* units, this element is used to start the search
-  // for suitable size containers.
-  Element* ContainerUnitContext() const;
-  // See StyleRecalcContext::GetAnchorEvaluator().
-  AnchorEvaluator* GetAnchorEvaluator() const;
 
   ElementResolveContext element_context_;
-  const StyleRecalcContext* style_recalc_context_ = nullptr;
   Document* document_;
 
   // The primary output for each element's style resolve.
-  std::optional<ComputedStyleBuilder> style_builder_;
+  absl::optional<ComputedStyleBuilder> style_builder_;
 
   CSSToLengthConversionData::Flags length_conversion_flags_ = 0;
   CSSToLengthConversionData css_to_length_conversion_data_;
@@ -319,8 +291,8 @@ class CORE_EXPORT StyleResolverState {
   Element* styled_element_;
 
   ElementStyleResources element_style_resources_;
-  // See StyleRequest.pseudo_id.
-  PseudoId pseudo_id_ = kPseudoIdNone;
+  ElementType element_type_;
+  Element* container_unit_context_;
 
   // Whether this element is inside a link or not. Note that this is different
   // from ElementLinkState() if the element is not a link itself but is inside
@@ -329,8 +301,8 @@ class CORE_EXPORT StyleResolverState {
   // a ComputedStyle until pretty late in the process, keep it here until
   // we have one.
   //
-  // This is computed only once, lazily (thus the std::optional).
-  mutable std::optional<EInsideLink> inside_link_;
+  // This is computed only once, lazily (thus the absl::optional).
+  mutable absl::optional<EInsideLink> inside_link_;
 
   const ComputedStyle* originating_element_style_;
   // True if we are resolving styles for a highlight pseudo-element.
@@ -338,6 +310,9 @@ class CORE_EXPORT StyleResolverState {
   // True if this is a highlight style request, and highlight inheritance
   // should be used for this highlight pseudo.
   const bool uses_highlight_pseudo_inheritance_;
+  // See StyleRecalcContext::is_outside_flat_tree. Set to false if there is no
+  // StyleRecalcContext.
+  const bool is_outside_flat_tree_;
 
   // True if this style resolution can start or stop animations and transitions.
   // One case where animations and transitions can not be triggered is when we
@@ -363,12 +338,12 @@ class CORE_EXPORT StyleResolverState {
   // flag.
   bool rejected_legacy_overlapping_ = false;
 
+  // True if we are currently resolving a position fallback style by applying
+  // rules in a `@try` block.
+  bool is_resolving_position_fallback_style_ = false;
+
   // True if the resolved ComputedStyle depends on tree-scoped references.
   bool has_tree_scoped_reference_ = false;
-
-  // Tried to apply a guaranteed-invalid value to a custom property that doesn't
-  // support it.
-  bool has_unsupported_guaranteed_invalid_ = false;
 };
 
 }  // namespace blink

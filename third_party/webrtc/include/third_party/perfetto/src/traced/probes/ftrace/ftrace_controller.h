@@ -26,10 +26,11 @@
 #include <string>
 
 #include "perfetto/base/task_runner.h"
+#include "perfetto/ext/base/paged_memory.h"
+#include "perfetto/ext/base/utils.h"
 #include "perfetto/ext/base/weak_ptr.h"
 #include "perfetto/ext/tracing/core/basic_types.h"
 #include "src/kallsyms/lazy_kernel_symbolizer.h"
-#include "src/traced/probes/ftrace/atrace_wrapper.h"
 #include "src/traced/probes/ftrace/cpu_reader.h"
 #include "src/traced/probes/ftrace/ftrace_config_utils.h"
 
@@ -92,20 +93,23 @@ class FtraceController {
       const std::string& tracefs_root,
       const std::string& raw_cfg_name);
 
-  // public for testing
-  static bool PollSupportedOnKernelVersion(const char* uts_release);
-
  protected:
   // Everything protected/virtual for testing:
 
   FtraceController(std::unique_ptr<FtraceProcfs>,
                    std::unique_ptr<ProtoTranslationTable>,
-                   std::unique_ptr<AtraceWrapper>,
                    std::unique_ptr<FtraceConfigMuxer>,
                    base::TaskRunner*,
                    Observer*);
 
   struct FtraceInstanceState {
+    struct PerCpuState {
+      PerCpuState(std::unique_ptr<CpuReader> _reader, size_t _period_page_quota)
+          : reader(std::move(_reader)), period_page_quota(_period_page_quota) {}
+      std::unique_ptr<CpuReader> reader;
+      size_t period_page_quota = 0;
+    };
+
     FtraceInstanceState(std::unique_ptr<FtraceProcfs>,
                         std::unique_ptr<ProtoTranslationTable>,
                         std::unique_ptr<FtraceConfigMuxer>);
@@ -113,66 +117,48 @@ class FtraceController {
     std::unique_ptr<FtraceProcfs> ftrace_procfs;
     std::unique_ptr<ProtoTranslationTable> table;
     std::unique_ptr<FtraceConfigMuxer> ftrace_config_muxer;
-    std::vector<CpuReader> cpu_readers;  // empty if no started data sources
+    std::vector<PerCpuState> per_cpu;  // empty if no started data sources
     std::set<FtraceDataSource*> started_data_sources;
-    bool buffer_watches_posted = false;
   };
 
   FtraceInstanceState* GetInstance(const std::string& instance_name);
+
+  virtual uint64_t NowMs() const;
+
   // TODO(rsavitski): figure out a better testing shim.
   virtual std::unique_ptr<FtraceInstanceState> CreateSecondaryInstance(
       const std::string& instance_name);
 
-  virtual uint64_t NowMs() const;
-
-  AtraceWrapper* atrace_wrapper() const { return atrace_wrapper_.get(); }
-
  private:
   friend class TestFtraceController;
-  enum class PollSupport { kUntested, kSupported, kUnsupported };
 
   FtraceController(const FtraceController&) = delete;
   FtraceController& operator=(const FtraceController&) = delete;
 
-  // Periodic task that reads all per-cpu ftrace buffers. Global across tracefs
-  // instances.
+  // Periodic task that reads all per-cpu ftrace buffers.
   void ReadTick(int generation);
-  bool ReadPassForInstance(FtraceInstanceState* instance);
-  uint32_t GetTickPeriodMs();
-  // Optional: additional reads based on buffer capacity. Per tracefs instance.
-  void UpdateBufferWatermarkWatches(FtraceInstanceState* instance,
-                                    const std::string& instance_name);
-  void OnBufferPastWatermark(std::string instance_name,
-                             size_t cpu,
-                             bool repoll_watermark);
-  void RemoveBufferWatermarkWatches(FtraceInstanceState* instance);
-  PollSupport VerifyKernelSupportForBufferWatermark();
+  bool ReadTickForInstance(FtraceInstanceState* instance);
+  uint32_t GetDrainPeriodMs();
 
   void FlushForInstance(FtraceInstanceState* instance);
 
-  void StartIfNeeded(FtraceInstanceState* instance,
-                     const std::string& instance_name);
+  void StartIfNeeded(FtraceInstanceState* instance);
   void StopIfNeeded(FtraceInstanceState* instance);
 
   FtraceInstanceState* GetOrCreateInstance(const std::string& instance_name);
   void DestroyIfUnusedSeconaryInstance(FtraceInstanceState* instance);
 
-  size_t GetStartedDataSourcesCount();
+  size_t GetStartedDataSourcesCount() const;
   void MaybeSnapshotFtraceClock();  // valid only for primary_ tracefs instance
-
-  template <typename F /* void(FtraceInstanceState*) */>
-  void ForEachInstance(F fn);
 
   base::TaskRunner* const task_runner_;
   Observer* const observer_;
   CpuReader::ParsingBuffers parsing_mem_;
   LazyKernelSymbolizer symbolizer_;
   FtraceConfigId next_cfg_id_ = 1;
-  int tick_generation_ = 0;
+  int generation_ = 0;
   bool retain_ksyms_on_stop_ = false;
-  PollSupport buffer_watermark_support_ = PollSupport::kUntested;
   std::set<FtraceDataSource*> data_sources_;
-  std::unique_ptr<AtraceWrapper> atrace_wrapper_;
   // Default tracefs instance (normally /sys/kernel/tracing) is valid for as
   // long as the controller is valid.
   // Secondary instances (i.e. /sys/kernel/tracing/instances/...) are created
@@ -188,8 +174,6 @@ class FtraceController {
 
   base::WeakPtrFactory<FtraceController> weak_factory_;  // Keep last.
 };
-
-bool DumpKprobeStats(const std::string& text, FtraceStats* ftrace_stats);
 
 }  // namespace perfetto
 

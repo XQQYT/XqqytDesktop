@@ -32,21 +32,19 @@
     if (window.testRunner)
       testRunner.waitUntilDone();
 
-    function runTest() {
+    requestAnimationFrame(function() {
       requestAnimationFrame(function() {
-        requestAnimationFrame(function() {
-          document.getElementById('target1').classList.add('visible');
-          document.getElementById('target2').classList.add('visible');
-          setTimeout(function() {
-            if (window.testRunner)
-              testRunner.notifyDone();
-          });
+        document.getElementById('target1').classList.add('visible');
+        document.getElementById('target2').classList.add('visible');
+        setTimeout(function() {
+          if (window.testRunner)
+            testRunner.notifyDone();
         });
       });
-    }
+    });
   </script>
 </head>
-<body onload="runTest()">
+<body>
   <!-- This test checks that squashed Layers are painted even if not all
        of the Layers squahed into a given GraphicsLayer are visible. -->
   <div class="set">

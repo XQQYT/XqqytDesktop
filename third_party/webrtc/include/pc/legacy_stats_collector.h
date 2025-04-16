@@ -20,13 +20,12 @@
 #include <cstdint>
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
-#include "api/candidate.h"
+#include "absl/types/optional.h"
 #include "api/field_trials_view.h"
 #include "api/legacy_stats_types.h"
 #include "api/media_stream_interface.h"
@@ -46,12 +45,12 @@ namespace webrtc {
 
 // Conversion function to convert candidate type string to the corresponding one
 // from  enum RTCStatsIceCandidateType.
-const char* IceCandidateTypeToStatsType(const Candidate& candidate);
+const char* IceCandidateTypeToStatsType(const std::string& candidate_type);
 
 // Conversion function to convert adapter type to report string which are more
 // fitting to the general style of http://w3c.github.io/webrtc-stats. This is
 // only used by stats collector.
-const char* AdapterTypeToStatsType(AdapterType type);
+const char* AdapterTypeToStatsType(rtc::AdapterType type);
 
 // A mapping between track ids and their StatsReport.
 typedef std::map<std::string, StatsReport*> TrackIdMap;
@@ -178,9 +177,9 @@ class LegacyStatsCollector : public LegacyStatsCollectorInterface {
   void ExtractMediaInfo(
       const std::map<std::string, std::string>& transport_names_by_mid);
   void ExtractSenderInfo();
-  StatsReport* GetReport(const StatsReport::StatsType& type,
-                         const std::string& id,
-                         StatsReport::Direction direction);
+  webrtc::StatsReport* GetReport(const StatsReport::StatsType& type,
+                                 const std::string& id,
+                                 StatsReport::Direction direction);
 
   // Helper method to get stats from the local audio tracks.
   void UpdateStatsFromExistingLocalAudioTracks(bool has_remote_tracks);
@@ -194,8 +193,8 @@ class LegacyStatsCollector : public LegacyStatsCollectorInterface {
   SessionStats ExtractSessionInfo_n(
       const std::vector<rtc::scoped_refptr<
           RtpTransceiverProxyWithInternal<RtpTransceiver>>>& transceivers,
-      std::optional<std::string> sctp_transport_name,
-      std::optional<std::string> sctp_mid);
+      absl::optional<std::string> sctp_transport_name,
+      absl::optional<std::string> sctp_mid);
   void ExtractSessionInfo_s(SessionStats& session_stats);
 
   // A collection for all of our stats reports.

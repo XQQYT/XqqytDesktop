@@ -52,8 +52,6 @@ class CORE_EXPORT StyleSheetList final : public ScriptWrappable {
 
   CSSStyleSheet* AnonymousNamedGetter(const AtomicString&);
 
-  bool NamedPropertyQuery(const AtomicString&, ExceptionState&);
-
   void Trace(Visitor*) const override;
 
  private:

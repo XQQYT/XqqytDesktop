@@ -1,21 +1,21 @@
-// Copyright 2014 The BoringSSL Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/* Copyright (c) 2014, Google Inc.
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #ifndef OPENSSL_HEADER_RAND_H
 #define OPENSSL_HEADER_RAND_H
 
-#include <openssl/base.h>   // IWYU pragma: export
+#include <openssl/base.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -33,33 +33,24 @@ OPENSSL_EXPORT int RAND_bytes(uint8_t *buf, size_t len);
 // Obscure functions.
 
 #if !defined(OPENSSL_WINDOWS)
-// RAND_enable_fork_unsafe_buffering indicates that clones of the address space,
-// e.g. via |fork|, will never call into BoringSSL. It may be used to disable
-// BoringSSL's more expensive fork-safety measures. However, calling this
-// function and then using BoringSSL across |fork| calls will leak secret keys.
-// |fd| must be -1.
+// RAND_enable_fork_unsafe_buffering enables efficient buffered reading of
+// /dev/urandom. It adds an overhead of a few KB of memory per thread. It must
+// be called before the first call to |RAND_bytes|.
 //
-// WARNING: This function affects BoringSSL for the entire address space. Thus
-// this function should never be called by library code, only by code with
-// global knowledge of the application's use of BoringSSL.
+// |fd| must be -1. We no longer support setting the file descriptor with this
+// function.
 //
-// Do not use this function unless a performance issue was measured with the
-// default behavior. BoringSSL can efficiently detect forks on most platforms,
-// in which case this function is a no-op and is unnecessary. In particular,
-// Linux kernel versions 4.14 or later provide |MADV_WIPEONFORK|. Future
-// versions of BoringSSL will remove this functionality when older kernels are
-// sufficiently rare.
-//
-// This function has an unusual name because it historically controlled internal
-// buffers, but no longer does.
+// It has an unusual name because the buffer is unsafe across calls to |fork|.
+// Hence, this function should never be called by libraries.
 OPENSSL_EXPORT void RAND_enable_fork_unsafe_buffering(int fd);
 
-// RAND_disable_fork_unsafe_buffering restores BoringSSL's default fork-safety
-// protections. See also |RAND_enable_fork_unsafe_buffering|.
+// RAND_disable_fork_unsafe_buffering disables efficient buffered reading of
+// /dev/urandom, causing BoringSSL to always draw entropy on every request
+// for random bytes.
 OPENSSL_EXPORT void RAND_disable_fork_unsafe_buffering(void);
 #endif
 
-#if defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
+#if defined(BORINGSSL_UNSAFE_DETERMINISTIC_MODE)
 // RAND_reset_for_fuzzing resets the fuzzer-only deterministic RNG. This
 // function is only defined in the fuzzer-only build configuration.
 OPENSSL_EXPORT void RAND_reset_for_fuzzing(void);

@@ -50,7 +50,6 @@ enum class ClientNavigationReason {
   kAnchorClick,
   kHttpHeaderRefresh,
   kFrameNavigation,
-  kInitialFrameNavigation,
   kMetaTagRefresh,
   kPageBlock,
   kReload,
@@ -63,8 +62,6 @@ enum class CancelNavigationReason {
   kDropped,
   // Navigate event is fired.
   kNavigateEvent,
-  // New navigation is starting (e.g. form submission).
-  kNewNavigation,
   // Anything else (including error cases that don't drop the navigation).
   kOther
 };
@@ -76,8 +73,6 @@ enum class CommitReason {
   kJavascriptUrl,
   // Committing a replacement document from XSLT.
   kXSLT,
-  // Committing a replacement empty document as a result of a discard operation.
-  kDiscard,
   // All other navigations.
   kRegular
 };

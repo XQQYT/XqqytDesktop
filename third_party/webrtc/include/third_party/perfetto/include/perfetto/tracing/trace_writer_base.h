@@ -17,8 +17,6 @@
 #ifndef INCLUDE_PERFETTO_TRACING_TRACE_WRITER_BASE_H_
 #define INCLUDE_PERFETTO_TRACING_TRACE_WRITER_BASE_H_
 
-#include <cstdint>
-#include "perfetto/base/export.h"
 #include "perfetto/protozero/message_handle.h"
 
 namespace perfetto {
@@ -36,7 +34,7 @@ class TracePacket;
 // chunk and will write into the shared buffer without any locking most of the
 // time.
 
-class PERFETTO_EXPORT_COMPONENT TraceWriterBase {
+class TraceWriterBase {
  public:
   virtual ~TraceWriterBase();
 
@@ -85,14 +83,6 @@ class PERFETTO_EXPORT_COMPONENT TraceWriterBase {
 
   // Bytes written since creation. Not reset when new chunks are acquired.
   virtual uint64_t written() const = 0;
-
-  // Number of times the trace writer entered a mode in which it started
-  // dropping data.
-  //
-  // This does not necessarily correspond to the number of packets/chunks
-  // dropped, as multiple such packets/chunks can be dropped on entry into a
-  // drop data mode.
-  virtual uint64_t drop_count() const = 0;
 };
 
 }  // namespace perfetto

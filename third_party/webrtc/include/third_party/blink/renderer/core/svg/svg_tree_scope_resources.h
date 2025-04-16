@@ -5,10 +5,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_SVG_SVG_TREE_SCOPE_RESOURCES_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_SVG_SVG_TREE_SCOPE_RESOURCES_H_
 
+#include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
-#include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
-#include "third_party/blink/renderer/platform/wtf/hash_map.h"
 #include "third_party/blink/renderer/platform/wtf/text/atomic_string_hash.h"
 
 namespace blink {
@@ -34,7 +33,7 @@ class SVGTreeScopeResources final
  private:
   void ProcessCustomWeakness(const LivenessBroker&);
 
-  HashMap<AtomicString, UntracedMember<LocalSVGResource>> resources_;
+  HeapHashMap<AtomicString, WeakMember<LocalSVGResource>> resources_;
   Member<TreeScope> tree_scope_;
 };
 

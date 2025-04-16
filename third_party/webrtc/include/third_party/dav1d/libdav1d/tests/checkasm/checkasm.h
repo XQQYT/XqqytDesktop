@@ -33,44 +33,23 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#ifdef _WIN32
+#if ARCH_X86_64 && defined(_WIN32)
+/* setjmp/longjmp on 64-bit Windows will try to use SEH to unwind the stack,
+ * which doesn't work for assembly functions without unwind information. */
 #include <windows.h>
-#if ARCH_X86_32
+#define checkasm_context CONTEXT
+#define checkasm_save_context() RtlCaptureContext(&checkasm_context_buf)
+#define checkasm_load_context() RtlRestoreContext(&checkasm_context_buf, NULL)
+#else
 #include <setjmp.h>
-typedef jmp_buf checkasm_context;
+#define checkasm_context jmp_buf
 #define checkasm_save_context() setjmp(checkasm_context_buf)
 #define checkasm_load_context() longjmp(checkasm_context_buf, 1)
-#elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-/* setjmp/longjmp on Windows on architectures using SEH (all except x86_32)
- * will try to use SEH to unwind the stack, which doesn't work for assembly
- * functions without unwind information. */
-typedef struct { CONTEXT c; int status; } checkasm_context;
-#define checkasm_save_context() \
-    (checkasm_context_buf.status = 0, \
-     RtlCaptureContext(&checkasm_context_buf.c), \
-     checkasm_context_buf.status)
-#define checkasm_load_context() \
-    (checkasm_context_buf.status = 1, \
-     RtlRestoreContext(&checkasm_context_buf.c, NULL))
-#else
-typedef void* checkasm_context;
-#define checkasm_save_context() 0
-#define checkasm_load_context() do {} while (0)
-#endif
-#else
-#include <setjmp.h>
-typedef sigjmp_buf checkasm_context;
-#define checkasm_save_context() sigsetjmp(checkasm_context_buf, 1)
-#define checkasm_load_context() siglongjmp(checkasm_context_buf, 1)
 #endif
 
 #include "include/common/attributes.h"
 #include "include/common/bitdepth.h"
 #include "include/common/intops.h"
-
-#if ARCH_ARM
-#include "src/arm/arm-arch.h"
-#endif
 
 int xor128_rand(void);
 #define rnd xor128_rand
@@ -96,7 +75,6 @@ int checkasm_fail_func(const char *msg, ...);
 void checkasm_update_bench(int iterations, uint64_t cycles);
 void checkasm_report(const char *name, ...);
 void checkasm_set_signal_handler_state(int enabled);
-void checkasm_handle_signal(void);
 extern checkasm_context checkasm_context_buf;
 
 /* float compare utilities */
@@ -123,7 +101,7 @@ int float_near_abs_eps_array_ulp(const float *a, const float *b, float eps,
     declare_new(ret, __VA_ARGS__)\
     void *func_ref, *func_new;\
     typedef ret func_type(__VA_ARGS__);\
-    if (checkasm_save_context()) checkasm_handle_signal()
+    checkasm_save_context()
 
 /* Indicate that the current test has failed */
 #define fail() checkasm_fail_func("%s:%d", __FILE__, __LINE__)
@@ -150,9 +128,6 @@ static inline uint64_t readtime(void) {
 }
 #define readtime readtime
 #endif
-#elif CONFIG_MACOS_KPERF
-uint64_t checkasm_kperf_cycles(void);
-#define readtime() checkasm_kperf_cycles()
 #elif (ARCH_AARCH64 || ARCH_ARM) && defined(__APPLE__)
 #include <mach/mach_time.h>
 #define readtime() mach_absolute_time()
@@ -204,35 +179,6 @@ static inline uint64_t readtime(void) {
     return (((uint64_t)tbu) << 32) | (uint64_t)tbl;
 }
 #define readtime readtime
-#elif ARCH_RISCV
-#include <time.h>
-static inline uint64_t clock_gettime_nsec(void) {
-  struct timespec ts;
-#ifdef CLOCK_MONOTONIC_RAW
-  clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-#else
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-#endif
-  return ((uint64_t)ts.tv_sec*1000000000u) + (uint64_t)ts.tv_nsec;
-}
-#define readtime clock_gettime_nsec
-#elif ARCH_LOONGARCH
-static inline uint64_t readtime(void) {
-#if ARCH_LOONGARCH64
-    uint64_t a, id;
-    __asm__ __volatile__("rdtime.d  %0, %1"
-                         : "=r"(a), "=r"(id)
-                         :: );
-    return a;
-#else
-    uint32_t a, id;
-    __asm__ __volatile__("rdtimel.w  %0, %1"
-                         : "=r"(a), "=r"(id)
-                         :: );
-    return (uint64_t)a;
-#endif
-}
-#define readtime readtime
 #endif
 
 /* Verifies that clobbered callee-saved registers
@@ -262,7 +208,7 @@ void checkasm_simd_warmup(void);
  * handled orthogonally from integer parameters passed in GPR registers. */
 #define IGNORED_FP_ARGS 8
 #endif
-#if HAVE_C11_GENERIC
+#ifdef HAVE_C11_GENERIC
 #define clobber_type(arg) _Generic((void (*)(void*, arg))NULL,\
      void (*)(void*, int32_t ): clobber_mask |= 1 << mpos++,\
      void (*)(void*, uint32_t): clobber_mask |= 1 << mpos++,\
@@ -310,12 +256,12 @@ void checkasm_simd_warmup(void);
 /* Use a dummy argument, to offset the real parameters by 2, not only 1.
  * This makes sure that potential 8-byte-alignment of parameters is kept
  * the same even when the extra parameters have been removed. */
-extern void (*checkasm_checked_call_ptr)(void *func, int dummy, ...);
+void checkasm_checked_call_vfp(void *func, int dummy, ...);
 #define declare_new(ret, ...)\
     ret (*checked_call)(void *, int dummy, __VA_ARGS__,\
                         int, int, int, int, int, int, int, int,\
                         int, int, int, int, int, int, int) =\
-    (void *)checkasm_checked_call_ptr;
+    (void *)checkasm_checked_call_vfp;
 #define call_new(...)\
     (checkasm_set_signal_handler_state(1),\
      checked_call(func_new, 0, __VA_ARGS__, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0));\
@@ -334,28 +280,6 @@ void checkasm_stack_clobber(uint64_t clobber, ...);
                             CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,\
                             CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,\
                             CLOB, CLOB, CLOB, CLOB, CLOB),\
-     checked_call(func_new, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__,\
-                  7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0));\
-    checkasm_set_signal_handler_state(0)
-#elif ARCH_RISCV
-#define declare_new(ret, ...)\
-    ret (*checked_call)(void *, int, int, int, int, int, int, int,\
-                        __VA_ARGS__, int, int, int, int, int, int, int, int,\
-                        int, int, int, int, int, int, int) =\
-    (void *)checkasm_checked_call;
-#define call_new(...)\
-    (checkasm_set_signal_handler_state(1),\
-     checked_call(func_new, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__,\
-                  7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0));\
-    checkasm_set_signal_handler_state(0)
-#elif ARCH_LOONGARCH
-#define declare_new(ret, ...)\
-    ret (*checked_call)(void *, int, int, int, int, int, int, int,\
-                        __VA_ARGS__, int, int, int, int, int, int, int, int,\
-                        int, int, int, int, int, int, int) =\
-    (void *)checkasm_checked_call;
-#define call_new(...)\
-    (checkasm_set_signal_handler_state(1),\
      checked_call(func_new, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__,\
                   7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0));\
     checkasm_set_signal_handler_state(0)
@@ -421,8 +345,6 @@ void checkasm_stack_clobber(uint64_t clobber, ...);
     ALIGN_STK_64(pixel, name##_buf, ((h)+32)*(ROUND_UP(w,64)+64) + 64,); \
     ptrdiff_t name##_stride = sizeof(pixel)*(ROUND_UP(w,64)+64); \
     (void)name##_stride; \
-    int name##_buf_h = (h)+32; \
-    (void)name##_buf_h;\
     pixel *name = name##_buf + (ROUND_UP(w,64)+64)*16 + 64
 
 #define CLEAR_PIXEL_RECT(name) \

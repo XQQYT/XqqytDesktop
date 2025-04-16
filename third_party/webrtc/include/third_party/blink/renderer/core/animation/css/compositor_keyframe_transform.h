@@ -19,11 +19,6 @@ class CORE_EXPORT CompositorKeyframeTransform final
       : transform_(transform), zoom_(zoom) {}
   ~CompositorKeyframeTransform() override = default;
 
-  void Trace(Visitor* visitor) const final {
-    CompositorKeyframeValue::Trace(visitor);
-    visitor->Trace(transform_);
-  }
-
   const TransformOperations& GetTransformOperations() const {
     return transform_;
   }

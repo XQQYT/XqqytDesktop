@@ -2,21 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_LOCK_H_
-#define PARTITION_ALLOC_PARTITION_LOCK_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_LOCK_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_LOCK_H_
 
 #include <atomic>
 #include <type_traits>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/buildflags.h"
-#include "partition_alloc/partition_alloc_base/compiler_specific.h"
-#include "partition_alloc/partition_alloc_base/immediate_crash.h"
-#include "partition_alloc/partition_alloc_base/thread_annotations.h"
-#include "partition_alloc/partition_alloc_base/threading/platform_thread.h"
-#include "partition_alloc/partition_alloc_check.h"
-#include "partition_alloc/spinning_mutex.h"
-#include "partition_alloc/thread_isolation/thread_isolation.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/compiler_specific.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/debugging_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/immediate_crash.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/thread_annotations.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/threading/platform_thread.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_check.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/spinning_mutex.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/thread_isolation/thread_isolation.h"
+#include "build/build_config.h"
 
 namespace partition_alloc::internal {
 
@@ -24,9 +24,8 @@ class PA_LOCKABLE Lock {
  public:
   inline constexpr Lock();
   void Acquire() PA_EXCLUSIVE_LOCK_FUNCTION() {
-#if PA_BUILDFLAG(DCHECKS_ARE_ON) || \
-    PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
-#if PA_BUILDFLAG(ENABLE_THREAD_ISOLATION)
+#if BUILDFLAG(PA_DCHECK_IS_ON)
+#if BUILDFLAG(ENABLE_THREAD_ISOLATION)
     LiftThreadIsolationScope lift_thread_isolation_restrictions;
 #endif
 
@@ -51,95 +50,59 @@ class PA_LOCKABLE Lock {
       // Note that we don't rely on a DCHECK() in base::Lock(), as it would
       // itself allocate. Meaning that without this code, a reentrancy issue
       // hangs on Linux.
-      if (owning_thread_ref_.load(std::memory_order_acquire) == current_thread)
-          [[unlikely]] {
+      if (PA_UNLIKELY(owning_thread_ref_.load(std::memory_order_acquire) ==
+                      current_thread)) {
         // Trying to acquire lock while it's held by this thread: reentrancy
         // issue.
-        ReentrancyIssueDetected();
+        PA_IMMEDIATE_CRASH();
       }
       lock_.Acquire();
     }
     owning_thread_ref_.store(current_thread, std::memory_order_release);
 #else
     lock_.Acquire();
-#endif  // PA_BUILDFLAG(DCHECKS_ARE_ON) ||
-        // PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
+#endif
   }
 
   void Release() PA_UNLOCK_FUNCTION() {
-#if PA_BUILDFLAG(DCHECKS_ARE_ON) || \
-    PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
-#if PA_BUILDFLAG(ENABLE_THREAD_ISOLATION)
+#if BUILDFLAG(PA_DCHECK_IS_ON)
+#if BUILDFLAG(ENABLE_THREAD_ISOLATION)
     LiftThreadIsolationScope lift_thread_isolation_restrictions;
 #endif
     owning_thread_ref_.store(base::PlatformThreadRef(),
                              std::memory_order_release);
-#endif  // PA_BUILDFLAG(DCHECKS_ARE_ON) ||
-        // PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
+#endif
     lock_.Release();
   }
-
-  bool TryAcquire() PA_EXCLUSIVE_TRYLOCK_FUNCTION(true) {
-    // Unlike `Acquire()`, `TryAcquire()` does not provide any reentrancy
-    // protection. Instead, it just fails and returns `false`.
-    // Hence this should not be used in (de)allocation code path.
-    if (!lock_.Try()) {
-      return false;
-    }
-
-#if PA_BUILDFLAG(DCHECKS_ARE_ON) || \
-    PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
-#if PA_BUILDFLAG(ENABLE_THREAD_ISOLATION)
-    LiftThreadIsolationScope lift_thread_isolation_restrictions;
-#endif
-
-    base::PlatformThreadRef current_thread = base::PlatformThread::CurrentRef();
-    owning_thread_ref_.store(current_thread, std::memory_order_release);
-#endif
-
-    return true;
-  }
-
   void AssertAcquired() const PA_ASSERT_EXCLUSIVE_LOCK() {
     lock_.AssertAcquired();
-#if PA_BUILDFLAG(DCHECKS_ARE_ON) || \
-    PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
-#if PA_BUILDFLAG(ENABLE_THREAD_ISOLATION)
+#if BUILDFLAG(PA_DCHECK_IS_ON)
+#if BUILDFLAG(ENABLE_THREAD_ISOLATION)
     LiftThreadIsolationScope lift_thread_isolation_restrictions;
 #endif
     PA_DCHECK(owning_thread_ref_.load(std ::memory_order_acquire) ==
               base::PlatformThread::CurrentRef());
-#endif  // PA_BUILDFLAG(DCHECKS_ARE_ON) ||
-        // PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
+#endif
   }
 
   void Reinit() PA_UNLOCK_FUNCTION() {
     lock_.AssertAcquired();
-#if PA_BUILDFLAG(DCHECKS_ARE_ON) || \
-    PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
+#if BUILDFLAG(PA_DCHECK_IS_ON)
     owning_thread_ref_.store(base::PlatformThreadRef(),
                              std::memory_order_release);
-#endif  // PA_BUILDFLAG(DCHECKS_ARE_ON) ||
-        // PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
+#endif
     lock_.Reinit();
   }
 
  private:
-  [[noreturn]] PA_NOINLINE PA_NOT_TAIL_CALLED void ReentrancyIssueDetected() {
-    PA_NO_CODE_FOLDING();
-    PA_IMMEDIATE_CRASH();
-  }
-
   SpinningMutex lock_;
 
-#if PA_BUILDFLAG(DCHECKS_ARE_ON) || \
-    PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
+#if BUILDFLAG(PA_DCHECK_IS_ON)
   // Should in theory be protected by |lock_|, but we need to read it to detect
   // recursive lock acquisition (and thus, the allocator becoming reentrant).
   std::atomic<base::PlatformThreadRef> owning_thread_ref_ =
       base::PlatformThreadRef();
-#endif  // PA_BUILDFLAG(DCHECKS_ARE_ON) ||
-        // PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
+#endif
 };
 
 class PA_SCOPED_LOCKABLE ScopedGuard {
@@ -183,4 +146,4 @@ using PartitionAutoLock = ::partition_alloc::internal::ScopedGuard;
 }  // namespace internal
 }  // namespace base
 
-#endif  // PARTITION_ALLOC_PARTITION_LOCK_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_LOCK_H_

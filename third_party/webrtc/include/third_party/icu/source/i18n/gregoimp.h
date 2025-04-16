@@ -189,10 +189,9 @@ class Grego {
      * @param dom output parameter to receive day-of-month (1-based)
      * @param dow output parameter to receive day-of-week (1-based, 1==Sun)
      * @param doy output parameter to receive day-of-year (1-based)
-     * @param status error code.
      */
     static void dayToFields(double day, int32_t& year, int32_t& month,
-                            int32_t& dom, int32_t& dow, int32_t& doy, UErrorCode& status);
+                            int32_t& dom, int32_t& dow, int32_t& doy);
 
     /**
      * Convert a 1970-epoch day number to proleptic Gregorian year,
@@ -202,10 +201,9 @@ class Grego {
      * @param month output parameter to receive month (0-based, 0==Jan)
      * @param dom output parameter to receive day-of-month (1-based)
      * @param dow output parameter to receive day-of-week (1-based, 1==Sun)
-     * @param status error code.
      */
     static inline void dayToFields(double day, int32_t& year, int32_t& month,
-                                   int32_t& dom, int32_t& dow, UErrorCode& status);
+                                   int32_t& dom, int32_t& dow);
 
     /**
      * Convert a 1970-epoch milliseconds to proleptic Gregorian year,
@@ -217,10 +215,9 @@ class Grego {
      * @param dow output parameter to receive day-of-week (1-based, 1==Sun)
      * @param doy output parameter to receive day-of-year (1-based)
      * @param mid output parameter to receive millis-in-day
-     * @param status error code.
      */
     static void timeToFields(UDate time, int32_t& year, int32_t& month,
-                            int32_t& dom, int32_t& dow, int32_t& doy, int32_t& mid, UErrorCode& status);
+                            int32_t& dom, int32_t& dow, int32_t& doy, int32_t& mid);
 
     /**
      * Return the day of week on the 1970-epoch day
@@ -287,9 +284,9 @@ Grego::previousMonthLength(int y, int m) {
 }
 
 inline void Grego::dayToFields(double day, int32_t& year, int32_t& month,
-                               int32_t& dom, int32_t& dow, UErrorCode& status) {
+                               int32_t& dom, int32_t& dow) {
   int32_t doy_unused;
-  dayToFields(day,year,month,dom,dow,doy_unused, status);
+  dayToFields(day,year,month,dom,dow,doy_unused);
 }
 
 inline double Grego::julianDayToMillis(int32_t julian)

@@ -58,7 +58,7 @@ struct DowncastTraits<HTMLQuoteElement> {
   }
   static bool AllowFrom(const Node& node) {
     auto* html_element = DynamicTo<HTMLElement>(node);
-    return html_element && IsHTMLQuoteElement(*html_element);
+    return html_element ? IsHTMLQuoteElement(*html_element) : false;
   }
   static bool AllowFrom(const Node* node) {
     return node && IsA<HTMLQuoteElement>(*node);

@@ -19,9 +19,9 @@
 #ifndef GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H
 #define GRPC_INTERNAL_COMPILER_OBJECTIVE_C_GENERATOR_HELPERS_H
 
-#include <google/protobuf/compiler/objectivec/names.h>
-
 #include <map>
+
+#include <google/protobuf/compiler/objectivec/objectivec_helpers.h>
 
 #include "src/compiler/config.h"
 #include "src/compiler/generator_helpers.h"
@@ -31,8 +31,9 @@ namespace grpc_objective_c_generator {
 using ::grpc::protobuf::FileDescriptor;
 using ::grpc::protobuf::MethodDescriptor;
 using ::grpc::protobuf::ServiceDescriptor;
+using ::std::string;
 
-inline std::string MessageHeaderName(const FileDescriptor* file) {
+inline string MessageHeaderName(const FileDescriptor* file) {
   return google::protobuf::compiler::objectivec::FilePath(file) + ".pbobjc.h";
 }
 
@@ -42,7 +43,7 @@ inline ::std::string ServiceClassName(const ServiceDescriptor* service) {
   const FileDescriptor* file = service->file();
   ::std::string prefix =
       google::protobuf::compiler::objectivec::FileClassPrefix(file);
-  ::std::string class_name(service->name());
+  ::std::string class_name = service->name();
   // We add the prefix in the cases where the string is missing a prefix.
   // We define "missing a prefix" as where 'input':
   // a) Doesn't start with the prefix or

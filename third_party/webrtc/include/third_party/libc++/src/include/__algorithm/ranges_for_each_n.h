@@ -24,9 +24,6 @@
 #  pragma GCC system_header
 #endif
 
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
-
 #if _LIBCPP_STD_VER >= 20
 
 _LIBCPP_BEGIN_NAMESPACE_STD
@@ -36,7 +33,8 @@ namespace ranges {
 template <class _Iter, class _Func>
 using for_each_n_result = in_fun_result<_Iter, _Func>;
 
-struct __for_each_n {
+namespace __for_each_n {
+struct __fn {
   template <input_iterator _Iter, class _Proj = identity, indirectly_unary_invocable<projected<_Iter, _Proj>> _Func>
   _LIBCPP_HIDE_FROM_ABI constexpr for_each_n_result<_Iter, _Func>
   operator()(_Iter __first, iter_difference_t<_Iter> __count, _Func __func, _Proj __proj = {}) const {
@@ -47,16 +45,15 @@ struct __for_each_n {
     return {std::move(__first), std::move(__func)};
   }
 };
+} // namespace __for_each_n
 
 inline namespace __cpo {
-inline constexpr auto for_each_n = __for_each_n{};
+inline constexpr auto for_each_n = __for_each_n::__fn{};
 } // namespace __cpo
 } // namespace ranges
 
 _LIBCPP_END_NAMESPACE_STD
 
 #endif // _LIBCPP_STD_VER >= 20
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___ALGORITHM_RANGES_FOR_EACH_N_H

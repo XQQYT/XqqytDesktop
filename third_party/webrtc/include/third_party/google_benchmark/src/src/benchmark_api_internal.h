@@ -44,8 +44,7 @@ class BenchmarkInstance {
 
   State Run(IterationCount iters, int thread_id, internal::ThreadTimer* timer,
             internal::ThreadManager* manager,
-            internal::PerfCountersMeasurement* perf_counters_measurement,
-            ProfilerManager* profiler_manager) const;
+            internal::PerfCountersMeasurement* perf_counters_measurement) const;
 
  private:
   BenchmarkName name_;

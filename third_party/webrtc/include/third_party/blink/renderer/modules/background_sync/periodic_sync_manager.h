@@ -8,8 +8,6 @@
 #include "base/memory/scoped_refptr.h"
 #include "base/task/sequenced_task_runner.h"
 #include "third_party/blink/public/mojom/background_sync/background_sync.mojom-blink.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_remote.h"
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_wrapper_mode.h"
@@ -19,6 +17,8 @@ namespace blink {
 
 class BackgroundSyncOptions;
 class ExceptionState;
+class ScriptPromise;
+class ScriptPromiseResolver;
 class ScriptState;
 class ServiceWorkerRegistration;
 
@@ -30,14 +30,12 @@ class PeriodicSyncManager final : public ScriptWrappable {
                       scoped_refptr<base::SequencedTaskRunner> task_runner);
 
   // IDL exposed interface
-  ScriptPromise<IDLUndefined> registerPeriodicSync(
-      ScriptState* script_state,
-      const String& tag,
-      const BackgroundSyncOptions* options,
-      ExceptionState& exception_state);
-  ScriptPromise<IDLSequence<IDLString>> getTags(ScriptState* script_state);
-  ScriptPromise<IDLUndefined> unregister(ScriptState* script_state,
-                                         const String& tag);
+  ScriptPromise registerPeriodicSync(ScriptState* script_state,
+                                     const String& tag,
+                                     const BackgroundSyncOptions* options,
+                                     ExceptionState& exception_state);
+  ScriptPromise getTags(ScriptState* script_state);
+  ScriptPromise unregister(ScriptState* script_state, const String& tag);
 
   void Trace(Visitor* visitor) const override;
 
@@ -49,14 +47,14 @@ class PeriodicSyncManager final : public ScriptWrappable {
   mojom::blink::PeriodicBackgroundSyncService* GetBackgroundSyncServiceRemote();
 
   // Callbacks
-  void RegisterCallback(ScriptPromiseResolver<IDLUndefined>* resolver,
+  void RegisterCallback(ScriptPromiseResolver* resolver,
                         mojom::blink::BackgroundSyncError error,
                         mojom::blink::SyncRegistrationOptionsPtr options);
   void GetRegistrationsCallback(
-      ScriptPromiseResolver<IDLSequence<IDLString>>* resolver,
+      ScriptPromiseResolver* resolver,
       mojom::blink::BackgroundSyncError error,
       WTF::Vector<mojom::blink::SyncRegistrationOptionsPtr> registrations);
-  void UnregisterCallback(ScriptPromiseResolver<IDLUndefined>* resolver,
+  void UnregisterCallback(ScriptPromiseResolver* resolver,
                           mojom::blink::BackgroundSyncError error);
 
   Member<ServiceWorkerRegistration> registration_;

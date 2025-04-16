@@ -11,27 +11,23 @@
 #ifndef API_TEST_NETWORK_EMULATION_MANAGER_H_
 #define API_TEST_NETWORK_EMULATION_MANAGER_H_
 
-#include <cstdint>
 #include <functional>
 #include <memory>
-#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "absl/base/nullability.h"
-#include "absl/strings/string_view.h"
 #include "api/array_view.h"
-#include "api/field_trials_view.h"
+#include "api/packet_socket_factory.h"
 #include "api/test/network_emulation/cross_traffic.h"
 #include "api/test/network_emulation/network_emulation_interfaces.h"
 #include "api/test/peer_network_dependencies.h"
 #include "api/test/simulated_network.h"
 #include "api/test/time_controller.h"
-#include "api/units/data_rate.h"
-#include "rtc_base/ip_address.h"
+#include "api/units/timestamp.h"
+#include "rtc_base/network.h"
 #include "rtc_base/network_constants.h"
-#include "rtc_base/socket_address.h"
+#include "rtc_base/thread.h"
 
 namespace webrtc {
 
@@ -67,16 +63,16 @@ struct EmulatedEndpointConfig {
   enum class IpAddressFamily { kIpv4, kIpv6 };
 
   // If specified will be used to name endpoint for logging purposes.
-  std::optional<std::string> name = std::nullopt;
+  absl::optional<std::string> name = absl::nullopt;
   IpAddressFamily generated_ip_family = IpAddressFamily::kIpv4;
   // If specified will be used as IP address for endpoint node. Must be unique
   // among all created nodes.
-  std::optional<IPAddress> ip;
+  absl::optional<rtc::IPAddress> ip;
   // Should endpoint be enabled or not, when it will be created.
   // Enabled endpoints will be available for webrtc to send packets.
   bool start_as_enabled = true;
   // Network type which will be used to represent endpoint to WebRTC.
-  AdapterType type = AdapterType::ADAPTER_TYPE_UNKNOWN;
+  rtc::AdapterType type = rtc::AdapterType::ADAPTER_TYPE_UNKNOWN;
   // Allow endpoint to send packets specifying source IP address different to
   // the current endpoint IP address. If false endpoint will crash if attempt
   // to send such packet will be done.
@@ -90,7 +86,6 @@ struct EmulatedEndpointConfig {
 struct EmulatedTURNServerConfig {
   EmulatedEndpointConfig client_config;
   EmulatedEndpointConfig peer_config;
-  bool enable_permission_checks = true;
 };
 
 // EmulatedTURNServer is an abstraction for a TURN server.
@@ -113,7 +108,7 @@ class EmulatedTURNServerInterface {
 
   // Returns socket address, which client should use to connect to TURN server
   // and do TURN allocation.
-  virtual SocketAddress GetClientEndpointAddress() const = 0;
+  virtual rtc::SocketAddress GetClientEndpointAddress() const = 0;
 
   // Get non-null peer endpoint, that is "connected to the internet".
   // This shall typically be connected to another TURN server.
@@ -123,11 +118,25 @@ class EmulatedTURNServerInterface {
 // Provide interface to obtain all required objects to inject network emulation
 // layer into PeerConnection. Also contains information about network interfaces
 // accessible by PeerConnection.
-class EmulatedNetworkManagerInterface
-    : public webrtc_pc_e2e::PeerNetworkDependencies {
+class EmulatedNetworkManagerInterface {
  public:
-  ~EmulatedNetworkManagerInterface() override = default;
+  virtual ~EmulatedNetworkManagerInterface() = default;
 
+  // Returns non-null pointer to thread that have to be used as network thread
+  // for WebRTC to properly setup network emulation. Returned thread is owned
+  // by EmulatedNetworkManagerInterface implementation.
+  virtual rtc::Thread* network_thread() = 0;
+  // Returns non-null pointer to network manager that have to be injected into
+  // WebRTC to properly setup network emulation. Returned manager is owned by
+  // EmulatedNetworkManagerInterface implementation.
+  virtual rtc::NetworkManager* network_manager() = 0;
+  // Returns non-null pointer to packet socket factory that have to be injected
+  // into WebRTC to properly setup network emulation. Returned factory is owned
+  // by EmulatedNetworkManagerInterface implementation.
+  virtual rtc::PacketSocketFactory* packet_socket_factory() = 0;
+  webrtc::webrtc_pc_e2e::PeerNetworkDependencies network_dependencies() {
+    return {network_thread(), network_manager(), packet_socket_factory()};
+  }
   // Returns list of endpoints that are associated with this instance. Pointers
   // are guaranteed to be non-null and are owned by NetworkEmulationManager.
   virtual std::vector<EmulatedEndpoint*> endpoints() const = 0;
@@ -151,26 +160,6 @@ bool AbslParseFlag(absl::string_view text, TimeMode* mode, std::string* error);
 // `mode`.
 std::string AbslUnparseFlag(TimeMode mode);
 
-// The construction-time configuration options for NetworkEmulationManager.
-struct NetworkEmulationManagerConfig {
-  // The mode of the underlying time controller.
-  TimeMode time_mode = TimeMode::kRealTime;
-  // The mode that determines the set of metrics to collect into
-  // `EmulatedNetworkStats` and `EmulatedNetworkNodeStats`.
-  EmulatedNetworkStatsGatheringMode stats_gathering_mode =
-      EmulatedNetworkStatsGatheringMode::kDefault;
-  // Field trials that can alter the behavior of NetworkEmulationManager.
-  const FieldTrialsView* field_trials = nullptr;
-  // If this flag is set, NetworkEmulationManager ignores the sizes of peers'
-  // DTLS handshake packets when determining when to let the packets through
-  // a constrained emulated network. Actual hanshake's packet size is ignored
-  // and a hardcoded fake size is used to compute packet's use of link capacity.
-  // This is useful for tests that require deterministic packets scheduling
-  // timing-wise even when the sizes of DTLS hadshake packets are not
-  // deterministic. This mode make sense only together with the simulated time.
-  bool fake_dtls_handshake_sizes = false;
-};
-
 // Provides an API for creating and configuring emulated network layer.
 // All objects returned by this API are owned by NetworkEmulationManager itself
 // and will be deleted when manager will be deleted.
@@ -191,7 +180,6 @@ class NetworkEmulationManager {
       // values.
       Builder& config(BuiltInNetworkBehaviorConfig config);
       Builder& delay_ms(int queue_delay_ms);
-      Builder& capacity(DataRate link_capacity);
       Builder& capacity_kbps(int link_capacity_kbps);
       Builder& capacity_Mbps(int link_capacity_Mbps);
       Builder& loss(double loss_rate);
@@ -333,11 +321,11 @@ class NetworkEmulationManager {
   virtual void StopCrossTraffic(CrossTrafficGenerator* generator) = 0;
 
   // Creates EmulatedNetworkManagerInterface which can be used then to inject
-  // network emulation layer into PeerConnectionFactory. `endpoints` are
-  // available network interfaces for PeerConnection. If endpoint is enabled, it
-  // will be immediately available for PeerConnection, otherwise user will be
-  // able to enable endpoint later to make it available for PeerConnection.
-  virtual absl::Nonnull<EmulatedNetworkManagerInterface*>
+  // network emulation layer into PeerConnection. `endpoints` - are available
+  // network interfaces for PeerConnection. If endpoint is enabled, it will be
+  // immediately available for PeerConnection, otherwise user will be able to
+  // enable endpoint later to make it available for PeerConnection.
+  virtual EmulatedNetworkManagerInterface*
   CreateEmulatedNetworkManagerInterface(
       const std::vector<EmulatedEndpoint*>& endpoints) = 0;
 

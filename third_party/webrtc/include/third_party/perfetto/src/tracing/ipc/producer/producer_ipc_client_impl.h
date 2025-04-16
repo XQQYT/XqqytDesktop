@@ -46,8 +46,6 @@ class SharedMemoryArbiter;
 // IPC channel to the remote Service. This class is the glue layer between the
 // generic Service interface exposed to the clients of the library and the
 // actual IPC transport.
-// If create_socket_async is set, it will be called to create and connect to a
-// socket to the service. If unset, the producer will create and connect itself.
 class ProducerIPCClientImpl : public TracingService::ProducerEndpoint,
                               public ipc::ServiceProxy::EventListener {
  public:
@@ -59,8 +57,7 @@ class ProducerIPCClientImpl : public TracingService::ProducerEndpoint,
                         size_t shared_memory_size_hint_bytes,
                         size_t shared_memory_page_size_hint_bytes,
                         std::unique_ptr<SharedMemory> shm,
-                        std::unique_ptr<SharedMemoryArbiter> shm_arbiter,
-                        CreateSocketAsync create_socket_async);
+                        std::unique_ptr<SharedMemoryArbiter> shm_arbiter);
   ~ProducerIPCClientImpl() override;
 
   // TracingService::ProducerEndpoint implementation.

@@ -5,8 +5,9 @@
 #ifndef BASE_TEST_CLANG_PROFILING_H_
 #define BASE_TEST_CLANG_PROFILING_H_
 
-#include "base/base_export.h"
 #include "base/clang_profiling_buildflags.h"
+
+#include "base/base_export.h"
 
 #if !BUILDFLAG(CLANG_PROFILING)
 #error "Clang profiling can only be used if CLANG_PROFILING macro is defined"

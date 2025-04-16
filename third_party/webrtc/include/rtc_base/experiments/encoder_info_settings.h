@@ -11,12 +11,11 @@
 #ifndef RTC_BASE_EXPERIMENTS_ENCODER_INFO_SETTINGS_H_
 #define RTC_BASE_EXPERIMENTS_ENCODER_INFO_SETTINGS_H_
 
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/strings/string_view.h"
-#include "api/field_trials_view.h"
+#include "absl/types/optional.h"
 #include "api/video_codecs/video_encoder.h"
 #include "rtc_base/experiments/field_trial_parser.h"
 
@@ -34,7 +33,7 @@ class EncoderInfoSettings {
     int max_bitrate_bps = 0;        // The maximum bitrate.
   };
 
-  std::optional<uint32_t> requested_resolution_alignment() const;
+  absl::optional<uint32_t> requested_resolution_alignment() const;
   bool apply_alignment_to_all_simulcast_layers() const {
     return apply_alignment_to_all_simulcast_layers_.Get();
   }
@@ -46,22 +45,21 @@ class EncoderInfoSettings {
   static std::vector<VideoEncoder::ResolutionBitrateLimits>
   GetDefaultSinglecastBitrateLimits(VideoCodecType codec_type);
 
-  static std::optional<VideoEncoder::ResolutionBitrateLimits>
+  static absl::optional<VideoEncoder::ResolutionBitrateLimits>
   GetDefaultSinglecastBitrateLimitsForResolution(VideoCodecType codec_type,
                                                  int frame_size_pixels);
 
   static std::vector<VideoEncoder::ResolutionBitrateLimits>
-  GetDefaultSinglecastBitrateLimitsWhenQpIsUntrusted(VideoCodecType codec_type);
+  GetDefaultSinglecastBitrateLimitsWhenQpIsUntrusted();
 
-  static std::optional<VideoEncoder::ResolutionBitrateLimits>
+  static absl::optional<VideoEncoder::ResolutionBitrateLimits>
   GetSinglecastBitrateLimitForResolutionWhenQpIsUntrusted(
-      std::optional<int> frame_size_pixels,
+      absl::optional<int> frame_size_pixels,
       const std::vector<VideoEncoder::ResolutionBitrateLimits>&
           resolution_bitrate_limits);
 
  protected:
-  EncoderInfoSettings(const FieldTrialsView& field_trials,
-                      absl::string_view name);
+  explicit EncoderInfoSettings(absl::string_view name);
 
  private:
   FieldTrialOptional<uint32_t> requested_resolution_alignment_;
@@ -72,29 +70,28 @@ class EncoderInfoSettings {
 // EncoderInfo settings for SimulcastEncoderAdapter.
 class SimulcastEncoderAdapterEncoderInfoSettings : public EncoderInfoSettings {
  public:
-  explicit SimulcastEncoderAdapterEncoderInfoSettings(
-      const FieldTrialsView& field_trials);
+  SimulcastEncoderAdapterEncoderInfoSettings();
   ~SimulcastEncoderAdapterEncoderInfoSettings() override {}
 };
 
 // EncoderInfo settings for LibvpxVp8Encoder.
 class LibvpxVp8EncoderInfoSettings : public EncoderInfoSettings {
  public:
-  explicit LibvpxVp8EncoderInfoSettings(const FieldTrialsView& field_trials);
+  LibvpxVp8EncoderInfoSettings();
   ~LibvpxVp8EncoderInfoSettings() override {}
 };
 
 // EncoderInfo settings for LibvpxVp9Encoder.
 class LibvpxVp9EncoderInfoSettings : public EncoderInfoSettings {
  public:
-  explicit LibvpxVp9EncoderInfoSettings(const FieldTrialsView& field_trials);
+  LibvpxVp9EncoderInfoSettings();
   ~LibvpxVp9EncoderInfoSettings() override {}
 };
 
 // EncoderInfo settings for LibaomAv1Encoder.
 class LibaomAv1EncoderInfoSettings : public EncoderInfoSettings {
  public:
-  explicit LibaomAv1EncoderInfoSettings(const FieldTrialsView& field_trials);
+  LibaomAv1EncoderInfoSettings();
   ~LibaomAv1EncoderInfoSettings() override {}
 };
 

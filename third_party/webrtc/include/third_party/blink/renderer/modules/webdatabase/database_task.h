@@ -66,7 +66,7 @@ class DatabaseTask {
   virtual void TaskCancelled() {}
 
   CrossThreadPersistent<Database> database_;
-  raw_ptr<base::WaitableEvent> complete_event_;
+  raw_ptr<base::WaitableEvent, ExperimentalRenderer> complete_event_;
 
 #if DCHECK_IS_ON()
   virtual const char* DebugTaskName() const = 0;
@@ -90,9 +90,9 @@ class Database::DatabaseOpenTask final : public DatabaseTask {
 #endif
 
   bool set_version_in_new_database_;
-  const raw_ref<DatabaseError> error_;
-  const raw_ref<String> error_message_;
-  const raw_ref<bool> success_;
+  const raw_ref<DatabaseError, ExperimentalRenderer> error_;
+  const raw_ref<String, ExperimentalRenderer> error_message_;
+  const raw_ref<bool, ExperimentalRenderer> success_;
 };
 
 class Database::DatabaseCloseTask final : public DatabaseTask {
@@ -122,6 +122,21 @@ class Database::DatabaseTransactionTask final : public DatabaseTask {
 #endif
 
   CrossThreadPersistent<SQLTransactionBackend> transaction_;
+};
+
+class Database::DatabaseTableNamesTask final : public DatabaseTask {
+ public:
+  DatabaseTableNamesTask(Database*,
+                         base::WaitableEvent*,
+                         Vector<String>& names);
+
+ private:
+  void DoPerformTask() override;
+#if DCHECK_IS_ON()
+  const char* DebugTaskName() const override;
+#endif
+
+  const raw_ref<Vector<String>, ExperimentalRenderer> table_names_;
 };
 
 }  // namespace blink

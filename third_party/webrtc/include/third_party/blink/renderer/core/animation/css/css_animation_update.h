@@ -5,10 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_CSS_CSS_ANIMATION_UPDATE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_CSS_CSS_ANIMATION_UPDATE_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/animation/animation_timeline.h"
-#include "third_party/blink/renderer/core/animation/animation_trigger.h"
 #include "third_party/blink/renderer/core/animation/css/css_timeline_map.h"
 #include "third_party/blink/renderer/core/animation/deferred_timeline.h"
 #include "third_party/blink/renderer/core/animation/effect_stack.h"
@@ -46,9 +44,8 @@ class NewCSSAnimation {
                   StyleRuleKeyframes* style_rule,
                   AnimationTimeline* timeline,
                   const Vector<EAnimPlayState>& play_state_list,
-                  const std::optional<TimelineOffset>& range_start,
-                  const std::optional<TimelineOffset>& range_end,
-                  AnimationTrigger* trigger)
+                  const absl::optional<TimelineOffset>& range_start,
+                  const absl::optional<TimelineOffset>& range_end)
       : name(name),
         name_index(name_index),
         position_index(position_index),
@@ -59,14 +56,12 @@ class NewCSSAnimation {
         timeline(timeline),
         play_state_list(play_state_list),
         range_start(range_start),
-        range_end(range_end),
-        trigger(trigger) {}
+        range_end(range_end) {}
 
   void Trace(Visitor* visitor) const {
     visitor->Trace(effect);
     visitor->Trace(style_rule);
     visitor->Trace(timeline);
-    visitor->Trace(trigger);
   }
 
   AtomicString name;
@@ -78,9 +73,8 @@ class NewCSSAnimation {
   unsigned style_rule_version;
   Member<AnimationTimeline> timeline;
   Vector<EAnimPlayState> play_state_list;
-  std::optional<TimelineOffset> range_start;
-  std::optional<TimelineOffset> range_end;
-  Member<AnimationTrigger> trigger;
+  absl::optional<TimelineOffset> range_start;
+  absl::optional<TimelineOffset> range_end;
 };
 
 class UpdatedCSSAnimation {
@@ -94,9 +88,8 @@ class UpdatedCSSAnimation {
                       StyleRuleKeyframes* style_rule,
                       AnimationTimeline* timeline,
                       const Vector<EAnimPlayState>& play_state_list,
-                      const std::optional<TimelineOffset>& range_start,
-                      const std::optional<TimelineOffset>& range_end,
-                      AnimationTrigger* trigger)
+                      const absl::optional<TimelineOffset>& range_start,
+                      const absl::optional<TimelineOffset>& range_end)
       : specified_timing(specified_timing),
         index(index),
         animation(animation),
@@ -106,15 +99,13 @@ class UpdatedCSSAnimation {
         timeline(timeline),
         play_state_list(play_state_list),
         range_start(range_start),
-        range_end(range_end),
-        trigger(trigger) {}
+        range_end(range_end) {}
 
   void Trace(Visitor* visitor) const {
     visitor->Trace(animation);
     visitor->Trace(effect);
     visitor->Trace(style_rule);
     visitor->Trace(timeline);
-    visitor->Trace(trigger);
   }
 
   Timing specified_timing;
@@ -125,9 +116,8 @@ class UpdatedCSSAnimation {
   unsigned style_rule_version;
   Member<AnimationTimeline> timeline;
   Vector<EAnimPlayState> play_state_list;
-  std::optional<TimelineOffset> range_start;
-  std::optional<TimelineOffset> range_end;
-  Member<AnimationTrigger> trigger;
+  absl::optional<TimelineOffset> range_start;
+  absl::optional<TimelineOffset> range_end;
 };
 
 }  // namespace blink
@@ -160,12 +150,11 @@ class CORE_EXPORT CSSAnimationUpdate final {
                       StyleRuleKeyframes* style_rule,
                       AnimationTimeline* timeline,
                       const Vector<EAnimPlayState>& play_state_list,
-                      const std::optional<TimelineOffset>& range_start,
-                      const std::optional<TimelineOffset>& range_end,
-                      AnimationTrigger* trigger) {
+                      const absl::optional<TimelineOffset>& range_start,
+                      const absl::optional<TimelineOffset>& range_end) {
     new_animations_.push_back(NewCSSAnimation(
         animation_name, name_index, position_index, effect, timing, style_rule,
-        timeline, play_state_list, range_start, range_end, trigger));
+        timeline, play_state_list, range_start, range_end));
   }
   void CancelAnimation(wtf_size_t index, const Animation& animation) {
     cancelled_animation_indices_.push_back(index);
@@ -181,12 +170,11 @@ class CORE_EXPORT CSSAnimationUpdate final {
                        StyleRuleKeyframes* style_rule,
                        AnimationTimeline* timeline,
                        const Vector<EAnimPlayState>& play_state_list,
-                       const std::optional<TimelineOffset>& range_start,
-                       const std::optional<TimelineOffset>& range_end,
-                       AnimationTrigger* trigger) {
+                       const absl::optional<TimelineOffset>& range_start,
+                       const absl::optional<TimelineOffset>& range_end) {
     animations_with_updates_.push_back(UpdatedCSSAnimation(
         index, animation, effect, specified_timing, style_rule, timeline,
-        play_state_list, range_start, range_end, trigger));
+        play_state_list, range_start, range_end));
     suppressed_animations_.insert(animation);
   }
   void UpdateCompositorKeyframes(Animation* animation) {
@@ -313,12 +301,6 @@ class CORE_EXPORT CSSAnimationUpdate final {
   }
   const ActiveInterpolationsMap& ActiveInterpolationsForTransitions() const {
     return active_interpolations_for_transitions_;
-  }
-
-  bool HasActiveInterpolationsForProperty(
-      const PropertyHandle& property) const {
-    return active_interpolations_for_animations_.Contains(property) ||
-           active_interpolations_for_transitions_.Contains(property);
   }
 
   bool IsEmpty() const { return !HasUpdates() && !HasActiveInterpolations(); }

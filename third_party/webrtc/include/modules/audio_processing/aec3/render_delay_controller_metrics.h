@@ -13,8 +13,7 @@
 
 #include <stddef.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "modules/audio_processing/aec3/clockdrift_detector.h"
 
 namespace webrtc {
@@ -29,8 +28,8 @@ class RenderDelayControllerMetrics {
       delete;
 
   // Updates the metric with new data.
-  void Update(std::optional<size_t> delay_samples,
-              std::optional<size_t> buffer_delay_blocks,
+  void Update(absl::optional<size_t> delay_samples,
+              absl::optional<size_t> buffer_delay_blocks,
               ClockdriftDetector::Level clockdrift);
 
  private:

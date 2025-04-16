@@ -45,6 +45,11 @@ class CORE_EXPORT LayoutTableColumn : public LayoutBox {
 
   // LayoutObject methods start.
 
+  void UpdateLayout() final {
+    NOT_DESTROYED();
+    NOTREACHED_NORETURN();
+  }
+
   const char* GetName() const override {
     NOT_DESTROYED();
     if (IsColumn())
@@ -78,9 +83,9 @@ class CORE_EXPORT LayoutTableColumn : public LayoutBox {
   }
 
  protected:
-  bool IsLayoutTableCol() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectTableCol || LayoutBox::IsOfType(type);
   }
 
   // Table row doesn't paint background by itself.

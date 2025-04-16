@@ -12,8 +12,6 @@
 #define API_VIDEO_TRACK_SOURCE_PROXY_FACTORY_H_
 
 #include "api/media_stream_interface.h"
-#include "api/scoped_refptr.h"
-#include "rtc_base/system/rtc_export.h"
 #include "rtc_base/thread.h"
 
 namespace webrtc {
@@ -22,8 +20,8 @@ namespace webrtc {
 // VideoTrackSourceInterface implementation is destroyed on the signaling thread
 // and marshals calls to `worker_thread` and `signaling_thread`.
 rtc::scoped_refptr<VideoTrackSourceInterface> RTC_EXPORT
-CreateVideoTrackSourceProxy(Thread* signaling_thread,
-                            Thread* worker_thread,
+CreateVideoTrackSourceProxy(rtc::Thread* signaling_thread,
+                            rtc::Thread* worker_thread,
                             VideoTrackSourceInterface* source);
 
 }  // namespace webrtc

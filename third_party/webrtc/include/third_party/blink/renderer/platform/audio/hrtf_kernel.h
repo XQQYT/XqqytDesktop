@@ -50,7 +50,7 @@ class AudioChannel;
 //      m_fftFrame is the frequency-domain representation of the impulse
 //      response with the delay removed
 //      m_frameDelay is the leading delay of the original impulse response.
-class HRTFKernel final {
+class HRTFKernel {
   USING_FAST_MALLOC(HRTFKernel);
 
  public:

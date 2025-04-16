@@ -5,7 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_COMMON_SCHEDULER_TASK_ATTRIBUTION_ID_H_
 #define THIRD_PARTY_BLINK_PUBLIC_COMMON_SCHEDULER_TASK_ATTRIBUTION_ID_H_
 
-#include <compare>
 #include <cstdint>
 
 namespace blink::scheduler {
@@ -24,10 +23,13 @@ class TaskAttributionId {
   TaskAttributionIdType value() const { return value_; }
 
   bool operator==(const TaskAttributionId& id) const {
-    return value_ == id.value_;
+    return id.value_ == value_;
   }
-  std::strong_ordering operator<=>(const TaskAttributionId& id) const {
-    return value_ <=> id.value_;
+  bool operator!=(const TaskAttributionId& id) const {
+    return id.value_ != value_;
+  }
+  bool operator<(const TaskAttributionId& id) const {
+    return value_ < id.value_;
   }
   TaskAttributionId NextId() const { return TaskAttributionId(value_ + 1); }
 

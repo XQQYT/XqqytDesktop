@@ -32,8 +32,8 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_BINDINGS_V8_DOM_WRAPPER_H_
 
 #include "base/check_op.h"
-#include "base/compiler_specific.h"
 #include "third_party/blink/renderer/platform/bindings/binding_security_for_platform.h"
+#include "third_party/blink/renderer/platform/bindings/custom_wrappable.h"
 #include "third_party/blink/renderer/platform/bindings/dom_data_store.h"
 #include "third_party/blink/renderer/platform/bindings/runtime_call_stats.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
@@ -52,10 +52,10 @@ class V8DOMWrapper {
   STATIC_ONLY(V8DOMWrapper);
 
  public:
-  PLATFORM_EXPORT static v8::Local<v8::Object> CreateWrapper(
+  PLATFORM_EXPORT static v8::MaybeLocal<v8::Object> CreateWrapper(
       ScriptState*,
       const WrapperTypeInfo*);
-  PLATFORM_EXPORT static bool IsWrapper(v8::Isolate*, v8::Local<v8::Object>);
+  PLATFORM_EXPORT static bool IsWrapper(v8::Isolate*, v8::Local<v8::Value>);
 
   // Associates the given ScriptWrappable with the given |wrapper| if the
   // ScriptWrappable is not yet associated with any wrapper.  Returns the
@@ -66,37 +66,59 @@ class V8DOMWrapper {
                              ScriptWrappable*,
                              const WrapperTypeInfo*,
                              v8::Local<v8::Object> wrapper);
+  static void AssociateObjectWithWrapper(v8::Isolate*,
+                                         CustomWrappable*,
+                                         const WrapperTypeInfo*,
+                                         v8::Local<v8::Object> wrapper);
   static void SetNativeInfo(v8::Isolate* isolate,
                             v8::Local<v8::Object> wrapper,
-                            ScriptWrappable* script_wrappable);
+                            const WrapperTypeInfo* wrapper_type_info,
+                            ScriptWrappable* script_wrappable) {
+    SetNativeInfoInternal(isolate, wrapper, wrapper_type_info,
+                          script_wrappable);
+  }
+  static void SetNativeInfo(v8::Isolate* isolate,
+                            v8::Local<v8::Object> wrapper,
+                            const WrapperTypeInfo* wrapper_type_info,
+                            CustomWrappable* custom_wrappable) {
+    SetNativeInfoInternal(isolate, wrapper, wrapper_type_info,
+                          custom_wrappable);
+  }
+  static void ClearNativeInfo(v8::Isolate*, v8::Local<v8::Object>);
 
-  static void ClearNativeInfo(v8::Isolate*,
-                              v8::Local<v8::Object>,
-                              const WrapperTypeInfo*);
+  // hasInternalFieldsSet only checks if the value has the internal fields for
+  // wrapper obejct and type, and does not check if it's valid or not.  The
+  // value may not be a Blink's wrapper object.  In order to make sure of it,
+  // Use isWrapper function instead.
+  PLATFORM_EXPORT static bool HasInternalFieldsSet(v8::Local<v8::Value>);
 
-  // HasInternalFieldsSet only checks if the value has the internal fields for
-  // wrapper object and type, and does not check if it's valid or not. The value
-  // may not be a Blink's wrapper object.  In order to make sure of it, use
-  // IsWrapper() instead.
-  PLATFORM_EXPORT static bool HasInternalFieldsSet(v8::Isolate*,
-                                                   v8::Local<v8::Object>);
+ private:
+  static void SetNativeInfoInternal(v8::Isolate*,
+                                    v8::Local<v8::Object>,
+                                    const WrapperTypeInfo*,
+                                    void*);
 };
 
-inline void V8DOMWrapper::SetNativeInfo(
+inline void V8DOMWrapper::SetNativeInfoInternal(
     v8::Isolate* isolate,
     v8::Local<v8::Object> wrapper,
-    ScriptWrappable* wrappable) {
+    const WrapperTypeInfo* wrapper_type_info,
+    void* wrappable) {
+  DCHECK_GE(wrapper->InternalFieldCount(), 2);
   DCHECK(wrappable);
-  DCHECK(!WrapperTypeInfo::HasLegacyInternalFieldsSet(wrapper));
-  v8::Object::Wrap(isolate, wrapper, wrappable,
-                   wrappable->GetWrapperTypeInfo()->this_tag);
+  DCHECK(wrapper_type_info);
+  int indices[] = {kV8DOMWrapperObjectIndex, kV8DOMWrapperTypeIndex};
+  void* values[] = {wrappable, const_cast<WrapperTypeInfo*>(wrapper_type_info)};
+  wrapper->SetAlignedPointerInInternalFields(std::size(indices), indices,
+                                             values);
 }
 
-inline void V8DOMWrapper::ClearNativeInfo(
-    v8::Isolate* isolate,
-    v8::Local<v8::Object> wrapper,
-    const WrapperTypeInfo* wrapper_type_info) {
-  v8::Object::Wrap(isolate, wrapper, nullptr, wrapper_type_info->this_tag);
+inline void V8DOMWrapper::ClearNativeInfo(v8::Isolate* isolate,
+                                          v8::Local<v8::Object> wrapper) {
+  int indices[] = {kV8DOMWrapperObjectIndex, kV8DOMWrapperTypeIndex};
+  void* values[] = {nullptr, nullptr};
+  wrapper->SetAlignedPointerInInternalFields(std::size(indices), indices,
+                                             values);
 }
 
 inline v8::Local<v8::Object> V8DOMWrapper::AssociateObjectWithWrapper(
@@ -107,24 +129,48 @@ inline v8::Local<v8::Object> V8DOMWrapper::AssociateObjectWithWrapper(
   RUNTIME_CALL_TIMER_SCOPE(
       isolate, RuntimeCallStats::CounterId::kAssociateObjectWithWrapper);
   if (DOMDataStore::SetWrapper(isolate, impl, wrapper_type_info, wrapper)) {
-    SetNativeInfo(isolate, wrapper, impl);
-    DCHECK(HasInternalFieldsSet(isolate, wrapper));
+    SetNativeInfo(isolate, wrapper, wrapper_type_info, impl);
+    DCHECK(HasInternalFieldsSet(wrapper));
   }
-  SECURITY_CHECK(ToAnyScriptWrappable(isolate, wrapper) == impl);
+  SECURITY_CHECK(ToScriptWrappable(wrapper) == impl);
   return wrapper;
 }
 
-class V8WrapperInstantiationScope final {
+inline void V8DOMWrapper::AssociateObjectWithWrapper(
+    v8::Isolate* isolate,
+    CustomWrappable* impl,
+    const WrapperTypeInfo* wrapper_type_info,
+    v8::Local<v8::Object> wrapper) {
+  RUNTIME_CALL_TIMER_SCOPE(
+      isolate, RuntimeCallStats::CounterId::kAssociateObjectWithWrapper);
+  SetNativeInfo(isolate, wrapper, wrapper_type_info, impl);
+  DCHECK(HasInternalFieldsSet(wrapper));
+  SECURITY_CHECK(ToCustomWrappable(wrapper) == impl);
+}
+
+class V8WrapperInstantiationScope {
   STACK_ALLOCATED();
 
  public:
-  V8WrapperInstantiationScope(ScriptState* script_state)
-      : context_(script_state->GetIsolate()->GetCurrentContext()) {
+  // This is an overload of constructor for CreateWrapperV2.
+  V8WrapperInstantiationScope(ScriptState* script_state,
+                              const WrapperTypeInfo* type)
+      : context_(script_state->GetIsolate()->GetCurrentContext()),
+        try_catch_(script_state->GetIsolate()),
+        type_(type) {
     v8::Local<v8::Context> context_for_wrapper = script_state->GetContext();
 
     // For performance, we enter the context only if the currently running
     // context is different from the context that we are about to enter.
-    if (context_for_wrapper == context_) [[likely]] {
+    if (context_for_wrapper == context_)
+      return;
+
+    if (!BindingSecurityForPlatform::ShouldAllowWrapperCreationOrThrowException(
+            script_state->GetIsolate()->GetCurrentContext(),
+            context_for_wrapper, type_)) {
+      DCHECK(try_catch_.HasCaught());
+      try_catch_.ReThrow();
+      access_check_failed_ = true;
       return;
     }
 
@@ -134,17 +180,36 @@ class V8WrapperInstantiationScope final {
   }
 
   ~V8WrapperInstantiationScope() {
-    if (!did_enter_context_) [[likely]] {
+    if (!did_enter_context_) {
+      try_catch_.ReThrow();
       return;
     }
     context_->Exit();
+
+    if (access_check_failed_ || !try_catch_.HasCaught())
+      return;
+
+    // Any exception caught here is a cross context exception and it may not be
+    // safe to directly rethrow the exception in the current context (without
+    // converting it). rethrowCrossContextException converts the exception in
+    // such a scenario.
+    v8::Local<v8::Value> caught_exception = try_catch_.Exception();
+    try_catch_.Reset();
+    BindingSecurityForPlatform::RethrowWrapperCreationException(
+        context_->GetIsolate()->GetCurrentContext(), context_, type_,
+        caught_exception);
+    try_catch_.ReThrow();
   }
 
   v8::Local<v8::Context> GetContext() const { return context_; }
+  bool AccessCheckFailed() const { return access_check_failed_; }
 
  private:
   bool did_enter_context_ = false;
   v8::Local<v8::Context> context_;
+  v8::TryCatch try_catch_;
+  const WrapperTypeInfo* type_;
+  bool access_check_failed_ = false;
 };
 
 }  // namespace blink

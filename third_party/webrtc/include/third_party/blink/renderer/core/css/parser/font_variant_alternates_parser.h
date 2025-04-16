@@ -7,12 +7,12 @@
 
 #include "third_party/blink/renderer/core/css/css_alternate_value.h"
 #include "third_party/blink/renderer/core/css/css_value_list.h"
+#include "third_party/blink/renderer/core/css/parser/css_parser_token_range.h"
 
 namespace blink {
 
 class CSSParserContext;
 class CSSIdentifierValue;
-class CSSParserTokenStream;
 
 class FontVariantAlternatesParser {
   STACK_ALLOCATED();
@@ -22,16 +22,16 @@ class FontVariantAlternatesParser {
 
   enum class ParseResult { kConsumedValue, kDisallowedValue, kUnknownValue };
 
-  ParseResult ConsumeAlternates(CSSParserTokenStream& stream,
+  ParseResult ConsumeAlternates(CSSParserTokenRange& range,
                                 const CSSParserContext& context);
 
   CSSValue* FinalizeValue();
 
  private:
-  bool ConsumeAlternate(CSSParserTokenStream& stream,
+  bool ConsumeAlternate(CSSParserTokenRange& range,
                         const CSSParserContext& context);
 
-  bool ConsumeHistoricalForms(CSSParserTokenStream& stream);
+  bool ConsumeHistoricalForms(CSSParserTokenRange& range);
 
   CSSValueList* alternates_list_;
   cssvalue::CSSAlternateValue* stylistic_ = nullptr;

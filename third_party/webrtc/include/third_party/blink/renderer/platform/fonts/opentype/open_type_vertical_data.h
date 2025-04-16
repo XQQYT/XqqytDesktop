@@ -27,10 +27,10 @@
 
 #include "base/memory/scoped_refptr.h"
 #include "third_party/blink/renderer/platform/fonts/glyph.h"
-#include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/hash_map.h"
+#include "third_party/blink/renderer/platform/wtf/ref_counted.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "third_party/skia/include/core/SkRefCnt.h"
 #include "third_party/skia/include/core/SkTypeface.h"
@@ -40,11 +40,14 @@ class SkFont;
 namespace blink {
 
 class PLATFORM_EXPORT OpenTypeVerticalData
-    : public GarbageCollected<OpenTypeVerticalData> {
- public:
-  explicit OpenTypeVerticalData(sk_sp<SkTypeface>);
+    : public RefCounted<OpenTypeVerticalData> {
+  USING_FAST_MALLOC(OpenTypeVerticalData);
 
-  void Trace(Visitor*) const {}
+ public:
+  static scoped_refptr<OpenTypeVerticalData> CreateUnscaled(
+      sk_sp<SkTypeface> typeface) {
+    return base::AdoptRef(new OpenTypeVerticalData(typeface));
+  }
 
   void SetScaleAndFallbackMetrics(float size_per_unit,
                                   float ascent,
@@ -60,6 +63,8 @@ class PLATFORM_EXPORT OpenTypeVerticalData
                                         float* out_xy_array) const;
 
  private:
+  explicit OpenTypeVerticalData(sk_sp<SkTypeface>);
+
   void LoadMetrics(sk_sp<SkTypeface>);
   bool HasVORG() const { return !vert_origin_y_.empty(); }
 

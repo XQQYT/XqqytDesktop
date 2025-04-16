@@ -5,22 +5,20 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_TABLE_TABLE_LAYOUT_UTILS_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_TABLE_TABLE_LAYOUT_UTILS_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/table/table_layout_algorithm_types.h"
 #include "third_party/blink/renderer/core/style/computed_style_constants.h"
 
 namespace blink {
 
-class BlockNode;
-class BoxFragmentBuilder;
-class ConstraintSpaceBuilder;
-class LogicalBoxFragment;
+class NGBlockNode;
+class NGBoxFragment;
+class NGBoxFragmentBuilder;
+class NGConstraintSpaceBuilder;
 class TableBorders;
 class TableNode;
-enum class BlockContentAlignment;
-enum class LayoutResultCacheSlot;
+enum class NGCacheSlot;
 struct TableColumnLocation;
 
 // Table size distribution algorithms.
@@ -44,31 +42,31 @@ CellBlockSizeData ComputeCellBlockSize(
 // creating the constraint-space for table-cells as consistent as possible.
 void SetupTableCellConstraintSpaceBuilder(
     const WritingDirectionMode table_writing_direction,
-    const BlockNode cell,
+    const NGBlockNode cell,
     const BoxStrut& cell_borders,
     const Vector<TableColumnLocation>& column_locations,
     LayoutUnit cell_block_size,
     LayoutUnit percentage_inline_size,
-    std::optional<LayoutUnit> alignment_baseline,
+    absl::optional<LayoutUnit> alignment_baseline,
     wtf_size_t start_column,
     bool is_initial_block_size_indefinite,
     bool is_restricted_block_size_table,
     bool has_collapsed_borders,
-    LayoutResultCacheSlot,
-    ConstraintSpaceBuilder*);
+    NGCacheSlot,
+    NGConstraintSpaceBuilder*);
 
 wtf_size_t ComputeMaximumNonMergeableColumnCount(
-    const HeapVector<BlockNode>& columns,
+    const HeapVector<NGBlockNode>& columns,
     bool is_fixed_layout);
 
 scoped_refptr<TableTypes::Columns> ComputeColumnConstraints(
-    const BlockNode& table,
+    const NGBlockNode& table,
     const TableGroupedChildren&,
     const TableBorders& table_borders,
     const BoxStrut& border_padding);
 
 void ComputeSectionMinimumRowBlockSizes(
-    const BlockNode& section,
+    const NGBlockNode& section,
     const LayoutUnit cell_percentage_resolution_inline_size,
     const bool is_table_block_size_specified,
     const Vector<TableColumnLocation>& column_locations,
@@ -82,7 +80,7 @@ void ComputeSectionMinimumRowBlockSizes(
 
 // Performs any final adjustments for table-cells at the end of layout.
 void FinalizeTableCellLayout(LayoutUnit unconstrained_intrinsic_block_size,
-                             BoxFragmentBuilder*);
+                             NGBoxFragmentBuilder*);
 
 // ColspanCellTabulator keeps track of columns occupied by colspanned cells
 // when traversing rows in a section. It is used to compute cell's actual
@@ -103,7 +101,7 @@ class ColspanCellTabulator {
   unsigned CurrentColumn() { return current_column_; }
   void StartRow();
   void FindNextFreeColumn();
-  void ProcessCell(const BlockNode& cell);
+  void ProcessCell(const NGBlockNode& cell);
   void EndRow();
 
   struct Cell {
@@ -127,8 +125,8 @@ class ColspanCellTabulator {
 // or bottom content edge of non-baseline-aligned cells.
 class RowBaselineTabulator {
  public:
-  void ProcessCell(const LogicalBoxFragment& fragment,
-                   BlockContentAlignment align,
+  void ProcessCell(const NGBoxFragment& fragment,
+                   EVerticalAlign align,
                    bool is_rowspanned,
                    bool descendant_depends_on_percentage_block_size);
 
@@ -140,13 +138,13 @@ class RowBaselineTabulator {
 
  private:
   // Cell baseline is computed from baseline-aligned cells.
-  std::optional<LayoutUnit> max_cell_ascent_;
-  std::optional<LayoutUnit> max_cell_descent_;
+  absl::optional<LayoutUnit> max_cell_ascent_;
+  absl::optional<LayoutUnit> max_cell_descent_;
   bool max_cell_baseline_depends_on_percentage_block_descendant_ = false;
 
   // Non-baseline aligned cells are used to compute baseline if baseline
   // cells are not available.
-  std::optional<LayoutUnit> fallback_cell_descent_;
+  absl::optional<LayoutUnit> fallback_cell_descent_;
   bool fallback_cell_depends_on_percentage_block_descendant_ = false;
 };
 

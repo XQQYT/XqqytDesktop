@@ -36,15 +36,15 @@ namespace webrtc {
 // (unless using CreateNoGlobal):
 class FieldTrials : public FieldTrialsRegistry {
  public:
-  explicit FieldTrials(absl::string_view s);
+  explicit FieldTrials(const std::string& s);
   ~FieldTrials();
 
   // Create a FieldTrials object that is not reading/writing from
   // global variable (i.e can not be used for all parts of webrtc).
-  static std::unique_ptr<FieldTrials> CreateNoGlobal(absl::string_view s);
+  static std::unique_ptr<FieldTrials> CreateNoGlobal(const std::string& s);
 
  private:
-  explicit FieldTrials(absl::string_view s, bool);
+  explicit FieldTrials(const std::string& s, bool);
 
   std::string GetValue(absl::string_view key) const override;
 

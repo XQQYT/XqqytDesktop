@@ -63,6 +63,8 @@ template <typename DomainMetainfo>
 class InspectorBaseAgent : public InspectorAgent,
                            public DomainMetainfo::BackendClass {
  public:
+  ~InspectorBaseAgent() override = default;
+
   void Init(CoreProbeSink* instrumenting_agents,
             protocol::UberDispatcher* dispatcher,
             InspectorSessionState* session_state) override {
@@ -91,9 +93,7 @@ class InspectorBaseAgent : public InspectorAgent,
 
  protected:
   InspectorBaseAgent() : agent_state_(DomainMetainfo::domainName) {}
-  ~InspectorBaseAgent() override {
-    CHECK(!frontend_);  // Ensure Dispose() has been called.
-  }
+
   typename DomainMetainfo::FrontendClass* GetFrontend() const {
     return frontend_.get();
   }

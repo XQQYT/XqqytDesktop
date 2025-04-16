@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<meta name=fuzzy content="maxDifference=0-3; totalPixels=0-1000">
+<html>
+<head>
   <script src="../../../resources/testharness.js"></script>
   <script src="../../../resources/testharnessreport.js"></script>
   <script src="../../../resources/testdriver.js"></script>
@@ -7,7 +8,8 @@
   <script src="../resources/common.js"></script>
   <script src="../resources/picker-common.js"></script>
   <script src="../calendar-picker/resources/calendar-picker-common.js"></script>
-
+</head>
+<body>
 
 <div id="shadowHost">
   <template shadowrootmode="open">
@@ -23,4 +25,6 @@
     assert_equals(accessibilityController.focusedElement.role, "AXRole: AXGrid", "a11y focus should have moved inside the calendar grid in the control's popup");
   }, 'Tests that a11y focus is sent inside the date picker popup when the control is in a shadow DOM.');
 </script>
+</body>
 
+</html>

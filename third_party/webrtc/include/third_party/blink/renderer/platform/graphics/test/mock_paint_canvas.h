@@ -5,18 +5,14 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_GRAPHICS_TEST_MOCK_PAINT_CANVAS_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_GRAPHICS_TEST_MOCK_PAINT_CANVAS_H_
 
-#include "base/containers/span.h"
 #include "cc/paint/paint_canvas.h"
 #include "cc/paint/paint_flags.h"
-#include "cc/paint/paint_record.h"
 #include "cc/paint/skottie_color_map.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "third_party/blink/renderer/platform/graphics/paint/paint_image.h"
-#include "third_party/skia/include/core/SkRefCnt.h"
 #include "third_party/skia/include/core/SkTextBlob.h"
 
 namespace cc {
-class PaintFilter;
 class SkottieWrapper;
 }  // namespace cc
 
@@ -35,10 +31,6 @@ class MockPaintCanvas : public cc::PaintCanvas {
                int(const SkRect& bounds, const cc::PaintFlags& flags));
   MOCK_METHOD1(saveLayerAlphaf, int(float alpha));
   MOCK_METHOD2(saveLayerAlphaf, int(const SkRect& bounds, float alpha));
-  MOCK_METHOD(int,
-              saveLayerFilters,
-              (base::span<const sk_sp<cc::PaintFilter>> filters,
-               const cc::PaintFlags& flags));
   MOCK_METHOD0(restore, void());
   MOCK_CONST_METHOD0(getSaveCount, int());
   MOCK_METHOD1(restoreToCount, void(int save_count));
@@ -67,11 +59,6 @@ class MockPaintCanvas : public cc::PaintCanvas {
                     SkScalar y0,
                     SkScalar x1,
                     SkScalar y1,
-                    const cc::PaintFlags& flags));
-  MOCK_METHOD4(drawArc,
-               void(const SkRect& oval,
-                    SkScalar start_angle_degrees,
-                    SkScalar sweep_angle_degrees,
                     const cc::PaintFlags& flags));
   MOCK_METHOD2(drawRect, void(const SkRect& rect, const cc::PaintFlags& flags));
   MOCK_METHOD2(drawIRect,
@@ -105,11 +92,6 @@ class MockPaintCanvas : public cc::PaintCanvas {
                     const SkSamplingOptions&,
                     const cc::PaintFlags* flags,
                     SkCanvas::SrcRectConstraint constraint));
-  MOCK_METHOD4(drawVertices,
-               void(scoped_refptr<cc::RefCountedBuffer<SkPoint>> vertices,
-                    scoped_refptr<cc::RefCountedBuffer<SkPoint>> uvs,
-                    scoped_refptr<cc::RefCountedBuffer<uint16_t>> indices,
-                    const cc::PaintFlags& flags));
   MOCK_METHOD6(drawSkottie,
                void(scoped_refptr<cc::SkottieWrapper> skottie,
                     const SkRect& dst,
@@ -134,8 +116,7 @@ class MockPaintCanvas : public cc::PaintCanvas {
                     cc::NodeId node_id,
                     const cc::PaintFlags& flags));
 
-  MOCK_METHOD1(drawPicture, void(cc::PaintRecord record));
-  MOCK_METHOD2(drawPicture, void(cc::PaintRecord record, bool local_ctm));
+  MOCK_METHOD1(drawPicture, void(PaintRecord record));
   MOCK_CONST_METHOD0(getLocalToDevice, SkM44());
 
   MOCK_METHOD3(Annotate,

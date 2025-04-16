@@ -100,71 +100,33 @@ struct ContainerHelper {
 };
 
 // For testing ExplainMatchResultTo().
-template <typename T>
-struct GtestGreaterThanMatcher {
-  using is_gtest_matcher = void;
-
-  void DescribeTo(ostream* os) const { *os << "is > " << rhs; }
-  void DescribeNegationTo(ostream* os) const { *os << "is <= " << rhs; }
-
-  bool MatchAndExplain(T lhs, MatchResultListener* listener) const {
-    if (lhs > rhs) {
-      *listener << "which is " << (lhs - rhs) << " more than " << rhs;
-    } else if (lhs == rhs) {
-      *listener << "which is the same as " << rhs;
-    } else {
-      *listener << "which is " << (rhs - lhs) << " less than " << rhs;
-    }
-
-    return lhs > rhs;
-  }
-
-  T rhs;
-};
-
-template <typename T>
-GtestGreaterThanMatcher<typename std::decay<T>::type> GtestGreaterThan(
-    T&& rhs) {
-  return {rhs};
-}
-
-// As the matcher above, but using the base class with virtual functions.
-template <typename T>
+template <typename T = int>
 class GreaterThanMatcher : public MatcherInterface<T> {
  public:
-  explicit GreaterThanMatcher(T rhs) : impl_{rhs} {}
+  explicit GreaterThanMatcher(T rhs) : rhs_(rhs) {}
 
-  void DescribeTo(ostream* os) const override { impl_.DescribeTo(os); }
-  void DescribeNegationTo(ostream* os) const override {
-    impl_.DescribeNegationTo(os);
-  }
+  void DescribeTo(ostream* os) const override { *os << "is > " << rhs_; }
 
   bool MatchAndExplain(T lhs, MatchResultListener* listener) const override {
-    return impl_.MatchAndExplain(lhs, listener);
+    if (lhs > rhs_) {
+      *listener << "which is " << (lhs - rhs_) << " more than " << rhs_;
+    } else if (lhs == rhs_) {
+      *listener << "which is the same as " << rhs_;
+    } else {
+      *listener << "which is " << (rhs_ - lhs) << " less than " << rhs_;
+    }
+
+    return lhs > rhs_;
   }
 
  private:
-  const GtestGreaterThanMatcher<T> impl_;
+  const T rhs_;
 };
 
-// Names and instantiates a new instance of GTestMatcherTestP.
-#define INSTANTIATE_GTEST_MATCHER_TEST_P(TestSuite)                        \
-  using TestSuite##P = GTestMatcherTestP;                                  \
-  INSTANTIATE_TEST_SUITE_P(MatcherInterface, TestSuite##P, Values(false)); \
-  INSTANTIATE_TEST_SUITE_P(GtestMatcher, TestSuite##P, Values(true))
-
-class GTestMatcherTestP : public testing::TestWithParam<bool> {
- public:
-  template <typename T>
-  Matcher<T> GreaterThan(T n) {
-    if (use_gtest_matcher_) {
-      return GtestGreaterThan(n);
-    } else {
-      return MakeMatcher(new GreaterThanMatcher<T>(n));
-    }
-  }
-  const bool use_gtest_matcher_ = GetParam();
-};
+template <typename T>
+Matcher<T> GreaterThan(T n) {
+  return MakeMatcher(new GreaterThanMatcher<T>(n));
+}
 
 // Returns the description of the given matcher.
 template <typename T>

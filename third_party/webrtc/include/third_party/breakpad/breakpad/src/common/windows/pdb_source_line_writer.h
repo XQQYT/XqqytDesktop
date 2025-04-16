@@ -103,6 +103,15 @@ class PDBSourceLineWriter {
   bool UsesGUID(bool *uses_guid);
 
  private:
+  // InlineOrigin represents INLINE_ORIGIN record in a symbol file. It's an
+  // inlined function.
+  struct InlineOrigin {
+    // The unique id for an InlineOrigin.
+    int id;
+    // The name of the inlined function.
+    wstring name;
+  };
+
   // Line represents LINE record in a symbol file. It represents a source code
   // line.
   struct Line {
@@ -186,10 +195,6 @@ class PDBSourceLineWriter {
     // not overlap.
     map<DWORD, Line> line_map_;
   };
-
-  // Returns the unique id for the inline origin with the same name as the given
-  // callsite, creating a new id if needed.
-  int GetCallsiteInlineOriginId(CComPtr<IDiaSymbol>& callsite);
 
   // Construct Line from IDiaLineNumber. The output Line is stored at line.
   // Return true on success.
@@ -332,8 +337,8 @@ class PDBSourceLineWriter {
   // This maps unique filenames to file IDs.
   unordered_map<wstring, DWORD> unique_files_;
 
-  // The INLINE_ORIGINS records; inline origin name -> unique id.
-  std::map<wstring, int> inline_origins_;
+  // The INLINE_ORIGINS records. The key is the function name.
+  std::map<wstring, InlineOrigin> inline_origins_;
 
   // This is used for calculating post-transform symbol addresses and lengths.
   ImageMap image_map_;

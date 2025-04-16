@@ -40,23 +40,27 @@ class LayoutSVGHiddenContainer : public LayoutSVGContainer {
   }
 
  protected:
-  SVGLayoutResult UpdateSVGLayout(const SVGLayoutInfo&) override;
+  void UpdateLayout() override;
 
-  bool IsSVGHiddenContainer() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectSVGHiddenContainer ||
+           LayoutSVGContainer::IsOfType(type);
   }
 
  private:
   // LayoutSVGHiddenContainer paints nothing.
   void Paint(const PaintInfo&) const final { NOT_DESTROYED(); }
+  PhysicalRect VisualRectInDocument(VisualRectFlags) const final {
+    NOT_DESTROYED();
+    return PhysicalRect();
+  }
   gfx::RectF VisualRectInLocalSVGCoordinates() const final {
     NOT_DESTROYED();
     return gfx::RectF();
   }
-  void QuadsInAncestorInternal(Vector<gfx::QuadF>&,
-                               const LayoutBoxModelObject* ancestor,
-                               MapCoordinatesFlags) const final {
+  void AbsoluteQuads(Vector<gfx::QuadF>&,
+                     MapCoordinatesFlags mode = 0) const final {
     NOT_DESTROYED();
   }
 

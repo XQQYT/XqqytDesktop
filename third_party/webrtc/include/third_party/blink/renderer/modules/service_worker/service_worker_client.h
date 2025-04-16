@@ -15,9 +15,6 @@ namespace blink {
 
 class PostMessageOptions;
 class ScriptState;
-class V8ClientLifecycleState;
-class V8ClientType;
-class V8ContextFrameType;
 
 class MODULES_EXPORT ServiceWorkerClient : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
@@ -28,13 +25,13 @@ class MODULES_EXPORT ServiceWorkerClient : public ScriptWrappable {
 
   // Client.idl
   String url() const { return url_; }
-  V8ClientType type() const;
-  V8ContextFrameType frameType(ScriptState*) const;
+  String type() const;
+  String frameType(ScriptState*) const;
   String id() const { return uuid_; }
-  V8ClientLifecycleState lifecycleState() const;
+  String lifecycleState() const;
   void postMessage(ScriptState*,
                    const ScriptValue& message,
-                   HeapVector<ScriptObject> transfer,
+                   HeapVector<ScriptValue>& transfer,
                    ExceptionState&);
   void postMessage(ScriptState*,
                    const ScriptValue& message,

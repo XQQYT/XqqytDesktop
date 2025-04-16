@@ -12,7 +12,6 @@
 #define MODULES_PORTAL_XDG_SESSION_DETAILS_H_
 
 #include <gio/gio.h>
-#include <stdint.h>
 
 #include <string>
 

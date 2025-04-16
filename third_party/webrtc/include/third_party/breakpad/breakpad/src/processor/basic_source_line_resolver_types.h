@@ -39,6 +39,7 @@
 #include <map>
 #include <string>
 
+#include "common/scoped_ptr.h"
 #include "google_breakpad/processor/basic_source_line_resolver.h"
 #include "processor/source_line_resolver_base_types.h"
 

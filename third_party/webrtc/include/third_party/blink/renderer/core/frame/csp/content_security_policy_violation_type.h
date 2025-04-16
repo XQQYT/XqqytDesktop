@@ -17,7 +17,6 @@ enum ContentSecurityPolicyViolationType {
   kInlineViolation,
   kEvalViolation,
   kURLViolation,
-  kSRIViolation,
   kTrustedTypesSinkViolation,
   kTrustedTypesPolicyViolation,
   kWasmEvalViolation

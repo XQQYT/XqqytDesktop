@@ -32,7 +32,6 @@ class SVGImageLoader final : public ImageLoader {
 
  private:
   void DispatchLoadEvent() override;
-  void DispatchErrorEvent() override;
   String DebugName() const override { return "SVGImageLoader"; }
 };
 

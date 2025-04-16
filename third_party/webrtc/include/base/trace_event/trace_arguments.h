@@ -2,11 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/40284755): Remove this and spanify to fix the errors.
-#pragma allow_unsafe_buffers
-#endif
-
 #ifndef BASE_TRACE_EVENT_TRACE_ARGUMENTS_H_
 #define BASE_TRACE_EVENT_TRACE_ARGUMENTS_H_
 
@@ -140,16 +135,26 @@ class ThreadTicks;
 
 namespace trace_event {
 
+class TraceEventMemoryOverhead;
+
 // For any argument of type TRACE_VALUE_TYPE_CONVERTABLE the provided
 // class must implement this interface. Note that unlike other values,
 // these objects will be owned by the TraceArguments instance that points
 // to them.
-class BASE_EXPORT ConvertableToTraceFormat : public perfetto::DebugAnnotation {
+class BASE_EXPORT ConvertableToTraceFormat
+#if BUILDFLAG(USE_PERFETTO_CLIENT_LIBRARY)
+    : public perfetto::DebugAnnotation
+#endif
+{
  public:
   ConvertableToTraceFormat() = default;
   ConvertableToTraceFormat(const ConvertableToTraceFormat&) = delete;
   ConvertableToTraceFormat& operator=(const ConvertableToTraceFormat&) = delete;
+#if BUILDFLAG(USE_PERFETTO_CLIENT_LIBRARY)
   ~ConvertableToTraceFormat() override = default;
+#else
+  virtual ~ConvertableToTraceFormat() = default;
+#endif
 
   // Append the class info to the provided |out| string. The appended
   // data must be a valid JSON object. Strings must be properly quoted, and
@@ -172,8 +177,12 @@ class BASE_EXPORT ConvertableToTraceFormat : public perfetto::DebugAnnotation {
   };
   virtual bool AppendToProto(ProtoAppender* appender) const;
 
+  virtual void EstimateTraceMemoryOverhead(TraceEventMemoryOverhead* overhead);
+
+#if BUILDFLAG(USE_PERFETTO_CLIENT_LIBRARY)
   // DebugAnnotation implementation.
   void Add(perfetto::protos::pbzero::DebugAnnotation*) const override;
+#endif
 };
 
 const int kTraceMaxNumArgs = 2;
@@ -258,6 +267,13 @@ union BASE_EXPORT TraceValue {
  private:
   void Append(unsigned char type, bool as_json, std::string* out) const;
 
+  // InnerType<T>::type removes reference, cv-qualifications and decays
+  // function and arrays into pointers. Only used internally.
+  template <typename T>
+  struct InnerType {
+    using type = std::decay_t<T>;
+  };
+
  public:
   // TraceValue::Helper is used to provide information about initialization
   // value types and an initialization function. It is a struct that should
@@ -269,7 +285,7 @@ union BASE_EXPORT TraceValue {
   //        TraceValue value from a given T value. Second parameter type
   //        can also be const T& or T&& to restrict uses.
   //
-  // IMPORTANT: The type T must be std::decay_t<Q>, where Q is the real C++
+  // IMPORTANT: The type T must be InnerType<Q>, where Q is the real C++
   // argument type. I.e. you should not have to deal with reference types
   // in your specialization.
   //
@@ -300,8 +316,21 @@ union BASE_EXPORT TraceValue {
   struct Helper {};
 
   template <typename T>
-  static constexpr bool HasHelperSupport =
-      requires { TraceValue::Helper<std::decay_t<T>>::kType; };
+  struct HasHelperSupport {
+   private:
+    using Yes = char[1];
+    using No = char[2];
+
+    template <typename V>
+    static Yes& check_support(
+        decltype(TraceValue::Helper<typename InnerType<V>::type>::kType,
+                 int()));
+    template <typename V>
+    static No& check_support(...);
+
+   public:
+    static constexpr bool value = sizeof(Yes) == sizeof(check_support<T>(0));
+  };
 
   // TraceValue::TypeFor<T>::value returns the TRACE_VALUE_TYPE_XXX
   // corresponding to initialization values of type T.
@@ -309,15 +338,18 @@ union BASE_EXPORT TraceValue {
   struct TypeFor;
 
   template <typename T>
-  struct TypeFor<T, std::enable_if_t<HasHelperSupport<T>>> {
-    using ValueType = std::decay_t<T>;
+  struct TypeFor<
+      T,
+      std::enable_if_t<HasHelperSupport<typename InnerType<T>::type>::value>> {
+    using ValueType = typename InnerType<T>::type;
     static const unsigned char value = Helper<ValueType>::kType;
   };
   template <typename T>
-  struct TypeFor<T,
-                 std::enable_if_t<!HasHelperSupport<T> &&
-                                  perfetto::internal::has_traced_value_support<
-                                      std::decay_t<T>>::value>> {
+  struct TypeFor<
+      T,
+      std::enable_if_t<!HasHelperSupport<typename InnerType<T>::type>::value &&
+                       perfetto::internal::has_traced_value_support<
+                           typename InnerType<T>::type>::value>> {
     static const unsigned char value = TRACE_VALUE_TYPE_PROTO;
   };
 
@@ -325,11 +357,11 @@ union BASE_EXPORT TraceValue {
   // initialize a TraceValue instance. This is useful to restrict template
   // instantiation to only the appropriate type (see TraceArguments
   // constructors below).
-  template <
-      typename T,
-      class = std::enable_if_t<
-          HasHelperSupport<T> ||
-          perfetto::internal::has_traced_value_support<std::decay_t<T>>::value>>
+  template <typename T,
+            class = std::enable_if_t<
+                HasHelperSupport<typename InnerType<T>::type>::value ||
+                perfetto::internal::has_traced_value_support<
+                    typename InnerType<T>::type>::value>>
   struct TypeCheck {
     static const bool value = true;
   };
@@ -348,15 +380,16 @@ union BASE_EXPORT TraceValue {
   //
   // NOTE: For ConvertableToTraceFormat values, see the notes above.
   template <class T>
-  std::enable_if_t<HasHelperSupport<T>> Init(T&& value) {
-    using ValueType = std::decay_t<T>;
+  std::enable_if_t<HasHelperSupport<typename InnerType<T>::type>::value> Init(
+      T&& value) {
+    using ValueType = typename InnerType<T>::type;
     Helper<ValueType>::SetValue(this, std::forward<T>(value));
   }
 
   template <class T>
-  std::enable_if_t<
-      !HasHelperSupport<T> &&
-      perfetto::internal::has_traced_value_support<std::decay_t<T>>::value>
+  std::enable_if_t<!HasHelperSupport<typename InnerType<T>::type>::value &&
+                   perfetto::internal::has_traced_value_support<
+                       typename InnerType<T>::type>::value>
   Init(T&& value) {
     as_proto = new protozero::HeapBuffered<
         perfetto::protos::pbzero::DebugAnnotation>();
@@ -499,9 +532,8 @@ class BASE_EXPORT StringStorage {
   explicit StringStorage(size_t alloc_size) { Reset(alloc_size); }
 
   ~StringStorage() {
-    if (data_) {
+    if (data_)
       ::free(data_);
-    }
   }
 
   StringStorage(StringStorage&& other) noexcept : data_(other.data_) {
@@ -510,9 +542,8 @@ class BASE_EXPORT StringStorage {
 
   StringStorage& operator=(StringStorage&& other) noexcept {
     if (this != &other) {
-      if (data_) {
+      if (data_)
         ::free(data_);
-      }
       data_ = other.data_;
       other.data_ = nullptr;
     }
@@ -548,6 +579,12 @@ class BASE_EXPORT StringStorage {
   // storage area.
   bool Contains(const TraceArguments& args) const;
 
+  // Return an estimate of the memory overhead of this instance. This doesn't
+  // count the size of |data_| itself.
+  constexpr size_t EstimateTraceMemoryOverhead() const {
+    return data_ ? sizeof(size_t) + data_->size : 0u;
+  }
+
  private:
   // Heap allocated data block (variable size), made of:
   //
@@ -563,7 +600,8 @@ class BASE_EXPORT StringStorage {
   // enough, but the compiler will then complaing about inlined constructors
   // and destructors being too complex (!), resulting in larger code for no
   // good reason.
-  // RAW_PTR_EXCLUSION: As above, inlining bloats code for no good reason.
+  // This field is not a raw_ptr<> because it was filtered by the rewriter for:
+  // #constexpr-ctor-field-initializer
   RAW_PTR_EXCLUSION Data* data_ = nullptr;
 };
 
@@ -635,9 +673,8 @@ class BASE_EXPORT TraceArguments {
                  const unsigned long long* arg_values,
                  CONVERTABLE_TYPE* arg_convertables) {
     static int max_args = static_cast<int>(kMaxSize);
-    if (num_args > max_args) {
+    if (num_args > max_args)
       num_args = max_args;
-    }
     size_ = static_cast<unsigned char>(num_args);
     for (size_t n = 0; n < size_; ++n) {
       types_[n] = arg_types[n];
@@ -654,12 +691,10 @@ class BASE_EXPORT TraceArguments {
   // Destructor. NOTE: Intentionally inlined (see note above).
   ~TraceArguments() {
     for (size_t n = 0; n < size_; ++n) {
-      if (types_[n] == TRACE_VALUE_TYPE_CONVERTABLE) {
+      if (types_[n] == TRACE_VALUE_TYPE_CONVERTABLE)
         delete values_[n].as_convertable;
-      }
-      if (types_[n] == TRACE_VALUE_TYPE_PROTO) {
+      if (types_[n] == TRACE_VALUE_TYPE_PROTO)
         delete values_[n].as_proto;
-      }
     }
   }
 

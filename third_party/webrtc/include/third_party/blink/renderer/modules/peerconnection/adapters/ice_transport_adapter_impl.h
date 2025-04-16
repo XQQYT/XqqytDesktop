@@ -5,9 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_PEERCONNECTION_ADAPTERS_ICE_TRANSPORT_ADAPTER_IMPL_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_PEERCONNECTION_ADAPTERS_ICE_TRANSPORT_ADAPTER_IMPL_H_
 
-#include <vector>
-
 #include "base/memory/raw_ptr.h"
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/blink/renderer/modules/peerconnection/adapters/ice_transport_adapter.h"
 #include "third_party/webrtc/api/ice_transport_interface.h"
 
@@ -27,11 +26,10 @@ class IceTransportAdapterImpl final : public IceTransportAdapter,
   ~IceTransportAdapterImpl() override;
 
   // IceTransportAdapter overrides.
-  void StartGathering(
-      const cricket::IceParameters& local_parameters,
-      const cricket::ServerAddresses& stun_servers,
-      const std::vector<cricket::RelayServerConfig>& turn_servers,
-      IceTransportPolicy policy) override;
+  void StartGathering(const cricket::IceParameters& local_parameters,
+                      const cricket::ServerAddresses& stun_servers,
+                      const WebVector<cricket::RelayServerConfig>& turn_servers,
+                      IceTransportPolicy policy) override;
   void Start(
       const cricket::IceParameters& remote_parameters,
       cricket::IceRole role,
@@ -51,10 +49,10 @@ class IceTransportAdapterImpl final : public IceTransportAdapter,
                            const cricket::Candidate& candidate);
   void OnStateChanged(cricket::IceTransportInternal* transport);
   void OnNetworkRouteChanged(
-      std::optional<rtc::NetworkRoute> new_network_route);
+      absl::optional<rtc::NetworkRoute> new_network_route);
   void OnRoleConflict(cricket::IceTransportInternal* transport);
 
-  const raw_ptr<Delegate> delegate_;
+  const raw_ptr<Delegate, ExperimentalRenderer> delegate_;
   rtc::scoped_refptr<webrtc::IceTransportInterface> ice_transport_channel_;
 };
 

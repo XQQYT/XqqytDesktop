@@ -17,18 +17,16 @@
 #ifndef SRC_TRACE_PROCESSOR_UTIL_PROTO_PROFILER_H_
 #define SRC_TRACE_PROCESSOR_UTIL_PROTO_PROFILER_H_
 
-#include <cstddef>
-#include <cstdint>
-#include <functional>
-#include <optional>
-#include <string>
+#include <algorithm>
 #include <vector>
 
+#include "perfetto/ext/base/hash.h"
 #include "perfetto/protozero/field.h"
-#include "perfetto/protozero/proto_decoder.h"
 #include "src/trace_processor/util/descriptors.h"
 
-namespace perfetto::trace_processor::util {
+namespace perfetto {
+namespace trace_processor {
+namespace util {
 
 class SizeProfileComputer {
  public:
@@ -91,7 +89,7 @@ class SizeProfileComputer {
   operator bool() const;
 
  private:
-  static size_t GetFieldSize(const protozero::Field& f);
+  size_t GetFieldSize(const protozero::Field& f);
 
   DescriptorPool* pool_;
   uint32_t root_message_idx_;
@@ -114,6 +112,8 @@ class SizeProfileComputer {
   std::vector<State> state_stack_;
 };
 
-}  // namespace perfetto::trace_processor::util
+}  // namespace util
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_UTIL_PROTO_PROFILER_H_

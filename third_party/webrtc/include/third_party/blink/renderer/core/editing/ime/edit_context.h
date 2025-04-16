@@ -12,7 +12,6 @@
 #include "third_party/blink/renderer/core/dom/element_rare_data_field.h"
 #include "third_party/blink/renderer/core/dom/events/event_target.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
-#include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "ui/base/ime/ime_text_span.h"
 #include "ui/gfx/geometry/rect.h"
 
@@ -32,6 +31,7 @@ class InputMethodController;
 
 class CORE_EXPORT EditContext final : public EventTarget,
                                       public ActiveScriptWrappable<EditContext>,
+                                      public ExecutionContextClient,
                                       public WebInputMethodController,
                                       public ElementRareDataField {
   DEFINE_WRAPPERTYPEINFO();
@@ -77,9 +77,8 @@ class CORE_EXPORT EditContext final : public EventTarget,
   // CharacterBoundsUpdateEvent. The arguments to this method describe a
   // sequence of bounding boxes that are requested by
   // CharacterBoundsUpdateEvent.
-  void updateCharacterBounds(
-      uint32_t range_start,
-      const HeapVector<Member<DOMRect>>& character_bounds);
+  void updateCharacterBounds(unsigned long range_start,
+                             HeapVector<Member<DOMRect>>& character_bounds);
 
   // Updates to the text driven by the webpage/javascript are performed
   // by calling this API on the EditContext. It accepts a range (start and end
@@ -119,10 +118,6 @@ class CORE_EXPORT EditContext final : public EventTarget,
   const AtomicString& InterfaceName() const override;
   ExecutionContext* GetExecutionContext() const override;
 
-  void SetExecutionContext(ExecutionContext* context);
-
-  LocalDOMWindow* DomWindow() const;
-
   // ActiveScriptWrappable overrides.
   bool HasPendingActivity() const override;
 
@@ -130,12 +125,12 @@ class CORE_EXPORT EditContext final : public EventTarget,
 
   // WebInputMethodController overrides.
   bool SetComposition(const WebString& text,
-                      const std::vector<ui::ImeTextSpan>& ime_text_spans,
+                      const WebVector<ui::ImeTextSpan>& ime_text_spans,
                       const WebRange& replacement_range,
                       int selection_start,
                       int selection_end) override;
   bool CommitText(const WebString& text,
-                  const std::vector<ui::ImeTextSpan>& ime_text_spans,
+                  const WebVector<ui::ImeTextSpan>& ime_text_spans,
                   const WebRange& replacement_range,
                   int relative_caret_position) override;
   bool FinishComposingText(
@@ -143,9 +138,7 @@ class CORE_EXPORT EditContext final : public EventTarget,
   WebTextInputInfo TextInputInfo() override;
   int ComputeWebTextInputNextPreviousFlags() override { return 0; }
   WebRange CompositionRange() const override;
-  // Populate `bounds` with the bounds of each item in EditContext's
-  // stored character bounds, scaled to physical pixels.
-  bool GetCompositionCharacterBounds(std::vector<gfx::Rect>& bounds) override;
+  bool GetCompositionCharacterBounds(WebVector<gfx::Rect>& bounds) override;
   WebRange GetSelectionOffsets() const override;
 
   // When focus is called on an EditContext, it sets the active EditContext in
@@ -160,7 +153,7 @@ class CORE_EXPORT EditContext final : public EventTarget,
   void Blur();
 
   // Populate |control_bounds| and |selection_bounds| with the bounds fetched
-  // from the active EditContext, in physical pixels.
+  // from the active EditContext.
   void GetLayoutBounds(gfx::Rect* control_bounds,
                        gfx::Rect* selection_bounds) override;
 
@@ -169,7 +162,7 @@ class CORE_EXPORT EditContext final : public EventTarget,
   bool SetCompositionFromExistingText(
       int composition_start,
       int composition_end,
-      const std::vector<ui::ImeTextSpan>& ime_text_spans);
+      const WebVector<ui::ImeTextSpan>& ime_text_spans);
 
   // For English typing.
   bool InsertText(const WebString& text);
@@ -196,14 +189,7 @@ class CORE_EXPORT EditContext final : public EventTarget,
   // `after` characters following the current `selection_end_`.
   void DeleteSurroundingText(int before, int after);
 
-  // Change the selection range.
-  // Optionally dispatch TextInputEvent to notify the
-  // page that the selection has changed.
-  void SetSelection(int start,
-                    int end,
-                    bool dispatch_text_update_event = false);
-
-  // Sets rect_in_viewport to the surrounding rect, in physical pixels,
+  // Sets rect_in_viewport to the surrounding rect, in CSS pixels,
   // for the character range specified by `location` and `length`.
   // Returns true on success, false on failure (in which case
   // rect_in_viewport) is not changed.
@@ -234,7 +220,7 @@ class CORE_EXPORT EditContext final : public EventTarget,
   // consumer of the EditContext should update their view accordingly to provide
   // the user with visual feedback as prescribed by the software keyboard.
   void DispatchTextFormatEvent(
-      const std::vector<ui::ImeTextSpan>& ime_text_spans);
+      const WebVector<ui::ImeTextSpan>& ime_text_spans);
 
   // The textupdate event will be fired on the EditContext when user input has
   // resulted in characters being applied to the editable region. The event
@@ -273,28 +259,13 @@ class CORE_EXPORT EditContext final : public EventTarget,
 
   void ClearCompositionState();
 
-  // Returns selection_start_ if selection_start_ <= selection_end_,
-  // otherwise returns selection_end_.
-  uint32_t OrderedSelectionStart() const;
-  // Returns selection_end_ if selection_end_ >= selection_start_,
-  // otherwise returns selection_start_.
-  uint32_t OrderedSelectionEnd() const;
-
   // EditContext member variables.
   String text_;
-
-  // It is possible that selection_start > selection_end_,
-  // indicating a "backwards" selection (e.g. when the user
-  // drags the selection from right to left).
-  // These should always be modified via SetSelection() to ensure
-  // that the proper notifications are fired.
   uint32_t selection_start_ = 0;
   uint32_t selection_end_ = 0;
-
-  // The following bounds are in CSS pixels.
   gfx::Rect control_bounds_;
   gfx::Rect selection_bounds_;
-  Vector<gfx::Rect> character_bounds_;
+  WebVector<gfx::Rect> character_bounds_;
   uint32_t character_bounds_range_start_ = 0;
 
   // This flag is set when the input method controller receives a
@@ -303,13 +274,10 @@ class CORE_EXPORT EditContext final : public EventTarget,
   bool has_composition_ = false;
   // This is used to keep track of the active composition text range.
   // It is reset once the composition ends.
-  // composition_range_end_ should always be >= composition_range_start_.
   uint32_t composition_range_start_ = 0;
   uint32_t composition_range_end_ = 0;
   // Elements that are associated with this EditContext.
   HeapVector<Member<HTMLElement>> attached_elements_;
-
-  WeakMember<ExecutionContext> execution_context_;
 };
 
 }  // namespace blink

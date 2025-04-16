@@ -22,11 +22,12 @@ attribution_reporting_promise_test(async t => {
     destination: 'https://{{host}}',
     source_event_id: generateSourceEventId(),
   };
-  registerAttributionSrc({
+  await registerAttributionSrc({
+    cookie: attributionDebugCookie,
     source
   });
   await waitForSourceToBeRegistered(source.source_event_id);
-  registerAttributionSrc({
+  await registerAttributionSrc({
     trigger: {
       event_trigger_data: [{}],
     },

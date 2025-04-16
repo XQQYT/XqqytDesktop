@@ -226,9 +226,8 @@ class GpuBufferStorageImpl : public GpuBufferStorage, public U... {
   // Exposing this as a function allows dependent initializers to call this to
   // ensure proper ordering.
   static GpuBufferStorageRegistry::RegistryToken RegisterOnce() {
-    static auto ordered_registration =
-        GpuBufferStorageRegistry::Get().Register<T>();
-    return ordered_registration;
+    static auto registration = GpuBufferStorageRegistry::Get().Register<T>();
+    return registration;
   }
 
  private:

@@ -15,7 +15,6 @@
 
 #ifdef LIBXML_SCHEMATRON_ENABLED
 
-#include <libxml/xmlerror.h>
 #include <libxml/tree.h>
 
 #ifdef __cplusplus

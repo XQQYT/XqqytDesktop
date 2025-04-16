@@ -52,8 +52,8 @@ class MODULES_EXPORT CryptoKey final : public ScriptWrappable {
 
   String type() const;
   bool extractable() const;
-  ScriptObject algorithm(ScriptState*);
-  ScriptObject usages(ScriptState*);
+  ScriptValue algorithm(ScriptState*);
+  ScriptValue usages(ScriptState*);
 
   const WebCryptoKey& Key() const { return key_; }
 
@@ -64,10 +64,10 @@ class MODULES_EXPORT CryptoKey final : public ScriptWrappable {
                              CryptoResult*) const;
 
   // On failure, these return false and complete the CryptoResult with an error.
-  static bool ParseFormat(const String&, WebCryptoKeyFormat&, ExceptionState&);
+  static bool ParseFormat(const String&, WebCryptoKeyFormat&, CryptoResult*);
   static bool ParseUsageMask(const Vector<String>&,
                              WebCryptoKeyUsageMask&,
-                             ExceptionState&);
+                             CryptoResult*);
 
  protected:
   const WebCryptoKey key_;

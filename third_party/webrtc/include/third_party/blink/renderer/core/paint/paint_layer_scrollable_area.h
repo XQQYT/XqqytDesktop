@@ -46,7 +46,6 @@
 
 #include "base/check_op.h"
 #include "base/task/single_thread_task_runner.h"
-#include "cc/input/snap_selection_strategy.h"
 #include "third_party/blink/public/mojom/scroll/scroll_into_view_params.mojom-blink-forward.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/scroll_anchor.h"
@@ -70,9 +69,6 @@ class LayoutCustomScrollbarPart;
 struct PaintInvalidatorContext;
 class PaintLayer;
 class ScrollingCoordinator;
-class ScrollMarkerGroupPseudoElement;
-class SnappedQueryScrollSnapshot;
-class ScrollMarkerGroupData;
 
 struct CORE_EXPORT PaintLayerScrollableAreaRareData final
     : public GarbageCollected<PaintLayerScrollableAreaRareData> {
@@ -85,29 +81,10 @@ struct CORE_EXPORT PaintLayerScrollableAreaRareData final
 
   void Trace(Visitor* visitor) const;
 
-  std::optional<cc::SnapContainerData> snap_container_data_;
-  // The ids of the elements that were reported as the selected snap targets
-  // along each axis during the last scrollsnapchanging event that fired.
-  std::optional<cc::TargetSnapAreaElementIds> scrollsnapchanging_target_ids_;
-  std::unique_ptr<cc::SnapSelectionStrategy> impl_snap_strategy_;
-  // The ids of the elements that were reported as the selected snap targets
-  // along each axis during the last scrollsnapchange event that fired.
-  std::optional<cc::TargetSnapAreaElementIds> scrollsnapchange_target_ids_;
-  // The ids of the elements that should match scroll-state(snapped) container
-  // queries. This is the latest pair of ids set for either snapchange or
-  // snapchanging.
-  std::optional<cc::TargetSnapAreaElementIds> snapped_query_target_ids_;
-  // If this is a snap container, this represents the cc::ElementId of the snap
-  // area (snapped to by this snap container) that is targeted[1] or contains a
-  // targeted[1] element.
-  // It is std::nullopt if no such snap area exists or if this is not a
-  // snap container.
-  // [1]https://drafts.csswg.org/selectors/#the-target-pseudo
-  std::optional<cc::ElementId> targeted_snap_area_id_;
+  HeapLinkedHashSet<Member<PaintLayer>> sticky_layers_;
+  absl::optional<cc::SnapContainerData> snap_container_data_;
+  bool snap_container_data_needs_update_ = true;
   Vector<gfx::Rect> tickmarks_override_;
-  // ScrollSnapshotClient for keeping track of snapped targets in both
-  // directions used for matching snapped @container queries.
-  Member<SnappedQueryScrollSnapshot> snapped_query_snapshot_;
 };
 
 // PaintLayerScrollableArea represents the scrollable area of a LayoutBox.
@@ -237,7 +214,7 @@ class CORE_EXPORT PaintLayerScrollableArea final
 
    private:
     PaintLayerScrollableArea* scrollable_area_;
-    std::optional<FreezeScrollbarsScope> freezer_;
+    absl::optional<FreezeScrollbarsScope> freezer_;
   };
 
   // If a DelayScrollOffsetClampScope object is alive, UpdateAfterLayout() will
@@ -284,9 +261,12 @@ class CORE_EXPORT PaintLayerScrollableArea final
   bool IsThrottled() const override;
   ChromeClient* GetChromeClient() const override;
 
+  SmoothScrollSequencer* GetSmoothScrollSequencer() const override;
+
   void DidCompositorScroll(const gfx::PointF&) override;
 
   bool ShouldScrollOnMainThread() const override;
+  void SetShouldScrollOnMainThread(bool);
 
   bool IsActive() const override;
   bool IsScrollCornerVisible() const override;
@@ -434,13 +414,10 @@ class CORE_EXPORT PaintLayerScrollableArea final
 
   bool HitTestOverflowControls(HitTestResult&, const gfx::Point& local_point);
 
-  PhysicalOffset LocalToScrollOriginOffset() const final;
-
   // Returns the new offset, after scrolling, of the given rect in absolute
   // coordinates, clipped by the parent's client rect.
   PhysicalRect ScrollIntoView(
       const PhysicalRect&,
-      const PhysicalBoxStrut& scroll_margin,
       const mojom::blink::ScrollIntoViewParamsPtr&) override;
 
   // Returns true if the scrollable area is user-scrollable and it does
@@ -513,8 +490,12 @@ class CORE_EXPORT PaintLayerScrollableArea final
 
   void EnqueueForSnapUpdateIfNeeded();
 
+  void AddStickyLayer(PaintLayer*);
+  bool HasStickyLayer(PaintLayer* layer) const {
+    return rare_data_ && rare_data_->sticky_layers_.Contains(layer);
+  }
   void UpdateAllStickyConstraints();
-  void EnqueueForStickyUpdateIfNeeded();
+  void InvalidateAllStickyConstraints();
   void InvalidatePaintForStickyDescendants();
 
   // This function doesn't check background-attachment:fixed backgrounds
@@ -559,46 +540,22 @@ class CORE_EXPORT PaintLayerScrollableArea final
   }
 
   const cc::SnapContainerData* GetSnapContainerData() const override;
-  void SetSnapContainerData(std::optional<cc::SnapContainerData>) override;
+  void SetSnapContainerData(absl::optional<cc::SnapContainerData>) override;
   bool SetTargetSnapAreaElementIds(cc::TargetSnapAreaElementIds) override;
-  void UpdateFocusDataForSnapAreas() override;
+  bool SnapContainerDataNeedsUpdate() const override;
+  void SetSnapContainerDataNeedsUpdate(bool) override;
 
-  std::optional<cc::SnapPositionData> GetSnapPosition(
-      const cc::SnapSelectionStrategy& strategy) const override;
-  std::optional<gfx::PointF> GetSnapPositionAndSetTarget(
+  absl::optional<gfx::PointF> GetSnapPositionAndSetTarget(
       const cc::SnapSelectionStrategy& strategy) override;
-  // Functions related to firing scrollsnapchange events.
-  void SetScrollsnapchangeTargetIds(
-      std::optional<cc::TargetSnapAreaElementIds>) override;
-  void UpdateSnappedTargetsAndEnqueueScrollSnapChange() override;
-
-  // Functions related to firing scrollsnapchanging events.
-  std::optional<cc::TargetSnapAreaElementIds> GetScrollsnapchangingTargetIds()
-      const override;
-  void SetScrollsnapchangingTargetIds(
-      std::optional<cc::TargetSnapAreaElementIds>) override;
-  void UpdateScrollSnapChangingTargetsAndEnqueueScrollSnapChanging(
-      const cc::TargetSnapAreaElementIds& new_target_ids) override;
-  const cc::SnapSelectionStrategy* GetImplSnapStrategy() const override;
-  void SetImplSnapStrategy(
-      std::unique_ptr<cc::SnapSelectionStrategy> strategy) override;
-  void EnqueueScrollSnapChangingEventFromImplIfNeeded() override;
-
-  // Functions related to scroll-state(snapped) queries.
-  void SetSnappedQueryTargetIds(
-      std::optional<cc::TargetSnapAreaElementIds>) override;
 
   void DisposeImpl() override;
 
   void SetPendingHistoryRestoreScrollOffset(
       const HistoryItem::ViewState& view_state,
-      bool should_restore_scroll,
-      mojom::blink::ScrollBehavior scroll_behavior) override {
+      bool should_restore_scroll) override {
     if (!should_restore_scroll)
       return;
-    pending_view_state_.emplace();
-    pending_view_state_->state = view_state;
-    pending_view_state_->scroll_behavior = scroll_behavior;
+    pending_view_state_ = view_state;
   }
 
   void ApplyPendingHistoryRestoreScrollOffset() override;
@@ -609,7 +566,7 @@ class CORE_EXPORT PaintLayerScrollableArea final
 
   void SetTickmarksOverride(Vector<gfx::Rect> tickmarks);
 
-  bool MayCompositeScrollbar(const Scrollbar&) const;
+  bool ShouldDirectlyCompositeScrollbar(const Scrollbar&) const;
 
   void EstablishScrollbarRoot(bool freeze_horizontal, bool freeze_vertical);
   void ClearScrollbarRoot();
@@ -638,35 +595,6 @@ class CORE_EXPORT PaintLayerScrollableArea final
 
   void StopApplyingScrollStart() final;
   bool IsApplyingScrollStart() const final;
-
-  gfx::Size PixelSnappedBorderBoxSize() const;
-
-  std::optional<cc::ElementId> GetTargetedSnapAreaId() override {
-    return RareData() ? RareData()->targeted_snap_area_id_ : std::nullopt;
-  }
-  void SetTargetedSnapAreaId(const std::optional<cc::ElementId>& id) override {
-    EnsureRareData().targeted_snap_area_id_ = id;
-  }
-
-  void DropCompositorScrollDeltaNextCommit() override;
-
-  SnappedQueryScrollSnapshot& EnsureSnappedQueryScrollSnapshot();
-  SnappedQueryScrollSnapshot* GetSnappedQueryScrollSnapshot();
-
-  // Return the Element, if any, that should currently match the
-  // @container (snapped:...) query for the given axis.
-  Element* GetSnappedQueryTargetAlongAxis(cc::SnapAxis) const;
-
-  bool HasRunningAnimation();
-
-  // These functions manage ScrollMarkerGroupData objects that should be
-  // notified of scroll changes. ScrollMarkerGroupData is added when any
-  // of its scroll marker's scroll targets has this scrollable area as closest
-  // ancestor scrollable area and removed otherwise.
-  void AddScrollMarkerGroupContainerData(
-      ScrollMarkerGroupData* scroll_marker_group_data);
-  void RemoveScrollMarkerGroupContainerData(
-      ScrollMarkerGroupData* scroll_marker_group_data);
 
  private:
   bool NeedsHypotheticalScrollbarThickness(ScrollbarOrientation) const;
@@ -741,39 +669,21 @@ class CORE_EXPORT PaintLayerScrollableArea final
 
   void ScrollControlWasSetNeedsPaintInvalidation() override;
 
-  void InvalidatePaintOfScrollbarIfNeeded(const PaintInvalidatorContext&,
-                                          bool needs_paint_invalidation,
-                                          Scrollbar* scrollbar,
-                                          bool& previously_was_overlay,
-                                          bool& previously_might_be_composited,
-                                          gfx::Rect& visual_rect);
+  gfx::Size PixelSnappedBorderBoxSize() const;
+
+  void InvalidatePaintOfScrollbarIfNeeded(
+      const PaintInvalidatorContext&,
+      bool needs_paint_invalidation,
+      Scrollbar* scrollbar,
+      bool& previously_was_overlay,
+      bool& previously_was_directly_composited,
+      gfx::Rect& visual_rect);
 
   void DelayableClampScrollOffsetAfterOverflowChange();
   void ClampScrollOffsetAfterOverflowChangeInternal();
   Element* GetElementForScrollStart() const;
 
   void SetShouldCheckForPaintInvalidation();
-
-  bool UsedColorSchemeScrollbarsChanged(const ComputedStyle* old_style) const;
-  bool IsGlobalRootNonOverlayScroller() const override;
-
-  // Helper function to map element ids to Node* pointers. Used by both event
-  // dispatching and container queries.
-  Node* GetSnapTargetAlongAxis(cc::TargetSnapAreaElementIds,
-                               cc::SnapAxis) const;
-
-  // Get the current target for a snap event of |type| (either
-  // "scrollsnapchange" or scrollsnapchanging) along axis |axis|.
-  Node* GetSnapEventTargetAlongAxis(const AtomicString& type,
-                                    cc::SnapAxis) const override;
-
-  // Create a SnappedQueryScrollSnapshot if not already created, and one of the
-  // snapped target elements depend on snapped container queries.
-  void CreateAndSetSnappedQueryScrollSnapshotIfNeeded(
-      cc::TargetSnapAreaElementIds);
-
-  void UpdateScrollMarkers() override;
-  ScrollMarkerGroupPseudoElement* GetScrollMarkerGroup() const override;
 
   // PaintLayer is destructed before PaintLayerScrollable area, during this
   // time before PaintLayerScrollableArea has been collected layer_ will
@@ -796,6 +706,9 @@ class CORE_EXPORT PaintLayerScrollableArea final
   unsigned is_horizontal_scrollbar_frozen_ : 1;
   unsigned is_vertical_scrollbar_frozen_ : 1;
 
+  // This is updated after PaintArtifactCompositor::Update().
+  unsigned should_scroll_on_main_thread_ : 1;
+
   // There are 6 possible combinations of writing mode and direction. Scroll
   // origin will be non-zero in the x or y axis if there is any reversed
   // direction or writing-mode. The combinations are:
@@ -809,7 +722,7 @@ class CORE_EXPORT PaintLayerScrollableArea final
   gfx::Point scroll_origin_;
 
   // The width/height of our scrolled area.
-  // This is OverflowModel's scrollable overflow translated to physical
+  // This is OverflowModel's layout overflow translated to physical
   // coordinates. See OverflowModel for the different overflow and
   // LayoutBoxModelObject for the coordinate systems.
   PhysicalRect overflow_rect_;
@@ -843,8 +756,8 @@ class CORE_EXPORT PaintLayerScrollableArea final
   // These are not bitfields because they need to be passed as references.
   bool horizontal_scrollbar_previously_was_overlay_ = false;
   bool vertical_scrollbar_previously_was_overlay_ = false;
-  bool horizontal_scrollbar_previously_might_be_composited_ = false;
-  bool vertical_scrollbar_previously_might_be_composited_ = false;
+  bool horizontal_scrollbar_previously_was_directly_composited_ = false;
+  bool vertical_scrollbar_previously_was_directly_composited_ = false;
   gfx::Rect horizontal_scrollbar_visual_rect_;
   gfx::Rect vertical_scrollbar_visual_rect_;
   gfx::Rect scroll_corner_and_resizer_visual_rect_;
@@ -896,21 +809,7 @@ class CORE_EXPORT PaintLayerScrollableArea final
           MakeGarbageCollected<ScrollingBackgroundDisplayItemClient>(*this);
   Member<ScrollCornerDisplayItemClient> scroll_corner_display_item_client_ =
       MakeGarbageCollected<ScrollCornerDisplayItemClient>(*this);
-
-  struct PendingViewState {
-    HistoryItem::ViewState state;
-    mojom::blink::ScrollBehavior scroll_behavior =
-        mojom::blink::ScrollBehavior::kAuto;
-  };
-  std::optional<PendingViewState> pending_view_state_;
-
-  // The set of scroll marker group data associated with this scrollable area
-  // that should be notified of scroll updates.
-  // The presence of ScrollMarkerGroupData being in this set is an indication
-  // that any of its scroll markers' scroll targets have this scrollable area as
-  // the closest ancestor scrollable area. Hence, there can be multiple
-  // ScrollMarkerGroupData.
-  HeapHashSet<Member<ScrollMarkerGroupData>> scroll_marker_group_data_set_;
+  absl::optional<HistoryItem::ViewState> pending_view_state_;
 };
 
 }  // namespace blink

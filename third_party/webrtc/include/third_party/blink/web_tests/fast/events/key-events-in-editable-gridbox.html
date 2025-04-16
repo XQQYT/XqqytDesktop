@@ -26,7 +26,7 @@ function runEditTest(id) {
     document.execCommand("delete");
     document.execCommand("delete");
     document.execCommand("delete");
-    shouldBeEqualToString("targetDiv.innerHTML", "<br>");
+    shouldBeEmptyString("targetDiv.innerText");
 
     document.execCommand("insertText", false, "TEST");
     shouldBeEqualToString("targetDiv.innerText", "TEST");

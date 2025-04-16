@@ -5,29 +5,30 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_MATHML_MATH_PADDED_LAYOUT_ALGORITHM_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_MATHML_MATH_PADDED_LAYOUT_ALGORITHM_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/mathml/math_row_layout_algorithm.h"
 
 namespace blink {
 
 class CORE_EXPORT MathPaddedLayoutAlgorithm
-    : public LayoutAlgorithm<BlockNode, BoxFragmentBuilder, BlockBreakToken> {
+    : public NGLayoutAlgorithm<NGBlockNode,
+                               NGBoxFragmentBuilder,
+                               NGBlockBreakToken> {
  public:
-  explicit MathPaddedLayoutAlgorithm(const LayoutAlgorithmParams& params);
+  explicit MathPaddedLayoutAlgorithm(const NGLayoutAlgorithmParams& params);
 
-  const LayoutResult* Layout();
+  const NGLayoutResult* Layout() final;
 
-  MinMaxSizesResult ComputeMinMaxSizes(const MinMaxSizesFloatInput&);
+  MinMaxSizesResult ComputeMinMaxSizes(const MinMaxSizesFloatInput&) final;
 
  private:
   LayoutUnit RequestedLSpace() const;
   LayoutUnit RequestedVOffset() const;
-  std::optional<LayoutUnit> RequestedAscent(LayoutUnit content_ascent) const;
-  std::optional<LayoutUnit> RequestedDescent(LayoutUnit content_descent) const;
+  absl::optional<LayoutUnit> RequestedAscent(LayoutUnit content_ascent) const;
+  absl::optional<LayoutUnit> RequestedDescent(LayoutUnit content_descent) const;
 
-  void GetContentAsAnonymousMrow(BlockNode* content) const;
+  void GetContentAsAnonymousMrow(NGBlockNode* content) const;
 };
 
 }  // namespace blink

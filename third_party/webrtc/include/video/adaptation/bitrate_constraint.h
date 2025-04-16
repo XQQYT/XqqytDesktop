@@ -11,9 +11,9 @@
 #ifndef VIDEO_ADAPTATION_BITRATE_CONSTRAINT_H_
 #define VIDEO_ADAPTATION_BITRATE_CONSTRAINT_H_
 
-#include <optional>
 #include <string>
 
+#include "absl/types/optional.h"
 #include "api/sequence_checker.h"
 #include "call/adaptation/adaptation_constraint.h"
 #include "call/adaptation/encoder_settings.h"
@@ -29,9 +29,9 @@ class BitrateConstraint : public AdaptationConstraint {
   ~BitrateConstraint() override = default;
 
   void OnEncoderSettingsUpdated(
-      std::optional<EncoderSettings> encoder_settings);
+      absl::optional<EncoderSettings> encoder_settings);
   void OnEncoderTargetBitrateUpdated(
-      std::optional<uint32_t> encoder_target_bitrate_bps);
+      absl::optional<uint32_t> encoder_target_bitrate_bps);
 
   // AdaptationConstraint implementation.
   std::string Name() const override { return "BitrateConstraint"; }
@@ -42,9 +42,9 @@ class BitrateConstraint : public AdaptationConstraint {
 
  private:
   RTC_NO_UNIQUE_ADDRESS SequenceChecker sequence_checker_;
-  std::optional<EncoderSettings> encoder_settings_
+  absl::optional<EncoderSettings> encoder_settings_
       RTC_GUARDED_BY(&sequence_checker_);
-  std::optional<uint32_t> encoder_target_bitrate_bps_
+  absl::optional<uint32_t> encoder_target_bitrate_bps_
       RTC_GUARDED_BY(&sequence_checker_);
 };
 

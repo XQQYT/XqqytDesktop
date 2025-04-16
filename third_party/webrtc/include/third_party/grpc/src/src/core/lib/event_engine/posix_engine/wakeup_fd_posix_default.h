@@ -20,7 +20,8 @@
 
 #include "absl/status/statusor.h"
 
-namespace grpc_event_engine::experimental {
+namespace grpc_event_engine {
+namespace experimental {
 
 class WakeupFd;
 
@@ -30,6 +31,7 @@ bool SupportsWakeupFd();
 // Create and return an initialized WakeupFd instance if supported.
 absl::StatusOr<std::unique_ptr<WakeupFd>> CreateWakeupFd();
 
-}  // namespace grpc_event_engine::experimental
+}  // namespace experimental
+}  // namespace grpc_event_engine
 
 #endif  // GRPC_SRC_CORE_LIB_EVENT_ENGINE_POSIX_ENGINE_WAKEUP_FD_POSIX_DEFAULT_H

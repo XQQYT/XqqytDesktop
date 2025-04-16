@@ -32,7 +32,10 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_STYLE_SHADOW_LIST_H_
 
 #include "third_party/blink/renderer/core/style/shadow_data.h"
-#include "third_party/blink/renderer/platform/heap/collection_support/heap_vector.h"
+#include "third_party/blink/renderer/platform/graphics/draw_looper_builder.h"
+#include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
+#include "third_party/blink/renderer/platform/wtf/ref_counted.h"
+#include "third_party/blink/renderer/platform/wtf/vector.h"
 
 namespace gfx {
 class OutsetsF;
@@ -41,19 +44,18 @@ class RectF;
 
 namespace blink {
 
-typedef HeapVector<ShadowData, 1> ShadowDataVector;
+typedef Vector<ShadowData, 1> ShadowDataVector;
 
 // These are used to store shadows in specified order, but we usually want to
 // iterate over them backwards as the first-specified shadow is painted on top.
-class ShadowList : public GarbageCollected<ShadowList> {
+class ShadowList : public RefCounted<ShadowList> {
+  USING_FAST_MALLOC(ShadowList);
+
  public:
-  explicit ShadowList(ShadowDataVector&& shadows) : shadows_(shadows) {
-    // If we have no shadows, we use a null ShadowList
-    DCHECK(!shadows.empty());
+  // This consumes passed in vector.
+  static scoped_refptr<ShadowList> Adopt(ShadowDataVector& shadows) {
+    return base::AdoptRef(new ShadowList(shadows));
   }
-
-  void Trace(Visitor* visitor) const { visitor->Trace(shadows_); }
-
   const ShadowDataVector& Shadows() const { return shadows_; }
   bool operator==(const ShadowList& o) const { return shadows_ == o.shadows_; }
   bool operator!=(const ShadowList& o) const { return !(*this == o); }
@@ -65,6 +67,12 @@ class ShadowList : public GarbageCollected<ShadowList> {
   void AdjustRectForShadow(gfx::RectF&) const;
 
  private:
+  ShadowList(ShadowDataVector& shadows) {
+    // If we have no shadows, we use a null ShadowList
+    DCHECK(!shadows.empty());
+    shadows_.swap(shadows);
+    shadows_.shrink_to_fit();
+  }
   ShadowDataVector shadows_;
 };
 

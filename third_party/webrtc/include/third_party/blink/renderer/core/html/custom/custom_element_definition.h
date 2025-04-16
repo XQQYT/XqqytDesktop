@@ -72,7 +72,6 @@ class CORE_EXPORT CustomElementDefinition
 
   virtual bool HasConnectedCallback() const = 0;
   virtual bool HasDisconnectedCallback() const = 0;
-  virtual bool HasConnectedMoveCallback() const = 0;
   virtual bool HasAdoptedCallback() const = 0;
   bool HasAttributeChangedCallback(const QualifiedName&) const;
   bool HasStyleAttributeChangedCallback() const;
@@ -83,7 +82,6 @@ class CORE_EXPORT CustomElementDefinition
 
   virtual void RunConnectedCallback(Element&) = 0;
   virtual void RunDisconnectedCallback(Element&) = 0;
-  virtual void RunConnectedMoveCallback(Element&) = 0;
   virtual void RunAdoptedCallback(Element&,
                                   Document& old_owner,
                                   Document& new_owner) = 0;
@@ -102,7 +100,6 @@ class CORE_EXPORT CustomElementDefinition
   void EnqueueUpgradeReaction(Element&);
   void EnqueueConnectedCallback(Element&);
   void EnqueueDisconnectedCallback(Element&);
-  void EnqueueConnectedMoveCallback(Element&);
   void EnqueueAdoptedCallback(Element&,
                               Document& old_owner,
                               Document& new_owner);

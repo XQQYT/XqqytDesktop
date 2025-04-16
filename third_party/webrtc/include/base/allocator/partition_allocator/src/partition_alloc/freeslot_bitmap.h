@@ -2,20 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_FREESLOT_BITMAP_H_
-#define PARTITION_ALLOC_FREESLOT_BITMAP_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_FREESLOT_BITMAP_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_FREESLOT_BITMAP_H_
 
 #include <climits>
 #include <cstdint>
 #include <utility>
 
-#include "partition_alloc/buildflags.h"
-#include "partition_alloc/freeslot_bitmap_constants.h"
-#include "partition_alloc/partition_alloc_base/bits.h"
-#include "partition_alloc/partition_alloc_base/compiler_specific.h"
-#include "partition_alloc/partition_alloc_constants.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/freeslot_bitmap_constants.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/bits.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/compiler_specific.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_constants.h"
 
-#if PA_BUILDFLAG(USE_FREESLOT_BITMAP)
+#if BUILDFLAG(USE_FREESLOT_BITMAP)
 
 namespace partition_alloc::internal {
 
@@ -92,7 +92,7 @@ PA_ALWAYS_INLINE void FreeSlotBitmapReset(uintptr_t begin_addr,
     *cell &= ~CellWithAOne(bit_index);
   }
 
-#if PA_BUILDFLAG(DCHECKS_ARE_ON)
+#if BUILDFLAG(PA_DCHECK_IS_ON)
   // Checks if the cells that are meant to contain only unset bits are really 0.
   auto [begin_cell, begin_bit_index] =
       GetFreeSlotBitmapCellPtrAndBitIndex(begin_addr);
@@ -113,7 +113,6 @@ PA_ALWAYS_INLINE void FreeSlotBitmapReset(uintptr_t begin_addr,
   if (begin_cell == end_cell) {
     PA_DCHECK((*begin_cell & (~CellWithTrailingOnes(begin_bit_index) &
                               CellWithTrailingOnes(end_bit_index))) == 0u);
-    return;
   }
 
   if (begin_bit_index != 0) {
@@ -128,14 +127,14 @@ PA_ALWAYS_INLINE void FreeSlotBitmapReset(uintptr_t begin_addr,
     PA_DCHECK((*end_cell & CellWithTrailingOnes(end_bit_index)) == 0u);
   }
 
-  for (FreeSlotBitmapCellType* cell = begin_cell; cell < end_cell; ++cell) {
+  for (FreeSlotBitmapCellType* cell = begin_cell; cell != end_cell; ++cell) {
     PA_DCHECK(*cell == 0u);
   }
-#endif  // PA_BUILDFLAG(DCHECKS_ARE_ON)
+#endif  // BUILDFLAG(PA_DCHECK_IS_ON)
 }
 
 }  // namespace partition_alloc::internal
 
-#endif  // PA_BUILDFLAG(USE_FREESLOT_BITMAP)
+#endif  // BUILDFLAG(USE_FREESLOT_BITMAP)
 
-#endif  // PARTITION_ALLOC_FREESLOT_BITMAP_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_FREESLOT_BITMAP_H_

@@ -27,7 +27,9 @@
 typedef struct ThreadFrame {
     AVFrame *f;
     AVCodecContext *owner[2];
-    struct ThreadFrameProgress *progress;
+    // progress->data is an array of 2 ints holding progress for top/bottom
+    // fields
+    AVBufferRef *progress;
 } ThreadFrame;
 
 /**
@@ -78,10 +80,11 @@ int ff_thread_get_ext_buffer(AVCodecContext *avctx, ThreadFrame *f, int flags);
  * @param avctx The current context.
  * @param f The picture being released.
  */
-void ff_thread_release_ext_buffer(ThreadFrame *f);
+void ff_thread_release_ext_buffer(AVCodecContext *avctx, ThreadFrame *f);
 
 int ff_thread_ref_frame(ThreadFrame *dst, const ThreadFrame *src);
 
-int ff_thread_replace_frame(ThreadFrame *dst, const ThreadFrame *src);
+int ff_thread_replace_frame(AVCodecContext *avctx, ThreadFrame *dst,
+                            const ThreadFrame *src);
 
 #endif

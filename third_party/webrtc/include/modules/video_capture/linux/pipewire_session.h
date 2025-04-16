@@ -11,6 +11,7 @@
 #ifndef MODULES_VIDEO_CAPTURE_LINUX_PIPEWIRE_SESSION_H_
 #define MODULES_VIDEO_CAPTURE_LINUX_PIPEWIRE_SESSION_H_
 
+#include <pipewire/core.h>
 #include <pipewire/pipewire.h>
 
 #include <deque>
@@ -36,15 +37,8 @@ class VideoCaptureModulePipeWire;
 // So they all represent one camera that is available via PipeWire.
 class PipeWireNode {
  public:
-  struct PipeWireNodeDeleter {
-    void operator()(PipeWireNode* node) const noexcept;
-  };
-
-  using PipeWireNodePtr =
-      std::unique_ptr<PipeWireNode, PipeWireNode::PipeWireNodeDeleter>;
-  static PipeWireNodePtr Create(PipeWireSession* session,
-                                uint32_t id,
-                                const spa_dict* props);
+  PipeWireNode(PipeWireSession* session, uint32_t id, const spa_dict* props);
+  ~PipeWireNode();
 
   uint32_t id() const { return id_; }
   std::string display_name() const { return display_name_; }
@@ -53,9 +47,6 @@ class PipeWireNode {
   std::vector<VideoCaptureCapability> capabilities() const {
     return capabilities_;
   }
-
- protected:
-  PipeWireNode(PipeWireSession* session, uint32_t id, const spa_dict* props);
 
  private:
   static void OnNodeInfo(void* data, const pw_node_info* info);
@@ -96,9 +87,8 @@ class PipeWireSession : public rtc::RefCountedNonVirtual<PipeWireSession> {
 
   void Init(VideoCaptureOptions::Callback* callback,
             int fd = kInvalidPipeWireFd);
-  const std::deque<PipeWireNode::PipeWireNodePtr>& nodes() const {
-    return nodes_;
-  }
+
+  const std::deque<PipeWireNode>& nodes() const { return nodes_; }
 
   friend class CameraPortalNotifier;
   friend class PipeWireNode;
@@ -144,7 +134,7 @@ class PipeWireSession : public rtc::RefCountedNonVirtual<PipeWireSession> {
 
   int sync_seq_ = 0;
 
-  std::deque<PipeWireNode::PipeWireNodePtr> nodes_;
+  std::deque<PipeWireNode> nodes_;
   std::unique_ptr<CameraPortal> portal_;
   std::unique_ptr<CameraPortalNotifier> portal_notifier_;
 };

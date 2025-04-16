@@ -13,23 +13,22 @@ class MutationEventSuppressionScope {
   STACK_ALLOCATED();
 
  public:
-  explicit MutationEventSuppressionScope(Document& document)
-      : document_(document) {
-    // Save the current suppression value, so we can restore it from our
-    // destructor when `this` is destroyed. This is important because it is
-    // possible for these scopes to be nested, which means
-    // `Document::ShouldSuppressMutationEvents()` could already be true here.
-    old_should_suppress_mutation_events_ =
-        document.ShouldSuppressMutationEvents();
+  MutationEventSuppressionScope(Document& document) : document_(document) {
+    // Document::SetSuppressMutationEvents enforces this with a CHECK(),
+    // but we'll DCHECK() here as well for documentation.
+    DCHECK(!document.ShouldSuppressMutationEvents());
 
     document.SetSuppressMutationEvents(true);
   }
   ~MutationEventSuppressionScope() {
-    document_.SetSuppressMutationEvents(old_should_suppress_mutation_events_);
+    // Document::SetSuppressMutationEvents enforces this with a CHECK(),
+    // but we'll DCHECK() here as well for documentation.
+    DCHECK(document_.ShouldSuppressMutationEvents());
+
+    document_.SetSuppressMutationEvents(false);
   }
 
  private:
-  bool old_should_suppress_mutation_events_;
   Document& document_;
 };
 

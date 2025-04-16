@@ -34,7 +34,7 @@ namespace blink {
 class HTMLImageElement;
 class Path;
 
-class CORE_EXPORT HTMLAreaElement final : public HTMLAnchorElementBase {
+class CORE_EXPORT HTMLAreaElement final : public HTMLAnchorElement {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
@@ -60,13 +60,10 @@ class CORE_EXPORT HTMLAreaElement final : public HTMLAnchorElementBase {
 
  private:
   void ParseAttribute(const AttributeModificationParams&) override;
-  bool IsKeyboardFocusableSlow(
-      UpdateBehavior update_behavior =
-          UpdateBehavior::kStyleAndLayout) const override;
-  FocusableState IsFocusableState(
-      UpdateBehavior update_behavior) const override;
-  bool IsFocusableStyle(UpdateBehavior update_behavior =
-                            UpdateBehavior::kStyleAndLayout) const override;
+  bool IsKeyboardFocusable() const override;
+  bool IsFocusable(bool disallow_layout_updates_for_accessibility_only =
+                       false) const override;
+  bool IsFocusableStyle() const override;
   void UpdateSelectionOnFocus(SelectionBehaviorOnFocus,
                               const FocusOptions*) override;
   void SetFocused(bool, mojom::blink::FocusType) override;

@@ -11,12 +11,7 @@
 #ifndef API_TEST_MOCK_FRAME_ENCRYPTOR_H_
 #define API_TEST_MOCK_FRAME_ENCRYPTOR_H_
 
-#include <cstddef>
-#include <cstdint>
-
-#include "api/array_view.h"
 #include "api/crypto/frame_encryptor_interface.h"
-#include "api/media_types.h"
 #include "test/gmock.h"
 
 namespace webrtc {
@@ -25,7 +20,7 @@ class MockFrameEncryptor : public FrameEncryptorInterface {
  public:
   MOCK_METHOD(int,
               Encrypt,
-              (webrtc::MediaType,
+              (cricket::MediaType,
                uint32_t,
                rtc::ArrayView<const uint8_t>,
                rtc::ArrayView<const uint8_t>,
@@ -35,7 +30,7 @@ class MockFrameEncryptor : public FrameEncryptorInterface {
 
   MOCK_METHOD(size_t,
               GetMaxCiphertextByteSize,
-              (webrtc::MediaType media_type, size_t frame_size),
+              (cricket::MediaType media_type, size_t frame_size),
               (override));
 };
 

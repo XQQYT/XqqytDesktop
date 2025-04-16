@@ -12,13 +12,12 @@
 
 #include <stdint.h>
 
-#include <compare>
 #include <limits>
 #include <type_traits>
-#include <variant>
 
 #include "base/types/variant_util.h"
 #include "base/unguessable_token.h"
+#include "third_party/abseil-cpp/absl/types/variant.h"
 #include "third_party/blink/public/common/tokens/multi_token_internal.h"
 
 namespace blink {
@@ -40,19 +39,26 @@ namespace blink {
 // void TeleportGoat(const GoatToken&);
 //
 // void TeleportUngulate(const UngulateToken& token) {
-//   token.Visit(base::Overloaded(
-//         [](const CowToken& cow_token) { TeleportCow(cow_token); },
-//         [](const GoatToken& goat_token) { TeleportGoat(goat_token); }));
+//   if (token.Is<CowToken>()) {
+//     TeleportCow(token.Get<CowToken>());
+//   } else if (token.Is<GoatToken>()) {
+//     TeleportGoat(token.Get<GoatToken>());
+//   }
+//   CHECK(false);  // Not reachable.
 // }
 template <typename... Tokens>
-  requires(sizeof...(Tokens) > 1 &&
-           sizeof...(Tokens) <= std::numeric_limits<uint32_t>::max() &&
-           (internal::IsBaseToken<Tokens> && ...) &&
-           internal::AreAllUnique<Tokens...>)
 class MultiToken {
- public:
-  using Storage = std::variant<Tokens...>;
+  static_assert(sizeof...(Tokens) > 1);
+  static_assert(sizeof...(Tokens) <= std::numeric_limits<uint32_t>::max());
+  static_assert(std::conjunction_v<internal::IsBaseTokenType<Tokens>...>);
+  static_assert(internal::AreAllUnique<Tokens...>);
 
+  template <typename T>
+  using EnableIfIsSupportedToken =
+      internal::EnableIfIsSupportedToken<T, Tokens...>;
+
+ public:
+  using Storage = absl::variant<Tokens...>;
   // In an ideal world, this would use StrongAlias, but a StrongAlias is not
   // usable in a switch statement, even when the underlying type is integral.
   enum class Tag : uint32_t {};
@@ -61,76 +67,80 @@ class MultiToken {
   // randomly initialised) of the first token type in `Tokens...`.
   MultiToken() = default;
 
-  template <typename T>
-    requires(internal::IsBaseToken<T> && internal::IsCompatible<T, Tokens...>)
+  template <typename T, EnableIfIsSupportedToken<T> = 0>
   // NOLINTNEXTLINE(google-explicit-constructor)
   MultiToken(const T& token) : storage_(token) {}
   MultiToken(const MultiToken&) = default;
 
-  // Construct from another compatible MultiToken.
-  template <typename... Ts>
-    requires(internal::IsCompatible<Ts, Tokens...> && ...)
-  explicit MultiToken(const MultiToken<Ts...>& multi_token)
-      : MultiToken(multi_token.Visit(
-            [](const auto& token) { return MultiToken(token); })) {}
-
-  template <typename T>
-    requires(internal::IsBaseToken<T> && internal::IsCompatible<T, Tokens...>)
+  template <typename T, EnableIfIsSupportedToken<T> = 0>
   MultiToken& operator=(const T& token) {
     storage_ = token;
     return *this;
   }
   MultiToken& operator=(const MultiToken&) = default;
 
-  // Assign from another compatible MultiToken.
-  template <typename... Ts>
-    requires(internal::IsCompatible<Ts, Tokens...> && ...)
-  MultiToken& operator=(const MultiToken<Ts...>& multi_token) {
-    return *this = multi_token.Visit(
-               [](const auto& token) { return MultiToken(token); });
-  }
-
   ~MultiToken() = default;
 
   // Returns true iff `this` currently holds a token of type `T`.
-  template <typename T>
-    requires(internal::IsBaseToken<T> && internal::IsCompatible<T, Tokens...>)
+  template <typename T, EnableIfIsSupportedToken<T> = 0>
   bool Is() const {
-    return std::holds_alternative<T>(storage_);
+    return absl::holds_alternative<T>(storage_);
   }
 
   // Returns `T` if `this` currently holds a token of type `T`; otherwise,
   // crashes.
-  template <typename T>
-    requires(internal::IsBaseToken<T> && internal::IsCompatible<T, Tokens...>)
+  template <typename T, EnableIfIsSupportedToken<T> = 0>
   const T& GetAs() const {
-    return std::get<T>(storage_);
-  }
-
-  // Wrapper around std::visit() which invokes the provided functor on this
-  // MultiToken. The functor must return the same type when called with any of
-  // the MultiToken's alternatives.
-  template <typename Visitor>
-  decltype(auto) Visit(Visitor&& visitor) const {
-    return std::visit(std::forward<Visitor>(visitor), this->storage_);
+    return absl::get<T>(storage_);
   }
 
   // Comparison operators
-  constexpr friend auto operator<=>(const MultiToken& lhs,
-                                    const MultiToken& rhs) = default;
-  constexpr friend bool operator==(const MultiToken& lhs,
-                                   const MultiToken& rhs) = default;
-
-  template <typename T>
-    requires(internal::IsBaseToken<T> && internal::IsCompatible<T, Tokens...>)
-  friend auto operator<=>(const MultiToken& lhs, const T& rhs) {
-    return lhs <=> MultiToken(rhs);
+  friend bool operator==(const MultiToken& lhs, const MultiToken& rhs) {
+    return lhs.storage_ == rhs.storage_;
   }
 
-  template <typename T>
-    requires(internal::IsBaseToken<T> && internal::IsCompatible<T, Tokens...>)
+  friend bool operator!=(const MultiToken& lhs, const MultiToken& rhs) {
+    return !(lhs == rhs);
+  }
+
+  template <typename T, EnableIfIsSupportedToken<T> = 0>
   friend bool operator==(const MultiToken& lhs, const T& rhs) {
-    return lhs == MultiToken(rhs);
+    return absl::holds_alternative<T>(lhs.storage_) &&
+           absl::get<T>(lhs.storage_) == rhs;
+  }
+
+  template <typename T, EnableIfIsSupportedToken<T> = 0>
+  friend bool operator==(const T& lhs, const MultiToken& rhs) {
+    return rhs == lhs;
+  }
+
+  template <typename T, EnableIfIsSupportedToken<T> = 0>
+  friend bool operator!=(const MultiToken& lhs, const T& rhs) {
+    return !(lhs == rhs);
+  }
+
+  template <typename T, EnableIfIsSupportedToken<T> = 0>
+  friend bool operator!=(const T& lhs, const MultiToken& rhs) {
+    return !(lhs == rhs);
+  }
+
+  // Unlike equality comparisons, ordering comparisons typically do not compare
+  // a MultiToken and a sub type from `Tokens...`, so do not bother with the
+  // extra overloads.
+  friend bool operator<(const MultiToken& lhs, const MultiToken& rhs) {
+    return lhs.storage_ < rhs.storage_;
+  }
+
+  friend bool operator<=(const MultiToken& lhs, const MultiToken& rhs) {
+    return !(lhs > rhs);
+  }
+
+  friend bool operator>(const MultiToken& lhs, const MultiToken& rhs) {
+    return rhs < lhs;
+  }
+
+  friend bool operator>=(const MultiToken& lhs, const MultiToken& rhs) {
+    return !(lhs < rhs);
   }
 
   // Hash functor for use in unordered containers.
@@ -147,11 +157,7 @@ class MultiToken {
 
   // Returns the underlying `base::UnguessableToken` of the currently held
   // token.
-  const base::UnguessableToken& value() const {
-    return Visit([](const auto& token) -> const base::UnguessableToken& {
-      return token.value();
-    });
-  }
+  const base::UnguessableToken& value() const;
 
   // 0-based index of the currently held token's type, based on its position in
   // `Tokens...`.
@@ -159,20 +165,32 @@ class MultiToken {
 
   // Returns the 0-based index that a token of type `T` would have if it were
   // currently held.
-  template <typename T>
-    requires(internal::IsBaseToken<T> && internal::IsCompatible<T, Tokens...>)
+  template <typename T, EnableIfIsSupportedToken<T> = 0>
   static constexpr Tag IndexOf() {
     return static_cast<Tag>(base::VariantIndexOfType<Storage, T>());
   }
 
   // Equivalent to `value().ToString()`.
-  std::string ToString() const {
-    return Visit([](const auto& token) { return token.ToString(); });
-  }
+  std::string ToString() const;
 
  private:
   Storage storage_;
 };
+
+template <typename... Tokens>
+const base::UnguessableToken& MultiToken<Tokens...>::value() const {
+  return absl::visit(
+      [](const auto& token) -> const base::UnguessableToken& {
+        return token.value();
+      },
+      storage_);
+}
+
+template <typename... Tokens>
+std::string MultiToken<Tokens...>::ToString() const {
+  return absl::visit([](const auto& token) { return token.ToString(); },
+                     storage_);
+}
 
 }  // namespace blink
 

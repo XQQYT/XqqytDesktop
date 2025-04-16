@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "api/candidate.h"
-#include "api/environment/environment.h"
 #include "api/jsep.h"
 #include "p2p/base/transport_description.h"
 #include "test/network/network_emulation_manager.h"
@@ -34,14 +33,14 @@ class ScenarioIceConnection {
     // Called on network thread.
     virtual void OnPacketReceived(rtc::CopyOnWriteBuffer packet) = 0;
     // Called on signaling thread.
-    virtual void OnIceCandidates(const std::string& mid,
-                                 const std::vector<Candidate>& candidates) = 0;
+    virtual void OnIceCandidates(
+        const std::string& mid,
+        const std::vector<cricket::Candidate>& candidates) = 0;
 
    protected:
     ~IceConnectionObserver() = default;
   };
   static std::unique_ptr<ScenarioIceConnection> Create(
-      const Environment& env,
       test::NetworkEmulationManagerImpl* net,
       IceConnectionObserver* observer);
 

@@ -29,13 +29,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_CSS_MEDIA_QUERY_EXP_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_MEDIA_QUERY_EXP_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/css/css_length_resolver.h"
-#include "third_party/blink/renderer/core/css/css_numeric_literal_value.h"
 #include "third_party/blink/renderer/core/css/css_primitive_value.h"
-#include "third_party/blink/renderer/core/css/css_ratio_value.h"
 #include "third_party/blink/renderer/core/css/css_value.h"
 #include "third_party/blink/renderer/core/css/media_feature_names.h"
 #include "third_party/blink/renderer/core/css_value_keywords.h"
@@ -43,14 +39,11 @@
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 
-namespace WTF {
-class StringBuilder;
-}  // namespace WTF
-
 namespace blink {
 
 class CSSParserContext;
-class CSSParserTokenStream;
+class CSSParserTokenRange;
+class CSSParserTokenOffsets;
 
 class CORE_EXPORT MediaQueryExpValue {
   DISALLOW_NEW();
@@ -60,85 +53,44 @@ class CORE_EXPORT MediaQueryExpValue {
   MediaQueryExpValue() = default;
 
   explicit MediaQueryExpValue(CSSValueID id) : type_(Type::kId), id_(id) {}
+  MediaQueryExpValue(double value, CSSPrimitiveValue::UnitType unit)
+      : type_(Type::kNumeric), numeric_({value, unit}) {}
+  MediaQueryExpValue(double numerator, double denominator)
+      : type_(Type::kRatio), ratio_({numerator, denominator}) {}
   explicit MediaQueryExpValue(const CSSValue& value)
-      : type_(Type::kValue), value_(value) {}
-  MediaQueryExpValue(const CSSPrimitiveValue& numerator,
-                     const CSSPrimitiveValue& denominator)
-      : type_(Type::kRatio),
-        ratio_(MakeGarbageCollected<cssvalue::CSSRatioValue>(numerator,
-                                                             denominator)) {}
-  void Trace(Visitor* visitor) const {
-    visitor->Trace(value_);
-    visitor->Trace(ratio_);
-  }
+      : type_(Type::kCSSValue), css_value_(&value) {}
+  void Trace(Visitor* visitor) const { visitor->Trace(css_value_); }
 
   bool IsValid() const { return type_ != Type::kInvalid; }
   bool IsId() const { return type_ == Type::kId; }
+  bool IsNumeric() const { return type_ == Type::kNumeric; }
   bool IsRatio() const { return type_ == Type::kRatio; }
-  bool IsValue() const { return type_ == Type::kValue; }
-
-  bool IsPrimitiveValue() const {
-    return IsValue() && value_->IsPrimitiveValue();
-  }
-  bool IsNumber() const {
-    return IsPrimitiveValue() && To<CSSPrimitiveValue>(*value_).IsNumber();
-  }
-  bool IsResolution() const {
-    return IsPrimitiveValue() && To<CSSPrimitiveValue>(*value_).IsResolution();
-  }
-  bool IsNumericLiteralValue() const {
-    return IsValue() && value_->IsNumericLiteralValue();
-  }
-  bool IsDotsPerCentimeter() const {
-    return IsNumericLiteralValue() &&
-           To<CSSNumericLiteralValue>(*value_).GetType() ==
-               CSSPrimitiveValue::UnitType::kDotsPerCentimeter;
-  }
+  bool IsCSSValue() const { return type_ == Type::kCSSValue; }
+  bool IsResolution() const;
 
   CSSValueID Id() const {
     DCHECK(IsId());
     return id_;
   }
 
-  double GetDoubleValue() const {
-    DCHECK(IsNumericLiteralValue());
-    return To<CSSNumericLiteralValue>(*value_).ClampedDoubleValue();
+  double Value() const;
+
+  CSSPrimitiveValue::UnitType Unit() const;
+
+  double Numerator() const {
+    DCHECK(IsRatio());
+    return ratio_.numerator;
   }
 
-  CSSPrimitiveValue::UnitType GetUnitType() const {
-    DCHECK(IsNumericLiteralValue());
-    return To<CSSNumericLiteralValue>(*value_).GetType();
+  double Denominator() const {
+    DCHECK(IsRatio());
+    return ratio_.denominator;
   }
 
   const CSSValue& GetCSSValue() const {
-    DCHECK(IsValue());
-    return *value_;
-  }
-
-  const CSSValue& Numerator() const {
-    DCHECK(IsRatio());
-    return ratio_->First();
-  }
-
-  const CSSValue& Denominator() const {
-    DCHECK(IsRatio());
-    return ratio_->Second();
-  }
-
-  double Value(const CSSLengthResolver& length_resolver) const {
-    DCHECK(IsValue());
-    return To<CSSPrimitiveValue>(*value_).ComputeValueInCanonicalUnit(
-        length_resolver);
-  }
-
-  double Numerator(const CSSLengthResolver& length_resolver) const {
-    DCHECK(IsRatio());
-    return ratio_->First().ComputeValueInCanonicalUnit(length_resolver);
-  }
-
-  double Denominator(const CSSLengthResolver& length_resolver) const {
-    DCHECK(IsRatio());
-    return ratio_->Second().ComputeValueInCanonicalUnit(length_resolver);
+    DCHECK(IsCSSValue());
+    DCHECK(css_value_);
+    return *css_value_;
   }
 
   enum UnitFlags {
@@ -164,10 +116,14 @@ class CORE_EXPORT MediaQueryExpValue {
         return true;
       case Type::kId:
         return id_ == other.id_;
-      case Type::kValue:
-        return base::ValuesEquivalent(value_, other.value_);
+      case Type::kNumeric:
+        return (numeric_.value == other.numeric_.value) &&
+               (numeric_.unit == other.numeric_.unit);
       case Type::kRatio:
-        return base::ValuesEquivalent(ratio_, other.ratio_);
+        return (ratio_.numerator == other.ratio_.numerator) &&
+               (ratio_.denominator == other.ratio_.denominator);
+      case Type::kCSSValue:
+        return base::ValuesEquivalent(css_value_, other.css_value_);
     }
   }
   bool operator!=(const MediaQueryExpValue& other) const {
@@ -177,21 +133,33 @@ class CORE_EXPORT MediaQueryExpValue {
   // Consume a MediaQueryExpValue for the provided feature, which must already
   // be lower-cased.
   //
-  // std::nullopt is returned on errors.
-  static std::optional<MediaQueryExpValue> Consume(
+  // absl::nullopt is returned on errors.
+  static absl::optional<MediaQueryExpValue> Consume(
       const String& lower_media_feature,
-      CSSParserTokenStream&,
-      const CSSParserContext&,
-      bool supports_element_dependent);
+      CSSParserTokenRange&,
+      const CSSParserTokenOffsets&,
+      const CSSParserContext&);
 
  private:
-  enum class Type { kInvalid, kId, kValue, kRatio };
+  enum class Type { kInvalid, kId, kNumeric, kRatio, kCSSValue };
 
   Type type_ = Type::kInvalid;
 
-  CSSValueID id_;
-  Member<const CSSValue> value_;
-  Member<const cssvalue::CSSRatioValue> ratio_;
+  // Used when the value can't be represented by the union below (e.g. math
+  // functions). Also used for style features in style container queries.
+  Member<const CSSValue> css_value_;
+
+  union {
+    CSSValueID id_;
+    struct {
+      double value;
+      CSSPrimitiveValue::UnitType unit;
+    } numeric_;
+    struct {
+      double numerator;
+      double denominator;
+    } ratio_;
+  };
 };
 
 // https://drafts.csswg.org/mediaqueries-4/#mq-syntax
@@ -284,11 +252,11 @@ class CORE_EXPORT MediaQueryExp {
 
  public:
   // Returns an invalid MediaQueryExp if the arguments are invalid.
-  static MediaQueryExp Create(const AtomicString& media_feature,
-                              CSSParserTokenStream&,
-                              const CSSParserContext&,
-                              bool supports_element_dependent);
-  static MediaQueryExp Create(const AtomicString& media_feature,
+  static MediaQueryExp Create(const String& media_feature,
+                              CSSParserTokenRange&,
+                              const CSSParserTokenOffsets&,
+                              const CSSParserContext&);
+  static MediaQueryExp Create(const String& media_feature,
                               const MediaQueryExpBounds&);
   static MediaQueryExp Invalid() {
     return MediaQueryExp(String(), MediaQueryExpValue());
@@ -298,7 +266,7 @@ class CORE_EXPORT MediaQueryExp {
   ~MediaQueryExp();
   void Trace(Visitor*) const;
 
-  const AtomicString& MediaFeature() const { return media_feature_; }
+  const String& MediaFeature() const { return media_feature_; }
 
   const MediaQueryExpBounds& Bounds() const { return bounds_; }
 
@@ -327,7 +295,7 @@ class CORE_EXPORT MediaQueryExp {
   MediaQueryExp(const String&, const MediaQueryExpValue&);
   MediaQueryExp(const String&, const MediaQueryExpBounds&);
 
-  AtomicString media_feature_;
+  String media_feature_;
   MediaQueryExpBounds bounds_;
 };
 
@@ -350,7 +318,6 @@ class CORE_EXPORT MediaQueryExpNode
     kFeatureStyle = 1 << 6,
     kFeatureSticky = 1 << 7,
     kFeatureSnap = 1 << 8,
-    kFeatureScrollable = 1 << 9,
   };
 
   using FeatureFlags = unsigned;
@@ -360,7 +327,7 @@ class CORE_EXPORT MediaQueryExpNode
   bool HasUnknown() const { return CollectFeatureFlags() & kFeatureUnknown; }
 
   virtual Type GetType() const = 0;
-  virtual void SerializeTo(WTF::StringBuilder&) const = 0;
+  virtual void SerializeTo(StringBuilder&) const = 0;
   virtual void CollectExpressions(HeapVector<MediaQueryExp>&) const = 0;
   virtual FeatureFlags CollectFeatureFlags() const = 0;
 
@@ -392,7 +359,7 @@ class CORE_EXPORT MediaQueryFeatureExpNode : public MediaQueryExpNode {
   bool IsBlockSizeDependent() const;
 
   Type GetType() const override { return Type::kFeature; }
-  void SerializeTo(WTF::StringBuilder&) const override;
+  void SerializeTo(StringBuilder&) const override;
   void CollectExpressions(HeapVector<MediaQueryExp>&) const override;
   FeatureFlags CollectFeatureFlags() const override;
 
@@ -422,7 +389,7 @@ class CORE_EXPORT MediaQueryNestedExpNode : public MediaQueryUnaryExpNode {
       : MediaQueryUnaryExpNode(operand) {}
 
   Type GetType() const override { return Type::kNested; }
-  void SerializeTo(WTF::StringBuilder&) const override;
+  void SerializeTo(StringBuilder&) const override;
 };
 
 class CORE_EXPORT MediaQueryFunctionExpNode : public MediaQueryUnaryExpNode {
@@ -432,7 +399,7 @@ class CORE_EXPORT MediaQueryFunctionExpNode : public MediaQueryUnaryExpNode {
       : MediaQueryUnaryExpNode(operand), name_(name) {}
 
   Type GetType() const override { return Type::kFunction; }
-  void SerializeTo(WTF::StringBuilder&) const override;
+  void SerializeTo(StringBuilder&) const override;
   FeatureFlags CollectFeatureFlags() const override;
 
  private:
@@ -445,7 +412,7 @@ class CORE_EXPORT MediaQueryNotExpNode : public MediaQueryUnaryExpNode {
       : MediaQueryUnaryExpNode(operand) {}
 
   Type GetType() const override { return Type::kNot; }
-  void SerializeTo(WTF::StringBuilder&) const override;
+  void SerializeTo(StringBuilder&) const override;
 };
 
 class CORE_EXPORT MediaQueryCompoundExpNode : public MediaQueryExpNode {
@@ -475,7 +442,7 @@ class CORE_EXPORT MediaQueryAndExpNode : public MediaQueryCompoundExpNode {
       : MediaQueryCompoundExpNode(left, right) {}
 
   Type GetType() const override { return Type::kAnd; }
-  void SerializeTo(WTF::StringBuilder&) const override;
+  void SerializeTo(StringBuilder&) const override;
 };
 
 class CORE_EXPORT MediaQueryOrExpNode : public MediaQueryCompoundExpNode {
@@ -485,7 +452,7 @@ class CORE_EXPORT MediaQueryOrExpNode : public MediaQueryCompoundExpNode {
       : MediaQueryCompoundExpNode(left, right) {}
 
   Type GetType() const override { return Type::kOr; }
-  void SerializeTo(WTF::StringBuilder&) const override;
+  void SerializeTo(StringBuilder&) const override;
 };
 
 class CORE_EXPORT MediaQueryUnknownExpNode : public MediaQueryExpNode {
@@ -493,8 +460,7 @@ class CORE_EXPORT MediaQueryUnknownExpNode : public MediaQueryExpNode {
   explicit MediaQueryUnknownExpNode(String string) : string_(string) {}
 
   Type GetType() const override { return Type::kUnknown; }
-  String ToString() const { return string_; }
-  void SerializeTo(WTF::StringBuilder&) const override;
+  void SerializeTo(StringBuilder&) const override;
   void CollectExpressions(HeapVector<MediaQueryExp>&) const override;
   FeatureFlags CollectFeatureFlags() const override;
 

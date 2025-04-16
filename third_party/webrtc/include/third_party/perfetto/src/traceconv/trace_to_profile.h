@@ -17,7 +17,6 @@
 #ifndef SRC_TRACECONV_TRACE_TO_PROFILE_H_
 #define SRC_TRACECONV_TRACE_TO_PROFILE_H_
 
-#include <cstdint>
 #include <iostream>
 #include <vector>
 
@@ -37,13 +36,6 @@ int TraceToPerfProfile(std::istream* input,
                        uint64_t pid,
                        std::vector<uint64_t> timestamps,
                        bool annotate_frames);
-
-// 0: success
-int TraceToJavaHeapProfile(std::istream* input,
-                           std::ostream* output,
-                           uint64_t pid,
-                           const std::vector<uint64_t>& timestamps,
-                           bool annotate_frames);
 
 }  // namespace trace_to_text
 }  // namespace perfetto

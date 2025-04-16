@@ -6,11 +6,11 @@
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_MEDIARECORDER_H264_ENCODER_H_
 
 #include "base/task/sequenced_task_runner.h"
-#include "media/media_buildflags.h"
+#include "third_party/blink/renderer/modules/mediarecorder/buildflags.h"
 
-#if !BUILDFLAG(ENABLE_OPENH264)
-#error ENABLE_OPENH264 should be defined.
-#endif  // #if BUILDFLAG(ENABLE_OPENH264)
+#if !BUILDFLAG(RTC_USE_H264)
+#error RTC_USE_H264 should be defined.
+#endif  // #if BUILDFLAG(RTC_USE_H264)
 
 #include "base/time/time.h"
 #include "third_party/blink/renderer/modules/mediarecorder/video_track_recorder.h"
@@ -29,13 +29,15 @@ class MODULES_EXPORT H264Encoder final : public VideoTrackRecorder::Encoder {
   H264Encoder(scoped_refptr<base::SequencedTaskRunner> encoding_task_runner,
               const VideoTrackRecorder::OnEncodedVideoCB& on_encoded_video_cb,
               VideoTrackRecorder::CodecProfile codec_profile,
-              uint32_t bits_per_second,
-              bool is_screencast,
-              const VideoTrackRecorder::OnErrorCB on_error_cb);
+              uint32_t bits_per_second);
   ~H264Encoder() override;
 
   H264Encoder(const H264Encoder&) = delete;
   H264Encoder& operator=(const H264Encoder&) = delete;
+
+  base::WeakPtr<Encoder> GetWeakPtr() override {
+    return weak_factory_.GetWeakPtr();
+  }
 
  private:
   friend class H264EncoderFixture;
@@ -51,9 +53,6 @@ class MODULES_EXPORT H264Encoder final : public VideoTrackRecorder::Encoder {
 
   // TODO(inker): Move this field into VideoTrackRecorder::Encoder.
   const VideoTrackRecorder::CodecProfile codec_profile_;
-  const bool is_screencast_;
-
-  const VideoTrackRecorder::OnErrorCB on_error_cb_;
 
   // |openh264_encoder_| is a special scoped pointer to guarantee proper
   // destruction, also when reconfiguring due to parameters change.
@@ -62,6 +61,7 @@ class MODULES_EXPORT H264Encoder final : public VideoTrackRecorder::Encoder {
 
   // The |VideoFrame::timestamp()| of the first received frame.
   base::TimeTicks first_frame_timestamp_;
+  base::WeakPtrFactory<H264Encoder> weak_factory_{this};
 };
 
 }  // namespace blink

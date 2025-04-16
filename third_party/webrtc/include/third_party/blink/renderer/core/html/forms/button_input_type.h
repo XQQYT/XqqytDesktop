@@ -43,7 +43,7 @@ class ButtonInputType final : public BaseButtonInputType {
  private:
   void CountUsage() override;
   bool SupportsValidation() const override;
-  void AdjustStyle(ComputedStyleBuilder&) override;
+  bool IsTextButton() const override;
 };
 
 template <>

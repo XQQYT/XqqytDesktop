@@ -8,7 +8,7 @@
 
 namespace blink {
 
-inline constexpr uint32_t kSoftNavigationCountDefaultValue = 0;
+constexpr uint32_t kSoftNavigationCountDefaultValue = 0;
 
 struct SoftNavigationMetrics {
   uint32_t count = kSoftNavigationCountDefaultValue;

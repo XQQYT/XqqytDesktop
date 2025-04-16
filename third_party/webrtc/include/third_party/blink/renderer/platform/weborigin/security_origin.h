@@ -30,21 +30,16 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WEBORIGIN_SECURITY_ORIGIN_H_
 
 #include <stdint.h>
-
 #include <memory>
-#include <optional>
 
 #include "base/gtest_prod_util.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/hash_traits.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/blink/renderer/platform/wtf/thread_safe_ref_counted.h"
 #include "url/origin.h"
-
-namespace WTF {
-class StringBuilder;
-}  // namespace WTF
 
 namespace blink {
 
@@ -132,9 +127,9 @@ class PLATFORM_EXPORT SecurityOrigin : public RefCounted<SecurityOrigin> {
   void SetDomainFromDOM(const String& new_domain);
   bool DomainWasSetInDOM() const { return domain_was_set_in_dom_; }
 
-  const String& Protocol() const { return protocol_; }
-  const String& Host() const { return host_; }
-  const String& Domain() const { return domain_; }
+  String Protocol() const { return protocol_; }
+  String Host() const { return host_; }
+  String Domain() const { return domain_; }
 
   // Returns the registrable domain if available.
   // For non-tuple origin, IP address URL, and public suffixes, this returns a
@@ -272,16 +267,6 @@ class PLATFORM_EXPORT SecurityOrigin : public RefCounted<SecurityOrigin> {
   // When using the string value, it's important to remember that it might be
   // "null". This typically happens when this SecurityOrigin is opaque (e.g. the
   // origin of a sandboxed iframe).
-  //
-  // This should be kept in sync with url::Origin::Serialize().
-  //
-  // TODO(crbug.com/40554285, crbug.com/40467682): Note that there's a subtle
-  // difference in how this function handles file: URL origins compared to
-  // url::Origin::Serialize(). url::Origin always serializes them to "file://",
-  // whereas this function serializes them to "null" or // "file://" depending
-  // on the `allow_file_access_from_file_urls` flag in WebPreferences. This
-  // difference should be cleaned up, along with the workaround for it in
-  // RenderFrameProxyHost::SerializePostMessageSourceOrigin().
   String ToString() const;
   AtomicString ToAtomicString() const;
 
@@ -380,10 +365,7 @@ class PLATFORM_EXPORT SecurityOrigin : public RefCounted<SecurityOrigin> {
 
   // Only used for document.domain setting. The method should probably be moved
   // if we need it for something more general.
-  static String CanonicalizeSpecialHost(const String& host, bool* success);
-  static String CanonicalizeHost(const String& host,
-                                 const String& scheme,
-                                 bool* success);
+  static String CanonicalizeHost(const String& host, bool* success);
 
   // Return a security origin that is assigned to the agent cluster. This will
   // be a copy of this security origin if the current agent doesn't match the
@@ -404,10 +386,6 @@ class PLATFORM_EXPORT SecurityOrigin : public RefCounted<SecurityOrigin> {
   // To be removed after shipping DocumentOpenSandboxInheritanceRemoval feature.
   void set_aliased_by_document_open() { aliased_by_document_open_ = true; }
   bool aliased_by_document_open() const { return aliased_by_document_open_; }
-
-  bool block_local_access_from_local_origin() const {
-    return block_local_access_from_local_origin_;
-  }
 
  private:
   // Various serialisation and test routines that need direct nonce access.
@@ -437,7 +415,7 @@ class PLATFORM_EXPORT SecurityOrigin : public RefCounted<SecurityOrigin> {
   SecurityOrigin(NewUniqueOpaque, const SecurityOrigin* precursor_origin);
 
   // Create a tuple SecurityOrigin, with parameters via KURL
-  static scoped_refptr<SecurityOrigin> CreateInternal(const KURL& url);
+  explicit SecurityOrigin(const KURL& url);
 
   // Constructs a non-opaque tuple origin, analogously to
   // url::Origin::Origin(url::SchemeHostPort).
@@ -453,7 +431,7 @@ class PLATFORM_EXPORT SecurityOrigin : public RefCounted<SecurityOrigin> {
 
   // FIXME: Rename this function to something more semantic.
   bool PassesFileCheck(const SecurityOrigin*) const;
-  void BuildRawString(WTF::StringBuilder&) const;
+  void BuildRawString(StringBuilder&) const;
 
   // Get the nonce associated with this origin, if it is opaque. This should be
   // used only when trying to send an Origin across an IPC pipe or comparing
@@ -464,7 +442,7 @@ class PLATFORM_EXPORT SecurityOrigin : public RefCounted<SecurityOrigin> {
   const String host_ = g_empty_string;
   String domain_ = g_empty_string;
   const uint16_t port_ = 0;
-  const std::optional<url::Origin::Nonce> nonce_if_opaque_;
+  const absl::optional<url::Origin::Nonce> nonce_if_opaque_;
   bool universal_access_ = false;
   bool domain_was_set_in_dom_ = false;
   bool can_load_local_resources_ = false;
@@ -511,7 +489,7 @@ struct HashTraits<scoped_refptr<const blink::SecurityOrigin>>
 #error "Unknown bits"
 #endif
     };
-    return StringHasher::HashMemory(base::as_byte_span(hash_codes));
+    return StringHasher::HashMemory<sizeof(hash_codes)>(hash_codes);
   }
   static unsigned GetHash(
       const scoped_refptr<const blink::SecurityOrigin>& origin) {

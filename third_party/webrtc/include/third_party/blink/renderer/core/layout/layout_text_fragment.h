@@ -47,7 +47,11 @@ class CORE_EXPORT LayoutTextFragment : public LayoutText {
                                     const String&,
                                     int start_offset,
                                     int length);
-  static LayoutTextFragment* CreateAnonymous(Document&, const String&);
+  static LayoutTextFragment* CreateAnonymous(PseudoElement&, const String&);
+  static LayoutTextFragment* CreateAnonymous(PseudoElement&,
+                                             const String&,
+                                             unsigned start,
+                                             unsigned length);
   static LayoutTextFragment* CreateAnonymous(Document&,
                                              const String&,
                                              unsigned start,
@@ -56,7 +60,7 @@ class CORE_EXPORT LayoutTextFragment : public LayoutText {
   void Trace(Visitor*) const override;
 
   Position PositionForCaretOffset(unsigned) const override;
-  std::optional<unsigned> CaretOffsetForPosition(
+  absl::optional<unsigned> CaretOffsetForPosition(
       const Position&) const override;
 
   unsigned Start() const {
@@ -88,7 +92,7 @@ class CORE_EXPORT LayoutTextFragment : public LayoutText {
 
   void SetTextFragment(String, unsigned start, unsigned length);
 
-  void TransformAndSecureOriginalText() override;
+  void TransformText() override;
 
   const char* GetName() const override {
     NOT_DESTROYED();

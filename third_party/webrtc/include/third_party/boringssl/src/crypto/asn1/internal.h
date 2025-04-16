@@ -1,19 +1,63 @@
-// Copyright 2005-2016 The OpenSSL Project Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL project
+ * 2006.
+ */
+/* ====================================================================
+ * Copyright (c) 2006 The OpenSSL Project.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 3. All advertising materials mentioning features or use of this
+ *    software must display the following acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
+ *
+ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
+ *    endorse or promote products derived from this software without
+ *    prior written permission. For written permission, please contact
+ *    licensing@OpenSSL.org.
+ *
+ * 5. Products derived from this software may not be called "OpenSSL"
+ *    nor may "OpenSSL" appear in their names without prior written
+ *    permission of the OpenSSL Project.
+ *
+ * 6. Redistributions of any form whatsoever must retain the following
+ *    acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
+ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * ====================================================================
+ *
+ * This product includes cryptographic software written by Eric Young
+ * (eay@cryptsoft.com).  This product includes software written by Tim
+ * Hudson (tjh@cryptsoft.com).
+ *
+ */
 
-#ifndef OPENSSL_HEADER_CRYPTO_ASN1_INTERNAL_H
-#define OPENSSL_HEADER_CRYPTO_ASN1_INTERNAL_H
+#ifndef OPENSSL_HEADER_ASN1_INTERNAL_H
+#define OPENSSL_HEADER_ASN1_INTERNAL_H
 
 #include <time.h>
 
@@ -32,12 +76,18 @@ extern "C" {
 // returned. On failure NULL is returned.
 OPENSSL_EXPORT struct tm *OPENSSL_gmtime(const time_t *time, struct tm *result);
 
+// OPENSSL_timegm converts a time value between the years 0 and 9999 in |tm| to
+// a time_t value in |out|. One is returned on success, zero is returned on
+// failure. It is a failure if the converted time can not be represented in a
+// time_t, or if the tm contains out of range values.
+OPENSSL_EXPORT int OPENSSL_timegm(const struct tm *tm, time_t *out);
+
 // OPENSSL_gmtime_adj returns one on success, and updates |tm| by adding
 // |offset_day| days and |offset_sec| seconds. It returns zero on failure. |tm|
 // must be in the range of year 0000 to 9999 both before and after the update or
 // a failure will be returned.
 OPENSSL_EXPORT int OPENSSL_gmtime_adj(struct tm *tm, int offset_day,
-                                      int64_t offset_sec);
+                                      long offset_sec);
 
 // OPENSSL_gmtime_diff calculates the difference between |from| and |to|. It
 // returns one, and outputs the difference as a number of days and seconds in
@@ -160,10 +210,6 @@ void asn1_encoding_clear(ASN1_ENCODING *enc);
 // a pointer.
 const void *asn1_type_value_as_pointer(const ASN1_TYPE *a);
 
-// asn1_type_set0_string sets |a|'s value to the object represented by |str| and
-// takes ownership of |str|.
-void asn1_type_set0_string(ASN1_TYPE *a, ASN1_STRING *str);
-
 // asn1_type_cleanup releases memory associated with |a|'s value, without
 // freeing |a| itself.
 void asn1_type_cleanup(ASN1_TYPE *a);
@@ -219,4 +265,4 @@ typedef struct ASN1_EXTERN_FUNCS_st {
 }  // extern C
 #endif
 
-#endif  // OPENSSL_HEADER_CRYPTO_ASN1_INTERNAL_H
+#endif  // OPENSSL_HEADER_ASN1_INTERNAL_H

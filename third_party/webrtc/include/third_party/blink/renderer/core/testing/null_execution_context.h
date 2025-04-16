@@ -22,11 +22,7 @@ namespace blink {
 class NullExecutionContext : public GarbageCollected<NullExecutionContext>,
                              public ExecutionContext {
  public:
-  // Deprecated: Use version that takes an Isolate.
-  // TODO(crbug.com/1315595): Remove this constructor.
   NullExecutionContext();
-
-  explicit NullExecutionContext(v8::Isolate* isolate);
   explicit NullExecutionContext(std::unique_ptr<FrameScheduler> scheduler);
   ~NullExecutionContext() override;
 
@@ -48,6 +44,7 @@ class NullExecutionContext : public GarbageCollected<NullExecutionContext>,
 
   void AddConsoleMessageImpl(ConsoleMessage*,
                              bool discard_duplicates) override {}
+  void AddInspectorIssue(mojom::blink::InspectorIssueInfoPtr) override {}
   void AddInspectorIssue(AuditsIssue) override {}
   void ExceptionThrown(ErrorEvent*) override {}
 
@@ -63,7 +60,6 @@ class NullExecutionContext : public GarbageCollected<NullExecutionContext>,
 
   void CountUse(mojom::WebFeature) override {}
   void CountDeprecation(mojom::WebFeature) override {}
-  void CountWebDXFeature(mojom::blink::WebDXFeature) override {}
 
   const BrowserInterfaceBrokerProxy& GetBrowserInterfaceBroker() const override;
 

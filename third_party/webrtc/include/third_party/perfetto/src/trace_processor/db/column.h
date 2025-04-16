@@ -24,13 +24,14 @@
 #include "perfetto/trace_processor/basic_types.h"
 #include "src/trace_processor/containers/row_map.h"
 #include "src/trace_processor/containers/string_pool.h"
-#include "src/trace_processor/db/column/types.h"
 #include "src/trace_processor/db/column_storage.h"
 #include "src/trace_processor/db/column_storage_overlay.h"
 #include "src/trace_processor/db/compare.h"
+#include "src/trace_processor/db/storage/types.h"
 #include "src/trace_processor/db/typed_column_internal.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 // Helper class for converting a type to a ColumnType.
 template <typename T>
@@ -61,7 +62,7 @@ struct ColumnTypeHelper<std::optional<T>> : public ColumnTypeHelper<T> {};
 class Table;
 
 // Represents a named, strongly typed list of data.
-class ColumnLegacy {
+class Column {
  public:
   // Flags which indicate properties of the data in the column. These features
   // are used to speed up column methods like filtering/sorting.
@@ -133,7 +134,7 @@ class ColumnLegacy {
     using pointer = uint32_t*;
     using reference = uint32_t&;
 
-    Iterator(const ColumnLegacy* col, uint32_t row) : col_(col), row_(row) {}
+    Iterator(const Column* col, uint32_t row) : col_(col), row_(row) {}
 
     Iterator(const Iterator&) = default;
     Iterator& operator=(const Iterator&) = default;
@@ -166,7 +167,7 @@ class ColumnLegacy {
     uint32_t row() const { return row_; }
 
    private:
-    const ColumnLegacy* col_ = nullptr;
+    const Column* col_ = nullptr;
     uint32_t row_ = 0;
   };
 
@@ -175,44 +176,144 @@ class ColumnLegacy {
 
   // Flags which should *not* be inherited implicitly when a column is
   // assocaited to another table.
-  static constexpr uint32_t kNoCrossTableInheritFlags =
-      ColumnLegacy::Flag::kSetId;
+  static constexpr uint32_t kNoCrossTableInheritFlags = Column::Flag::kSetId;
 
   template <typename T>
-  ColumnLegacy(const char* name,
-               ColumnStorage<T>* storage,
-               /* Flag */ uint32_t flags,
-               uint32_t col_idx_in_table,
-               uint32_t row_map_idx)
-      : ColumnLegacy(name,
-                     ColumnTypeHelper<stored_type<T>>::ToColumnType(),
-                     flags,
-                     col_idx_in_table,
-                     row_map_idx,
-                     storage) {}
+  Column(const char* name,
+         ColumnStorage<T>* storage,
+         /* Flag */ uint32_t flags,
+         Table* table,
+         uint32_t col_idx_in_table,
+         uint32_t row_map_idx)
+      : Column(name,
+               ColumnTypeHelper<stored_type<T>>::ToColumnType(),
+               flags,
+               table,
+               col_idx_in_table,
+               row_map_idx,
+               storage) {}
 
   // Create a Column backed by the same data as |column| but is associated to a
   // different table and, optionally, having a different name.
-  ColumnLegacy(const ColumnLegacy& column,
-               uint32_t col_idx_in_table,
-               uint32_t row_map_idx,
-               const char* name = nullptr);
+  Column(const Column& column,
+         Table* table,
+         uint32_t col_idx_in_table,
+         uint32_t row_map_idx,
+         const char* name = nullptr);
 
   // Columns are movable but not copyable.
-  ColumnLegacy(ColumnLegacy&&) noexcept = default;
-  ColumnLegacy& operator=(ColumnLegacy&&) = default;
+  Column(Column&&) noexcept = default;
+  Column& operator=(Column&&) = default;
 
   // Creates a Column which does not have any data backing it.
-  static ColumnLegacy DummyColumn(const char* name, uint32_t col_idx_in_table);
+  static Column DummyColumn(const char* name,
+                            Table* table,
+                            uint32_t col_idx_in_table);
 
   // Creates a Column which returns the index as the value of the row.
-  static ColumnLegacy IdColumn(uint32_t col_idx_in_table,
-                               uint32_t overlay_idx,
-                               const char* name = "id",
-                               uint32_t flags = kIdFlags);
+  static Column IdColumn(Table* table,
+                         uint32_t col_idx_in_table,
+                         uint32_t row_map_idx,
+                         const char* name = "id",
+                         uint32_t flags = kIdFlags);
 
   // Gets the value of the Column at the given |row|.
   SqlValue Get(uint32_t row) const { return GetAtIdx(overlay().Get(row)); }
+
+  // Returns the row containing the given value in the Column.
+  std::optional<uint32_t> IndexOf(SqlValue value) const {
+    switch (type_) {
+      // TODO(lalitm): investigate whether we could make this more efficient
+      // by first checking the type of the column and comparing explicitly
+      // based on that type.
+      case ColumnType::kInt32:
+      case ColumnType::kUint32:
+      case ColumnType::kInt64:
+      case ColumnType::kDouble:
+      case ColumnType::kString: {
+        for (uint32_t i = 0; i < overlay().size(); i++) {
+          if (compare::SqlValue(Get(i), value) == 0)
+            return i;
+        }
+        return std::nullopt;
+      }
+      case ColumnType::kId: {
+        if (value.type != SqlValue::Type::kLong)
+          return std::nullopt;
+        return overlay().RowOf(static_cast<uint32_t>(value.long_value));
+      }
+      case ColumnType::kDummy:
+        PERFETTO_FATAL("IndexOf not allowed on dummy column");
+    }
+    PERFETTO_FATAL("For GCC");
+  }
+
+  // Sorts |idx| in ascending or descending order (determined by |desc|) based
+  // on the contents of this column.
+  void StableSort(bool desc, std::vector<uint32_t>* idx) const;
+
+  // Updates the given RowMap by only keeping rows where this column meets the
+  // given filter constraint.
+  void FilterInto(FilterOp op, SqlValue value, RowMap* rm) const {
+    if (IsId() && op == FilterOp::kEq) {
+      // If this is an equality constraint on an id column, try and find the
+      // single row with the id (if it exists).
+      auto opt_idx = IndexOf(value);
+      if (opt_idx) {
+        rm->IntersectExact(*opt_idx);
+      } else {
+        rm->Clear();
+      }
+      return;
+    }
+
+    if (IsSetId() && op == FilterOp::kEq && value.type == SqlValue::kLong) {
+      // If the column is sorted and the value has the same type as the column,
+      // we should be able to just do a binary search to find the range of rows
+      // instead of a full table scan.
+      FilterIntoSetIdEq(value.AsLong(), rm);
+      return;
+    }
+
+    if (IsSorted() && value.type == type()) {
+      // If the column is sorted and the value has the same type as the column,
+      // we should be able to just do a binary search to find the range of rows
+      // instead of a full table scan.
+      bool handled = FilterIntoSorted(op, value, rm);
+      if (handled)
+        return;
+    }
+
+    FilterIntoSlow(op, value, rm);
+  }
+
+  // Returns the minimum value in this column. Returns std::nullopt if this
+  // column is empty.
+  std::optional<SqlValue> Min() const {
+    if (overlay().empty())
+      return std::nullopt;
+
+    if (IsSorted())
+      return Get(0);
+
+    Iterator b(this, 0);
+    Iterator e(this, overlay().size());
+    return *std::min_element(b, e, &compare::SqlValueComparator);
+  }
+
+  // Returns the minimum value in this column. Returns std::nullopt if this
+  // column is empty.
+  std::optional<SqlValue> Max() const {
+    if (overlay().empty())
+      return std::nullopt;
+
+    if (IsSorted())
+      return Get(overlay().size() - 1);
+
+    Iterator b(this, 0);
+    Iterator e(this, overlay().size());
+    return *std::max_element(b, e, &compare::SqlValueComparator);
+  }
 
   // Returns the backing RowMap for this Column.
   // This function is defined out of line because of a circular dependency
@@ -221,6 +322,9 @@ class ColumnLegacy {
 
   // Returns the name of the column.
   const char* name() const { return name_; }
+
+  // Returns the type of this Column in terms of SqlValue::Type.
+  SqlValue::Type type() const { return ToSqlValueType(type_); }
 
   // Returns the type of this Column in terms of ColumnType.
   ColumnType col_type() const { return type_; }
@@ -250,9 +354,6 @@ class ColumnLegacy {
   // Returns true if this column is a dummy column.
   // Public for testing.
   bool IsDummy() const { return type_ == ColumnType::kDummy; }
-
-  // Returns true if this column is a hidden column.
-  bool IsHidden() const { return (flags_ & Flag::kHidden) != 0; }
 
   // Returns the index of the RowMap in the containing table.
   uint32_t overlay_index() const { return overlay_index_; }
@@ -324,23 +425,6 @@ class ColumnLegacy {
 
   const ColumnStorageBase& storage_base() const { return *storage_; }
 
-  static SqlValue::Type ToSqlValueType(ColumnType type) {
-    switch (type) {
-      case ColumnType::kInt32:
-      case ColumnType::kUint32:
-      case ColumnType::kInt64:
-      case ColumnType::kId:
-        return SqlValue::Type::kLong;
-      case ColumnType::kDouble:
-        return SqlValue::Type::kDouble;
-      case ColumnType::kString:
-        return SqlValue::Type::kString;
-      case ColumnType::kDummy:
-        PERFETTO_FATAL("ToSqlValueType not allowed on dummy column");
-    }
-    PERFETTO_FATAL("For GCC");
-  }
-
  protected:
   // Returns the backing sparse vector cast to contain data of type T.
   // Should only be called when |type_| == ToColumnType<T>().
@@ -350,6 +434,9 @@ class ColumnLegacy {
     PERFETTO_DCHECK(tc_internal::TypeHandler<T>::is_optional == IsNullable());
     return static_cast<ColumnStorage<stored_type<T>>*>(storage_);
   }
+
+  // Returns true if this column is a hidden column.
+  bool IsHidden() const { return (flags_ & Flag::kHidden) != 0; }
 
   const StringPool& string_pool() const { return *string_pool_; }
 
@@ -372,15 +459,16 @@ class ColumnLegacy {
   friend class View;
 
   // Base constructor for this class which all other constructors call into.
-  ColumnLegacy(const char* name,
-               ColumnType type,
-               uint32_t flags,
-               uint32_t col_idx_in_table,
-               uint32_t overlay_index,
-               ColumnStorageBase* nullable_vector);
+  Column(const char* name,
+         ColumnType type,
+         uint32_t flags,
+         Table* table,
+         uint32_t col_idx_in_table,
+         uint32_t overlay_index,
+         ColumnStorageBase* nullable_vector);
 
-  ColumnLegacy(const ColumnLegacy&) = delete;
-  ColumnLegacy& operator=(const ColumnLegacy&) = delete;
+  Column(const Column&) = delete;
+  Column& operator=(const Column&) = delete;
 
   // Gets the value of the Column at the given |idx|.
   SqlValue GetAtIdx(uint32_t idx) const {
@@ -414,6 +502,122 @@ class ColumnLegacy {
     return ToSqlValue(storage<T>().Get(idx));
   }
 
+  // Optimized filter method for sorted columns.
+  // Returns whether the constraint was handled by the method.
+  bool FilterIntoSorted(FilterOp op, SqlValue value, RowMap* rm) const {
+    PERFETTO_DCHECK(IsSorted());
+    PERFETTO_DCHECK(value.type == type());
+
+    Iterator b(this, 0);
+    Iterator e(this, overlay().size());
+    switch (op) {
+      case FilterOp::kEq: {
+        uint32_t beg = std::distance(
+            b, std::lower_bound(b, e, value, &compare::SqlValueComparator));
+        uint32_t end = std::distance(
+            b, std::upper_bound(b, e, value, &compare::SqlValueComparator));
+        rm->Intersect({beg, end});
+        return true;
+      }
+      case FilterOp::kLe: {
+        uint32_t end = std::distance(
+            b, std::upper_bound(b, e, value, &compare::SqlValueComparator));
+        rm->Intersect({0, end});
+        return true;
+      }
+      case FilterOp::kLt: {
+        uint32_t end = std::distance(
+            b, std::lower_bound(b, e, value, &compare::SqlValueComparator));
+        rm->Intersect({0, end});
+        return true;
+      }
+      case FilterOp::kGe: {
+        uint32_t beg = std::distance(
+            b, std::lower_bound(b, e, value, &compare::SqlValueComparator));
+        rm->Intersect({beg, overlay().size()});
+        return true;
+      }
+      case FilterOp::kGt: {
+        uint32_t beg = std::distance(
+            b, std::upper_bound(b, e, value, &compare::SqlValueComparator));
+        rm->Intersect({beg, overlay().size()});
+        return true;
+      }
+      case FilterOp::kNe:
+      case FilterOp::kIsNull:
+      case FilterOp::kIsNotNull:
+      case FilterOp::kGlob:
+      case FilterOp::kRegex:
+        break;
+    }
+    return false;
+  }
+
+  void FilterIntoSetIdEq(int64_t value, RowMap* rm) const {
+    PERFETTO_DCHECK(!IsNullable());
+
+    uint32_t filter_set_id = static_cast<uint32_t>(value);
+    const auto& st = storage<uint32_t>();
+    const ColumnStorageOverlay& ov = overlay();
+
+    // If the set id is beyond the end of the column, there's no chance that
+    // it exists.
+    if (PERFETTO_UNLIKELY(filter_set_id >= st.size())) {
+      rm->Clear();
+      return;
+    }
+
+    uint32_t set_id = st.Get(ov.Get(filter_set_id));
+
+    // If the set at that index does not equal the set id we're looking for, the
+    // set id doesn't exist either.
+    if (PERFETTO_UNLIKELY(set_id != filter_set_id)) {
+      PERFETTO_DCHECK(set_id < filter_set_id);
+      rm->Clear();
+      return;
+    }
+
+    // Otherwise, find the end of the set and return the intersection for this.
+    for (uint32_t i = set_id + 1; i < ov.size(); ++i) {
+      if (st.Get(ov.Get(i)) != filter_set_id) {
+        RowMap r(set_id, i);
+        rm->Intersect(r);
+        return;
+      }
+    }
+    RowMap r(set_id, ov.size());
+    rm->Intersect(r);
+  }
+
+  // Slow path filter method which will perform a full table scan.
+  void FilterIntoSlow(FilterOp op, SqlValue value, RowMap* rm) const;
+
+  // Slow path filter method for numerics which will perform a full table scan.
+  template <typename T, bool is_nullable>
+  void FilterIntoNumericSlow(FilterOp op, SqlValue value, RowMap* rm) const;
+
+  // Slow path filter method for numerics with a comparator which will perform a
+  // full table scan.
+  template <typename T, bool is_nullable, typename Comparator = int(T)>
+  void FilterIntoNumericWithComparatorSlow(FilterOp op,
+                                           RowMap* rm,
+                                           Comparator cmp) const;
+
+  // Slow path filter method for strings which will perform a full table scan.
+  void FilterIntoStringSlow(FilterOp op, SqlValue value, RowMap* rm) const;
+
+  // Slow path filter method for ids which will perform a full table scan.
+  void FilterIntoIdSlow(FilterOp op, SqlValue value, RowMap* rm) const;
+
+  // Stable sorts this column storing the result in |out|.
+  template <bool desc>
+  void StableSort(std::vector<uint32_t>* out) const;
+
+  // Stable sorts this column storing the result in |out|.
+  // |T| and |is_nullable| should match the type and nullability of this column.
+  template <bool desc, typename T, bool is_nullable>
+  void StableSortNumeric(std::vector<uint32_t>* out) const;
+
   static constexpr bool IsDense(uint32_t flags) {
     return (flags & Flag::kDense) != 0;
   }
@@ -445,44 +649,28 @@ class ColumnLegacy {
     return IsSorted(flags) && !IsNullable(flags) && type == ColumnType::kUint32;
   }
 
+  static SqlValue::Type ToSqlValueType(ColumnType type) {
+    switch (type) {
+      case ColumnType::kInt32:
+      case ColumnType::kUint32:
+      case ColumnType::kInt64:
+      case ColumnType::kId:
+        return SqlValue::Type::kLong;
+      case ColumnType::kDouble:
+        return SqlValue::Type::kDouble;
+      case ColumnType::kString:
+        return SqlValue::Type::kString;
+      case ColumnType::kDummy:
+        PERFETTO_FATAL("ToSqlValueType not allowed on dummy column");
+    }
+    PERFETTO_FATAL("For GCC");
+  }
+
   // Returns the string at the index |idx|.
   // Should only be called when |type_| == ColumnType::kString.
   NullTermStringView GetStringPoolStringAtIdx(uint32_t idx) const {
     PERFETTO_DCHECK(type_ == ColumnType::kString);
     return string_pool_->Get(storage<StringPool::Id>().Get(idx));
-  }
-
-  void BindToTable(Table* table, StringPool* string_pool) {
-    PERFETTO_DCHECK(!table_);
-    table_ = table;
-    string_pool_ = string_pool;
-
-    // Check that the dense-ness of the column and the nullable vector match.
-    if (IsNullable() && !IsDummy()) {
-      bool is_storage_dense;
-      switch (type_) {
-        case ColumnType::kInt32:
-          is_storage_dense = storage<std::optional<int32_t>>().IsDense();
-          break;
-        case ColumnType::kUint32:
-          is_storage_dense = storage<std::optional<uint32_t>>().IsDense();
-          break;
-        case ColumnType::kInt64:
-          is_storage_dense = storage<std::optional<int64_t>>().IsDense();
-          break;
-        case ColumnType::kDouble:
-          is_storage_dense = storage<std::optional<double>>().IsDense();
-          break;
-        case ColumnType::kString:
-          PERFETTO_FATAL("String column should not be nullable");
-        case ColumnType::kId:
-          PERFETTO_FATAL("Id column should not be nullable");
-        case ColumnType::kDummy:
-          PERFETTO_FATAL("Dummy column excluded above");
-      }
-      PERFETTO_DCHECK(is_storage_dense == IsDense());
-    }
-    PERFETTO_DCHECK(IsFlagsAndTypeValid(flags_, type_));
   }
 
   // type_ is used to cast nullable_vector_ to the correct type.
@@ -497,6 +685,7 @@ class ColumnLegacy {
   const StringPool* string_pool_ = nullptr;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_DB_COLUMN_H_

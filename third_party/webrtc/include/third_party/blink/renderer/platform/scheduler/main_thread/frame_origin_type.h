@@ -5,8 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_SCHEDULER_MAIN_THREAD_FRAME_ORIGIN_TYPE_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_SCHEDULER_MAIN_THREAD_FRAME_ORIGIN_TYPE_H_
 
-#include "third_party/perfetto/include/perfetto/tracing/string_helpers.h"
-
 namespace blink {
 class FrameScheduler;
 
@@ -23,7 +21,7 @@ enum class FrameOriginType {
 
 FrameOriginType GetFrameOriginType(FrameScheduler* frame_scheduler);
 
-perfetto::StaticString FrameOriginTypeToString(FrameOriginType origin);
+const char* FrameOriginTypeToString(FrameOriginType origin);
 
 }  // namespace scheduler
 }  // namespace blink

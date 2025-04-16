@@ -39,13 +39,10 @@ class LayoutSVGInline : public LayoutInline {
     NOT_DESTROYED();
     return kNoPaintLayer;
   }
-  bool IsSVG() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
-  }
-  bool IsSVGInline() const final {
-    NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectSVG || type == kLayoutObjectSVGInline ||
+           LayoutInline::IsOfType(type);
   }
 
   bool IsChildAllowed(LayoutObject*, const ComputedStyle&) const override;
@@ -54,23 +51,17 @@ class LayoutSVGInline : public LayoutInline {
   gfx::RectF DecoratedBoundingBox() const final;
   gfx::RectF VisualRectInLocalSVGCoordinates() const final;
 
+  PhysicalRect VisualRectInDocument(
+      VisualRectFlags = kDefaultVisualRectFlags) const final;
   void MapLocalToAncestor(const LayoutBoxModelObject* ancestor,
                           TransformState&,
                           MapCoordinatesFlags) const final;
-  void QuadsInAncestorInternal(Vector<gfx::QuadF>&,
-                               const LayoutBoxModelObject* ancestor,
-                               MapCoordinatesFlags) const final;
+  void AbsoluteQuads(Vector<gfx::QuadF>&,
+                     MapCoordinatesFlags mode = 0) const final;
   void AddOutlineRects(OutlineRectCollector&,
                        OutlineInfo*,
                        const PhysicalOffset& additional_offset,
-                       OutlineType) const final;
-
-  void InvalidateObjectBoundingBox() {
-    NOT_DESTROYED();
-    needs_update_bounding_box_ = true;
-  }
-
-  void Paint(const PaintInfo&) const final;
+                       NGOutlineType) const final;
 
  private:
   void WillBeDestroyed() final;
@@ -83,18 +74,10 @@ class LayoutSVGInline : public LayoutInline {
   void InsertedIntoTree() override;
   void WillBeRemovedFromTree() override;
 
-  // Return true if this can have an object bounding box.
-  // bounding_box_ can be dirty even if this flag is true.
   bool IsObjectBoundingBoxValid() const;
 
   static void ObjectBoundingBoxForCursor(InlineCursor& cursor,
                                          gfx::RectF& bounds);
-
-  // `bounding_box_` and `needs_update_bounding_box_` are mutable for
-  // on-demand computation of bounding_box_.
-  mutable gfx::RectF bounding_box_;
-  // True if we need to update bounding_box_.
-  mutable bool needs_update_bounding_box_ = true;
 };
 
 template <>

@@ -31,8 +31,9 @@ class BASE_EXPORT ThreadControllerPowerMonitor : public PowerSuspendObserver {
   // notifications.
   bool IsProcessInPowerSuspendState();
 
-  // Initializes features for this class. See `base::features::Init()`.
-  static void InitializeFeatures();
+  // Initialize the ThreadControllerPowerMonitor. Must be called once on the
+  // main thread during startup while single-threaded.
+  static void InitializeOnMainThread();
 
   static void OverrideUsePowerMonitorForTesting(bool use_power_monitor);
   static void ResetForTesting();

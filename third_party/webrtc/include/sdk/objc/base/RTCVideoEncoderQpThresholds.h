@@ -10,12 +10,11 @@
 
 #import <Foundation/Foundation.h>
 
-#import "sdk/objc/base/RTCMacros.h"
+#import "RTCMacros.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-/** QP thresholds for encoder. Corresponds to
- * webrtc::VideoEncoder::QpThresholds. */
+/** QP thresholds for encoder. Corresponds to webrtc::VideoEncoder::QpThresholds. */
 RTC_OBJC_EXPORT
 @interface RTC_OBJC_TYPE (RTCVideoEncoderQpThresholds) : NSObject
 

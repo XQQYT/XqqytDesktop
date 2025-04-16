@@ -5,10 +5,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_LAYOUT_TEXT_COMBINE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_LAYOUT_TEXT_COMBINE_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/layout/layout_block_flow.h"
+#include "third_party/blink/renderer/core/layout/ng/layout_ng_block_flow.h"
 #include "third_party/blink/renderer/core/paint/line_relative_rect.h"
 
 namespace blink {
@@ -22,26 +21,26 @@ class LayoutText;
 // vertical writing mode, e.g. <i style="text-upright:all"><b>12</b>34<i>.
 // Note: When the element is in horizontal writing mode, we don't use this.
 // Note: Children of this class must be |LayoutText| associated to |Text| node.
-class CORE_EXPORT LayoutTextCombine final : public LayoutBlockFlow {
+class CORE_EXPORT LayoutTextCombine final : public LayoutNGBlockFlow {
  public:
   // Note: Mark constructor public for |MakeGarbageCollected|. We should not
   // call this directly.
   LayoutTextCombine();
   ~LayoutTextCombine() override;
 
-  void Trace(Visitor* visitor) const override {
-    visitor->Trace(compressed_font_);
-    LayoutBlockFlow::Trace(visitor);
-  }
-
   float DesiredWidth() const;
   String GetTextContent() const;
 
-  const Font* CompressedFont() const {
+  // Compressed font
+  const Font& CompressedFont() const {
     NOT_DESTROYED();
-    return compressed_font_;
+    return compressed_font_.value();
   }
-  void SetCompressedFont(const Font* font);
+  bool UsesCompressedFont() const {
+    NOT_DESTROYED();
+    return compressed_font_.has_value();
+  }
+  void SetCompressedFont(const Font& font);
 
   // Scaling
 
@@ -59,9 +58,9 @@ class CORE_EXPORT LayoutTextCombine final : public LayoutBlockFlow {
   //  * |LayoutText::PhysicalLinesBoundingBox()| used by
   //    |LayoutObject::DebugRect()|, intersection observer, and scroll anchor.
   //  * |FragmentItem::RecalcInkOverflow()| for line box
-  //  * |ScrollableOverflowCalculator::AddItemsInternal()| for line box.
-  //  * |PhysicalFragment::AddOutlineRectsForCursor()|
-  //  * |PhysicalFragment::AddScrollableOverflowForInlineChild()|
+  //  * |NGLayoutOverflowCalculator::AddItemsInternal()| for line box.
+  //  * |NGPhysicalFragment::AddOutlineRectsForCursor()|
+  //  * |NGPhysicalFragment::AddScrollableOverflowForInlineChild()|
   PhysicalRect AdjustRectForBoundingBox(const PhysicalRect& rect) const;
 
   PhysicalRect ComputeTextBoundsRectForHitTest(
@@ -93,7 +92,7 @@ class CORE_EXPORT LayoutTextCombine final : public LayoutBlockFlow {
       const PhysicalOffset paint_offset) const;
 
   // Returns visual rect for painting emphasis mark and text decoration for
-  // |BoxFragmentPainter|.
+  // |NGBoxFragmentPainter|.
   gfx::Rect VisualRectForPaint(const PhysicalOffset& paint_offset) const;
 
   static void AssertStyleIsValid(const ComputedStyle& style);
@@ -105,10 +104,7 @@ class CORE_EXPORT LayoutTextCombine final : public LayoutBlockFlow {
   static bool ShouldBeParentOf(const LayoutObject& layout_object);
 
  private:
-  bool IsLayoutTextCombine() const final {
-    NOT_DESTROYED();
-    return true;
-  }
+  bool IsOfType(LayoutObjectType) const override;
   const char* GetName() const override {
     NOT_DESTROYED();
     return "LayoutTextCombine";
@@ -123,26 +119,23 @@ class CORE_EXPORT LayoutTextCombine final : public LayoutBlockFlow {
   float ComputeInlineSpacing() const;
   bool UsingSyntheticOblique() const;
 
+  // |compressed_font_| hold width variant of |StyleRef().GetFont()|.
+  absl::optional<Font> compressed_font_;
+
   // |scale_x_| holds scale factor to width of text content to 1em. When we
   // use |scale_x_|, we use |StyleRef().GetFont()| instead of compressed font.
-  std::optional<float> scale_x_;
-
-  // |compressed_font_| hold width variant of |StyleRef().GetFont()|.
-  Member<const Font> compressed_font_;
+  absl::optional<float> scale_x_;
 };
 
 // static
 inline bool LayoutTextCombine::ShouldBeParentOf(
     const LayoutObject& layout_object) {
-  if (layout_object.IsHorizontalWritingMode() || !layout_object.IsText() ||
-      layout_object.IsSVGInlineText()) [[likely]] {
+  if (LIKELY(layout_object.IsHorizontalWritingMode()) ||
+      !layout_object.IsText() || layout_object.IsSVGInlineText()) {
     return false;
   }
-  if (layout_object.StyleRef().HasTextCombine() &&
-      layout_object.IsLayoutNGObject()) [[unlikely]] {
-    return true;
-  }
-  return false;
+  return UNLIKELY(layout_object.StyleRef().HasTextCombine()) &&
+         layout_object.IsLayoutNGObject();
 }
 
 template <>

@@ -18,7 +18,7 @@
 
 namespace webrtc {
 
-class VideoCaptureModule : public RefCountInterface {
+class VideoCaptureModule : public rtc::RefCountInterface {
  public:
   // Interface for receiving information about available camera devices.
   class DeviceInfo {

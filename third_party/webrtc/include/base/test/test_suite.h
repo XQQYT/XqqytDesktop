@@ -10,11 +10,11 @@
 // any gtest based tests that are linked into your executable.
 
 #include <memory>
-#include <string_view>
 
 #include "base/at_exit.h"
 #include "base/check.h"
 #include "base/memory/raw_ptr.h"
+#include "base/strings/string_piece.h"
 #include "base/tracing_buildflags.h"
 #include "build/build_config.h"
 
@@ -24,8 +24,7 @@
 
 #if BUILDFLAG(IS_WIN)
 #include <vector>
-
-#include "base/memory/raw_ptr_exclusion.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/pointers/raw_ptr_exclusion.h"
 #endif
 
 namespace logging {
@@ -73,8 +72,8 @@ class TestSuite {
   // terminates the process.
   void UnitTestAssertHandler(const char* file,
                              int line,
-                             std::string_view summary,
-                             std::string_view stack_trace);
+                             const base::StringPiece summary,
+                             const base::StringPiece stack_trace);
 
   // Disable crash dialogs so that it doesn't gum up the buildbot
   virtual void SuppressErrorDialogs();

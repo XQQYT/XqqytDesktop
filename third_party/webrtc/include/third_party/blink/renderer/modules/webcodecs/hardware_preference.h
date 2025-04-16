@@ -16,7 +16,6 @@ enum class HardwarePreference {
 };
 
 HardwarePreference StringToHardwarePreference(const String& value);
-String HardwarePreferenceToString(HardwarePreference hw_pref);
 
 }  // namespace blink
 

@@ -94,22 +94,20 @@ class BASE_EXPORT TaskRunner
   // };
   //
   //
-  // class DataLoader {
+  // class DataLoader : public SupportsWeakPtr<DataLoader> {
   //  public:
   //    void GetData() {
   //      scoped_refptr<DataBuffer> buffer = new DataBuffer();
   //      target_thread_.task_runner()->PostTaskAndReply(
   //          FROM_HERE,
   //          base::BindOnce(&DataBuffer::AddData, buffer),
-  //          base::BindOnce(&DataLoader::OnDataReceived,
-  //                             weak_ptr_factory_.GetWeakPtr(), buffer));
+  //          base::BindOnce(&DataLoader::OnDataReceived, AsWeakPtr(), buffer));
   //    }
   //
   //  private:
   //    void OnDataReceived(scoped_refptr<DataBuffer> buffer) {
   //      // Do something with buffer.
   //    }
-  //    base::WeakPtrFactory<DataLoader> weak_ptr_factory_{this};
   // };
   //
   //
@@ -146,9 +144,9 @@ class BASE_EXPORT TaskRunner
             template <typename>
             class TaskCallbackType,
             template <typename>
-            class ReplyCallbackType>
-    requires(IsBaseCallback<TaskCallbackType<void()>> &&
-             IsBaseCallback<ReplyCallbackType<void()>>)
+            class ReplyCallbackType,
+            typename = EnableIfIsBaseCallback<TaskCallbackType>,
+            typename = EnableIfIsBaseCallback<ReplyCallbackType>>
   bool PostTaskAndReplyWithResult(const Location& from_here,
                                   TaskCallbackType<TaskReturnType()> task,
                                   ReplyCallbackType<void(ReplyArgType)> reply) {

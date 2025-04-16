@@ -19,9 +19,11 @@
 #ifndef GRPCPP_SERVER_INTERFACE_H
 #define GRPCPP_SERVER_INTERFACE_H
 
+#include <grpc/support/port_platform.h>
+
 #include <grpc/grpc.h>
 #include <grpc/impl/grpc_types.h>
-#include <grpc/support/port_platform.h>
+#include <grpc/support/log.h>
 #include <grpc/support/time.h>
 #include <grpcpp/impl/call.h>
 #include <grpcpp/impl/call_hook.h>
@@ -30,8 +32,6 @@
 #include <grpcpp/impl/rpc_service_method.h>
 #include <grpcpp/server_context.h>
 #include <grpcpp/support/byte_buffer.h>
-
-#include "absl/log/absl_check.h"
 
 namespace grpc {
 
@@ -301,12 +301,9 @@ class ServerInterface : public internal::CallHook {
                         internal::ServerAsyncStreamingInterface* stream,
                         grpc::CompletionQueue* call_cq,
                         grpc::ServerCompletionQueue* notification_cq, void* tag,
-                        bool delete_on_finalize, bool issue_request = true);
+                        bool delete_on_finalize);
 
     bool FinalizeResult(void** tag, bool* status) override;
-
-   protected:
-    void IssueRequest();
 
    private:
     grpc_call_details call_details_;
@@ -319,7 +316,7 @@ class ServerInterface : public internal::CallHook {
                         grpc::CompletionQueue* call_cq,
                         grpc::ServerCompletionQueue* notification_cq, void* tag,
                         Message* message) {
-    ABSL_CHECK(method);
+    GPR_ASSERT(method);
     new PayloadAsyncRequest<Message>(method, this, context, stream, call_cq,
                                      notification_cq, tag, message);
   }
@@ -330,7 +327,7 @@ class ServerInterface : public internal::CallHook {
                         grpc::CompletionQueue* call_cq,
                         grpc::ServerCompletionQueue* notification_cq,
                         void* tag) {
-    ABSL_CHECK(method);
+    GPR_ASSERT(method);
     new NoPayloadAsyncRequest(method, this, context, stream, call_cq,
                               notification_cq, tag);
   }

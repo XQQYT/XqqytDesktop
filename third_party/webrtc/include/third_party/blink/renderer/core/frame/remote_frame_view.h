@@ -5,15 +5,14 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_REMOTE_FRAME_VIEW_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_REMOTE_FRAME_VIEW_H_
 
-#include <optional>
-
 #include "base/check.h"
 #include "base/time/time.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/mojom/frame/lifecycle.mojom-blink-forward.h"
 #include "third_party/blink/public/mojom/frame/viewport_intersection_state.mojom-blink.h"
 #include "third_party/blink/renderer/core/frame/embedded_content_view.h"
 #include "third_party/blink/renderer/core/frame/frame_view.h"
-#include "third_party/blink/renderer/core/layout/natural_sizing_info.h"
+#include "third_party/blink/renderer/core/layout/intrinsic_sizing_info.h"
 #include "third_party/blink/renderer/core/paint/paint_flags.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
@@ -52,7 +51,6 @@ class RemoteFrameView final : public GarbageCollected<RemoteFrameView>,
   void Dispose() override;
   void SetFrameRect(const gfx::Rect&) override;
   void PropagateFrameRects() override;
-  void ZoomFactorChanged(float zoom_factor) override;
   void Paint(GraphicsContext&,
              PaintFlags,
              const CullRect&,
@@ -61,15 +59,16 @@ class RemoteFrameView final : public GarbageCollected<RemoteFrameView>,
   void Hide() override;
   void Show() override;
 
-  bool UpdateViewportIntersectionsForSubtree(
+  IntersectionUpdateResult UpdateViewportIntersectionsForSubtree(
       unsigned parent_flags,
-      ComputeIntersectionsContext&) override;
+      absl::optional<base::TimeTicks>&) override;
   void SetNeedsOcclusionTracking(bool);
   bool NeedsOcclusionTracking() const { return needs_occlusion_tracking_; }
 
-  std::optional<NaturalSizingInfo> GetNaturalDimensions() const override;
+  bool GetIntrinsicSizingInfo(IntrinsicSizingInfo&) const override;
 
-  void SetNaturalDimensions(const NaturalSizingInfo& size_info);
+  void SetIntrinsicSizeInfo(const IntrinsicSizingInfo& size_info);
+  bool HasIntrinsicSizingInfo() const override;
 
   bool CanThrottleRendering() const override;
   void VisibilityForThrottlingChanged() override;
@@ -90,7 +89,7 @@ class RemoteFrameView final : public GarbageCollected<RemoteFrameView>,
 
   void Trace(Visitor*) const override;
 
-  void ResetFrozenSize() { frozen_size_ = std::nullopt; }
+  void ResetFrozenSize() { frozen_size_ = absl::nullopt; }
 
  protected:
   bool NeedsViewportOffset() const override { return true; }
@@ -102,8 +101,8 @@ class RemoteFrameView final : public GarbageCollected<RemoteFrameView>,
  private:
   // This function returns the LocalFrameView associated with the parent frame's
   // local root, or nullptr if the parent frame is not a local frame. For
-  // fenced frames, this will return the local root associated with the fenced
-  // frame's owner.
+  // portals, this will return the local root associated with the portal's
+  // owner.
   LocalFrameView* ParentLocalRootFrameView() const;
 
   // This provides the rectangle that the embedded compositor should raster
@@ -122,10 +121,11 @@ class RemoteFrameView final : public GarbageCollected<RemoteFrameView>,
   Member<RemoteFrame> remote_frame_;
   mojom::blink::ViewportIntersectionState last_intersection_state_;
   gfx::Rect compositing_rect_;
-  std::optional<gfx::Size> frozen_size_;
+  absl::optional<gfx::Size> frozen_size_;
   float compositing_scale_factor_ = 1.0f;
 
-  std::optional<NaturalSizingInfo> natural_sizing_info_;
+  IntrinsicSizingInfo intrinsic_sizing_info_;
+  bool has_intrinsic_sizing_info_ = false;
   bool needs_occlusion_tracking_ = false;
   bool needs_frame_rect_propagation_ = false;
 };

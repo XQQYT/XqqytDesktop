@@ -43,7 +43,7 @@ class RemoteFontFaceSource final : public CSSFontFaceSource,
   bool IsPendingDataUrl() const override;
 
   const FontCustomPlatformData* GetCustomPlaftormData() const override {
-    return custom_font_data_.Get();
+    return custom_font_data_.get();
   }
 
   void BeginLoadIfNeeded() override;
@@ -66,10 +66,11 @@ class RemoteFontFaceSource final : public CSSFontFaceSource,
   void Trace(Visitor*) const override;
 
  protected:
-  const SimpleFontData* CreateFontData(
+  scoped_refptr<SimpleFontData> CreateFontData(
       const FontDescription&,
       const FontSelectionCapabilities&) override;
-  const SimpleFontData* CreateLoadingFallbackFontData(const FontDescription&);
+  scoped_refptr<SimpleFontData> CreateLoadingFallbackFontData(
+      const FontDescription&);
 
  private:
   // Periods of the Font Display Timeline.
@@ -148,13 +149,16 @@ class RemoteFontFaceSource final : public CSSFontFaceSource,
   bool UpdatePeriod() override;
   bool ShouldTriggerWebFontsIntervention();
   bool IsLowPriorityLoadingAllowedForRemoteFont() const override;
+  FontDisplay GetFontDisplayWithDocumentPolicyCheck(FontDisplay,
+                                                    const FontSelector*,
+                                                    ReportOptions) const;
 
   // Our owning font face.
   Member<CSSFontFace> face_;
   Member<FontSelector> font_selector_;
 
   // |nullptr| if font is not loaded or failed to decode.
-  Member<const FontCustomPlatformData> custom_font_data_;
+  scoped_refptr<FontCustomPlatformData> custom_font_data_;
   // |nullptr| if font is not loaded or failed to decode.
   String url_;
 

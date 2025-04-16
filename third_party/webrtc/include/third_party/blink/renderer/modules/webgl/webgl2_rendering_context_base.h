@@ -6,8 +6,7 @@
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_WEBGL_WEBGL2_RENDERING_CONTEXT_BASE_H_
 
 #include <memory>
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/modules/webgl/webgl_extension.h"
 #include "third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h"
 
@@ -33,12 +32,12 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
   void bufferData(GLenum,
                   MaybeShared<DOMArrayBufferView>,
                   GLenum,
-                  int64_t,
+                  GLuint,
                   GLuint);
   void bufferSubData(GLenum,
                      int64_t offset,
                      MaybeShared<DOMArrayBufferView>,
-                     int64_t,
+                     GLuint,
                      GLuint);
   // Have to re-declare/re-define the following buffer{Sub}Data functions from
   // base class.  This is because the above buffer{Sub}Data() hides the name
@@ -48,15 +47,16 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
   void bufferData(GLenum target,
                   MaybeShared<DOMArrayBufferView> data,
                   GLenum usage);
+  void bufferSubData(GLenum target, int64_t offset, DOMArrayBufferBase* data);
   void bufferSubData(GLenum target,
                      int64_t offset,
-                     base::span<const uint8_t> data);
+                     const FlexibleArrayBufferView& data);
 
   void copyBufferSubData(GLenum, GLenum, int64_t, int64_t, int64_t);
   void getBufferSubData(GLenum,
                         int64_t,
                         MaybeShared<DOMArrayBufferView>,
-                        int64_t,
+                        GLuint,
                         GLuint);
 
   /* Framebuffer objects */
@@ -171,7 +171,7 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
                   GLenum,
                   GLenum,
                   MaybeShared<DOMArrayBufferView>,
-                  int64_t);
+                  GLuint);
 
   void texSubImage2D(GLenum,
                      GLint,
@@ -254,7 +254,7 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
                      GLenum,
                      GLenum,
                      MaybeShared<DOMArrayBufferView>,
-                     int64_t);
+                     GLuint);
 
   // Have to re-declare/re-define the following tex{Sub}Image2D functions from
   // base class.  This is because the above tex{Sub}Image2D() hides the name
@@ -682,123 +682,223 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
   void uniform3ui(const WebGLUniformLocation*, GLuint, GLuint, GLuint);
   void uniform4ui(const WebGLUniformLocation*, GLuint, GLuint, GLuint, GLuint);
   void uniform1fv(const WebGLUniformLocation*,
-                  base::span<const GLfloat>,
+                  NADCTypedArrayView<GLfloat>,
+                  GLuint,
+                  GLuint);
+  void uniform1fv(const WebGLUniformLocation*,
+                  Vector<GLfloat>&,
                   GLuint,
                   GLuint);
   void uniform2fv(const WebGLUniformLocation*,
-                  base::span<const GLfloat>,
+                  NADCTypedArrayView<GLfloat>,
+                  GLuint,
+                  GLuint);
+  void uniform2fv(const WebGLUniformLocation*,
+                  Vector<GLfloat>&,
                   GLuint,
                   GLuint);
   void uniform3fv(const WebGLUniformLocation*,
-                  base::span<const GLfloat>,
+                  NADCTypedArrayView<GLfloat>,
+                  GLuint,
+                  GLuint);
+  void uniform3fv(const WebGLUniformLocation*,
+                  Vector<GLfloat>&,
                   GLuint,
                   GLuint);
   void uniform4fv(const WebGLUniformLocation*,
-                  base::span<const GLfloat>,
+                  NADCTypedArrayView<GLfloat>,
+                  GLuint,
+                  GLuint);
+  void uniform4fv(const WebGLUniformLocation*,
+                  Vector<GLfloat>&,
                   GLuint,
                   GLuint);
   void uniform1iv(const WebGLUniformLocation*,
-                  base::span<const GLint>,
+                  NADCTypedArrayView<GLint>,
                   GLuint,
                   GLuint);
+  void uniform1iv(const WebGLUniformLocation*, Vector<GLint>&, GLuint, GLuint);
   void uniform2iv(const WebGLUniformLocation*,
-                  base::span<const GLint>,
+                  NADCTypedArrayView<GLint>,
                   GLuint,
                   GLuint);
+  void uniform2iv(const WebGLUniformLocation*, Vector<GLint>&, GLuint, GLuint);
   void uniform3iv(const WebGLUniformLocation*,
-                  base::span<const GLint>,
+                  NADCTypedArrayView<GLint>,
                   GLuint,
                   GLuint);
+  void uniform3iv(const WebGLUniformLocation*, Vector<GLint>&, GLuint, GLuint);
   void uniform4iv(const WebGLUniformLocation*,
-                  base::span<const GLint>,
+                  NADCTypedArrayView<GLint>,
                   GLuint,
                   GLuint);
+  void uniform4iv(const WebGLUniformLocation*, Vector<GLint>&, GLuint, GLuint);
   void uniform1uiv(const WebGLUniformLocation*,
-                   base::span<const GLuint>,
+                   NADCTypedArrayView<GLuint>,
+                   GLuint,
+                   GLuint);
+  void uniform1uiv(const WebGLUniformLocation*,
+                   Vector<GLuint>&,
                    GLuint,
                    GLuint);
   void uniform2uiv(const WebGLUniformLocation*,
-                   base::span<const GLuint>,
+                   NADCTypedArrayView<GLuint>,
+                   GLuint,
+                   GLuint);
+  void uniform2uiv(const WebGLUniformLocation*,
+                   Vector<GLuint>&,
                    GLuint,
                    GLuint);
   void uniform3uiv(const WebGLUniformLocation*,
-                   base::span<const GLuint>,
+                   NADCTypedArrayView<GLuint>,
+                   GLuint,
+                   GLuint);
+  void uniform3uiv(const WebGLUniformLocation*,
+                   Vector<GLuint>&,
                    GLuint,
                    GLuint);
   void uniform4uiv(const WebGLUniformLocation*,
-                   base::span<const GLuint>,
+                   NADCTypedArrayView<GLuint>,
+                   GLuint,
+                   GLuint);
+  void uniform4uiv(const WebGLUniformLocation*,
+                   Vector<GLuint>&,
                    GLuint,
                    GLuint);
   void uniformMatrix2fv(const WebGLUniformLocation*,
                         GLboolean,
-                        base::span<const GLfloat>,
+                        NADCTypedArrayView<GLfloat>,
+                        GLuint,
+                        GLuint);
+  void uniformMatrix2fv(const WebGLUniformLocation*,
+                        GLboolean,
+                        Vector<GLfloat>&,
                         GLuint,
                         GLuint);
   void uniformMatrix3fv(const WebGLUniformLocation*,
                         GLboolean,
-                        base::span<const GLfloat>,
+                        NADCTypedArrayView<GLfloat>,
+                        GLuint,
+                        GLuint);
+  void uniformMatrix3fv(const WebGLUniformLocation*,
+                        GLboolean,
+                        Vector<GLfloat>&,
                         GLuint,
                         GLuint);
   void uniformMatrix4fv(const WebGLUniformLocation*,
                         GLboolean,
-                        base::span<const GLfloat>,
+                        NADCTypedArrayView<GLfloat>,
+                        GLuint,
+                        GLuint);
+  void uniformMatrix4fv(const WebGLUniformLocation*,
+                        GLboolean,
+                        Vector<GLfloat>&,
                         GLuint,
                         GLuint);
   void uniformMatrix2x3fv(const WebGLUniformLocation*,
                           GLboolean,
-                          base::span<const GLfloat>,
+                          NADCTypedArrayView<GLfloat>,
+                          GLuint,
+                          GLuint);
+  void uniformMatrix2x3fv(const WebGLUniformLocation*,
+                          GLboolean,
+                          Vector<GLfloat>&,
                           GLuint,
                           GLuint);
   void uniformMatrix3x2fv(const WebGLUniformLocation*,
                           GLboolean,
-                          base::span<const GLfloat>,
+                          NADCTypedArrayView<GLfloat>,
+                          GLuint,
+                          GLuint);
+  void uniformMatrix3x2fv(const WebGLUniformLocation*,
+                          GLboolean,
+                          Vector<GLfloat>&,
                           GLuint,
                           GLuint);
   void uniformMatrix2x4fv(const WebGLUniformLocation*,
                           GLboolean,
-                          base::span<const GLfloat>,
+                          NADCTypedArrayView<GLfloat>,
+                          GLuint,
+                          GLuint);
+  void uniformMatrix2x4fv(const WebGLUniformLocation*,
+                          GLboolean,
+                          Vector<GLfloat>&,
                           GLuint,
                           GLuint);
   void uniformMatrix4x2fv(const WebGLUniformLocation*,
                           GLboolean,
-                          base::span<const GLfloat>,
+                          NADCTypedArrayView<GLfloat>,
+                          GLuint,
+                          GLuint);
+  void uniformMatrix4x2fv(const WebGLUniformLocation*,
+                          GLboolean,
+                          Vector<GLfloat>&,
                           GLuint,
                           GLuint);
   void uniformMatrix3x4fv(const WebGLUniformLocation*,
                           GLboolean,
-                          base::span<const GLfloat>,
+                          NADCTypedArrayView<GLfloat>,
+                          GLuint,
+                          GLuint);
+  void uniformMatrix3x4fv(const WebGLUniformLocation*,
+                          GLboolean,
+                          Vector<GLfloat>&,
                           GLuint,
                           GLuint);
   void uniformMatrix4x3fv(const WebGLUniformLocation*,
                           GLboolean,
-                          base::span<const GLfloat>,
+                          NADCTypedArrayView<GLfloat>,
+                          GLuint,
+                          GLuint);
+  void uniformMatrix4x3fv(const WebGLUniformLocation*,
+                          GLboolean,
+                          Vector<GLfloat>&,
                           GLuint,
                           GLuint);
   // Have to re-declare/re-define the following uniform*()
   // functions from the base class. This is because the above
   // uniform*() hide the name from base class.
-  void uniform1fv(const WebGLUniformLocation*, base::span<const GLfloat>);
-  void uniform2fv(const WebGLUniformLocation*, base::span<const GLfloat>);
-  void uniform3fv(const WebGLUniformLocation*, base::span<const GLfloat>);
-  void uniform4fv(const WebGLUniformLocation*, base::span<const GLfloat>);
-  void uniform1iv(const WebGLUniformLocation*, base::span<const GLint>);
-  void uniform2iv(const WebGLUniformLocation*, base::span<const GLint>);
-  void uniform3iv(const WebGLUniformLocation*, base::span<const GLint>);
-  void uniform4iv(const WebGLUniformLocation*, base::span<const GLint>);
+  void uniform1fv(const WebGLUniformLocation*, NADCTypedArrayView<GLfloat>);
+  void uniform1fv(const WebGLUniformLocation*, Vector<GLfloat>&);
+  void uniform2fv(const WebGLUniformLocation*, NADCTypedArrayView<GLfloat>);
+  void uniform2fv(const WebGLUniformLocation*, Vector<GLfloat>&);
+  void uniform3fv(const WebGLUniformLocation*, NADCTypedArrayView<GLfloat>);
+  void uniform3fv(const WebGLUniformLocation*, Vector<GLfloat>&);
+  void uniform4fv(const WebGLUniformLocation*, NADCTypedArrayView<GLfloat>);
+  void uniform4fv(const WebGLUniformLocation*, Vector<GLfloat>&);
+  void uniform1iv(const WebGLUniformLocation*, NADCTypedArrayView<GLint>);
+  void uniform1iv(const WebGLUniformLocation*, Vector<GLint>&);
+  void uniform2iv(const WebGLUniformLocation*, NADCTypedArrayView<GLint>);
+  void uniform2iv(const WebGLUniformLocation*, Vector<GLint>&);
+  void uniform3iv(const WebGLUniformLocation*, NADCTypedArrayView<GLint>);
+  void uniform3iv(const WebGLUniformLocation*, Vector<GLint>&);
+  void uniform4iv(const WebGLUniformLocation*, NADCTypedArrayView<GLint>);
+  void uniform4iv(const WebGLUniformLocation*, Vector<GLint>&);
   void uniformMatrix2fv(const WebGLUniformLocation*,
                         GLboolean transpose,
-                        base::span<const GLfloat> value);
+                        NADCTypedArrayView<GLfloat> value);
+  void uniformMatrix2fv(const WebGLUniformLocation*,
+                        GLboolean transpose,
+                        Vector<GLfloat>& value);
   void uniformMatrix3fv(const WebGLUniformLocation*,
                         GLboolean transpose,
-                        base::span<const GLfloat> value);
+                        NADCTypedArrayView<GLfloat> value);
+  void uniformMatrix3fv(const WebGLUniformLocation*,
+                        GLboolean transpose,
+                        Vector<GLfloat>& value);
   void uniformMatrix4fv(const WebGLUniformLocation*,
                         GLboolean transpose,
-                        base::span<const GLfloat> value);
+                        NADCTypedArrayView<GLfloat> value);
+  void uniformMatrix4fv(const WebGLUniformLocation*,
+                        GLboolean transpose,
+                        Vector<GLfloat>& value);
 
   void vertexAttribI4i(GLuint, GLint, GLint, GLint, GLint);
-  void vertexAttribI4iv(GLuint, base::span<const GLint>);
+  void vertexAttribI4iv(GLuint, NADCTypedArrayView<const GLint>);
+  void vertexAttribI4iv(GLuint, const Vector<GLint>&);
   void vertexAttribI4ui(GLuint, GLuint, GLuint, GLuint, GLuint);
-  void vertexAttribI4uiv(GLuint, base::span<const GLuint>);
+  void vertexAttribI4uiv(GLuint, NADCTypedArrayView<const GLuint>);
+  void vertexAttribI4uiv(GLuint, const Vector<GLuint>&);
   void vertexAttribIPointer(GLuint index,
                             GLint size,
                             GLenum type,
@@ -818,15 +918,18 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
 
   /* Multiple Render Targets */
   void drawBuffers(const Vector<GLenum>&);
-  void clearBufferiv(GLenum, GLint, base::span<const GLint>, GLuint);
-  void clearBufferuiv(GLenum, GLint, base::span<const GLuint>, GLuint);
-  void clearBufferfv(GLenum, GLint, base::span<const GLfloat>, GLuint);
+  void clearBufferiv(GLenum, GLint, NADCTypedArrayView<GLint>, GLuint);
+  void clearBufferiv(GLenum, GLint, const Vector<GLint>&, GLuint);
+  void clearBufferuiv(GLenum, GLint, NADCTypedArrayView<GLuint>, GLuint);
+  void clearBufferuiv(GLenum, GLint, const Vector<GLuint>&, GLuint);
+  void clearBufferfv(GLenum, GLint, NADCTypedArrayView<GLfloat>, GLuint);
+  void clearBufferfv(GLenum, GLint, const Vector<GLfloat>&, GLuint);
   void clearBufferfi(GLenum, GLint, GLfloat, GLint);
 
   /* Query Objects */
   WebGLQuery* createQuery();
   void deleteQuery(WebGLQuery*);
-  bool isQuery(WebGLQuery*);
+  GLboolean isQuery(WebGLQuery*);
   void beginQuery(GLenum, WebGLQuery*);
   void endQuery(GLenum);
   ScriptValue getQuery(ScriptState*, GLenum, GLenum);
@@ -835,7 +938,7 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
   /* Sampler Objects */
   WebGLSampler* createSampler();
   void deleteSampler(WebGLSampler*);
-  bool isSampler(WebGLSampler*);
+  GLboolean isSampler(WebGLSampler*);
   void bindSampler(GLuint, WebGLSampler*);
   void samplerParameteri(WebGLSampler*, GLenum, GLint);
   void samplerParameterf(WebGLSampler*, GLenum, GLfloat);
@@ -843,7 +946,7 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
 
   /* Sync objects */
   WebGLSync* fenceSync(GLenum, GLbitfield);
-  bool isSync(WebGLSync*);
+  GLboolean isSync(WebGLSync*);
   void deleteSync(WebGLSync*);
   GLenum clientWaitSync(WebGLSync*, GLbitfield, GLuint64);
   void waitSync(WebGLSync*, GLbitfield, GLint64);
@@ -853,7 +956,7 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
   /* Transform Feedback */
   WebGLTransformFeedback* createTransformFeedback();
   void deleteTransformFeedback(WebGLTransformFeedback*);
-  bool isTransformFeedback(WebGLTransformFeedback*);
+  GLboolean isTransformFeedback(WebGLTransformFeedback*);
   void bindTransformFeedback(GLenum, WebGLTransformFeedback*);
   void beginTransformFeedback(GLenum);
   void endTransformFeedback();
@@ -870,8 +973,8 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
   void bindBufferBase(GLenum, GLuint, WebGLBuffer*);
   void bindBufferRange(GLenum, GLuint, WebGLBuffer*, int64_t, int64_t);
   virtual ScriptValue getIndexedParameter(ScriptState*, GLenum, GLuint);
-  std::optional<Vector<GLuint>> getUniformIndices(WebGLProgram*,
-                                                  const Vector<String>&);
+  absl::optional<Vector<GLuint>> getUniformIndices(WebGLProgram*,
+                                                   const Vector<String>&);
   ScriptValue getActiveUniforms(ScriptState*,
                                 WebGLProgram*,
                                 const Vector<GLuint>&,
@@ -887,7 +990,7 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
   /* Vertex Array Objects */
   WebGLVertexArrayObject* createVertexArray();
   void deleteVertexArray(WebGLVertexArrayObject*);
-  bool isVertexArray(WebGLVertexArrayObject*);
+  GLboolean isVertexArray(WebGLVertexArrayObject*);
   void bindVertexArray(WebGLVertexArrayObject*);
 
   /* Reading */
@@ -1041,7 +1144,7 @@ class WebGL2RenderingContextBase : public WebGLRenderingContextBase {
                                        GLenum target,
                                        int64_t source_byte_offset,
                                        DOMArrayBufferView*,
-                                       int64_t destination_offset,
+                                       GLuint destination_offset,
                                        GLuint length,
                                        WebGLBuffer**,
                                        void** out_destination_data_ptr,

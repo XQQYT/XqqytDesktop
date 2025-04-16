@@ -28,3 +28,4 @@ inline jobject GetClassLoader(JNIEnv* env) {
 }  // namespace base
 
 #endif  // BASE_ANDROID_JNI_UTILS_H_
+

@@ -8,7 +8,6 @@
 #include "third_party/blink/public/mojom/bluetooth/web_bluetooth.mojom-blink-forward.h"
 #include "third_party/blink/renderer/bindings/core/v8/active_script_wrappable.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/core/dom/abort_signal.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/modules/bluetooth/bluetooth_remote_gatt_server.h"
@@ -27,9 +26,15 @@ class BluetoothRemoteGATTCharacteristic;
 class BluetoothRemoteGATTDescriptor;
 class BluetoothRemoteGATTServer;
 class BluetoothRemoteGATTService;
+class ScriptPromiseResolver;
 class WatchAdvertisementsOptions;
 
 // BluetoothDevice represents a physical bluetooth device in the DOM. See IDL.
+//
+// Callbacks providing WebBluetoothDevice objects are handled by
+// CallbackPromiseAdapter templatized with this class. See this class's
+// "Interface required by CallbackPromiseAdapter" section and the
+// CallbackPromiseAdapter class comments.
 class BluetoothDevice final
     : public EventTarget,
       public ExecutionContextClient,
@@ -86,11 +91,10 @@ class BluetoothDevice final
   void Trace(Visitor*) const override;
 
   // IDL exposed interface:
-  ScriptPromise<IDLUndefined> watchAdvertisements(
-      ScriptState*,
-      const WatchAdvertisementsOptions*,
-      ExceptionState&);
-  ScriptPromise<IDLUndefined> forget(ScriptState*, ExceptionState&);
+  ScriptPromise watchAdvertisements(ScriptState*,
+                                    const WatchAdvertisementsOptions*,
+                                    ExceptionState&);
+  ScriptPromise forget(ScriptState*, ExceptionState&);
   String id() { return device_->id.DeviceIdInBase64().c_str(); }
   String name() { return device_->name; }
   BluetoothRemoteGATTServer* gatt() { return gatt_.Get(); }
@@ -115,6 +119,7 @@ class BluetoothDevice final
 
  private:
   void WatchAdvertisementsCallback(mojom::blink::WebBluetoothResult);
+  void ForgetCallback(ScriptPromiseResolver*);
 
   // Holds all GATT Attributes associated with this BluetoothDevice.
   Member<BluetoothAttributeInstanceMap> attribute_instance_map_;
@@ -123,7 +128,7 @@ class BluetoothDevice final
   Member<BluetoothRemoteGATTServer> gatt_;
   Member<Bluetooth> bluetooth_;
 
-  Member<ScriptPromiseResolver<IDLUndefined>> watch_advertisements_resolver_;
+  Member<ScriptPromiseResolver> watch_advertisements_resolver_;
 
   HeapMojoAssociatedReceiver<mojom::blink::WebBluetoothAdvertisementClient,
                              BluetoothDevice>

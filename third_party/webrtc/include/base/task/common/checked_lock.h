@@ -5,11 +5,11 @@
 #ifndef BASE_TASK_COMMON_CHECKED_LOCK_H_
 #define BASE_TASK_COMMON_CHECKED_LOCK_H_
 
-#include <optional>
+#include <memory>
 
 #include "base/check_op.h"
 #include "base/dcheck_is_on.h"
-#include "base/memory/stack_allocated.h"
+#include "base/memory/raw_ref.h"
 #include "base/synchronization/condition_variable.h"
 #include "base/synchronization/lock.h"
 #include "base/task/common/checked_lock_impl.h"
@@ -62,7 +62,7 @@ namespace internal {
 // void AssertAcquired().
 //     DCHECKs if the lock is not acquired.
 //
-// ConditionVariable CreateConditionVariable()
+// std::unique_ptr<ConditionVariable> CreateConditionVariable()
 //     Creates a condition variable using this as a lock.
 
 #if DCHECK_IS_ON()
@@ -85,12 +85,8 @@ class LOCKABLE CheckedLock : public Lock {
   explicit CheckedLock(UniversalSuccessor) {}
   static void AssertNoLockHeldOnCurrentThread() {}
 
-  ConditionVariable CreateConditionVariable() {
-    return ConditionVariable(this);
-  }
-  void CreateConditionVariableAndEmplace(
-      std::optional<ConditionVariable>& opt) {
-    opt.emplace(this);
+  std::unique_ptr<ConditionVariable> CreateConditionVariable() {
+    return std::unique_ptr<ConditionVariable>(new ConditionVariable(this));
   }
 };
 #endif  // DCHECK_IS_ON()
@@ -122,8 +118,6 @@ using CheckedAutoLockMaybe = internal::BasicAutoLockMaybe<CheckedLock>;
 //
 // [1] https://clang.llvm.org/docs/ThreadSafetyAnalysis.html#no-alias-analysis
 class SCOPED_LOCKABLE AnnotateAcquiredLockAlias {
-  STACK_ALLOCATED();
-
  public:
   // |acquired_lock| is an acquired lock. |lock_alias| is an alias of
   // |acquired_lock|.
@@ -132,7 +126,7 @@ class SCOPED_LOCKABLE AnnotateAcquiredLockAlias {
       EXCLUSIVE_LOCK_FUNCTION(lock_alias)
       : acquired_lock_(acquired_lock) {
     DCHECK_EQ(&acquired_lock, &lock_alias);
-    acquired_lock_.AssertAcquired();
+    acquired_lock_->AssertAcquired();
   }
 
   AnnotateAcquiredLockAlias(const AnnotateAcquiredLockAlias&) = delete;
@@ -140,11 +134,11 @@ class SCOPED_LOCKABLE AnnotateAcquiredLockAlias {
       delete;
 
   ~AnnotateAcquiredLockAlias() UNLOCK_FUNCTION() {
-    acquired_lock_.AssertAcquired();
+    acquired_lock_->AssertAcquired();
   }
 
  private:
-  const CheckedLock& acquired_lock_;
+  const raw_ref<const CheckedLock> acquired_lock_;
 };
 
 }  // namespace internal

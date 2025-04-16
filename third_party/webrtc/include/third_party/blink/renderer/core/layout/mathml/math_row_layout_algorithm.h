@@ -6,24 +6,28 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_MATHML_MATH_ROW_LAYOUT_ALGORITHM_H_
 
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/layout/block_break_token.h"
-#include "third_party/blink/renderer/core/layout/block_node.h"
-#include "third_party/blink/renderer/core/layout/box_fragment_builder.h"
-#include "third_party/blink/renderer/core/layout/layout_algorithm.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_block_break_token.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_block_node.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_box_fragment_builder.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_layout_algorithm.h"
 
 namespace blink {
 
+class LayoutUnit;
+
 class CORE_EXPORT MathRowLayoutAlgorithm
-    : public LayoutAlgorithm<BlockNode, BoxFragmentBuilder, BlockBreakToken> {
+    : public NGLayoutAlgorithm<NGBlockNode,
+                               NGBoxFragmentBuilder,
+                               NGBlockBreakToken> {
  public:
-  explicit MathRowLayoutAlgorithm(const LayoutAlgorithmParams& params);
+  explicit MathRowLayoutAlgorithm(const NGLayoutAlgorithmParams& params);
 
   struct ChildWithOffsetAndMargins {
     DISALLOW_NEW();
-    ChildWithOffsetAndMargins(const BlockNode& child,
+    ChildWithOffsetAndMargins(const NGBlockNode& child,
                               const BoxStrut& margins,
                               LogicalOffset offset,
-                              const LayoutResult* result)
+                              const NGLayoutResult* result)
         : child(child),
           margins(margins),
           offset(offset),
@@ -34,18 +38,18 @@ class CORE_EXPORT MathRowLayoutAlgorithm
       visitor->Trace(result);
     }
 
-    BlockNode child;
+    NGBlockNode child;
     BoxStrut margins;
     LogicalOffset offset;
-    Member<const LayoutResult> result;
+    Member<const NGLayoutResult> result;
   };
   typedef HeapVector<ChildWithOffsetAndMargins, 4> ChildrenVector;
 
-  const LayoutResult* Layout();
-
-  MinMaxSizesResult ComputeMinMaxSizes(const MinMaxSizesFloatInput&);
-
  private:
+  const NGLayoutResult* Layout() final;
+
+  MinMaxSizesResult ComputeMinMaxSizes(const MinMaxSizesFloatInput&) final;
+
   void LayoutRowItems(ChildrenVector*,
                       LayoutUnit* max_row_block_baseline,
                       LogicalSize* row_total_size);

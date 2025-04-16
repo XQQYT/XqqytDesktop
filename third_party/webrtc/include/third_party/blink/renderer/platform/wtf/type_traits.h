@@ -23,11 +23,8 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TYPE_TRAITS_H_
 
 #include <cstddef>
-#include <optional>
 #include <type_traits>
 #include <utility>
-#include <variant>
-
 #include "base/compiler_specific.h"
 #include "build/build_config.h"
 #include "v8/include/cppgc/type-traits.h"  // nogncheck
@@ -137,6 +134,12 @@ template <typename T, typename U>
 struct IsTraceable<std::pair<T, U>>
     : std::bool_constant<IsTraceable<T>::value || IsTraceable<U>::value> {};
 
+// Convenience template wrapping the IsTraceableInCollection template in
+// Collection Traits. It helps make the code more readable.
+template <typename Traits>
+struct IsTraceableInCollectionTrait
+    : std::bool_constant<Traits::template IsTraceableInCollection<>::value> {};
+
 enum WeakHandlingFlag {
   kNoWeakHandling,
   kWeakHandling,
@@ -158,13 +161,29 @@ template <WeakHandlingFlag weakness, typename T, typename Traits>
 struct TraceInCollectionTrait;
 
 template <typename T>
-inline constexpr WeakHandlingFlag kWeakHandlingTrait =
-    IsWeak<T>::value ? kWeakHandling : kNoWeakHandling;
+struct WeakHandlingTrait
+    : std::integral_constant<WeakHandlingFlag,
+                             IsWeak<T>::value ? kWeakHandling
+                                              : kNoWeakHandling> {};
 
 // This is used to check that DISALLOW_NEW objects are not
 // stored in off-heap Vectors, HashTables etc.
 template <typename T>
-concept IsDisallowNew = requires { typename T::IsDisallowNewMarker; };
+struct IsDisallowNew {
+ private:
+  using YesType = char;
+  struct NoType {
+    char padding[8];
+  };
+
+  template <typename U>
+  static YesType CheckMarker(typename U::IsDisallowNewMarker*);
+  template <typename U>
+  static NoType CheckMarker(...);
+
+ public:
+  static const bool value = sizeof(CheckMarker<T>(nullptr)) == sizeof(YesType);
+};
 
 template <>
 class IsGarbageCollectedType<void> {
@@ -172,49 +191,47 @@ class IsGarbageCollectedType<void> {
   static const bool value = false;
 };
 
-template <typename T>
-concept IsPointerToGarbageCollectedType =
-    !std::is_function_v<std::remove_const_t<std::remove_pointer_t<T>>> &&
-    !std::is_void_v<std::remove_const_t<std::remove_pointer_t<T>>> &&
-    std::is_pointer_v<std::remove_const_t<std::remove_pointer_t<T>>> &&
-    IsGarbageCollectedType<
-        std::remove_const_t<std::remove_pointer_t<T>>>::value;
-
-namespace internal {
-
-template <typename T>
-concept HasStackAllocatedMarker =
-    requires { typename T::IsStackAllocatedTypeMarker; };
-
-}  // namespace internal
-
-template <typename T>
-class IsStackAllocatedType {
+template <typename T,
+          bool = std::is_function<typename std::remove_const<
+                     typename std::remove_pointer<T>::type>::type>::value ||
+                 std::is_void<typename std::remove_const<
+                     typename std::remove_pointer<T>::type>::type>::value>
+class IsPointerToGarbageCollectedType {
  public:
-  static constexpr bool value = internal::HasStackAllocatedMarker<T>;
-};
-
-template <typename T, typename U>
-class IsStackAllocatedType<std::pair<T, U>> {
- public:
-  static constexpr bool value =
-      IsStackAllocatedType<T>::value || IsStackAllocatedType<U>::value;
+  static const bool value = false;
 };
 
 template <typename T>
-class IsStackAllocatedType<std::optional<T>> {
+class IsPointerToGarbageCollectedType<T*, false> {
  public:
-  static constexpr bool value = IsStackAllocatedType<T>::value;
+  static const bool value = IsGarbageCollectedType<T>::value;
 };
 
-template <typename... Ts>
-class IsStackAllocatedType<std::variant<Ts...>> {
- public:
-  static constexpr bool value = std::disjunction_v<IsStackAllocatedType<Ts>...>;
-};
+template <typename T, typename = void>
+struct IsStackAllocatedType : std::false_type {};
 
 template <typename T>
-concept IsStackAllocatedTypeV = IsStackAllocatedType<T>::value;
+struct IsStackAllocatedType<T,
+                            std::void_t<typename T::IsStackAllocatedTypeMarker>>
+    : std::true_type {};
+
+template <typename T>
+struct IsPointerToGced {
+ private:
+  typedef char YesType;
+  struct NoType {
+    char padding[8];
+  };
+
+  template <typename X,
+            typename = std::enable_if_t<WTF::IsGarbageCollectedType<X>::value>>
+  static YesType SubclassCheck(X**);
+  static NoType SubclassCheck(...);
+  static T* t_;
+
+ public:
+  static const bool value = sizeof(SubclassCheck(t_)) == sizeof(YesType);
+};
 
 }  // namespace WTF
 

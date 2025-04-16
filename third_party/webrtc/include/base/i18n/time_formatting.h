@@ -9,10 +9,11 @@
 #define BASE_I18N_TIME_FORMATTING_H_
 
 #include <string>
-#include <string_view>
 
 #include "base/i18n/base_i18n_export.h"
+#include "base/strings/string_piece.h"
 #include "build/build_config.h"
+#include "build/chromeos_buildflags.h"
 #include "third_party/icu/source/common/unicode/uversion.h"
 
 U_NAMESPACE_BEGIN
@@ -80,12 +81,12 @@ BASE_I18N_EXPORT std::u16string TimeFormatShortDateNumeric(const Time& time);
 // Returns a numeric date and time such as "12/13/52 2:44:30 PM".
 BASE_I18N_EXPORT std::u16string TimeFormatShortDateAndTime(const Time& time);
 
-#if BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(IS_CHROMEOS_ASH)
 // Returns a month and year, e.g. "November 2007" for the specified time zone.
 BASE_I18N_EXPORT std::u16string TimeFormatMonthAndYearForTimeZone(
     const Time& time,
     const icu::TimeZone* time_zone);
-#endif  // BUILDFLAG(IS_CHROMEOS)
+#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
 
 // Returns a month and year, e.g. "November 2007"
 BASE_I18N_EXPORT std::u16string TimeFormatMonthAndYear(const Time& time);
@@ -119,7 +120,7 @@ BASE_I18N_EXPORT std::u16string TimeFormatFriendlyDate(const Time& time);
 // use case.
 BASE_I18N_EXPORT std::u16string LocalizedTimeFormatWithPattern(
     const Time& time,
-    std::string_view pattern);
+    StringPiece pattern);
 
 // Formats a time using a pattern to produce en-US-like output, e.g. "Feb. 2,
 // 18:00". See
@@ -140,7 +141,7 @@ BASE_I18N_EXPORT std::u16string LocalizedTimeFormatWithPattern(
 // `std::u16string` under the assumption that it will not be used in UI.
 BASE_I18N_EXPORT std::string UnlocalizedTimeFormatWithPattern(
     const Time& time,
-    std::string_view pattern,
+    StringPiece pattern,
     const icu::TimeZone* time_zone = nullptr);
 
 // Formats a time compliant to ISO 8601 in UTC, e.g. "2020-12-31T23:59:59.999Z".
@@ -162,18 +163,6 @@ BASE_I18N_EXPORT std::string TimeFormatHTTP(const Time& time);
 // e.g., "3:07:30" or "3 hours, 7 minutes, 30 seconds", and returns true on
 // success. See DurationFormatWidth for details.
 [[nodiscard]] BASE_I18N_EXPORT bool TimeDurationFormatWithSeconds(
-    TimeDelta time,
-    DurationFormatWidth width,
-    std::u16string* out);
-
-// Formats a time duration of hours, minutes and seconds into various formats,
-// without the leading 0 time measurement units. e.g., "7m 30s" or
-// "30 seconds", and returns true on success.
-// Since the numeric format of time duration with the leading 0 omitted
-// can produces ambiguous outputs such as "7:30", the "hh:mm:ss" format
-// will always be used.
-// See DurationFormatWidth for details.
-[[nodiscard]] BASE_I18N_EXPORT bool TimeDurationCompactFormatWithSeconds(
     TimeDelta time,
     DurationFormatWidth width,
     std::u16string* out);

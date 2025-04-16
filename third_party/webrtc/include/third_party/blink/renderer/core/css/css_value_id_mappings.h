@@ -82,6 +82,7 @@ inline CSSValueID PlatformEnumToCSSValueID(EffectModel::CompositeOperation v) {
       return CSSValueID::kAccumulate;
   }
   NOTREACHED();
+  return CSSValueID::kReplace;
 }
 
 template <>
@@ -95,6 +96,7 @@ inline EffectModel::CompositeOperation CssValueIDToPlatformEnum(CSSValueID v) {
       return EffectModel::kCompositeAccumulate;
     default:
       NOTREACHED();
+      return EffectModel::kCompositeReplace;
   }
 }
 
@@ -115,6 +117,7 @@ inline EResize CssValueIDToPlatformEnum(CSSValueID v) {
   if (v == CSSValueID::kAuto) {
     // Depends on settings, thus should be handled by the caller.
     NOTREACHED();
+    return EResize::kNone;
   }
   return detail::cssValueIDToPlatformEnumGenerated<EResize>(v);
 }
@@ -122,18 +125,24 @@ inline EResize CssValueIDToPlatformEnum(CSSValueID v) {
 template <>
 inline WritingMode CssValueIDToPlatformEnum(CSSValueID v) {
   switch (v) {
+    case CSSValueID::kHorizontalTb:
     case CSSValueID::kLr:
     case CSSValueID::kLrTb:
     case CSSValueID::kRl:
     case CSSValueID::kRlTb:
       return WritingMode::kHorizontalTb;
+    case CSSValueID::kVerticalRl:
     case CSSValueID::kTb:
     case CSSValueID::kTbRl:
       return WritingMode::kVerticalRl;
+    case CSSValueID::kVerticalLr:
+      return WritingMode::kVerticalLr;
     default:
       break;
   }
-  return detail::cssValueIDToPlatformEnumGenerated<WritingMode>(v);
+
+  NOTREACHED();
+  return WritingMode::kHorizontalTb;
 }
 
 template <>
@@ -233,20 +242,9 @@ inline EDisplay CssValueIDToPlatformEnum(CSSValueID v) {
   if (v == CSSValueID::kMath) {
     return EDisplay::kMath;
   }
-  if (v == CSSValueID::kRuby) {
-    return EDisplay::kRuby;
-  }
-  if (v == CSSValueID::kRubyText) {
-    return EDisplay::kRubyText;
-  }
-  if (v == CSSValueID::kMasonry) {
-    return EDisplay::kMasonry;
-  }
-  if (v == CSSValueID::kInlineMasonry) {
-    return EDisplay::kInlineMasonry;
-  }
 
   NOTREACHED();
+  return EDisplay::kInline;
 }
 
 template <>
@@ -331,20 +329,9 @@ inline CSSValueID PlatformEnumToCSSValueID(EDisplay v) {
   if (v == EDisplay::kMath) {
     return CSSValueID::kMath;
   }
-  if (v == EDisplay::kRuby) {
-    return CSSValueID::kRuby;
-  }
-  if (v == EDisplay::kRubyText) {
-    return CSSValueID::kRubyText;
-  }
-  if (v == EDisplay::kMasonry) {
-    return CSSValueID::kMasonry;
-  }
-  if (v == EDisplay::kInlineMasonry) {
-    return CSSValueID::kInlineMasonry;
-  }
 
   NOTREACHED();
+  return CSSValueID::kInline;
 }
 
 template <>
@@ -360,6 +347,7 @@ inline PageOrientation CssValueIDToPlatformEnum(CSSValueID v) {
   }
 
   NOTREACHED();
+  return PageOrientation::kUpright;
 }
 
 template <>
@@ -375,6 +363,7 @@ inline ScrollbarGutter CssValueIDToPlatformEnum(CSSValueID v) {
   }
 
   NOTREACHED();
+  return kScrollbarGutterAuto;
 }
 
 template <>
@@ -394,6 +383,7 @@ inline EWhiteSpace CssValueIDToPlatformEnum(CSSValueID v) {
       return EWhiteSpace::kBreakSpaces;
     default:
       NOTREACHED();
+      return EWhiteSpace::kNormal;
   }
 }
 
@@ -414,6 +404,7 @@ inline CSSValueID PlatformEnumToCSSValueID(EWhiteSpace v) {
       return CSSValueID::kBreakSpaces;
   }
   NOTREACHED();
+  return CSSValueID::kNone;
 }
 
 template <>
@@ -429,6 +420,7 @@ inline WhiteSpaceCollapse CssValueIDToPlatformEnum(CSSValueID v) {
       return WhiteSpaceCollapse::kBreakSpaces;
     default:
       NOTREACHED();
+      return WhiteSpaceCollapse::kCollapse;
   }
 }
 
@@ -445,132 +437,67 @@ inline CSSValueID PlatformEnumToCSSValueID(WhiteSpaceCollapse v) {
       return CSSValueID::kBreakSpaces;
   }
   NOTREACHED();
-}
-
-template <>
-inline TextBoxEdge::Type CssValueIDToPlatformEnum(CSSValueID id) {
-  switch (id) {
-    case CSSValueID::kAuto:
-      return TextBoxEdge::Type::kAuto;
-    case CSSValueID::kText:
-      return TextBoxEdge::Type::kText;
-    case CSSValueID::kCap:
-      return TextBoxEdge::Type::kCap;
-    case CSSValueID::kEx:
-      return TextBoxEdge::Type::kEx;
-    case CSSValueID::kAlphabetic:
-      return TextBoxEdge::Type::kAlphabetic;
-    default:
-      NOTREACHED();
-  }
-}
-
-template <>
-inline CSSValueID PlatformEnumToCSSValueID(TextBoxEdge::Type type) {
-  using enum TextBoxEdge::Type;
-  switch (type) {
-    case kAuto:
-      return CSSValueID::kAuto;
-    case kText:
-      return CSSValueID::kText;
-    case kCap:
-      return CSSValueID::kCap;
-    case kEx:
-      return CSSValueID::kEx;
-    case kAlphabetic:
-      return CSSValueID::kAlphabetic;
-  }
+  return CSSValueID::kNone;
 }
 
 template <>
 inline TextSpacingTrim CssValueIDToPlatformEnum(CSSValueID v) {
   switch (v) {
-    case CSSValueID::kNormal:
-      return TextSpacingTrim::kNormal;
-    case CSSValueID::kTrimStart:
-      return TextSpacingTrim::kTrimStart;
-    case CSSValueID::kSpaceAll:
-      return TextSpacingTrim::kSpaceAll;
     case CSSValueID::kSpaceFirst:
       return TextSpacingTrim::kSpaceFirst;
+    case CSSValueID::kSpaceAll:
+      return TextSpacingTrim::kSpaceAll;
     default:
       NOTREACHED();
+      return TextSpacingTrim::kSpaceFirst;
   }
 }
 
 template <>
 inline CSSValueID PlatformEnumToCSSValueID(TextSpacingTrim v) {
   switch (v) {
-    case TextSpacingTrim::kNormal:
-      return CSSValueID::kNormal;
-    case TextSpacingTrim::kTrimStart:
-      return CSSValueID::kTrimStart;
-    case TextSpacingTrim::kSpaceAll:
-      return CSSValueID::kSpaceAll;
     case TextSpacingTrim::kSpaceFirst:
       return CSSValueID::kSpaceFirst;
+    case TextSpacingTrim::kSpaceAll:
+      return CSSValueID::kSpaceAll;
   }
   NOTREACHED();
+  return CSSValueID::kNone;
 }
 
 template <>
-inline TryTactic CssValueIDToPlatformEnum(CSSValueID v) {
+inline TextWrap CssValueIDToPlatformEnum(CSSValueID v) {
   switch (v) {
-    case CSSValueID::kFlipBlock:
-      return TryTactic::kFlipBlock;
-    case CSSValueID::kFlipInline:
-      return TryTactic::kFlipInline;
-    case CSSValueID::kFlipStart:
-      return TryTactic::kFlipStart;
+    case CSSValueID::kWrap:
+      return TextWrap::kWrap;
+    case CSSValueID::kNowrap:
+      return TextWrap::kNoWrap;
+    case CSSValueID::kBalance:
+      return TextWrap::kBalance;
+    case CSSValueID::kPretty:
+      DCHECK(RuntimeEnabledFeatures::CSSTextWrapPrettyEnabled());
+      return TextWrap::kPretty;
     default:
       NOTREACHED();
+      return TextWrap::kWrap;
   }
 }
 
 template <>
-inline CSSValueID PlatformEnumToCSSValueID(TryTactic v) {
+inline CSSValueID PlatformEnumToCSSValueID(TextWrap v) {
   switch (v) {
-    case TryTactic::kNone:
-      NOTREACHED();
-    case TryTactic::kFlipBlock:
-      return CSSValueID::kFlipBlock;
-    case TryTactic::kFlipInline:
-      return CSSValueID::kFlipInline;
-    case TryTactic::kFlipStart:
-      return CSSValueID::kFlipStart;
+    case TextWrap::kWrap:
+      return CSSValueID::kWrap;
+    case TextWrap::kNoWrap:
+      return CSSValueID::kNowrap;
+    case TextWrap::kBalance:
+      return CSSValueID::kBalance;
+    case TextWrap::kPretty:
+      DCHECK(RuntimeEnabledFeatures::CSSTextWrapPrettyEnabled());
+      return CSSValueID::kPretty;
   }
-}
-
-template <>
-inline EAnimationTriggerType CssValueIDToPlatformEnum(CSSValueID v) {
-  switch (v) {
-    case CSSValueID::kOnce:
-      return EAnimationTriggerType::kOnce;
-    case CSSValueID::kRepeat:
-      return EAnimationTriggerType::kRepeat;
-    case CSSValueID::kAlternate:
-      return EAnimationTriggerType::kAlternate;
-    case CSSValueID::kState:
-      return EAnimationTriggerType::kState;
-    default:
-      NOTREACHED();
-  }
-}
-
-template <>
-inline CSSValueID PlatformEnumToCSSValueID(EAnimationTriggerType v) {
-  switch (v) {
-    case EAnimationTriggerType::kOnce:
-      return CSSValueID::kOnce;
-    case EAnimationTriggerType::kRepeat:
-      return CSSValueID::kRepeat;
-    case EAnimationTriggerType::kAlternate:
-      return CSSValueID::kAlternate;
-    case EAnimationTriggerType::kState:
-      return CSSValueID::kState;
-    default:
-      NOTREACHED();
-  }
+  NOTREACHED();
+  return CSSValueID::kNone;
 }
 
 }  // namespace blink

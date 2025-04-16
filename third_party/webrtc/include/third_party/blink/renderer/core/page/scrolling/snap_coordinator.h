@@ -8,12 +8,12 @@
 #include "cc/input/scroll_snap_data.h"
 #include "cc/input/snap_selection_strategy.h"
 #include "third_party/blink/renderer/core/core_export.h"
+#include "third_party/blink/renderer/core/css/css_primitive_value_mappings.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_set.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 
 namespace blink {
 
-class Element;
 class LayoutBox;
 
 // Snap Coordinator keeps track of snap containers and all of their associated
@@ -31,18 +31,53 @@ class LayoutBox;
 //   containing block chain) scroll container.
 //
 // For more information see spec: https://drafts.csswg.org/css-snappoints/
-class CORE_EXPORT SnapCoordinator final {
-  STATIC_ONLY(SnapCoordinator);
-
+class CORE_EXPORT SnapCoordinator final
+    : public GarbageCollected<SnapCoordinator> {
  public:
+  explicit SnapCoordinator();
+  SnapCoordinator(const SnapCoordinator&) = delete;
+  SnapCoordinator& operator=(const SnapCoordinator&) = delete;
+  ~SnapCoordinator();
+  void Trace(Visitor* visitor) const;
+
+  void AddSnapContainer(LayoutBox& snap_container);
+  void RemoveSnapContainer(LayoutBox& snap_container);
+
+  void SnapContainerDidChange(LayoutBox&);
+  void SnapAreaDidChange(LayoutBox&, cc::ScrollSnapAlign);
+
   // Calculate the SnapAreaData for the specific snap area in its snap
   // container.
   static cc::SnapAreaData CalculateSnapAreaData(
-      Element& snap_area,
+      const LayoutBox& snap_area,
       const LayoutBox& snap_container);
 
-  // Returns true if the SnapContainerData actually changed.
-  static bool UpdateSnapContainerData(LayoutBox&);
+  bool AnySnapContainerDataNeedsUpdate() const {
+    DCHECK(!RuntimeEnabledFeatures::LayoutNewSnapLogicEnabled());
+    return any_snap_container_data_needs_update_;
+  }
+  void SetAnySnapContainerDataNeedsUpdate(bool needs_update) {
+    DCHECK(!RuntimeEnabledFeatures::LayoutNewSnapLogicEnabled());
+    any_snap_container_data_needs_update_ = needs_update;
+  }
+  // Called by Document::PerformScrollSnappingTasks() whenever a style or layout
+  // change happens. This will update all snap container data that was affected
+  // by the style/layout change.
+  void UpdateAllSnapContainerDataIfNeeded();
+
+  static void UpdateSnapContainerData(LayoutBox&);
+
+#ifndef NDEBUG
+  void ShowSnapAreaMap();
+  void ShowSnapAreasFor(const LayoutBox*);
+  void ShowSnapDataFor(const LayoutBox*);
+#endif
+
+ private:
+  friend class SnapCoordinatorTest;
+
+  HeapHashSet<Member<LayoutBox>> snap_containers_;
+  bool any_snap_container_data_needs_update_ = true;
 };
 
 }  // namespace blink

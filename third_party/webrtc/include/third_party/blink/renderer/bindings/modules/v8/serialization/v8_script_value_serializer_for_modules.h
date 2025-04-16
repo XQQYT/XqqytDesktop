@@ -23,7 +23,6 @@ class MediaSourceHandleImpl;
 class RestrictionTarget;
 class RTCEncodedAudioFrame;
 class RTCEncodedVideoFrame;
-class RTCDataChannel;
 class VideoFrameHandle;
 class WebCryptoKey;
 
@@ -64,8 +63,6 @@ class MODULES_EXPORT V8ScriptValueSerializerForModules final
   bool WriteRestrictionTarget(RestrictionTarget*);
   bool WriteMediaSourceHandle(MediaSourceHandleImpl* handle,
                               ExceptionState& exception_state);
-
-  bool WriteRTCDataChannel(RTCDataChannel*);
 };
 
 }  // namespace blink

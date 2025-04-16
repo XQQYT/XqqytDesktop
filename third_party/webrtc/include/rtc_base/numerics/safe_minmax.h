@@ -76,7 +76,6 @@
 #ifndef RTC_BASE_NUMERICS_SAFE_MINMAX_H_
 #define RTC_BASE_NUMERICS_SAFE_MINMAX_H_
 
-#include <cstdint>
 #include <limits>
 #include <type_traits>
 
@@ -84,7 +83,7 @@
 #include "rtc_base/numerics/safe_compare.h"
 #include "rtc_base/type_traits.h"
 
-namespace webrtc {
+namespace rtc {
 
 namespace safe_minmax_impl {
 
@@ -331,14 +330,6 @@ R2 SafeClamp(T x, L min, H max) {
                           : static_cast<R2>(x);
 }
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace rtc {
-using ::webrtc::SafeClamp;
-using ::webrtc::SafeMax;
-using ::webrtc::SafeMin;
 }  // namespace rtc
 
 #endif  // RTC_BASE_NUMERICS_SAFE_MINMAX_H_

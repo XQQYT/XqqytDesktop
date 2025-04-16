@@ -5,12 +5,12 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_FORMS_LAYOUT_TEXT_CONTROL_SINGLE_LINE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_FORMS_LAYOUT_TEXT_CONTROL_SINGLE_LINE_H_
 
-#include "third_party/blink/renderer/core/layout/layout_block_flow.h"
+#include "third_party/blink/renderer/core/layout/ng/layout_ng_block_flow.h"
 
 namespace blink {
 
 // LayoutTextControlSingleLine is a LayoutObject for textfield <input>.
-class LayoutTextControlSingleLine final : public LayoutBlockFlow {
+class LayoutTextControlSingleLine final : public LayoutNGBlockFlow {
  public:
   explicit LayoutTextControlSingleLine(Element* element);
 
@@ -18,10 +18,7 @@ class LayoutTextControlSingleLine final : public LayoutBlockFlow {
   HTMLElement* InnerEditorElement() const;
   Element* ContainerElement() const;
 
-  bool IsTextField() const final {
-    NOT_DESTROYED();
-    return true;
-  }
+  bool IsOfType(LayoutObjectType) const override;
 
   const char* GetName() const override {
     NOT_DESTROYED();

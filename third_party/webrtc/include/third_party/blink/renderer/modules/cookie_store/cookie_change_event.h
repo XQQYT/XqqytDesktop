@@ -15,12 +15,9 @@
 #include "third_party/blink/renderer/platform/wtf/text/atomic_string.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
-namespace net {
-class CanonicalCookie;
-}  // namespace net
-
 namespace blink {
 
+class CanonicalCookie;
 class CookieChangeEventInit;
 
 class CookieChangeEvent final : public Event {

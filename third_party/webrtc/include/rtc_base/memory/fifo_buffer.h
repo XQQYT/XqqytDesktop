@@ -11,27 +11,22 @@
 #ifndef RTC_BASE_MEMORY_FIFO_BUFFER_H_
 #define RTC_BASE_MEMORY_FIFO_BUFFER_H_
 
-#include <cstddef>
-#include <cstdint>
 #include <memory>
 
-#include "api/array_view.h"
-#include "api/sequence_checker.h"
 #include "api/task_queue/pending_task_safety_flag.h"
 #include "rtc_base/stream.h"
-#include "rtc_base/thread.h"
-#include "rtc_base/thread_annotations.h"
+#include "rtc_base/synchronization/mutex.h"
 
 namespace rtc {
 
 // FifoBuffer allows for efficient, thread-safe buffering of data between
 // writer and reader.
-class FifoBuffer final : public webrtc::StreamInterface {
+class FifoBuffer final : public StreamInterface {
  public:
   // Creates a FIFO buffer with the specified capacity.
   explicit FifoBuffer(size_t length);
   // Creates a FIFO buffer with the specified capacity and owner
-  FifoBuffer(size_t length, webrtc::Thread* owner);
+  FifoBuffer(size_t length, Thread* owner);
   ~FifoBuffer() override;
 
   FifoBuffer(const FifoBuffer&) = delete;
@@ -41,13 +36,13 @@ class FifoBuffer final : public webrtc::StreamInterface {
   bool GetBuffered(size_t* data_len) const;
 
   // StreamInterface methods
-  webrtc::StreamState GetState() const override;
-  webrtc::StreamResult Read(rtc::ArrayView<uint8_t> buffer,
-                            size_t& bytes_read,
-                            int& error) override;
-  webrtc::StreamResult Write(rtc::ArrayView<const uint8_t> buffer,
-                             size_t& bytes_written,
-                             int& error) override;
+  StreamState GetState() const override;
+  StreamResult Read(rtc::ArrayView<uint8_t> buffer,
+                    size_t& bytes_read,
+                    int& error) override;
+  StreamResult Write(rtc::ArrayView<const uint8_t> buffer,
+                     size_t& bytes_written,
+                     int& error) override;
   void Close() override;
 
   // Seek to a byte offset from the beginning of the stream.  Returns false if
@@ -83,42 +78,39 @@ class FifoBuffer final : public webrtc::StreamInterface {
 
  private:
   void PostEvent(int events, int err) {
-    RTC_DCHECK_RUN_ON(owner_);
-    owner_->PostTask(
-        webrtc::SafeTask(task_safety_.flag(), [this, events, err]() {
-          RTC_DCHECK_RUN_ON(&callback_sequence_);
-          FireEvent(events, err);
-        }));
+    owner_->PostTask(webrtc::SafeTask(
+        task_safety_.flag(),
+        [this, events, err]() { SignalEvent(this, events, err); }));
   }
 
   // Helper method that implements Read. Caller must acquire a lock
   // when calling this method.
-  webrtc::StreamResult ReadLocked(void* buffer,
-                                  size_t bytes,
-                                  size_t* bytes_read)
-      RTC_EXCLUSIVE_LOCKS_REQUIRED(callback_sequence_);
+  StreamResult ReadLocked(void* buffer, size_t bytes, size_t* bytes_read)
+      RTC_EXCLUSIVE_LOCKS_REQUIRED(mutex_);
 
   // Helper method that implements Write. Caller must acquire a lock
   // when calling this method.
-  webrtc::StreamResult WriteLocked(const void* buffer,
-                                   size_t bytes,
-                                   size_t* bytes_written)
-      RTC_EXCLUSIVE_LOCKS_REQUIRED(callback_sequence_);
+  StreamResult WriteLocked(const void* buffer,
+                           size_t bytes,
+                           size_t* bytes_written)
+      RTC_EXCLUSIVE_LOCKS_REQUIRED(mutex_);
 
   webrtc::ScopedTaskSafety task_safety_;
 
   // keeps the opened/closed state of the stream
-  webrtc::StreamState state_ RTC_GUARDED_BY(callback_sequence_);
+  StreamState state_ RTC_GUARDED_BY(mutex_);
   // the allocated buffer
-  std::unique_ptr<char[]> buffer_ RTC_GUARDED_BY(callback_sequence_);
+  std::unique_ptr<char[]> buffer_ RTC_GUARDED_BY(mutex_);
   // size of the allocated buffer
   const size_t buffer_length_;
   // amount of readable data in the buffer
-  size_t data_length_ RTC_GUARDED_BY(callback_sequence_);
+  size_t data_length_ RTC_GUARDED_BY(mutex_);
   // offset to the readable data
-  size_t read_position_ RTC_GUARDED_BY(callback_sequence_);
+  size_t read_position_ RTC_GUARDED_BY(mutex_);
   // stream callbacks are dispatched on this thread
-  webrtc::Thread* const owner_;
+  Thread* const owner_;
+  // object lock
+  mutable webrtc::Mutex mutex_;
 };
 
 }  // namespace rtc

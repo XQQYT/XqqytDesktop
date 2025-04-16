@@ -12,6 +12,7 @@
 namespace blink {
 
 class ExecutionContext;
+class ScriptValue;
 class WaitUntilObserver;
 
 // Implementation for AbortPaymentEvent.respondWith(), which is used by the
@@ -25,7 +26,9 @@ class MODULES_EXPORT AbortPaymentRespondWithObserver final
   ~AbortPaymentRespondWithObserver() override = default;
 
   void OnResponseRejected(mojom::ServiceWorkerResponseError) override;
-  void OnResponseFulfilled(ScriptState*, bool);
+  void OnResponseFulfilled(ScriptState*,
+                           const ScriptValue&,
+                           const ExceptionContext&) override;
   void OnNoResponse(ScriptState*) override;
 
   void Trace(Visitor*) const override;

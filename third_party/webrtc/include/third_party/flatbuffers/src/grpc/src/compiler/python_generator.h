@@ -19,21 +19,14 @@
 #ifndef GRPC_INTERNAL_COMPILER_PYTHON_GENERATOR_H
 #define GRPC_INTERNAL_COMPILER_PYTHON_GENERATOR_H
 
-#include <string>
+#include <utility>
 
-#include "codegen/python.h"
-#include "flatbuffers/idl.h"
+#include "src/compiler/schema_interface.h"
 
-namespace flatbuffers {
-namespace python {
-namespace grpc {
-bool Generate(const Parser &parser, const std::string &path,
-              const Version &version);
+namespace grpc_python_generator {
 
-bool GenerateStub(const Parser &parser, const std::string &path,
-                  const Version &version);
-}  // namespace grpc
-}  // namespace python
-}  // namespace flatbuffers
+grpc::string Generate(grpc_generator::File *file,
+                      const grpc_generator::Service *service);
+}  // namespace grpc_python_generator
 
 #endif  // GRPC_INTERNAL_COMPILER_PYTHON_GENERATOR_H

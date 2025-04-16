@@ -5,6 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_INTERPOLABLE_FONT_PALETTE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_INTERPOLABLE_FONT_PALETTE_H_
 
+#include <memory>
+
 #include "base/notreached.h"
 #include "third_party/blink/renderer/core/animation/interpolable_value.h"
 #include "third_party/blink/renderer/core/core_export.h"
@@ -15,12 +17,12 @@ namespace blink {
 
 class CORE_EXPORT InterpolableFontPalette final : public InterpolableValue {
  public:
-  explicit InterpolableFontPalette(scoped_refptr<const FontPalette> mix_value);
+  explicit InterpolableFontPalette(scoped_refptr<FontPalette> mix_value);
 
-  static InterpolableFontPalette* Create(
-      scoped_refptr<const FontPalette> font_palette);
+  static std::unique_ptr<InterpolableFontPalette> Create(
+      scoped_refptr<FontPalette> font_palette);
 
-  scoped_refptr<const FontPalette> GetFontPalette() const;
+  scoped_refptr<FontPalette> GetFontPalette() const;
 
   // InterpolableValue implementation:
   void Interpolate(const InterpolableValue& to,
@@ -37,13 +39,11 @@ class CORE_EXPORT InterpolableFontPalette final : public InterpolableValue {
   }
   void AssertCanInterpolateWith(const InterpolableValue& other) const final;
 
-  void Trace(Visitor* v) const override { InterpolableValue::Trace(v); }
-
  private:
   InterpolableFontPalette* RawClone() const final;
   InterpolableFontPalette* RawCloneAndZero() const final;
 
-  scoped_refptr<const FontPalette> font_palette_;
+  scoped_refptr<FontPalette> font_palette_;
 };
 
 template <>

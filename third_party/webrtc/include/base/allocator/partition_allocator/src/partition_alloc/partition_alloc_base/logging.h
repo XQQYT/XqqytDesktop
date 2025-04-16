@@ -2,21 +2,22 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOGGING_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOGGING_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOGGING_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOGGING_H_
+
+#include <stddef.h>
 
 #include <cassert>
-#include <cstddef>
 #include <cstdint>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/buildflags.h"
-#include "partition_alloc/partition_alloc_base/compiler_specific.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_base/log_message.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/compiler_specific.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/debugging_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/log_message.h"
+#include "build/build_config.h"
 
-// TODO(crbug.com/40158212): Need to update the description, because logging for
-// PA standalone library was minimized.
+// TODO(1151236): Need to update the description, because logging for PA
+// standalone library was minimized.
 //
 // Optional message capabilities
 // -----------------------------
@@ -138,66 +139,44 @@ namespace partition_alloc::internal::logging {
 // up to level INFO) if this function is not called.
 // Note that log messages for VLOG(x) are logged at level -x, so setting
 // the min log level to negative values enables verbose logging.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) void SetMinLogLevel(int level);
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) void SetMinLogLevel(int level);
 
 // Gets the current log level.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) int GetMinLogLevel();
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) int GetMinLogLevel();
 
 // Used by PA_LOG_IS_ON to lazy-evaluate stream arguments.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
-bool ShouldCreateLogMessage(int severity);
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) bool ShouldCreateLogMessage(int severity);
 
 // Gets the PA_VLOG default verbosity level.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) int GetVlogVerbosity();
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) int GetVlogVerbosity();
 
 // A few definitions of macros that don't generate much code. These are used
 // by PA_LOG() and LOG_IF, etc. Since these are used all over our code, it's
 // better to have compact code for these operations.
-#define PA_COMPACT_GOOGLE_LOG_EX_INFO(ClassName)   \
-  ::partition_alloc::internal::logging::ClassName( \
-      __FILE__, __LINE__, ::partition_alloc::internal::logging::LOGGING_INFO)
-#define PA_COMPACT_GOOGLE_PLOG_EX_INFO(ClassName, error_code)                 \
+#define PA_COMPACT_GOOGLE_LOG_EX_INFO(ClassName, ...)                         \
   ::partition_alloc::internal::logging::ClassName(                            \
       __FILE__, __LINE__, ::partition_alloc::internal::logging::LOGGING_INFO, \
-      error_code)
-#define PA_COMPACT_GOOGLE_LOG_EX_WARNING(ClassName) \
-  ::partition_alloc::internal::logging::ClassName(  \
-      __FILE__, __LINE__,                           \
-      ::partition_alloc::internal::logging::LOGGING_WARNING)
-#define PA_COMPACT_GOOGLE_PLOG_EX_WARNING(ClassName, error_code) \
-  ::partition_alloc::internal::logging::ClassName(               \
-      __FILE__, __LINE__,                                        \
-      ::partition_alloc::internal::logging::LOGGING_WARNING)
-#define PA_COMPACT_GOOGLE_LOG_EX_ERROR(ClassName)  \
-  ::partition_alloc::internal::logging::ClassName( \
-      __FILE__, __LINE__, ::partition_alloc::internal::logging::LOGGING_ERROR)
-#define PA_COMPACT_GOOGLE_PLOG_EX_ERROR(ClassName, error_code)                 \
+      ##__VA_ARGS__)
+#define PA_COMPACT_GOOGLE_LOG_EX_WARNING(ClassName, ...) \
+  ::partition_alloc::internal::logging::ClassName(       \
+      __FILE__, __LINE__,                                \
+      ::partition_alloc::internal::logging::LOGGING_WARNING, ##__VA_ARGS__)
+#define PA_COMPACT_GOOGLE_LOG_EX_ERROR(ClassName, ...)                         \
   ::partition_alloc::internal::logging::ClassName(                             \
       __FILE__, __LINE__, ::partition_alloc::internal::logging::LOGGING_ERROR, \
-      error_code)
-#define PA_COMPACT_GOOGLE_LOG_EX_FATAL(ClassName)  \
-  ::partition_alloc::internal::logging::ClassName( \
-      __FILE__, __LINE__, ::partition_alloc::internal::logging::LOGGING_FATAL)
-#define PA_COMPACT_GOOGLE_PLOG_EX_FATAL(ClassName, error_code)                 \
+      ##__VA_ARGS__)
+#define PA_COMPACT_GOOGLE_LOG_EX_FATAL(ClassName, ...)                         \
   ::partition_alloc::internal::logging::ClassName(                             \
       __FILE__, __LINE__, ::partition_alloc::internal::logging::LOGGING_FATAL, \
-      error_code)
-#define PA_COMPACT_GOOGLE_LOG_EX_DFATAL(ClassName) \
-  ::partition_alloc::internal::logging::ClassName( \
-      __FILE__, __LINE__,                          \
-      ::partition_alloc::internal::logging::LOGGING_DFATAL)
-#define PA_COMPACT_GOOGLE_PLOG_EX_DFATAL(ClassName, error_code) \
-  ::partition_alloc::internal::logging::ClassName(              \
-      __FILE__, __LINE__,                                       \
-      ::partition_alloc::internal::logging::LOGGING_DFATAL, error_code)
-#define PA_COMPACT_GOOGLE_LOG_EX_DCHECK(ClassName) \
-  ::partition_alloc::internal::logging::ClassName( \
-      __FILE__, __LINE__,                          \
-      ::partition_alloc::internal::logging::LOGGING_DCHECK)
-#define PA_COMPACT_GOOGLE_PLOG_EX_DCHECK(ClassName, error_code) \
-  ::partition_alloc::internal::logging::ClassName(              \
-      __FILE__, __LINE__,                                       \
-      ::partition_alloc::internal::logging::LOGGING_DCHECK, error_code)
+      ##__VA_ARGS__)
+#define PA_COMPACT_GOOGLE_LOG_EX_DFATAL(ClassName, ...) \
+  ::partition_alloc::internal::logging::ClassName(      \
+      __FILE__, __LINE__,                               \
+      ::partition_alloc::internal::logging::LOGGING_DFATAL, ##__VA_ARGS__)
+#define PA_COMPACT_GOOGLE_LOG_EX_DCHECK(ClassName, ...) \
+  ::partition_alloc::internal::logging::ClassName(      \
+      __FILE__, __LINE__,                               \
+      ::partition_alloc::internal::logging::LOGGING_DCHECK, ##__VA_ARGS__)
 
 #define PA_COMPACT_GOOGLE_LOG_INFO PA_COMPACT_GOOGLE_LOG_EX_INFO(LogMessage)
 #define PA_COMPACT_GOOGLE_LOG_WARNING \
@@ -207,15 +186,15 @@ PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) int GetVlogVerbosity();
 #define PA_COMPACT_GOOGLE_LOG_DFATAL PA_COMPACT_GOOGLE_LOG_EX_DFATAL(LogMessage)
 #define PA_COMPACT_GOOGLE_LOG_DCHECK PA_COMPACT_GOOGLE_LOG_EX_DCHECK(LogMessage)
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 // wingdi.h defines ERROR to be 0. When we call PA_LOG(ERROR), it gets
 // substituted with 0, and it expands to PA_COMPACT_GOOGLE_LOG_0. To allow us
 // to keep using this syntax, we define this macro to do the same thing
 // as PA_COMPACT_GOOGLE_LOG_ERROR, and also define ERROR the same way that
 // the Windows SDK does for consistency.
 #define PA_ERROR 0
-#define PA_COMPACT_GOOGLE_LOG_EX_0(ClassName) \
-  PA_COMPACT_GOOGLE_LOG_EX_ERROR(ClassName)
+#define PA_COMPACT_GOOGLE_LOG_EX_0(ClassName, ...) \
+  PA_COMPACT_GOOGLE_LOG_EX_ERROR(ClassName, ##__VA_ARGS__)
 #define PA_COMPACT_GOOGLE_LOG_0 PA_COMPACT_GOOGLE_LOG_ERROR
 // Needed for LOG_IS_ON(ERROR).
 constexpr LogSeverity LOGGING_0 = LOGGING_ERROR;
@@ -270,13 +249,13 @@ constexpr LogSeverity LOGGING_0 = LOGGING_ERROR;
   PA_LAZY_STREAM(PA_VLOG_STREAM(verbose_level), \
                  PA_VLOG_IS_ON(verbose_level) && (condition))
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 #define PA_VPLOG_STREAM(verbose_level)                                \
   ::partition_alloc::internal::logging::Win32ErrorLogMessage(         \
       __FILE__, __LINE__, -(verbose_level),                           \
       ::partition_alloc::internal::logging::GetLastSystemErrorCode()) \
       .stream()
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
 #define PA_VPLOG_STREAM(verbose_level)                                \
   ::partition_alloc::internal::logging::ErrnoLogMessage(              \
       __FILE__, __LINE__, -(verbose_level),                           \
@@ -297,15 +276,15 @@ constexpr LogSeverity LOGGING_0 = LOGGING_ERROR;
   PA_LOG_IF(FATAL, !(PA_ANALYZER_ASSUME_TRUE(condition))) \
       << "Assert failed: " #condition ". "
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 #define PA_PLOG_STREAM(severity)                                      \
-  PA_COMPACT_GOOGLE_PLOG_EX_##severity(                               \
+  PA_COMPACT_GOOGLE_LOG_EX_##severity(                                \
       Win32ErrorLogMessage,                                           \
       ::partition_alloc::internal::logging::GetLastSystemErrorCode()) \
       .stream()
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
 #define PA_PLOG_STREAM(severity)                                      \
-  PA_COMPACT_GOOGLE_PLOG_EX_##severity(                               \
+  PA_COMPACT_GOOGLE_LOG_EX_##severity(                                \
       ErrnoLogMessage,                                                \
       ::partition_alloc::internal::logging::GetLastSystemErrorCode()) \
       .stream()
@@ -337,7 +316,7 @@ constexpr LogSeverity LOGGING_0 = LOGGING_ERROR;
 
 // Definitions for DLOG et al.
 
-#if PA_BUILDFLAG(DCHECKS_ARE_ON)
+#if BUILDFLAG(PA_DCHECK_IS_ON)
 
 #define PA_DLOG_IS_ON(severity) PA_LOG_IS_ON(severity)
 #define PA_DLOG_IF(severity, condition) PA_LOG_IF(severity, condition)
@@ -347,11 +326,11 @@ constexpr LogSeverity LOGGING_0 = LOGGING_ERROR;
 #define PA_DVPLOG_IF(verboselevel, condition) \
   PA_VPLOG_IF(verboselevel, condition)
 
-#else  // PA_BUILDFLAG(DCHECKS_ARE_ON)
+#else  // BUILDFLAG(PA_DCHECK_IS_ON)
 
-// If !PA_BUILDFLAG(DCHECKS_ARE_ON), we want to avoid emitting any references
-// to |condition| (which may reference a variable defined only if
-// PA_BUILDFLAG(DCHECKS_ARE_ON)). Contrast this with DCHECK et al., which has
+// If !BUILDFLAG(PA_DCHECK_IS_ON), we want to avoid emitting any references to
+// |condition| (which may reference a variable defined only if
+// BUILDFLAG(PA_DCHECK_IS_ON)). Contrast this with DCHECK et al., which has
 // different behavior.
 
 #define PA_DLOG_IS_ON(severity) false
@@ -361,7 +340,7 @@ constexpr LogSeverity LOGGING_0 = LOGGING_ERROR;
 #define PA_DVLOG_IF(verboselevel, condition) PA_EAT_STREAM_PARAMETERS
 #define PA_DVPLOG_IF(verboselevel, condition) PA_EAT_STREAM_PARAMETERS
 
-#endif  // PA_BUILDFLAG(DCHECKS_ARE_ON)
+#endif  // BUILDFLAG(PA_DCHECK_IS_ON)
 
 #define PA_DLOG(severity) \
   PA_LAZY_STREAM(PA_LOG_STREAM(severity), PA_DLOG_IS_ON(severity))
@@ -375,18 +354,18 @@ constexpr LogSeverity LOGGING_0 = LOGGING_ERROR;
 
 // Definitions for DCHECK et al.
 
-#if PA_BUILDFLAG(DCHECK_IS_CONFIGURABLE)
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) extern LogSeverity LOGGING_DCHECK;
+#if BUILDFLAG(PA_DCHECK_IS_CONFIGURABLE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) extern LogSeverity LOGGING_DCHECK;
 #else
 constexpr LogSeverity LOGGING_DCHECK = LOGGING_FATAL;
-#endif  // PA_BUILDFLAG(DCHECK_IS_CONFIGURABLE)
+#endif  // BUILDFLAG(PA_DCHECK_IS_CONFIGURABLE)
 
 // Redefine the standard assert to use our nice log files
 #undef assert
 #define assert(x) PA_DLOG_ASSERT(x)
 
 // Async signal safe logging mechanism.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void RawLog(int level, const char* message);
 
 #define PA_RAW_LOG(level, message)              \
@@ -395,4 +374,4 @@ void RawLog(int level, const char* message);
 
 }  // namespace partition_alloc::internal::logging
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOGGING_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOGGING_H_

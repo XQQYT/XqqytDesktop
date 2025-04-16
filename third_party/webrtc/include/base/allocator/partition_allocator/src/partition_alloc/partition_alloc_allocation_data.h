@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_ALLOCATION_DATA_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_ALLOCATION_DATA_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_ALLOCATION_DATA_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_ALLOCATION_DATA_H_
 
 #include <cstdint>
 
-#include "partition_alloc/buildflags.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/tagging.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/tagging.h"
 
 namespace partition_alloc {
 
@@ -31,7 +31,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC) AllocationNotificationData {
 
   // In the allocation observer path, it's interesting which reporting mode is
   // enabled.
-#if PA_BUILDFLAG(HAS_MEMORY_TAGGING)
+#if PA_CONFIG(HAS_MEMORY_TAGGING)
   AllocationNotificationData& SetMteReportingMode(
       TagViolationReportingMode mode) {
     mte_reporting_mode_ = mode;
@@ -45,13 +45,13 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC) AllocationNotificationData {
   constexpr TagViolationReportingMode mte_reporting_mode() const {
     return TagViolationReportingMode::kUndefined;
   }
-#endif  // PA_BUILDFLAG(HAS_MEMORY_TAGGING)
+#endif  // PA_CONFIG(HAS_MEMORY_TAGGING)
 
  private:
   void* address_ = nullptr;
   size_t size_ = 0;
   const char* type_name_ = nullptr;
-#if PA_BUILDFLAG(HAS_MEMORY_TAGGING)
+#if PA_CONFIG(HAS_MEMORY_TAGGING)
   TagViolationReportingMode mte_reporting_mode_ =
       TagViolationReportingMode::kUndefined;
 #endif
@@ -66,7 +66,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC) FreeNotificationData {
 
   // In the free observer path, it's interesting which reporting mode is
   // enabled.
-#if PA_BUILDFLAG(HAS_MEMORY_TAGGING)
+#if PA_CONFIG(HAS_MEMORY_TAGGING)
   FreeNotificationData& SetMteReportingMode(TagViolationReportingMode mode) {
     mte_reporting_mode_ = mode;
     return *this;
@@ -79,15 +79,15 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC) FreeNotificationData {
   constexpr TagViolationReportingMode mte_reporting_mode() const {
     return TagViolationReportingMode::kUndefined;
   }
-#endif  // PA_BUILDFLAG(HAS_MEMORY_TAGGING)
+#endif  // PA_CONFIG(HAS_MEMORY_TAGGING)
 
  private:
   void* address_ = nullptr;
-#if PA_BUILDFLAG(HAS_MEMORY_TAGGING)
+#if PA_CONFIG(HAS_MEMORY_TAGGING)
   TagViolationReportingMode mte_reporting_mode_ =
       TagViolationReportingMode::kUndefined;
-#endif  // PA_BUILDFLAG(HAS_MEMORY_TAGGING)
+#endif  // PA_CONFIG(HAS_MEMORY_TAGGING)
 };
 
 }  // namespace partition_alloc
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_ALLOCATION_DATA_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_ALLOCATION_DATA_H_

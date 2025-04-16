@@ -88,7 +88,9 @@ class MODULES_EXPORT ImageDecoderCore {
 
   // Calls ImageDecoder::SetData() after appending |data| to |stream_buffer_|.
   // May not be called after |data_complete| becomes true.
-  void AppendData(Vector<uint8_t> data, bool data_complete);
+  void AppendData(size_t data_size,
+                  std::unique_ptr<uint8_t[]> data,
+                  bool data_complete);
 
   // Releases |decoder_|. Decode() and DecodeMetadata() may not be called until
   // Reinitialize() has been called.

@@ -5,18 +5,22 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_PAINT_TIMING_PAINT_TIMING_DETECTOR_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_PAINT_TIMING_PAINT_TIMING_DETECTOR_H_
 
+#include <queue>
+
 #include "base/auto_reset.h"
 #include "base/gtest_prod_util.h"
 #include "base/time/time.h"
 #include "third_party/blink/public/common/input/web_input_event.h"
+#include "third_party/blink/public/common/performance/largest_contentful_paint_type.h"
+#include "third_party/blink/public/platform/web_url_request.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/layout_box_model_object.h"
-#include "third_party/blink/renderer/core/paint/timing/lcp_objects.h"
 #include "third_party/blink/renderer/core/paint/timing/paint_timing_visualizer.h"
 #include "third_party/blink/renderer/core/scroll/scroll_types.h"
 #include "third_party/blink/renderer/platform/graphics/paint/ignore_paint_timing_scope.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/instrumentation/tracing/trace_event.h"
+#include "third_party/blink/renderer/platform/wtf/cross_thread_functional.h"
 #include "ui/gfx/geometry/rect.h"
 
 namespace blink {
@@ -30,9 +34,84 @@ class LayoutObject;
 class LocalFrameView;
 class PropertyTreeStateOrAlias;
 class MediaTiming;
+class StyleFetchedImage;
 class TextPaintTimingDetector;
 class TextRecord;
-class StyleImage;
+
+// |PaintTimingCallbackManager| is an interface between
+// |ImagePaintTimingDetector|/|TextPaintTimingDetector| and |ChromeClient|.
+// As |ChromeClient| is shared among the paint-timing-detecters, it
+// makes it hard to test each detector without being affected other detectors.
+// The interface, however, allows unit tests to mock |ChromeClient| for each
+// detector. With the mock, |ImagePaintTimingDetector|'s callback does not need
+// to store in the same queue as |TextPaintTimingDetector|'s. The separate
+// queue makes it possible to pop an |ImagePaintTimingDetector|'s callback
+// without having to popping the |TextPaintTimingDetector|'s.
+class PaintTimingCallbackManager : public GarbageCollectedMixin {
+ public:
+  using LocalThreadCallback = base::OnceCallback<void(base::TimeTicks)>;
+  using CallbackQueue = std::queue<LocalThreadCallback>;
+
+  virtual void RegisterCallback(
+      PaintTimingCallbackManager::LocalThreadCallback) = 0;
+};
+
+// This class is responsible for managing the swap-time callback for Largest
+// Image Paint and Largest Text Paint. In frames where both text and image are
+// painted, Largest Image Paint and Largest Text Paint need to assign the same
+// paint-time for their records. In this case, |PaintTimeCallbackManager|
+// requests a swap-time callback and share the swap-time with LIP and LTP.
+// Otherwise LIP and LTP would have to request their own swap-time callbacks.
+// An extra benefit of this design is that |LargestContentfulPaintCalculator|
+// can thus hook to the end of the LIP and LTP's record assignments.
+//
+// |GarbageCollected| inheritance is required by the swap-time callback
+// registration.
+class CORE_EXPORT PaintTimingCallbackManagerImpl final
+    : public GarbageCollected<PaintTimingCallbackManagerImpl>,
+      public PaintTimingCallbackManager {
+ public:
+  PaintTimingCallbackManagerImpl(LocalFrameView* frame_view)
+      : frame_view_(frame_view),
+        frame_callbacks_(
+            std::make_unique<std::queue<
+                PaintTimingCallbackManager::LocalThreadCallback>>()) {}
+  ~PaintTimingCallbackManagerImpl() { frame_callbacks_.reset(); }
+
+  // Instead of registering the callback right away, this impl of the interface
+  // combine the callback into |frame_callbacks_| before registering a separate
+  // swap-time callback for the combined callbacks. When the swap-time callback
+  // is invoked, the swap-time is then assigned to each callback of
+  // |frame_callbacks_|.
+  void RegisterCallback(
+      PaintTimingCallbackManager::LocalThreadCallback callback) override {
+    frame_callbacks_->push(std::move(callback));
+  }
+
+  void RegisterPaintTimeCallbackForCombinedCallbacks();
+
+  inline size_t CountCallbacks() { return frame_callbacks_->size(); }
+
+  void ReportPaintTime(
+      std::unique_ptr<std::queue<
+          PaintTimingCallbackManager::LocalThreadCallback>> frame_callbacks,
+      base::TimeTicks paint_time);
+
+  void Trace(Visitor* visitor) const override;
+
+ private:
+  Member<LocalFrameView> frame_view_;
+  // |frame_callbacks_| stores the callbacks of |TextPaintTimingDetector| and
+  // |ImagePaintTimingDetector| in an (animated) frame. It is passed as an
+  // argument of a swap-time callback which once is invoked, invokes every
+  // callback in |frame_callbacks_|. This hierarchical callback design is to
+  // reduce the need of calling ChromeClient to register swap-time callbacks for
+  // both detectos.
+  // Although |frame_callbacks_| intends to store callbacks
+  // of a frame, it occasionally has to do that for more than one frame, when it
+  // fails to register a swap-time callback.
+  std::unique_ptr<PaintTimingCallbackManager::CallbackQueue> frame_callbacks_;
+};
 
 // PaintTimingDetector receives signals regarding text and image paints and
 // orchestrates the functionality of more specific paint detectors
@@ -52,6 +131,38 @@ class CORE_EXPORT PaintTimingDetector
  public:
   PaintTimingDetector(LocalFrameView*);
 
+  struct LargestContentfulPaintDetails {
+    base::TimeTicks largest_image_paint_time_;
+    uint64_t largest_image_paint_size_ = 0;
+    base::TimeTicks largest_image_load_start_;
+    base::TimeTicks largest_image_load_end_;
+    base::TimeTicks largest_image_discovery_time_;
+    blink::LargestContentfulPaintType largest_contentful_paint_type_ =
+        blink::LargestContentfulPaintType::kNone;
+    double largest_contentful_paint_image_bpp_ = 0.0;
+    base::TimeTicks largest_text_paint_time_;
+    uint64_t largest_text_paint_size_ = 0;
+    base::TimeTicks largest_contentful_paint_time_;
+    absl::optional<WebURLRequest::Priority>
+        largest_contentful_paint_image_request_priority_;
+    bool is_loaded_from_memory_cache_ = false;
+    bool is_preloaded_with_early_hints_ = false;
+
+    void Reset() {
+      this->largest_image_paint_time_ = base::TimeTicks();
+      this->largest_image_paint_size_ = 0;
+      this->largest_image_load_start_ = base::TimeTicks();
+      this->largest_image_load_end_ = base::TimeTicks();
+      this->largest_contentful_paint_type_ =
+          blink::LargestContentfulPaintType::kNone;
+      this->largest_contentful_paint_image_bpp_ = 0.0;
+      this->largest_text_paint_time_ = base::TimeTicks();
+      this->largest_text_paint_size_ = 0;
+      this->largest_contentful_paint_time_ = base::TimeTicks();
+      this->largest_contentful_paint_image_request_priority_ = absl::nullopt;
+    }
+  };
+
   // Returns true if the image might ultimately be a candidate for largest
   // paint, otherwise false. When this method is called we do not know the
   // largest status for certain, because we need to wait for presentation.
@@ -59,7 +170,7 @@ class CORE_EXPORT PaintTimingDetector
   static bool NotifyBackgroundImagePaint(
       const Node&,
       const Image&,
-      const StyleImage&,
+      const StyleFetchedImage&,
       const PropertyTreeStateOrAlias& current_paint_chunk_properties,
       const gfx::Rect& image_border);
   // Returns true if the image is a candidate for largest paint, otherwise
@@ -79,6 +190,15 @@ class CORE_EXPORT PaintTimingDetector
   void NotifyInputEvent(WebInputEvent::Type);
   bool NeedToNotifyInputOrScroll() const;
   void NotifyScroll(mojom::blink::ScrollType);
+
+  // The returned value indicates whether the candidates have changed.
+  bool NotifyMetricsIfLargestImagePaintChanged(
+      base::TimeTicks image_paint_time,
+      uint64_t image_size,
+      ImageRecord* image_record,
+      double image_bpp,
+      absl::optional<WebURLRequest::Priority> priority);
+  bool NotifyMetricsIfLargestTextPaintChanged(base::TimeTicks, uint64_t size);
 
   void DidChangePerformanceTiming();
 
@@ -102,40 +222,32 @@ class CORE_EXPORT PaintTimingDetector
   }
   void RestartRecordingLCP();
   void SoftNavigationDetected(LocalDOMWindow*);
-  bool IsSoftNavigationDetected() const {
-    return soft_navigation_was_detected_;
-  }
-  bool WasLCPRestarted() const { return lcp_was_restarted_; }
 
   void RestartRecordingLCPToUkm();
 
   LargestContentfulPaintCalculator* GetLargestContentfulPaintCalculator();
 
-  const LargestContentfulPaintDetails& LargestContentfulPaintDetailsForMetrics()
-      const {
+  const PaintTimingDetector::LargestContentfulPaintDetails&
+  LargestContentfulPaintDetailsForMetrics() const {
     return lcp_details_for_metrics_;
   }
 
-  const LargestContentfulPaintDetails&
+  const PaintTimingDetector::LargestContentfulPaintDetails&
   SoftNavigationLargestContentfulPaintDetailsForMetrics() const {
     return soft_navigation_lcp_details_for_metrics_;
   }
-
-  const LargestContentfulPaintDetails& LatestLcpDetailsForTest();
 
   base::TimeTicks FirstInputOrScrollNotifiedTimestamp() const {
     return first_input_or_scroll_notified_timestamp_;
   }
 
-  void UpdateLcpCandidate();
+  void UpdateLargestContentfulPaintCandidate();
 
   // Reports the largest image and text candidates painted under non-nested 0
   // opacity layer.
   void ReportIgnoredContent();
 
-  std::optional<PaintTimingVisualizer>& Visualizer() { return visualizer_; }
-  bool IsUnrelatedSoftNavigationPaint(const Node&);
-
+  absl::optional<PaintTimingVisualizer>& Visualizer() { return visualizer_; }
   void Trace(Visitor* visitor) const;
 
  private:
@@ -144,8 +256,11 @@ class CORE_EXPORT PaintTimingDetector
 
   // Method called to stop recording the Largest Contentful Paint.
   void OnInputOrScroll();
-
-  void UpdateMetricsLcp();
+  bool HasLargestImagePaintChangedForMetrics(base::TimeTicks,
+                                             uint64_t size) const;
+  bool HasLargestTextPaintChangedForMetrics(base::TimeTicks,
+                                            uint64_t size) const;
+  void UpdateLargestContentfulPaintTimeForMetrics();
   Member<LocalFrameView> frame_view_;
   // This member lives forever because it is also used for Text Element
   // Timing.
@@ -163,8 +278,14 @@ class CORE_EXPORT PaintTimingDetector
   // nullptr.
   base::TimeTicks first_input_or_scroll_notified_timestamp_;
 
-  std::optional<PaintTimingVisualizer> visualizer_;
+  Member<PaintTimingCallbackManagerImpl> callback_manager_;
 
+  absl::optional<PaintTimingVisualizer> visualizer_;
+
+  // The |latest_lcp_details_| struct is just for internal accounting purposes
+  // and is not reported anywhere (neither to metrics, nor to the web exposed
+  // API).
+  LargestContentfulPaintDetails latest_lcp_details_;
   // The LCP details reported to metrics (UKM).
   LargestContentfulPaintDetails lcp_details_for_metrics_;
   // The soft navigation LCP details reported to metrics (UKM).
@@ -228,7 +349,7 @@ class ScopedPaintTimingDetectorBlockPaintHook {
     }
   }
 
-  std::optional<base::AutoReset<ScopedPaintTimingDetectorBlockPaintHook*>>
+  absl::optional<base::AutoReset<ScopedPaintTimingDetectorBlockPaintHook*>>
       reset_top_;
   struct Data {
     STACK_ALLOCATED();
@@ -243,7 +364,7 @@ class ScopedPaintTimingDetectorBlockPaintHook {
     TextPaintTimingDetector* detector_;
     gfx::Rect aggregated_visual_rect_;
   };
-  std::optional<Data> data_;
+  absl::optional<Data> data_;
   static ScopedPaintTimingDetectorBlockPaintHook* top_;
 };
 
@@ -255,6 +376,20 @@ inline void PaintTimingDetector::NotifyTextPaint(
   }
   ScopedPaintTimingDetectorBlockPaintHook::AggregateTextPaint(text_visual_rect);
 }
+
+class LCPRectInfo {
+  USING_FAST_MALLOC(LCPRectInfo);
+
+ public:
+  LCPRectInfo(const gfx::Rect& frame_rect_info, const gfx::Rect& root_rect_info)
+      : frame_rect_info_(frame_rect_info), root_rect_info_(root_rect_info) {}
+
+  void OutputToTraceValue(TracedValue&) const;
+
+ private:
+  gfx::Rect frame_rect_info_;
+  gfx::Rect root_rect_info_;
+};
 
 }  // namespace blink
 

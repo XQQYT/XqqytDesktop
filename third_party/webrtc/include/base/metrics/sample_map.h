@@ -14,6 +14,7 @@
 #include <memory>
 
 #include "base/base_export.h"
+#include "base/compiler_specific.h"
 #include "base/metrics/histogram_base.h"
 #include "base/metrics/histogram_samples.h"
 
@@ -23,10 +24,8 @@ namespace base {
 // data structures. Changes here likely need to be duplicated there.
 class BASE_EXPORT SampleMap : public HistogramSamples {
  public:
-  using SampleToCountMap =
-      std::map<HistogramBase::Sample32, HistogramBase::Count32>;
-
-  explicit SampleMap(uint64_t id = 0);
+  SampleMap();
+  explicit SampleMap(uint64_t id);
 
   SampleMap(const SampleMap&) = delete;
   SampleMap& operator=(const SampleMap&) = delete;
@@ -34,20 +33,20 @@ class BASE_EXPORT SampleMap : public HistogramSamples {
   ~SampleMap() override;
 
   // HistogramSamples:
-  void Accumulate(HistogramBase::Sample32 value,
-                  HistogramBase::Count32 count) override;
-  HistogramBase::Count32 GetCount(HistogramBase::Sample32 value) const override;
-  HistogramBase::Count32 TotalCount() const override;
+  void Accumulate(HistogramBase::Sample value,
+                  HistogramBase::Count count) override;
+  HistogramBase::Count GetCount(HistogramBase::Sample value) const override;
+  HistogramBase::Count TotalCount() const override;
   std::unique_ptr<SampleCountIterator> Iterator() const override;
   std::unique_ptr<SampleCountIterator> ExtractingIterator() override;
   bool IsDefinitelyEmpty() const override;
 
  protected:
-  // Performs arithmetic. |op| is ADD or SUBTRACT.
+  // Performs arithemetic. |op| is ADD or SUBTRACT.
   bool AddSubtractImpl(SampleCountIterator* iter, Operator op) override;
 
  private:
-  SampleToCountMap sample_counts_;
+  std::map<HistogramBase::Sample, HistogramBase::Count> sample_counts_;
 };
 
 }  // namespace base

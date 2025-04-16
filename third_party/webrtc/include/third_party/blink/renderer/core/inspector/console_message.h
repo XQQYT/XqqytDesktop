@@ -5,14 +5,12 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_INSPECTOR_CONSOLE_MESSAGE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_INSPECTOR_CONSOLE_MESSAGE_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/mojom/devtools/console_message.mojom-blink.h"
 #include "third_party/blink/renderer/core/core_export.h"
+#include "third_party/blink/renderer/core/dom/dom_node_ids.h"
 #include "third_party/blink/renderer/platform/bindings/source_location.h"
-#include "third_party/blink/renderer/platform/graphics/dom_node_id.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
-#include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
@@ -61,7 +59,7 @@ class CORE_EXPORT ConsoleMessage final
   LocalFrame* Frame() const;
   Vector<DOMNodeId>& Nodes();
   void SetNodes(LocalFrame*, Vector<DOMNodeId> nodes);
-  const std::optional<mojom::blink::ConsoleMessageCategory>& Category() const;
+  const absl::optional<mojom::blink::ConsoleMessageCategory>& Category() const;
   void SetCategory(mojom::blink::ConsoleMessageCategory category);
 
   void Trace(Visitor*) const;
@@ -69,7 +67,7 @@ class CORE_EXPORT ConsoleMessage final
  private:
   Source source_;
   Level level_;
-  std::optional<mojom::blink::ConsoleMessageCategory> category_;
+  absl::optional<mojom::blink::ConsoleMessageCategory> category_;
   String message_;
   std::unique_ptr<SourceLocation> location_;
   String request_identifier_;

@@ -46,8 +46,8 @@ class PLATFORM_EXPORT FEMorphology final : public FilterEffect {
   float RadiusY() const;
   bool SetRadiusY(float);
 
-  StringBuilder& ExternalRepresentation(StringBuilder&,
-                                        wtf_size_t indent) const override;
+  WTF::TextStream& ExternalRepresentation(WTF::TextStream&,
+                                          int indention) const override;
 
  private:
   gfx::RectF MapEffect(const gfx::RectF&) const override;

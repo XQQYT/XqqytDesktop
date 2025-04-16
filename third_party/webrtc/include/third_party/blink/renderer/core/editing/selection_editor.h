@@ -29,6 +29,7 @@
 
 #include "base/dcheck_is_on.h"
 #include "third_party/blink/renderer/core/dom/events/event_dispatch_result.h"
+#include "third_party/blink/renderer/core/dom/synchronous_mutation_observer.h"
 #include "third_party/blink/renderer/core/editing/frame_selection.h"
 #include "third_party/blink/renderer/core/editing/selection_template.h"
 #include "third_party/blink/renderer/core/editing/visible_selection.h"
@@ -38,11 +39,13 @@ namespace blink {
 // TODO(yosin): We will rename |SelectionEditor| to appropriate name since
 // it is no longer have a changing selection functionality, it was moved to
 // |SelectionModifier| class.
-class SelectionEditor final : public GarbageCollected<SelectionEditor> {
+class SelectionEditor final : public GarbageCollected<SelectionEditor>,
+                              public SynchronousMutationObserver {
  public:
   explicit SelectionEditor(LocalFrame&);
   SelectionEditor(const SelectionEditor&) = delete;
   SelectionEditor& operator=(const SelectionEditor&) = delete;
+  virtual ~SelectionEditor();
   void Dispose();
 
   const SelectionInDOMTree& GetSelectionInDOMTree() const;
@@ -61,21 +64,7 @@ class SelectionEditor final : public GarbageCollected<SelectionEditor> {
 
   void MarkCacheDirty();
 
-  // Notifications from the Document.
-  void ContextDestroyed();
-  void DidChangeChildren(const ContainerNode::ChildrenChange& change);
-  void DidMergeTextNodes(const Text& merged_node,
-                         const NodeWithIndex& node_to_be_removed_with_index,
-                         unsigned old_length);
-  void DidSplitTextNode(const Text&);
-  void DidUpdateCharacterData(CharacterData*,
-                              unsigned offset,
-                              unsigned old_length,
-                              unsigned new_length);
-  void NodeChildrenWillBeRemoved(ContainerNode&);
-  void NodeWillBeRemoved(Node&);
-
-  void Trace(Visitor*) const;
+  void Trace(Visitor*) const override;
 
  private:
   Document& GetDocument() const;
@@ -95,11 +84,24 @@ class SelectionEditor final : public GarbageCollected<SelectionEditor> {
   bool NeedsUpdateAbsoluteBounds() const;
   void UpdateCachedAbsoluteBoundsIfNeeded() const;
 
-  void DidFinishTextChange(const Position& anchor, const Position& focus);
+  void DidFinishTextChange(const Position& base, const Position& extent);
   void DidFinishDOMMutation();
-  void DidInsertNode(const Node&);
 
-  WeakMember<Document> document_;
+  // Implementation of |SynchronousMutationObsderver| member functions.
+  void ContextDestroyed() final;
+  void DidChangeChildren(const ContainerNode&,
+                         const ContainerNode::ChildrenChange&) final;
+  void DidMergeTextNodes(const Text& merged_node,
+                         const NodeWithIndex& node_to_be_removed_with_index,
+                         unsigned old_length) final;
+  void DidSplitTextNode(const Text&) final;
+  void DidUpdateCharacterData(CharacterData*,
+                              unsigned offset,
+                              unsigned old_length,
+                              unsigned new_length) final;
+  void NodeChildrenWillBeRemoved(ContainerNode&) final;
+  void NodeWillBeRemoved(Node&) final;
+
   Member<LocalFrame> frame_;
 
   SelectionInDOMTree selection_;

@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_OVERRIDE_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_OVERRIDE_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_OVERRIDE_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_OVERRIDE_H_
 
 #include <atomic>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_base/time/time.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/time/time.h"
+#include "build/build_config.h"
 
 namespace partition_alloc::internal::base {
 
@@ -31,7 +31,7 @@ namespace subtle {
 // time update isn't surprising. Instantiating a ScopedTimeClockOverrides while
 // other threads are running might break their expectation that TimeTicks and
 // ThreadTicks increase monotonically. Nested overrides are not allowed.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ScopedTimeClockOverrides {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) ScopedTimeClockOverrides {
  public:
   // Pass |nullptr| for any override if it shouldn't be overriden.
   ScopedTimeClockOverrides(TimeNowFunction time_override,
@@ -55,12 +55,11 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ScopedTimeClockOverrides {
 // should only be used in places where emulated time should be disregarded. For
 // example, they can be used to implement test timeouts for tests that may
 // override time.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Time TimeNowIgnoringOverride();
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) Time TimeNowIgnoringOverride();
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 Time TimeNowFromSystemTimeIgnoringOverride();
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
-TimeTicks TimeTicksNowIgnoringOverride();
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) TimeTicks TimeTicksNowIgnoringOverride();
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 ThreadTicks ThreadTicksNowIgnoringOverride();
 
 }  // namespace subtle
@@ -83,4 +82,4 @@ extern std::atomic<ThreadTicksNowFunction> g_thread_ticks_now_function;
 
 }  // namespace partition_alloc::internal::base
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_OVERRIDE_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_OVERRIDE_H_

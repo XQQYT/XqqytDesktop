@@ -15,8 +15,6 @@
 #include <memory>
 #include <string>
 
-#include "api/audio/audio_processing.h"
-#include "api/environment/environment.h"
 #include "modules/audio_processing/agc2/adaptive_digital_gain_controller.h"
 #include "modules/audio_processing/agc2/cpu_features.h"
 #include "modules/audio_processing/agc2/gain_applier.h"
@@ -26,6 +24,7 @@
 #include "modules/audio_processing/agc2/saturation_protector.h"
 #include "modules/audio_processing/agc2/speech_level_estimator.h"
 #include "modules/audio_processing/agc2/vad_wrapper.h"
+#include "modules/audio_processing/include/audio_processing.h"
 #include "modules/audio_processing/logging/apm_data_dumper.h"
 
 namespace webrtc {
@@ -39,7 +38,6 @@ class GainController2 {
   // Ctor. If `use_internal_vad` is true, an internal voice activity
   // detector is used for digital adaptive gain.
   GainController2(
-      const Environment& env,
       const AudioProcessing::Config::GainController2& config,
       const InputVolumeController::Config& input_volume_controller_config,
       int sample_rate_hz,
@@ -70,8 +68,7 @@ class GainController2 {
   // computes the speech probability via `vad_`.
   // Handles input volume changes; if the caller cannot determine whether an
   // input volume change occurred, set `input_volume_changed` to false.
-  // TODO(bugs.webrtc.org/7494): Remove `speech_probability`.
-  void Process(std::optional<float> speech_probability,
+  void Process(absl::optional<float> speech_probability,
                bool input_volume_changed,
                AudioBuffer* audio);
 
@@ -79,7 +76,7 @@ class GainController2 {
 
   AvailableCpuFeatures GetCpuFeatures() const { return cpu_features_; }
 
-  std::optional<int> recommended_input_volume() const {
+  absl::optional<int> recommended_input_volume() const {
     return recommended_input_volume_;
   }
 
@@ -105,7 +102,7 @@ class GainController2 {
   // Recommended input volume from `InputVolumecontroller`. Non-empty after
   // `Process()` if input volume controller is enabled and
   // `InputVolumeController::Process()` has returned a non-empty value.
-  std::optional<int> recommended_input_volume_;
+  absl::optional<int> recommended_input_volume_;
 };
 
 }  // namespace webrtc

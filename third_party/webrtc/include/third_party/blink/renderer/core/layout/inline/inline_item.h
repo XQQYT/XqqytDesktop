@@ -12,7 +12,7 @@
 #include "third_party/blink/renderer/core/layout/inline/inline_item_segment.h"
 #include "third_party/blink/renderer/core/layout/inline/text_item_type.h"
 #include "third_party/blink/renderer/core/layout/layout_inline.h"
-#include "third_party/blink/renderer/core/layout/style_variant.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_style_variant.h"
 #include "third_party/blink/renderer/platform/fonts/shaping/run_segmenter.h"
 #include "third_party/blink/renderer/platform/text/text_direction.h"
 
@@ -20,16 +20,16 @@ namespace blink {
 
 class LayoutObject;
 
-using InlineItems = HeapVector<Member<InlineItem>>;
-
 // Class representing a single text node or styled inline element with text
 // content segmented by style, text direction, sideways rotation, font fallback
 // priority (text, symbol, emoji, etc), and script (but not by font).
 // In this representation TextNodes are merged up into their parent inline
 // element where possible.
-class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
+class CORE_EXPORT InlineItem {
+  DISALLOW_NEW();
+
  public:
-  enum InlineItemType : uint8_t {
+  enum InlineItemType {
     kText,
     kControl,
     kAtomicInline,
@@ -40,18 +40,10 @@ class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
     kOutOfFlowPositioned,
     kInitialLetterBox,
     kListMarker,
-    kBidiControl,
-    // k*RubyColumn is produced only if RubyLineBreakable flag is enabled.
-    // They help to pair ruby-base items and ruby-text items in LineBreaker.
-    kOpenRubyColumn,
-    kCloseRubyColumn,
-    // kRubyLinePlaceholder items are added to the beginning and the end of
-    // ruby-base and ruby-text sub-lines. They are helpful to avoid no-item
-    // lines and to add spaces around a sub-line.
-    kRubyLinePlaceholder
+    kBidiControl
   };
 
-  enum CollapseType : uint8_t {
+  enum NGCollapseType {
     // No collapsible spaces.
     kNotCollapsible,
     // This item is opaque to whitespace collapsing.
@@ -74,8 +66,7 @@ class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
   InlineItem(const InlineItem&,
              unsigned adjusted_start,
              unsigned adjusted_end,
-             const ShapeResult*);
-  InlineItem(const InlineItem&);
+             scoped_refptr<const ShapeResult>);
 
   InlineItemType Type() const { return type_; }
   const char* InlineItemTypeToString(InlineItemType val) const;
@@ -98,20 +89,7 @@ class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
     SetTextType(TextItemType::kSymbolMarker);
   }
 
-  // The index in `InlineItems`. The value is valid only after `UpdateIndex()`
-  // was run.
-  wtf_size_t Index() const { return index_; }
-  // Same as `Index()`. Use this variant if before `UpdateIndex()` was run.
-  wtf_size_t Index(base::span<const Member<InlineItem>>) const;
-
-  const ShapeResult* TextShapeResult() const { return shape_result_.Get(); }
-  ShapeResult* CloneTextShapeResult() {
-    DCHECK(shape_result_);
-    ShapeResult* clone = MakeGarbageCollected<ShapeResult>(*shape_result_);
-    shape_result_ = clone;
-    return clone;
-  }
-
+  const ShapeResult* TextShapeResult() const { return shape_result_.get(); }
   bool IsUnsafeToReuseShapeResult() const {
     return is_unsafe_to_reuse_shape_result_;
   }
@@ -130,7 +108,7 @@ class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
 
   // If this item is either a float or OOF-positioned node. If an inline
   // formatting-context *only* contains these types of nodes we consider it
-  // block-level, and run the |BlockLayoutAlgorithm| instead of the
+  // block-level, and run the |NGBlockLayoutAlgorithm| instead of the
   // |InlineLayoutAlgorithm|.
   bool IsBlockLevel() const { return is_block_level_; }
   void SetIsBlockLevel(bool value) { is_block_level_ = value; }
@@ -170,6 +148,9 @@ class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
   bool IsImage() const {
     return GetLayoutObject() && GetLayoutObject()->IsLayoutImage();
   }
+  bool IsRubyColumn() const {
+    return GetLayoutObject() && GetLayoutObject()->IsRubyColumn();
+  }
   bool IsTextCombine() const {
     return GetLayoutObject() && GetLayoutObject()->IsLayoutTextCombine();
   }
@@ -188,17 +169,17 @@ class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
     shape_result_ = nullptr;
   }
 
-  void SetStyleVariant(StyleVariant style_variant) {
+  void SetStyleVariant(NGStyleVariant style_variant) {
     style_variant_ = static_cast<unsigned>(style_variant);
   }
-  StyleVariant GetStyleVariant() const {
-    return static_cast<StyleVariant>(style_variant_);
+  NGStyleVariant StyleVariant() const {
+    return static_cast<NGStyleVariant>(style_variant_);
   }
   const ComputedStyle* Style() const {
     // Use the |ComputedStyle| in |LayoutObject|, because not all style changes
     // re-run |CollectInlines()|.
     DCHECK(layout_object_);
-    return &layout_object_->EffectiveStyle(GetStyleVariant());
+    return &layout_object_->EffectiveStyle(StyleVariant());
   }
 
   // Returns a screen-size font for SVG text.
@@ -206,10 +187,10 @@ class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
   const Font& FontWithSvgScaling() const;
 
   // Get or set the whitespace collapse type at the end of this item.
-  CollapseType EndCollapseType() const {
-    return static_cast<CollapseType>(end_collapse_type_);
+  NGCollapseType EndCollapseType() const {
+    return static_cast<NGCollapseType>(end_collapse_type_);
   }
-  void SetEndCollapseType(CollapseType type) {
+  void SetEndCollapseType(NGCollapseType type) {
     // |kText| can set any types.
     DCHECK(Type() == InlineItem::kText ||
            // |kControl| and |kBlockInInline| are always |kCollapsible|.
@@ -236,17 +217,17 @@ class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
   // Whether the end collapsible space run contains a newline.
   // Valid only when kCollapsible or kCollapsed.
   bool IsEndCollapsibleNewline() const { return is_end_collapsible_newline_; }
-  void SetEndCollapseType(CollapseType type, bool is_newline) {
+  void SetEndCollapseType(NGCollapseType type, bool is_newline) {
     SetEndCollapseType(type);
     is_end_collapsible_newline_ = is_newline;
   }
 
-  static void Split(InlineItems&, unsigned index, unsigned offset);
+  static void Split(HeapVector<InlineItem>&, unsigned index, unsigned offset);
 
   // RunSegmenter properties.
   unsigned SegmentData() const { return segment_data_; }
   static void SetSegmentData(const RunSegmenter::RunSegmenterRange& range,
-                             InlineItems* items);
+                             HeapVector<InlineItem>* items);
 
   RunSegmenter::RunSegmenterRange CreateRunSegmenterRange() const {
     // Only `kText` has the `segment_data_`, see `InlineItem::SetSegmentData`.
@@ -266,16 +247,10 @@ class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
       shape_result_ = nullptr;
     bidi_level_ = level;
   }
-  static unsigned SetBidiLevel(InlineItems&,
+  static unsigned SetBidiLevel(HeapVector<InlineItem>&,
                                unsigned index,
                                unsigned end_offset,
                                UBiDiLevel);
-
-  // Update `InlineItem::Index()` for the given list.
-  static void UpdateIndex(base::span<Member<InlineItem>> items);
-#if EXPENSIVE_DCHECKS_ARE_ON()
-  static void CheckIndex(base::span<Member<InlineItem>> items);
-#endif  // EXPENSIVE_DCHECKS_ARE_ON()
 
   void AssertOffset(unsigned offset) const { DCHECK(IsValidOffset(offset)); }
   void AssertEndOffset(unsigned offset) const;
@@ -289,23 +264,21 @@ class CORE_EXPORT InlineItem final : public GarbageCollected<InlineItem> {
 
   unsigned start_offset_;
   unsigned end_offset_;
-  Member<const ShapeResult> shape_result_{
-      nullptr, Member<const ShapeResult>::AtomicInitializerTag{}};
+  scoped_refptr<const ShapeResult> shape_result_;
   Member<LayoutObject> layout_object_;
-  wtf_size_t index_ = 0;
 
   InlineItemType type_;
-  unsigned text_type_ : 3 = static_cast<unsigned>(TextItemType::kNormal);
-  unsigned style_variant_ : 2 = static_cast<unsigned>(StyleVariant::kStandard);
-  unsigned end_collapse_type_ : 2 = CollapseType::kNotCollapsible;
-  unsigned bidi_level_ : 8 = UBIDI_LTR;  // UBiDiLevel is defined as uint8_t.
+  unsigned text_type_ : 3;          // TextItemType
+  unsigned style_variant_ : 2;      // NGStyleVariant
+  unsigned end_collapse_type_ : 2;  // NGCollapseType
+  unsigned bidi_level_ : 8;         // UBiDiLevel is defined as uint8_t.
   // |segment_data_| is valid only for |type_ == InlineItem::kText|.
-  unsigned segment_data_ : InlineItemSegment::kSegmentDataBits = 0;
-  unsigned is_empty_item_ : 1 = false;
-  unsigned is_block_level_ : 1 = false;
-  unsigned is_end_collapsible_newline_ : 1 = false;
-  unsigned is_generated_for_line_break_ : 1 = false;
-  unsigned is_unsafe_to_reuse_shape_result_ : 1 = false;
+  unsigned segment_data_ : InlineItemSegment::kSegmentDataBits;
+  unsigned is_empty_item_ : 1;
+  unsigned is_block_level_ : 1;
+  unsigned is_end_collapsible_newline_ : 1;
+  unsigned is_generated_for_line_break_ : 1;
+  unsigned is_unsafe_to_reuse_shape_result_ : 1;
   friend class InlineNode;
   friend class InlineNodeDataEditor;
 };

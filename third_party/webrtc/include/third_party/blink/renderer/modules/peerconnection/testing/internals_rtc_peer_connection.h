@@ -20,7 +20,7 @@ class InternalsRTCPeerConnection {
   static int peerConnectionCount(Internals&);
   static int peerConnectionCountLimit(Internals&);
 
-  static ScriptPromise<IDLAny> waitForPeerConnectionDispatchEventsTaskCreated(
+  static ScriptPromise waitForPeerConnectionDispatchEventsTaskCreated(
       ScriptState*,
       Internals&,
       RTCPeerConnection*);

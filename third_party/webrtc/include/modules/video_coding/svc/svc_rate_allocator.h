@@ -12,12 +12,9 @@
 #define MODULES_VIDEO_CODING_SVC_SVC_RATE_ALLOCATOR_H_
 
 #include <stddef.h>
-
-#include <vector>
+#include <stdint.h>
 
 #include "absl/container/inlined_vector.h"
-#include "api/field_trials_view.h"
-#include "api/units/data_rate.h"
 #include "api/video/video_bitrate_allocation.h"
 #include "api/video/video_bitrate_allocator.h"
 #include "api/video/video_codec_constants.h"
@@ -28,8 +25,7 @@ namespace webrtc {
 
 class SvcRateAllocator : public VideoBitrateAllocator {
  public:
-  SvcRateAllocator(const VideoCodec& codec,
-                   const FieldTrialsView& field_trials);
+  explicit SvcRateAllocator(const VideoCodec& codec);
 
   VideoBitrateAllocation Allocate(
       VideoBitrateAllocationParameters parameters) override;
@@ -46,12 +42,12 @@ class SvcRateAllocator : public VideoBitrateAllocator {
   };
 
   static NumLayers GetNumLayers(const VideoCodec& codec);
-  std::vector<DataRate> DistributeAllocationToSpatialLayersNormalVideo(
+  VideoBitrateAllocation GetAllocationNormalVideo(
       DataRate total_bitrate,
       size_t first_active_layer,
       size_t num_spatial_layers) const;
 
-  std::vector<DataRate> DistributeAllocationToSpatialLayersScreenSharing(
+  VideoBitrateAllocation GetAllocationScreenSharing(
       DataRate total_bitrate,
       size_t first_active_layer,
       size_t num_spatial_layers) const;

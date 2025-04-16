@@ -65,7 +65,9 @@
     // Handles the button click to activate `setSinkId()` method.
     const onDeviceChange = async (event, audioContext, appView) => {
       const deviceId = appView.dropdown.value;
-      if (deviceId === 'silent') {
+      if (deviceId === 'default') {
+        audioContext.setSinkId('');
+      } else if (deviceId === 'silent') {
         audioContext.setSinkId({type: 'none'});
       } else {
         audioContext.setSinkId(deviceId);

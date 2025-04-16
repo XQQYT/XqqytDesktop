@@ -12,7 +12,6 @@ namespace blink {
 class RelList final : public DOMTokenList {
  public:
   explicit RelList(Element*);
-  RelList(Element*, const QualifiedName&);
 
  private:
   bool ValidateTokenValue(const AtomicString&, ExceptionState&) const override;

@@ -22,6 +22,7 @@ class IntersectionObserverDelegate
  public:
   ~IntersectionObserverDelegate() override = default;
 
+  virtual LocalFrameUkmAggregator::MetricId GetUkmMetricId() const = 0;
   virtual IntersectionObserver::DeliveryBehavior GetDeliveryBehavior()
       const = 0;
 

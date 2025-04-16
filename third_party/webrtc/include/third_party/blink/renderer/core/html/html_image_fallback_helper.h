@@ -10,7 +10,6 @@
 namespace blink {
 
 class Element;
-class HTMLElement;
 class ComputedStyleBuilder;
 
 class HTMLImageFallbackHelper {
@@ -18,10 +17,7 @@ class HTMLImageFallbackHelper {
 
  public:
   static void CreateAltTextShadowTree(Element&);
-  // Adjusts the style of the shadow host, and also produces a StyleHostData
-  // object (stored on the builder) which is used by AdjustChildStyle
-  // (in the .cc file) to implement custom inheritance from the host.
-  static void AdjustHostStyle(HTMLElement&, ComputedStyleBuilder&);
+  static void CustomStyleForAltText(Element&, ComputedStyleBuilder&);
 };
 
 }  // namespace blink

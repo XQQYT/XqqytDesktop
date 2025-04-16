@@ -12,12 +12,11 @@
 
 #include <cstdint>
 #include <limits>
-#include <optional>
 #include <utility>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/array_view.h"
-#include "api/units/timestamp.h"
 #include "net/dcsctp/common/internal_types.h"
 #include "net/dcsctp/packet/data.h"
 #include "net/dcsctp/public/types.h"
@@ -38,7 +37,7 @@ class SendQueue {
 
     // Partial reliability - RFC3758
     MaxRetransmits max_retransmissions = MaxRetransmits::NoLimit();
-    webrtc::Timestamp expires_at = webrtc::Timestamp::PlusInfinity();
+    TimeMs expires_at = TimeMs::InfiniteFuture();
 
     // Lifecycle - set for the last fragment, and `LifecycleId::NotSet()` for
     // all other fragments.
@@ -56,8 +55,7 @@ class SendQueue {
   //
   // `max_size` refers to how many payload bytes that may be produced, not
   // including any headers.
-  virtual std::optional<DataToSend> Produce(webrtc::Timestamp now,
-                                            size_t max_size) = 0;
+  virtual absl::optional<DataToSend> Produce(TimeMs now, size_t max_size) = 0;
 
   // Discards a partially sent message identified by the parameters
   // `stream_id` and `message_id`. The `message_id` comes from the returned

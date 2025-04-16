@@ -55,15 +55,12 @@ class RTPSenderAudio {
     uint32_t rtp_timestamp = 0;
 
     // capture time of the audio frame in the same epoch as `clock->CurrentTime`
-    std::optional<Timestamp> capture_time;
+    absl::optional<Timestamp> capture_time;
 
     // Audio level in dBov for
     // header-extension-for-audio-level-indication.
     // Valid range is [0,127]. Actual value is negative.
-    std::optional<int> audio_level_dbov;
-
-    // Contributing sources list.
-    rtc::ArrayView<const uint32_t> csrcs;
+    absl::optional<int> audio_level_dbov;
   };
   bool SendAudio(const RtpAudioFrame& frame);
 
@@ -107,7 +104,7 @@ class RTPSenderAudio {
 
   OneTimeEvent first_packet_sent_;
 
-  std::optional<int> encoder_rtp_timestamp_frequency_
+  absl::optional<int> encoder_rtp_timestamp_frequency_
       RTC_GUARDED_BY(send_audio_mutex_);
 
   AbsoluteCaptureTimeSender absolute_capture_time_sender_

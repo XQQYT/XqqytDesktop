@@ -15,12 +15,12 @@
 
 #include <deque>
 #include <limits>
-#include <optional>
 #include <utility>
 
+#include "absl/types/optional.h"
 #include "rtc_base/checks.h"
 
-namespace webrtc {
+namespace rtc {
 
 // Implements moving max: can add samples to it and calculate maximum over some
 // fixed moving window.
@@ -43,7 +43,7 @@ class MovingMaxCounter {
   // Advances the current time, and returns the maximum sample in the time
   // window ending at the current time. The new current time must be at least as
   // large as the old current time.
-  std::optional<T> Max(int64_t current_time_ms);
+  absl::optional<T> Max(int64_t current_time_ms);
   void Reset();
 
  private:
@@ -85,9 +85,9 @@ void MovingMaxCounter<T>::Add(const T& sample, int64_t current_time_ms) {
 }
 
 template <class T>
-std::optional<T> MovingMaxCounter<T>::Max(int64_t current_time_ms) {
+absl::optional<T> MovingMaxCounter<T>::Max(int64_t current_time_ms) {
   RollWindow(current_time_ms);
-  std::optional<T> res;
+  absl::optional<T> res;
   if (!samples_.empty()) {
     res.emplace(samples_.front().second);
   }
@@ -113,12 +113,6 @@ void MovingMaxCounter<T>::RollWindow(int64_t new_time_ms) {
   samples_.erase(samples_.begin(), it);
 }
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace rtc {
-using ::webrtc::MovingMaxCounter;
 }  // namespace rtc
 
 #endif  // RTC_BASE_NUMERICS_MOVING_MAX_COUNTER_H_

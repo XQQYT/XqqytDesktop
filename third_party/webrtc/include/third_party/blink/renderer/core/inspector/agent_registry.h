@@ -70,8 +70,9 @@ class CORE_EXPORT AgentRegistry {
   template <typename ForEachCallable>
   void ForEachAgent(const ForEachCallable& callable) const {
     iteration_counter_++;
-    for (const Member<AgentType>& agent : agents_) {
-      callable(agent);
+    auto* end = agents_.end();
+    for (auto* agent = agents_.begin(); agent != end; agent++) {
+      callable(agent->Get());
     }
     if (iteration_counter_ > 0)
       iteration_counter_--;
@@ -87,4 +88,4 @@ class CORE_EXPORT AgentRegistry {
 
 }  // namespace blink
 
-#endif  // THIRD_PARTY_BLINK_RENDERER_CORE_INSPECTOR_AGENT_REGISTRY_H_
+#endif  // THIRD_PARTY_BLINK_RENDERER_CORE_INSPRCTOR_AGENT_REGISTRY_H_

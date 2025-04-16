@@ -93,7 +93,9 @@ struct BLINK_COMMON_EXPORT
     return key.array();
   }
   static base::span<const uint8_t> binary(const blink::IndexedDBKey& key) {
-    return base::as_byte_span(key.binary());
+    return base::make_span(
+        reinterpret_cast<const uint8_t*>(key.binary().data()),
+        key.binary().size());
   }
   static const std::u16string& string(const blink::IndexedDBKey& key) {
     return key.string();

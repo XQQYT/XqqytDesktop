@@ -23,6 +23,7 @@
 
 #include "absl/memory/memory.h"
 #include "absl/strings/string_view.h"
+#include "api/crypto_params.h"
 #include "api/media_types.h"
 #include "api/rtp_parameters.h"
 #include "api/rtp_transceiver_direction.h"
@@ -40,9 +41,10 @@
 #include "rtc_base/socket_address.h"
 #include "rtc_base/system/rtc_export.h"
 
-namespace webrtc {
+namespace cricket {
 
-using RtpHeaderExtensions = std::vector<RtpExtension>;
+using CryptoParamsVec = std::vector<CryptoParams>;
+using RtpHeaderExtensions = std::vector<webrtc::RtpExtension>;
 
 // Options to control how session descriptions are generated.
 const int kAutoBandwidth = -1;
@@ -59,7 +61,7 @@ class MediaContentDescription {
   MediaContentDescription() = default;
   virtual ~MediaContentDescription() = default;
 
-  virtual webrtc::MediaType type() const = 0;
+  virtual MediaType type() const = 0;
 
   // Try to cast this media description to an AudioContentDescription. Returns
   // nullptr if the cast fails.
@@ -94,8 +96,8 @@ class MediaContentDescription {
     protocol_ = std::string(protocol);
   }
 
-  RtpTransceiverDirection direction() const { return direction_; }
-  void set_direction(RtpTransceiverDirection direction) {
+  webrtc::RtpTransceiverDirection direction() const { return direction_; }
+  void set_direction(webrtc::RtpTransceiverDirection direction) {
     direction_ = direction;
   }
 
@@ -114,18 +116,17 @@ class MediaContentDescription {
     remote_estimate_ = remote_estimate;
   }
 
-  // Support of RFC 8888 feedback messages.
-  // This is a transport-wide property, but is signalled in SDP
-  // at the m-line level; its mux category is IDENTICAL-PER-PT,
-  // and only wildcard is allowed. RFC 8888 section 6.
-  bool rtcp_fb_ack_ccfb() const { return rtcp_fb_ack_ccfb_; }
-  void set_rtcp_fb_ack_ccfb(bool enable) { rtcp_fb_ack_ccfb_ = enable; }
-
   int bandwidth() const { return bandwidth_; }
   void set_bandwidth(int bandwidth) { bandwidth_ = bandwidth; }
   std::string bandwidth_type() const { return bandwidth_type_; }
   void set_bandwidth_type(std::string bandwidth_type) {
     bandwidth_type_ = bandwidth_type;
+  }
+
+  const std::vector<CryptoParams>& cryptos() const { return cryptos_; }
+  void AddCrypto(const CryptoParams& params) { cryptos_.push_back(params); }
+  void set_cryptos(const std::vector<CryptoParams>& cryptos) {
+    cryptos_ = cryptos;
   }
 
   // List of RTP header extensions. URIs are **NOT** guaranteed to be unique
@@ -140,7 +141,7 @@ class MediaContentDescription {
     rtp_header_extensions_ = extensions;
     rtp_header_extensions_set_ = true;
   }
-  void AddRtpHeaderExtension(const RtpExtension& ext) {
+  void AddRtpHeaderExtension(const webrtc::RtpExtension& ext) {
     rtp_header_extensions_.push_back(ext);
     rtp_header_extensions_set_ = true;
   }
@@ -154,19 +155,19 @@ class MediaContentDescription {
   // provide the ClearRtpHeaderExtensions method to allow "no support" to be
   // clearly indicated (i.e. when derived from other information).
   bool rtp_header_extensions_set() const { return rtp_header_extensions_set_; }
-  const cricket::StreamParamsVec& streams() const { return send_streams_; }
+  const StreamParamsVec& streams() const { return send_streams_; }
   // TODO(pthatcher): Remove this by giving mediamessage.cc access
   // to MediaContentDescription
-  cricket::StreamParamsVec& mutable_streams() { return send_streams_; }
-  void AddStream(const cricket::StreamParams& stream) {
+  StreamParamsVec& mutable_streams() { return send_streams_; }
+  void AddStream(const StreamParams& stream) {
     send_streams_.push_back(stream);
   }
   // Legacy streams have an ssrc, but nothing else.
   void AddLegacyStream(uint32_t ssrc) {
-    AddStream(cricket::StreamParams::CreateLegacy(ssrc));
+    AddStream(StreamParams::CreateLegacy(ssrc));
   }
   void AddLegacyStream(uint32_t ssrc, uint32_t fid_ssrc) {
-    cricket::StreamParams sp = cricket::StreamParams::CreateLegacy(ssrc);
+    StreamParams sp = StreamParams::CreateLegacy(ssrc);
     sp.AddFidSsrc(ssrc, fid_ssrc);
     AddStream(sp);
   }
@@ -190,10 +191,10 @@ class MediaContentDescription {
   // https://tools.ietf.org/html/rfc4566#section-5.7
   // May be present at the media or session level of SDP. If present at both
   // levels, the media-level attribute overwrites the session-level one.
-  void set_connection_address(const SocketAddress& address) {
+  void set_connection_address(const rtc::SocketAddress& address) {
     connection_address_ = address;
   }
-  const SocketAddress& connection_address() const {
+  const rtc::SocketAddress& connection_address() const {
     return connection_address_;
   }
 
@@ -215,34 +216,31 @@ class MediaContentDescription {
 
   // Simulcast functionality.
   bool HasSimulcast() const { return !simulcast_.empty(); }
-  cricket::SimulcastDescription& simulcast_description() { return simulcast_; }
-  const cricket::SimulcastDescription& simulcast_description() const {
+  SimulcastDescription& simulcast_description() { return simulcast_; }
+  const SimulcastDescription& simulcast_description() const {
     return simulcast_;
   }
-  void set_simulcast_description(
-      const cricket::SimulcastDescription& simulcast) {
+  void set_simulcast_description(const SimulcastDescription& simulcast) {
     simulcast_ = simulcast;
   }
-  const std::vector<cricket::RidDescription>& receive_rids() const {
+  const std::vector<RidDescription>& receive_rids() const {
     return receive_rids_;
   }
-  void set_receive_rids(const std::vector<cricket::RidDescription>& rids) {
+  void set_receive_rids(const std::vector<RidDescription>& rids) {
     receive_rids_ = rids;
   }
 
   // Codecs should be in preference order (most preferred codec first).
-  const std::vector<cricket::Codec>& codecs() const { return codecs_; }
-  void set_codecs(const std::vector<cricket::Codec>& codecs) {
-    codecs_ = codecs;
-  }
+  const std::vector<Codec>& codecs() const { return codecs_; }
+  void set_codecs(const std::vector<Codec>& codecs) { codecs_ = codecs; }
   virtual bool has_codecs() const { return !codecs_.empty(); }
   bool HasCodec(int id) {
     return absl::c_find_if(codecs_, [id](const cricket::Codec codec) {
              return codec.id == id;
            }) != codecs_.end();
   }
-  void AddCodec(const cricket::Codec& codec) { codecs_.push_back(codec); }
-  void AddOrReplaceCodec(const cricket::Codec& codec) {
+  void AddCodec(const Codec& codec) { codecs_.push_back(codec); }
+  void AddOrReplaceCodec(const Codec& codec) {
     for (auto it = codecs_.begin(); it != codecs_.end(); ++it) {
       if (it->id == codec.id) {
         *it = codec;
@@ -251,7 +249,7 @@ class MediaContentDescription {
     }
     AddCodec(codec);
   }
-  void AddCodecs(const std::vector<cricket::Codec>& codecs) {
+  void AddCodecs(const std::vector<Codec>& codecs) {
     for (const auto& codec : codecs) {
       AddCodec(codec);
     }
@@ -267,27 +265,28 @@ class MediaContentDescription {
   bool rtcp_mux_ = false;
   bool rtcp_reduced_size_ = false;
   bool remote_estimate_ = false;
-  bool rtcp_fb_ack_ccfb_ = false;
   int bandwidth_ = kAutoBandwidth;
-  std::string bandwidth_type_ = cricket::kApplicationSpecificBandwidth;
+  std::string bandwidth_type_ = kApplicationSpecificBandwidth;
 
-  std::vector<RtpExtension> rtp_header_extensions_;
+  std::vector<CryptoParams> cryptos_;
+  std::vector<webrtc::RtpExtension> rtp_header_extensions_;
   bool rtp_header_extensions_set_ = false;
-  cricket::StreamParamsVec send_streams_;
+  StreamParamsVec send_streams_;
   bool conference_mode_ = false;
-  RtpTransceiverDirection direction_ = RtpTransceiverDirection::kSendRecv;
-  SocketAddress connection_address_;
+  webrtc::RtpTransceiverDirection direction_ =
+      webrtc::RtpTransceiverDirection::kSendRecv;
+  rtc::SocketAddress connection_address_;
   ExtmapAllowMixed extmap_allow_mixed_enum_ = kMedia;
 
-  cricket::SimulcastDescription simulcast_;
-  std::vector<cricket::RidDescription> receive_rids_;
+  SimulcastDescription simulcast_;
+  std::vector<RidDescription> receive_rids_;
 
   // Copy function that returns a raw pointer. Caller will assert ownership.
   // Should only be called by the Clone() function. Must be implemented
   // by each final subclass.
   virtual MediaContentDescription* CloneInternal() const = 0;
 
-  std::vector<cricket::Codec> codecs_;
+  std::vector<Codec> codecs_;
 };
 
 class RtpMediaContentDescription : public MediaContentDescription {};
@@ -295,10 +294,10 @@ class RtpMediaContentDescription : public MediaContentDescription {};
 class AudioContentDescription : public RtpMediaContentDescription {
  public:
   void set_protocol(absl::string_view protocol) override {
-    RTC_DCHECK(cricket::IsRtpProtocol(protocol));
+    RTC_DCHECK(IsRtpProtocol(protocol));
     protocol_ = std::string(protocol);
   }
-  webrtc::MediaType type() const override { return webrtc::MediaType::AUDIO; }
+  MediaType type() const override { return MEDIA_TYPE_AUDIO; }
   AudioContentDescription* as_audio() override { return this; }
   const AudioContentDescription* as_audio() const override { return this; }
 
@@ -311,10 +310,10 @@ class AudioContentDescription : public RtpMediaContentDescription {
 class VideoContentDescription : public RtpMediaContentDescription {
  public:
   void set_protocol(absl::string_view protocol) override {
-    RTC_DCHECK(cricket::IsRtpProtocol(protocol));
+    RTC_DCHECK(IsRtpProtocol(protocol));
     protocol_ = std::string(protocol);
   }
-  webrtc::MediaType type() const override { return webrtc::MediaType::VIDEO; }
+  MediaType type() const override { return MEDIA_TYPE_VIDEO; }
   VideoContentDescription* as_video() override { return this; }
   const VideoContentDescription* as_video() const override { return this; }
 
@@ -332,13 +331,13 @@ class SctpDataContentDescription : public MediaContentDescription {
         use_sctpmap_(o.use_sctpmap_),
         port_(o.port_),
         max_message_size_(o.max_message_size_) {}
-  webrtc::MediaType type() const override { return webrtc::MediaType::DATA; }
+  MediaType type() const override { return MEDIA_TYPE_DATA; }
   SctpDataContentDescription* as_sctp() override { return this; }
   const SctpDataContentDescription* as_sctp() const override { return this; }
 
   bool has_codecs() const override { return false; }
   void set_protocol(absl::string_view protocol) override {
-    RTC_DCHECK(cricket::IsSctpProtocol(protocol));
+    RTC_DCHECK(IsSctpProtocol(protocol));
     protocol_ = std::string(protocol);
   }
 
@@ -366,9 +365,7 @@ class UnsupportedContentDescription : public MediaContentDescription {
  public:
   explicit UnsupportedContentDescription(absl::string_view media_type)
       : media_type_(media_type) {}
-  webrtc::MediaType type() const override {
-    return webrtc::MediaType::UNSUPPORTED;
-  }
+  MediaType type() const override { return MEDIA_TYPE_UNSUPPORTED; }
 
   UnsupportedContentDescription* as_unsupported() override { return this; }
   const UnsupportedContentDescription* as_unsupported() const override {
@@ -403,40 +400,32 @@ enum class MediaProtocolType {
 class RTC_EXPORT ContentInfo {
  public:
   explicit ContentInfo(MediaProtocolType type) : type(type) {}
-  ContentInfo(MediaProtocolType type,
-              absl::string_view mid,
-              std::unique_ptr<MediaContentDescription> description,
-              bool rejected = false,
-              bool bundle_only = false)
-      : type(type),
-        rejected(rejected),
-        bundle_only(bundle_only),
-        mid_(mid),
-        description_(std::move(description)) {}
   ~ContentInfo();
-
-  // Copy ctor and assignment will clone `description_`.
+  // Copy
   ContentInfo(const ContentInfo& o);
-  // Const ref assignment operator removed. Instead, use the explicit ctor.
-  ContentInfo& operator=(const ContentInfo& o) = delete;
-
+  ContentInfo& operator=(const ContentInfo& o);
   ContentInfo(ContentInfo&& o) = default;
   ContentInfo& operator=(ContentInfo&& o) = default;
 
-  // TODO(tommi): change return type to string_view.
-  const std::string& mid() const { return mid_; }
-  void set_mid(absl::string_view mid) { mid_ = std::string(mid); }
+  // Alias for `name`.
+  std::string mid() const { return name; }
+  void set_mid(const std::string& mid) { this->name = mid; }
 
   // Alias for `description`.
   MediaContentDescription* media_description();
   const MediaContentDescription* media_description() const;
 
+  void set_media_description(std::unique_ptr<MediaContentDescription> desc) {
+    description_ = std::move(desc);
+  }
+
+  // TODO(bugs.webrtc.org/8620): Rename this to mid.
+  std::string name;
   MediaProtocolType type;
   bool rejected = false;
   bool bundle_only = false;
 
  private:
-  std::string mid_;
   friend class SessionDescription;
   std::unique_ptr<MediaContentDescription> description_;
 };
@@ -474,23 +463,18 @@ class ContentGroup {
 typedef std::vector<ContentInfo> ContentInfos;
 typedef std::vector<ContentGroup> ContentGroups;
 
-// Determines how the MSID will be signaled in the SDP.
-// These can be used as bit flags to indicate both or the special value none.
+const ContentInfo* FindContentInfoByName(const ContentInfos& contents,
+                                         const std::string& name);
+const ContentInfo* FindContentInfoByType(const ContentInfos& contents,
+                                         const std::string& type);
+
+// Determines how the MSID will be signaled in the SDP. These can be used as
+// flags to indicate both or none.
 enum MsidSignaling {
-  // MSID is not signaled. This is not a bit flag and must be compared for
-  // equality.
-  kMsidSignalingNotUsed = 0x0,
-  // Signal MSID with at least one a=msid line in the media section.
-  // This requires unified plan.
+  // Signal MSID with one a=msid line in the media section.
   kMsidSignalingMediaSection = 0x1,
   // Signal MSID with a=ssrc: msid lines in the media section.
-  // This should only be used with plan-b but is signalled in
-  // offers for backward compability reasons.
-  kMsidSignalingSsrcAttribute = 0x2,
-  // Signal MSID with a=msid-semantic: WMS in the session section.
-  // This is deprecated but signalled for backward compability reasons.
-  // It is typically combined with 0x1 or 0x2.
-  kMsidSignalingSemantic = 0x4
+  kMsidSignalingSsrcAttribute = 0x2
 };
 
 // Describes a collection of contents, each with its own name and
@@ -509,8 +493,8 @@ class SessionDescription {
   const ContentInfo* GetContentByName(const std::string& name) const;
   ContentInfo* GetContentByName(const std::string& name);
   const MediaContentDescription* GetContentDescriptionByName(
-      absl::string_view name) const;
-  MediaContentDescription* GetContentDescriptionByName(absl::string_view name);
+      const std::string& name) const;
+  MediaContentDescription* GetContentDescriptionByName(const std::string& name);
   const ContentInfo* FirstContentByType(MediaProtocolType type) const;
   const ContentInfo* FirstContent() const;
 
@@ -533,25 +517,22 @@ class SessionDescription {
   bool RemoveContentByName(const std::string& name);
 
   // Transport accessors.
-  const cricket::TransportInfos& transport_infos() const {
-    return transport_infos_;
-  }
-  cricket::TransportInfos& transport_infos() { return transport_infos_; }
-  const cricket::TransportInfo* GetTransportInfoByName(
-      const std::string& name) const;
-  cricket::TransportInfo* GetTransportInfoByName(const std::string& name);
-  const cricket::TransportDescription* GetTransportDescriptionByName(
+  const TransportInfos& transport_infos() const { return transport_infos_; }
+  TransportInfos& transport_infos() { return transport_infos_; }
+  const TransportInfo* GetTransportInfoByName(const std::string& name) const;
+  TransportInfo* GetTransportInfoByName(const std::string& name);
+  const TransportDescription* GetTransportDescriptionByName(
       const std::string& name) const {
-    const cricket::TransportInfo* tinfo = GetTransportInfoByName(name);
+    const TransportInfo* tinfo = GetTransportInfoByName(name);
     return tinfo ? &tinfo->description : NULL;
   }
 
   // Transport mutators.
-  void set_transport_infos(const cricket::TransportInfos& transport_infos) {
+  void set_transport_infos(const TransportInfos& transport_infos) {
     transport_infos_ = transport_infos;
   }
   // Adds a TransportInfo to this description.
-  void AddTransportInfo(const cricket::TransportInfo& transport_info);
+  void AddTransportInfo(const TransportInfo& transport_info);
   bool RemoveTransportInfoByName(const std::string& name);
 
   // Group accessors.
@@ -567,6 +548,9 @@ class SessionDescription {
   void RemoveGroupByName(const std::string& name);
 
   // Global attributes.
+  void set_msid_supported(bool supported) { msid_supported_ = supported; }
+  bool msid_supported() const { return msid_supported_; }
+
   // Determines how the MSIDs were/will be signaled. Flag value composed of
   // MsidSignaling bits (see enum above).
   void set_msid_signaling(int msid_signaling) {
@@ -596,9 +580,12 @@ class SessionDescription {
   SessionDescription(const SessionDescription&);
 
   ContentInfos contents_;
-  cricket::TransportInfos transport_infos_;
+  TransportInfos transport_infos_;
   ContentGroups content_groups_;
-  int msid_signaling_ = kMsidSignalingMediaSection | kMsidSignalingSemantic;
+  bool msid_supported_ = true;
+  // Default to what Plan B would do.
+  // TODO(bugs.webrtc.org/8530): Change default to kMsidSignalingMediaSection.
+  int msid_signaling_ = kMsidSignalingSsrcAttribute;
   bool extmap_allow_mixed_ = true;
 };
 
@@ -606,34 +593,6 @@ class SessionDescription {
 // received from the remote client.
 enum ContentSource { CS_LOCAL, CS_REMOTE };
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace cricket {
-using ::webrtc::AudioContentDescription;
-using ::webrtc::ContentGroup;
-using ::webrtc::ContentGroups;
-using ::webrtc::ContentInfo;
-using ::webrtc::ContentInfos;
-using ::webrtc::ContentNames;
-using ::webrtc::ContentSource;
-using ::webrtc::CS_LOCAL;
-using ::webrtc::CS_REMOTE;
-using ::webrtc::kAutoBandwidth;
-using ::webrtc::kMsidSignalingMediaSection;
-using ::webrtc::kMsidSignalingNotUsed;
-using ::webrtc::kMsidSignalingSemantic;
-using ::webrtc::kMsidSignalingSsrcAttribute;
-using ::webrtc::MediaContentDescription;
-using ::webrtc::MediaProtocolType;
-using ::webrtc::MsidSignaling;
-using ::webrtc::RtpHeaderExtensions;
-using ::webrtc::RtpMediaContentDescription;
-using ::webrtc::SctpDataContentDescription;
-using ::webrtc::SessionDescription;
-using ::webrtc::UnsupportedContentDescription;
-using ::webrtc::VideoContentDescription;
 }  // namespace cricket
 
 #endif  // PC_SESSION_DESCRIPTION_H_

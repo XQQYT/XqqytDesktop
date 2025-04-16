@@ -5,8 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_WEBAUDIO_AUDIO_HANDLER_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_WEBAUDIO_AUDIO_HANDLER_H_
 
-#include "third_party/blink/renderer/bindings/modules/v8/v8_channel_count_mode.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_channel_interpretation.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/audio/audio_bus.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_set.h"
@@ -28,7 +26,7 @@ class ExceptionState;
 
 class MODULES_EXPORT AudioHandler : public ThreadSafeRefCounted<AudioHandler> {
  public:
-  enum class NodeType {
+  enum NodeType {
     kNodeTypeUnknown = 0,
     kNodeTypeDestination = 1,
     kNodeTypeOscillator = 2,
@@ -77,6 +75,8 @@ class MODULES_EXPORT AudioHandler : public ThreadSafeRefCounted<AudioHandler> {
   DeferredTaskHandler& GetDeferredTaskHandler() const {
     return *deferred_task_handler_;
   }
+
+  enum ChannelCountMode { kMax, kClampedMax, kExplicit };
 
   NodeType GetNodeType() const { return node_type_; }
   String NodeTypeName() const;
@@ -181,14 +181,13 @@ class MODULES_EXPORT AudioHandler : public ThreadSafeRefCounted<AudioHandler> {
   unsigned ChannelCount();
   virtual void SetChannelCount(unsigned, ExceptionState&);
 
-  V8ChannelCountMode::Enum GetChannelCountMode();
-  virtual void SetChannelCountMode(V8ChannelCountMode::Enum, ExceptionState&);
+  String GetChannelCountMode();
+  virtual void SetChannelCountMode(const String&, ExceptionState&);
 
-  V8ChannelInterpretation::Enum ChannelInterpretation();
-  virtual void SetChannelInterpretation(V8ChannelInterpretation::Enum,
-                                        ExceptionState&);
+  String ChannelInterpretation();
+  virtual void SetChannelInterpretation(const String&, ExceptionState&);
 
-  V8ChannelCountMode::Enum InternalChannelCountMode() const {
+  ChannelCountMode InternalChannelCountMode() const {
     return channel_count_mode_;
   }
   AudioBus::ChannelInterpretation InternalChannelInterpretation() const {
@@ -217,12 +216,6 @@ class MODULES_EXPORT AudioHandler : public ThreadSafeRefCounted<AudioHandler> {
   // Force all inputs to take any channel interpretation changes into account.
   void UpdateChannelsForInputs();
 
-  // Set the (internal) channelCountMode and channelInterpretation
-  // accordingly. Use this in the node constructors to set the internal state
-  // correctly if the node uses values different from the defaults.
-  void SetInternalChannelCountMode(V8ChannelCountMode::Enum);
-  void SetInternalChannelInterpretation(AudioBus::ChannelInterpretation);
-
   // The last time (context time) that his handler ran its Process() method.
   // For each render quantum, we only want to process just once to handle fanout
   // of this handler.
@@ -231,24 +224,13 @@ class MODULES_EXPORT AudioHandler : public ThreadSafeRefCounted<AudioHandler> {
   // The last time (context time) when this node did not have silent inputs.
   double last_non_silent_time_ = 0;
 
-  unsigned channel_count_ = 2;
-
-  // The new channel count mode that will be used to set the actual mode in the
-  // pre or post rendering phase.
-  V8ChannelCountMode::Enum new_channel_count_mode_;
-
-  // The new channel interpretation that will be used to set the actual
-  // interpretation in the pre or post rendering phase.
-  AudioBus::ChannelInterpretation new_channel_interpretation_;
-
  private:
   void SetNodeType(NodeType);
 
-  // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/media/capture/README.md#logs
-  void SendLogMessage(const char* const function_name, const String& message);
+  void SendLogMessage(const String& message);
 
   bool is_initialized_ = false;
-  NodeType node_type_ = NodeType::kNodeTypeUnknown;
+  NodeType node_type_ = kNodeTypeUnknown;
 
   // The owner AudioNode. Accessed only on the main thread.
   const WeakPersistent<AudioNode> node_;
@@ -280,8 +262,23 @@ class MODULES_EXPORT AudioHandler : public ThreadSafeRefCounted<AudioHandler> {
   static int node_count_[kNodeTypeEnd];
 #endif
 
-  V8ChannelCountMode::Enum channel_count_mode_;
+  ChannelCountMode channel_count_mode_;
   AudioBus::ChannelInterpretation channel_interpretation_;
+
+ protected:
+  // Set the (internal) channelCountMode and channelInterpretation
+  // accordingly. Use this in the node constructors to set the internal state
+  // correctly if the node uses values different from the defaults.
+  void SetInternalChannelCountMode(ChannelCountMode);
+  void SetInternalChannelInterpretation(AudioBus::ChannelInterpretation);
+
+  unsigned channel_count_ = 2;
+  // The new channel count mode that will be used to set the actual mode in the
+  // pre or post rendering phase.
+  ChannelCountMode new_channel_count_mode_;
+  // The new channel interpretation that will be used to set the actual
+  // interpretation in the pre or post rendering phase.
+  AudioBus::ChannelInterpretation new_channel_interpretation_;
 };
 
 }  // namespace blink

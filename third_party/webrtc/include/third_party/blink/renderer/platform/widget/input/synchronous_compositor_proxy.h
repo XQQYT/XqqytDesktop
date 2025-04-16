@@ -8,20 +8,19 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <optional>
-
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/writable_shared_memory_region.h"
 #include "components/viz/common/frame_timing_details_map.h"
-#include "components/viz/common/performance_hint_utils.h"
 #include "mojo/public/cpp/bindings/associated_receiver.h"
 #include "mojo/public/cpp/bindings/associated_remote.h"
 #include "mojo/public/cpp/bindings/remote.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/mojom/input/input_event_result.mojom-shared.h"
 #include "third_party/blink/public/mojom/input/synchronous_compositor.mojom-blink.h"
 #include "third_party/blink/renderer/platform/widget/compositing/android_webview/synchronous_layer_tree_frame_sink.h"
 #include "third_party/blink/renderer/platform/widget/input/input_handler_proxy.h"
+
 #include "ui/gfx/geometry/point_f.h"
 #include "ui/gfx/geometry/size_f.h"
 
@@ -49,7 +48,6 @@ class SynchronousCompositorProxy : public blink::SynchronousInputHandler,
           host,
       mojo::PendingAssociatedReceiver<mojom::blink::SynchronousCompositor>
           compositor_request);
-  void SetThreads(const Vector<viz::Thread>& threads);
 
   // blink::SynchronousInputHandler overrides.
   void UpdateRootLayerState(const gfx::PointF& total_scroll_offset,
@@ -65,8 +63,8 @@ class SynchronousCompositorProxy : public blink::SynchronousInputHandler,
   void SubmitCompositorFrame(
       uint32_t layer_tree_frame_sink_id,
       const viz::LocalSurfaceId& local_surface_id,
-      std::optional<viz::CompositorFrame> frame,
-      std::optional<viz::HitTestRegionList> hit_test_region_list) final;
+      absl::optional<viz::CompositorFrame> frame,
+      absl::optional<viz::HitTestRegionList> hit_test_region_list) final;
   void SetNeedsBeginFrames(bool needs_begin_frames) final;
   void SinkDestroyed() final;
 
@@ -108,14 +106,15 @@ class SynchronousCompositorProxy : public blink::SynchronousInputHandler,
       mojom::blink::SyncCompositorCommonRendererParamsPtr,
       uint32_t layer_tree_frame_sink_id,
       uint32_t metadata_version,
-      const std::optional<viz::LocalSurfaceId>& local_surface_id,
-      std::optional<viz::CompositorFrame>,
-      std::optional<viz::HitTestRegionList> hit_test_region_list);
+      const absl::optional<viz::LocalSurfaceId>& local_surface_id,
+      absl::optional<viz::CompositorFrame>,
+      absl::optional<viz::HitTestRegionList> hit_test_region_list);
 
   DemandDrawHwCallback hardware_draw_reply_;
   DemandDrawSwCallback software_draw_reply_;
   ZoomByCallback zoom_by_reply_;
-  raw_ptr<SynchronousLayerTreeFrameSink> layer_tree_frame_sink_ = nullptr;
+  raw_ptr<SynchronousLayerTreeFrameSink, ExperimentalRenderer>
+      layer_tree_frame_sink_ = nullptr;
   bool begin_frame_paused_ = false;
 
  private:
@@ -125,7 +124,7 @@ class SynchronousCompositorProxy : public blink::SynchronousInputHandler,
 
   struct SharedMemoryWithSize;
 
-  const raw_ptr<InputHandlerProxy> input_handler_proxy_;
+  const raw_ptr<InputHandlerProxy, ExperimentalRenderer> input_handler_proxy_;
   mojo::Remote<mojom::blink::SynchronousCompositorControlHost> control_host_;
   mojo::AssociatedRemote<mojom::blink::SynchronousCompositorHost> host_;
   mojo::AssociatedReceiver<mojom::blink::SynchronousCompositor> receiver_{this};
@@ -134,7 +133,6 @@ class SynchronousCompositorProxy : public blink::SynchronousInputHandler,
   const bool viz_frame_submission_enabled_;
 
   bool needs_begin_frames_ = false;
-  Vector<viz::Thread> threads_;
 
   // From browser.
   std::unique_ptr<SharedMemoryWithSize> software_draw_shm_;

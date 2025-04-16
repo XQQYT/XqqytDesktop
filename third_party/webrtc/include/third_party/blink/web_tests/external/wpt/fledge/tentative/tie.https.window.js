@@ -1,15 +1,14 @@
 // META: script=/resources/testdriver.js
-// META: script=/resources/testdriver-vendor.js
 // META: script=/common/utils.js
 // META: script=resources/fledge-util.sub.js
 // META: timeout=long
 
-"use strict";
+"use strict;"
 
 // Runs one auction at a time using `auctionConfigOverrides` until the auction
 // has a winner.
 async function runAuctionsUntilWinner(test, uuid, auctionConfigOverrides) {
-  let fencedFrameConfig = null;
+  fencedFrameConfig = null;
   while (!fencedFrameConfig) {
     fencedFrameConfig =
         await runBasicFledgeAuction(test, uuid, auctionConfigOverrides);
@@ -99,7 +98,7 @@ promise_test(async test => {
   auctionConfigOverrides.decisionLogicURL =
       createDecisionScriptURL(
         uuid,
-        {scoreAd: `if (browserSignals.renderURL === "${winningAdURL}")
+        {scoreAd: `if (browserSignals.renderURL == "${winningAdURL}")
                      return 0;`});
 
   // Add an abort controller, so can cancel extra auctions.

@@ -19,9 +19,8 @@ const modulePath = 'processors/port-processor.js';
 
 promise_test(async () => {
   const realtime = new AudioContext();
-  // suspend() call as early as possible due to https://crbug.com/40140417.
-  await realtime.suspend();
   await realtime.audioWorklet.addModule(modulePath);
+  await realtime.suspend();
   const currentTime = realtime.currentTime;
   let {node, event} = await get_node_and_message(realtime);
   assert_equals(event.data.timeStamp, currentTime, 'created message time');

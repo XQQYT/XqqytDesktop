@@ -39,7 +39,7 @@ class CORE_EXPORT InlineTextAutoSpace : public TextAutoSpace {
   void Apply(InlineItemsData& data, Vector<wtf_size_t>* offsets_out = nullptr);
   void ApplyIfNeeded(InlineItemsData& data,
                      Vector<wtf_size_t>* offsets_out = nullptr) {
-    if (MayApply()) [[unlikely]] {
+    if (UNLIKELY(MayApply())) {
       Apply(data, offsets_out);
     }
   }

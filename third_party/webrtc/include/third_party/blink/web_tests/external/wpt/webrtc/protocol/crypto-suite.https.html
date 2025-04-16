@@ -4,6 +4,7 @@
 <script src="/resources/testharness.js"></script>
 <script src="/resources/testharnessreport.js"></script>
 <script src="../RTCPeerConnection-helper.js"></script>
+<script src="../RTCStats-helper.js"></script>
 <script>
 'use strict';
 
@@ -32,10 +33,15 @@ const acceptableSrtpCiphersuites = new Set([
   'AES_CM_128_HMAC_SHA1_80',
 ]);
 
+const acceptableTlsGroups = new Set([
+  'P-256',
+]);
+
 const acceptableValues = {
   'tlsVersion': acceptableTlsVersions,
   'dtlsCipher': acceptableDtlsCiphersuites,
   'srtpCipher': acceptableSrtpCiphersuites,
+  'tlsGroup': acceptableTlsGroups,
 };
 
 function verifyStat(name, transportStats) {
@@ -55,7 +61,8 @@ for (const name of Object.keys(acceptableValues)) {
     await exchangeOfferAnswer(pc1, pc2);
     await waitForState(pc1.sctp.transport, 'connected');
     const statsReport = await pc1.getStats();
-    const transportStats = [...statsReport.values()].find(({type}) => type === 'transport');
+    const transportStats = findStatsFromReport(statsReport,
+                                               stats => stats.type === 'transport')
     verifyStat(name, transportStats);
   }, name + ' is acceptable on data-only');
 
@@ -70,7 +77,8 @@ for (const name of Object.keys(acceptableValues)) {
     await exchangeOfferAnswer(pc1, pc2);
     await waitForState(transceiver.sender.transport, 'connected');
     const statsReport = await pc1.getStats();
-    const transportStats = [...statsReport.values()].find(({type}) => type === 'transport');
+    const transportStats = findStatsFromReport(statsReport,
+                                               stats => stats.type === 'transport')
     verifyStat(name, transportStats);
   }, name + ' is acceptable on video-only');
 }

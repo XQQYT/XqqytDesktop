@@ -20,6 +20,7 @@
 #define GRPC_SRC_CORE_TSI_ALTS_ZERO_COPY_FRAME_PROTECTOR_ALTS_GRPC_PRIVACY_INTEGRITY_RECORD_PROTOCOL_H
 
 #include <grpc/support/port_platform.h>
+
 #include <stdbool.h>
 
 #include "src/core/tsi/alts/crypt/gsec.h"

@@ -5,17 +5,10 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSS_GRID_INTEGER_REPEAT_VALUE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSS_GRID_INTEGER_REPEAT_VALUE_H_
 
-#include <optional>
-
 #include "base/check_op.h"
-#include "third_party/blink/renderer/core/css/css_primitive_value.h"
 #include "third_party/blink/renderer/core/css/css_value_list.h"
 #include "third_party/blink/renderer/core/css_value_keywords.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
-
-namespace WTF {
-class String;
-}  // namespace WTF
 
 namespace blink {
 namespace cssvalue {
@@ -28,30 +21,25 @@ namespace cssvalue {
 //                          [ <line-names>? <track-size> ]+ <line-names>? )
 // <fixed-repeat> = repeat( [ <positive-integer> ],
 //                          [ <line-names>? <fixed-size> ]+ <line-names>? )
-class CORE_EXPORT CSSGridIntegerRepeatValue : public CSSValueList {
+class CSSGridIntegerRepeatValue : public CSSValueList {
  public:
-  CSSGridIntegerRepeatValue(CSSPrimitiveValue* repetitions,
-                            std::optional<wtf_size_t>(extra_clamp))
+  CSSGridIntegerRepeatValue(wtf_size_t repetitions)
       : CSSValueList(kGridIntegerRepeatClass, kSpaceSeparator),
-        repetitions_(repetitions),
-        extra_clamp_(extra_clamp) {}
+        repetitions_(repetitions) {
+    DCHECK_GT(repetitions, 0UL);
+  }
 
-  WTF::String CustomCSSText() const;
+  String CustomCSSText() const;
   bool Equals(const CSSGridIntegerRepeatValue&) const;
 
-  std::optional<wtf_size_t> GetRepetitionsIfKnown() const;
-  wtf_size_t ComputeRepetitions(const CSSLengthResolver& resolver) const;
+  wtf_size_t Repetitions() const { return repetitions_; }
 
   void TraceAfterDispatch(blink::Visitor* visitor) const {
-    visitor->Trace(repetitions_);
     CSSValueList::TraceAfterDispatch(visitor);
   }
 
  private:
-  wtf_size_t ClampRepetitions(wtf_size_t repetitions) const;
-
-  const Member<CSSPrimitiveValue> repetitions_;
-  std::optional<wtf_size_t> extra_clamp_;
+  const wtf_size_t repetitions_;
 };
 
 }  // namespace cssvalue

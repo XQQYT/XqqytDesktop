@@ -15,7 +15,6 @@ namespace blink {
 class ExceptionState;
 class USBAlternateInterface;
 class V8USBDirection;
-class V8USBEndpointType;
 
 class USBEndpoint : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
@@ -33,8 +32,8 @@ class USBEndpoint : public ScriptWrappable {
   const device::mojom::blink::UsbEndpointInfo& Info() const;
 
   uint8_t endpointNumber() const { return Info().endpoint_number; }
-  V8USBDirection direction() const;
-  V8USBEndpointType type() const;
+  String direction() const;
+  String type() const;
   unsigned packetSize() const { return Info().packet_size; }
 
   void Trace(Visitor*) const override;

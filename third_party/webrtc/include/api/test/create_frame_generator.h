@@ -11,16 +11,11 @@
 #ifndef API_TEST_CREATE_FRAME_GENERATOR_H_
 #define API_TEST_CREATE_FRAME_GENERATOR_H_
 
-#include <cstddef>
-#include <cstdint>
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
-#include "absl/base/nullability.h"
-#include "absl/strings/string_view.h"
-#include "api/environment/environment.h"
+#include "absl/types/optional.h"
 #include "api/test/frame_generator_interface.h"
 #include "system_wrappers/include/clock.h"
 
@@ -34,8 +29,8 @@ namespace test {
 std::unique_ptr<FrameGeneratorInterface> CreateSquareFrameGenerator(
     int width,
     int height,
-    std::optional<FrameGeneratorInterface::OutputType> type,
-    std::optional<int> num_squares);
+    absl::optional<FrameGeneratorInterface::OutputType> type,
+    absl::optional<int> num_squares);
 
 // Creates a frame generator that repeatedly plays a set of yuv files.
 // The frame_repeat_count determines how many times each frame is shown,
@@ -55,10 +50,9 @@ std::unique_ptr<FrameGeneratorInterface> CreateFromNV12FileFrameGenerator(
     size_t height,
     int frame_repeat_count = 1);
 
-absl::Nonnull<std::unique_ptr<FrameGeneratorInterface>>
-CreateFromIvfFileFrameGenerator(const Environment& env,
-                                absl::string_view filename,
-                                std::optional<int> fps_hint = std::nullopt);
+// Creates a frame generator that repeatedly plays an ivf file.
+std::unique_ptr<FrameGeneratorInterface> CreateFromIvfFileFrameGenerator(
+    std::string filename);
 
 // Creates a frame generator which takes a set of yuv files (wrapping a
 // frame generator created by CreateFromYuvFile() above), but outputs frames

@@ -32,9 +32,7 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_TEXT_LOCALE_WIN_H_
 
 #include <windows.h>
-
 #include <memory>
-
 #include "third_party/blink/renderer/platform/text/platform_locale.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
@@ -44,6 +42,7 @@ namespace blink {
 
 class PLATFORM_EXPORT LocaleWin : public Locale {
  public:
+  static std::unique_ptr<LocaleWin> Create(LCID, bool defaults_for_locale);
   ~LocaleWin() override;
   const Vector<String>& WeekDayShortLabels() override;
   unsigned FirstDayOfWeek() override;
@@ -61,18 +60,13 @@ class PLATFORM_EXPORT LocaleWin : public Locale {
   const Vector<String>& ShortStandAloneMonthLabels() override;
   const Vector<String>& TimeAMPMLabels() override;
 
-  static String DateFormatForTesting(const String&);
-  static std::unique_ptr<LocaleWin> CreateForTesting(LCID,
-                                                     bool defaults_for_locale);
+  static String DateFormat(const String&);
 
  private:
-  friend class Locale;  // Can call Create() from Locale::Create().
-  static std::unique_ptr<LocaleWin> Create(LCID,
-                                           unsigned first_day_of_week,
-                                           bool defaults_for_locale);
-  explicit LocaleWin(LCID,
-                     unsigned first_day_of_week,
-                     bool defaults_for_locale);
+  explicit LocaleWin(LCID, bool defaults_for_locale);
+  String GetLocaleInfoString(LCTYPE);
+  void GetLocaleInfo(LCTYPE, DWORD&);
+
   // Locale:
   void InitializeLocaleData() override;
 
@@ -88,10 +82,8 @@ class PLATFORM_EXPORT LocaleWin : public Locale {
   String date_time_format_without_seconds_;
   Vector<String> time_ampm_labels_;
   Vector<String> week_day_short_labels_;
-  // Blink's idea of first day of the week, note that this differs
-  // from Windows LOCALE_IFIRSTDAYOFWEEK.
   unsigned first_day_of_week_;
-  bool did_initialize_number_data_ = false;
+  bool did_initialize_number_data_;
   bool defaults_for_locale_;
 };
 

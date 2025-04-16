@@ -10,7 +10,6 @@
 #include <memory>
 #include <ostream>
 #include <string>
-#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -18,6 +17,7 @@
 #include "base/location.h"
 #include "base/metrics/histogram.h"
 #include "base/metrics/histogram_base.h"
+#include "base/strings/string_piece.h"
 #include "base/time/time.h"
 #include "testing/gmock/include/gmock/gmock.h"
 
@@ -38,7 +38,7 @@ class HistogramSamples;
 // To test histograms in Java tests, use HistogramWatcher.
 class HistogramTester {
  public:
-  using CountsMap = std::map<std::string, HistogramBase::Count32, std::less<>>;
+  using CountsMap = std::map<std::string, HistogramBase::Count, std::less<>>;
 
   // Takes a snapshot of all current histograms counts.
   HistogramTester();
@@ -53,52 +53,52 @@ class HistogramTester {
   // that no other bucket of the histogram gained any extra samples.
   // If a bucket had samples before the HistogramTester was created, these
   // samples are completely ignored.
-  void ExpectUniqueSample(std::string_view name,
-                          HistogramBase::Sample32 sample,
-                          HistogramBase::Count32 expected_bucket_count,
+  void ExpectUniqueSample(StringPiece name,
+                          HistogramBase::Sample sample,
+                          HistogramBase::Count expected_bucket_count,
                           const Location& location = FROM_HERE) const;
   template <typename T>
-  void ExpectUniqueSample(std::string_view name,
+  void ExpectUniqueSample(StringPiece name,
                           T sample,
-                          HistogramBase::Count32 expected_bucket_count,
+                          HistogramBase::Count expected_bucket_count,
                           const Location& location = FROM_HERE) const {
-    ExpectUniqueSample(name, static_cast<HistogramBase::Sample32>(sample),
+    ExpectUniqueSample(name, static_cast<HistogramBase::Sample>(sample),
                        expected_bucket_count, location);
   }
-  void ExpectUniqueTimeSample(std::string_view name,
+  void ExpectUniqueTimeSample(StringPiece name,
                               TimeDelta sample,
-                              HistogramBase::Count32 expected_bucket_count,
+                              HistogramBase::Count expected_bucket_count,
                               const Location& location = FROM_HERE) const;
 
   // EXPECTs that the number of samples in bucket |sample| of histogram |name|
   // grew by |expected_count| since the HistogramTester was created. Samples in
   // other buckets are ignored.
-  void ExpectBucketCount(std::string_view name,
-                         HistogramBase::Sample32 sample,
-                         HistogramBase::Count32 expected_count,
+  void ExpectBucketCount(StringPiece name,
+                         HistogramBase::Sample sample,
+                         HistogramBase::Count expected_count,
                          const Location& location = FROM_HERE) const;
   template <typename T>
-  void ExpectBucketCount(std::string_view name,
+  void ExpectBucketCount(StringPiece name,
                          T sample,
-                         HistogramBase::Count32 expected_count,
+                         HistogramBase::Count expected_count,
                          const Location& location = FROM_HERE) const {
-    ExpectBucketCount(name, static_cast<HistogramBase::Sample32>(sample),
+    ExpectBucketCount(name, static_cast<HistogramBase::Sample>(sample),
                       expected_count, location);
   }
-  void ExpectTimeBucketCount(std::string_view name,
+  void ExpectTimeBucketCount(StringPiece name,
                              TimeDelta sample,
-                             HistogramBase::Count32 expected_count,
+                             HistogramBase::Count expected_count,
                              const Location& location = FROM_HERE) const;
 
   // EXPECTs that the total number of samples in histogram |name|
   // grew by |expected_count| since the HistogramTester was created.
-  void ExpectTotalCount(std::string_view name,
-                        HistogramBase::Count32 expected_count,
+  void ExpectTotalCount(StringPiece name,
+                        HistogramBase::Count expected_count,
                         const Location& location = FROM_HERE) const;
 
   // Returns the sum of all samples recorded since the HistogramTester was
   // created.
-  int64_t GetTotalSum(std::string_view name) const;
+  int64_t GetTotalSum(StringPiece name) const;
 
   // Returns a list of all of the buckets recorded since creation of this
   // object, as vector<Bucket>, where the Bucket represents the min boundary of
@@ -131,14 +131,14 @@ class HistogramTester {
   // helpful failure message, use EXPECT_EQ:
   //   EXPECT_EQ(expected_buckets,
   //             histogram_tester.GetAllSamples("HistogramName"));
-  std::vector<Bucket> GetAllSamples(std::string_view name) const;
+  std::vector<Bucket> GetAllSamples(StringPiece name) const;
 
   // Returns the value of the |sample| bucket for ths histogram |name|.
-  HistogramBase::Count32 GetBucketCount(std::string_view name,
-                                      HistogramBase::Sample32 sample) const;
+  HistogramBase::Count GetBucketCount(StringPiece name,
+                                      HistogramBase::Sample sample) const;
   template <typename T>
-  HistogramBase::Count32 GetBucketCount(std::string_view name, T sample) const {
-    return GetBucketCount(name, static_cast<HistogramBase::Sample32>(sample));
+  HistogramBase::Count GetBucketCount(StringPiece name, T sample) const {
+    return GetBucketCount(name, static_cast<HistogramBase::Sample>(sample));
   }
 
   // Finds histograms whose names start with |prefix|, and returns them along
@@ -159,12 +159,12 @@ class HistogramTester {
   //   expected_counts["MyMetric.B"] = 1;
   //   EXPECT_THAT(histogram_tester.GetTotalCountsForPrefix("MyMetric."),
   //               testing::ContainerEq(expected_counts));
-  CountsMap GetTotalCountsForPrefix(std::string_view prefix) const;
+  CountsMap GetTotalCountsForPrefix(StringPiece prefix) const;
 
   // Returns the HistogramSamples recorded since the creation of the
   // HistogramTester.
   std::unique_ptr<HistogramSamples> GetHistogramSamplesSinceCreation(
-      std::string_view histogram_name) const;
+      StringPiece histogram_name) const;
 
   // Dumps all histograms that have had new samples added to them into a string,
   // for debugging purposes. Note: this will dump the entire contents of any
@@ -181,9 +181,9 @@ class HistogramTester {
   // sets |*total_count| to the number of samples recorded for |histogram|
   // since the HistogramTester was created.
   void GetBucketCountForSamples(const HistogramBase& histogram,
-                                HistogramBase::Sample32 sample,
-                                HistogramBase::Count32* sample_count,
-                                HistogramBase::Count32* total_count) const;
+                                HistogramBase::Sample sample,
+                                HistogramBase::Count* sample_count,
+                                HistogramBase::Count* total_count) const;
 
   // Returns the deltas for |histogram| since the HistogramTester was created
   // as an ASCII art histogram for debugging purposes.
@@ -197,7 +197,7 @@ class HistogramTester {
 };
 
 struct Bucket {
-  Bucket(HistogramBase::Sample32 min, HistogramBase::Count32 count)
+  Bucket(HistogramBase::Sample min, HistogramBase::Count count)
       : min(min), count(count) {}
 
   // A variant of the above constructor that accepts an `EnumType` for the `min`
@@ -205,16 +205,16 @@ struct Bucket {
   // associated with the metric this bucket is referring to.
   //
   // The constructor forwards to the above non-templated constructor. Therefore,
-  // `EnumType` must be implicitly convertible to `HistogramBase::Sample32`.
-  template <typename MetricEnum>
-    requires(std::is_enum_v<MetricEnum>)
-  Bucket(MetricEnum min, HistogramBase::Count32 count)
+  // `EnumType` must be implicitly convertible to `HistogramBase::Sample`.
+  template <typename MetricEnum,
+            typename = std::enable_if_t<std::is_enum_v<MetricEnum>>>
+  Bucket(MetricEnum min, HistogramBase::Count count)
       : Bucket(static_cast<std::underlying_type_t<MetricEnum>>(min), count) {}
 
-  friend bool operator==(const Bucket&, const Bucket&) = default;
+  bool operator==(const Bucket& other) const;
 
-  HistogramBase::Sample32 min;
-  HistogramBase::Count32 count;
+  HistogramBase::Sample min;
+  HistogramBase::Count count;
 };
 
 void PrintTo(const Bucket& value, std::ostream* os);
@@ -223,7 +223,7 @@ void PrintTo(const Bucket& value, std::ostream* os);
 // match GetAllSamples().
 //
 // Unlike the standard matchers UnorderedElementsAreArray() and IsSupersetOf(),
-// they explicitly support empty buckets (`Bucket::Count32 == 0`). Empty buckets
+// they explicitly support empty buckets (`Bucket::count == 0`). Empty buckets
 // need special handling because GetAllSamples() doesn't contain empty ones.
 
 // BucketsAre() and BucketsAreArray() match a container that contains exactly
@@ -240,7 +240,7 @@ void PrintTo(const Bucket& value, std::ostream* os);
 template <typename BucketArray>
 auto BucketsAreArray(BucketArray buckets) {
   auto non_empty_buckets = buckets;
-  std::erase_if(non_empty_buckets, [](Bucket b) { return b.count == 0; });
+  EraseIf(non_empty_buckets, [](Bucket b) { return b.count == 0; });
   return ::testing::UnorderedElementsAreArray(non_empty_buckets);
 }
 
@@ -263,9 +263,9 @@ auto BucketsAre(BucketTypes... buckets) {
 //   any `n` (including `n == 0`).
 template <typename BucketArray>
 auto BucketsIncludeArray(const BucketArray& buckets) {
-  // The `empty_buckets` have `count == 0`, so the `HistogramBase::Sample32`
+  // The `empty_buckets` have `count == 0`, so the `HistogramBase::Sample`
   // suffices.
-  std::vector<HistogramBase::Sample32> empty_buckets;
+  std::vector<HistogramBase::Sample> empty_buckets;
   std::vector<Bucket> non_empty_buckets;
   for (const Bucket& b : buckets) {
     if (b.count == 0) {

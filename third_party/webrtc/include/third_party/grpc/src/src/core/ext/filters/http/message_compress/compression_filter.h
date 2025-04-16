@@ -19,21 +19,22 @@
 #ifndef GRPC_SRC_CORE_EXT_FILTERS_HTTP_MESSAGE_COMPRESS_COMPRESSION_FILTER_H
 #define GRPC_SRC_CORE_EXT_FILTERS_HTTP_MESSAGE_COMPRESS_COMPRESSION_FILTER_H
 
-#include <grpc/impl/compression_types.h>
 #include <grpc/support/port_platform.h>
+
 #include <stddef.h>
 #include <stdint.h>
 
-#include <optional>
-
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
-#include "src/core/call/metadata_batch.h"
+#include "absl/types/optional.h"
+
+#include <grpc/impl/compression_types.h>
+
 #include "src/core/lib/channel/channel_args.h"
 #include "src/core/lib/channel/channel_fwd.h"
 #include "src/core/lib/channel/promise_based_filter.h"
 #include "src/core/lib/compression/compression_internal.h"
 #include "src/core/lib/promise/arena_promise.h"
+#include "src/core/lib/transport/metadata_batch.h"
 #include "src/core/lib/transport/transport.h"
 
 namespace grpc_core {
@@ -60,14 +61,14 @@ namespace grpc_core {
 /// the aforementioned 'grpc-encoding' metadata value, data will pass through
 /// uncompressed.
 
-class ChannelCompression {
- public:
-  explicit ChannelCompression(const ChannelArgs& args);
-
+class CompressionFilter : public ChannelFilter {
+ protected:
   struct DecompressArgs {
     grpc_compression_algorithm algorithm;
-    std::optional<uint32_t> max_recv_message_length;
+    absl::optional<uint32_t> max_recv_message_length;
   };
+
+  explicit CompressionFilter(const ChannelArgs& args);
 
   grpc_compression_algorithm default_compression_algorithm() const {
     return default_compression_algorithm_;
@@ -84,16 +85,14 @@ class ChannelCompression {
 
   // Compress one message synchronously.
   MessageHandle CompressMessage(MessageHandle message,
-                                grpc_compression_algorithm algorithm,
-                                CallTracerInterface* call_tracer) const;
+                                grpc_compression_algorithm algorithm) const;
   // Decompress one message synchronously.
-  absl::StatusOr<MessageHandle> DecompressMessage(
-      bool is_client, MessageHandle message, DecompressArgs args,
-      CallTracerInterface* call_tracer) const;
+  absl::StatusOr<MessageHandle> DecompressMessage(MessageHandle message,
+                                                  DecompressArgs args) const;
 
  private:
   // Max receive message length, if set.
-  std::optional<uint32_t> max_recv_size_;
+  absl::optional<uint32_t> max_recv_size_;
   size_t message_size_service_config_parser_index_;
   // The default, channel-level, compression algorithm.
   grpc_compression_algorithm default_compression_algorithm_;
@@ -105,85 +104,34 @@ class ChannelCompression {
   bool enable_decompression_;
 };
 
-class ClientCompressionFilter final
-    : public ImplementChannelFilter<ClientCompressionFilter> {
+class ClientCompressionFilter final : public CompressionFilter {
  public:
   static const grpc_channel_filter kFilter;
 
-  static absl::string_view TypeName() { return "compression"; }
-
-  static absl::StatusOr<std::unique_ptr<ClientCompressionFilter>> Create(
+  static absl::StatusOr<ClientCompressionFilter> Create(
       const ChannelArgs& args, ChannelFilter::Args filter_args);
 
-  explicit ClientCompressionFilter(const ChannelArgs& args)
-      : compression_engine_(args) {}
-
   // Construct a promise for one call.
-  class Call {
-   public:
-    void OnClientInitialMetadata(ClientMetadata& md,
-                                 ClientCompressionFilter* filter);
-    MessageHandle OnClientToServerMessage(MessageHandle message,
-                                          ClientCompressionFilter* filter);
-
-    void OnServerInitialMetadata(ServerMetadata& md,
-                                 ClientCompressionFilter* filter);
-    absl::StatusOr<MessageHandle> OnServerToClientMessage(
-        MessageHandle message, ClientCompressionFilter* filter);
-
-    static inline const NoInterceptor OnClientToServerHalfClose;
-    static inline const NoInterceptor OnServerTrailingMetadata;
-    static inline const NoInterceptor OnFinalize;
-
-   private:
-    grpc_compression_algorithm compression_algorithm_;
-    ChannelCompression::DecompressArgs decompress_args_;
-    // TODO(yashykt): Remove call_tracer_ after migration to call v3 stack. (See
-    // https://github.com/grpc/grpc/pull/38729 for more information.)
-    CallTracerInterface* call_tracer_ = nullptr;
-  };
+  ArenaPromise<ServerMetadataHandle> MakeCallPromise(
+      CallArgs call_args, NextPromiseFactory next_promise_factory) override;
 
  private:
-  ChannelCompression compression_engine_;
+  using CompressionFilter::CompressionFilter;
 };
 
-class ServerCompressionFilter final
-    : public ImplementChannelFilter<ServerCompressionFilter> {
+class ServerCompressionFilter final : public CompressionFilter {
  public:
   static const grpc_channel_filter kFilter;
 
-  static absl::string_view TypeName() { return "compression"; }
-
-  static absl::StatusOr<std::unique_ptr<ServerCompressionFilter>> Create(
+  static absl::StatusOr<ServerCompressionFilter> Create(
       const ChannelArgs& args, ChannelFilter::Args filter_args);
 
-  explicit ServerCompressionFilter(const ChannelArgs& args)
-      : compression_engine_(args) {}
-
   // Construct a promise for one call.
-  class Call {
-   public:
-    void OnClientInitialMetadata(ClientMetadata& md,
-                                 ServerCompressionFilter* filter);
-    absl::StatusOr<MessageHandle> OnClientToServerMessage(
-        MessageHandle message, ServerCompressionFilter* filter);
-
-    void OnServerInitialMetadata(ServerMetadata& md,
-                                 ServerCompressionFilter* filter);
-    MessageHandle OnServerToClientMessage(MessageHandle message,
-                                          ServerCompressionFilter* filter);
-
-    static inline const NoInterceptor OnClientToServerHalfClose;
-    static inline const NoInterceptor OnServerTrailingMetadata;
-    static inline const NoInterceptor OnFinalize;
-
-   private:
-    ChannelCompression::DecompressArgs decompress_args_;
-    grpc_compression_algorithm compression_algorithm_;
-  };
+  ArenaPromise<ServerMetadataHandle> MakeCallPromise(
+      CallArgs call_args, NextPromiseFactory next_promise_factory) override;
 
  private:
-  ChannelCompression compression_engine_;
+  using CompressionFilter::CompressionFilter;
 };
 
 }  // namespace grpc_core

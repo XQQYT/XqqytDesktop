@@ -7,11 +7,10 @@
 
 #include <stdint.h>
 
-#include <algorithm>
-#include <compare>
 #include <cstddef>
 #include <functional>
 #include <tuple>
+#include <algorithm>
 
 #include "services/metrics/public/cpp/ukm_builders.h"
 #include "third_party/blink/public/common/privacy_budget/identifiable_token.h"
@@ -103,17 +102,27 @@ class IdentifiableSurface {
 
     // Reserved 2.
 
-    // Reserved 3.
-    // Was kLocalFontLookupByUniqueOrFamilyName.
+    // Represents loading a font locally based on a name lookup that is allowed
+    // to match either a unique name or a family name. This occurs when a
+    // font-family CSS rule doesn't match any @font-face rule. Input is the
+    // combination of the lookup name and the FontSelectionRequest (i.e. weight,
+    // width and slope).
+    kLocalFontLookupByUniqueOrFamilyName = 3,
 
-    // Reserved 4.
-    // Was kGenericFontLookup.
+    // Represents looking up the family name of a generic font. Input is the
+    // combination of the generic font family name, script code and
+    // GenericFamilyType.
+    kGenericFontLookup = 4,
 
-    // Reserved 5.
-    // Was kExtensionFileAccess.
+    // Represents an attempt to access files made publicly accessible by
+    // extensions via web_accessible_resources. This may be recorded both in the
+    // renderer and the browser. Browser-side events will be associated with
+    // the top frame's navigation ID, not a child frame. Render-side events are
+    // associated with document's ID.
+    kExtensionFileAccess = 5,
 
-    // Reserved 6.
-    // Was kExtensionContentScript.
+    // Extension running content-script. Input is the extension ID.
+    kExtensionContentScript = 6,
 
     // Represents making a measurement of one of the above surfacess. This
     // metric is retained even if filtering discards the surface.
@@ -134,17 +143,23 @@ class IdentifiableSurface {
     // the mime type supplied to the method.
     kHTMLMediaElement_CanPlayType = 11,
 
-    // Reserved 12.
-    // Was kLocalFontLookupByUniqueNameOnly.
+    // Represents loading a font locally based on a name lookup that is only
+    // allowed to match a unique name. This occurs in @font-face CSS rules with
+    // a src:local attribute. Input is the combination of the lookup name and
+    // the FontSelectionRequest (i.e. weight, width and slope).
+    kLocalFontLookupByUniqueNameOnly = 12,
 
-    // Reserved 13.
-    // Was kLocalFontLookupByFallbackCharacter.
+    // Represents loading a font locally based on a fallback character. Input is
+    // the combination of the fallback character, FallbackPriority and the
+    // FontSelectionRequest (i.e. weight, width and slope).
+    kLocalFontLookupByFallbackCharacter = 13,
 
-    // Reserved 14.
-    // Was kLocalFontLookupAsLastResort.
+    // Represents looking up a font locally as a last resort. Input is the
+    // FontSelectionRequest (i.e. weight, width and slope).
+    kLocalFontLookupAsLastResort = 14,
 
-    // Reserved 15.
-    // Was kExtensionCancelRequest.
+    // Extension cancelled a network request. Input is the extension ID.
+    kExtensionCancelRequest = 15,
 
     // WebGLRenderingContext.getShaderPrecisionFormat() is a high entropy API
     // that leaks entropy about the underlying GL implementation.
@@ -152,8 +167,10 @@ class IdentifiableSurface {
     // will key this type on a digest of both the enums' values.
     kWebGLShaderPrecisionFormat = 16,
 
-    // Reserved 17.
-    // Was kScrollbarSize.
+    // A type for recording reads of the offsetWidth and offsetHeight properties
+    // when we believe it may be trying to detect the size of the scrollbar.
+    // The input for this surface should be a member of `ScrollbarSurface`.
+    kScrollbarSize = 17,
 
     // WebGL2RenderingContext.getInternal
     kWebGLInternalFormatParameter = 18,
@@ -183,8 +200,13 @@ class IdentifiableSurface {
     // configuration provided.
     kMediaCapabilities_DecodingInfo = 25,
 
-    // Reserved 26.
-    // Was kLocalFontExistenceByUniqueNameOnly.
+    // Represents determining that a local font exists or does not, based on a
+    // name lookup that is only allowed to match a unique name. This occurs in
+    // @font-face CSS rules with a src:local attribute, as well as calls to
+    // FontFace.load() for a FontFace object with a src:local attribute. The
+    // latter can reveal whether a font exists before the full font data are
+    // obtained. Input is the lookup name. Output is a bool.
+    kLocalFontExistenceByUniqueNameOnly = 26,
 
     // Represents a call to Navigator.getUserMedia. Input is the set of
     // constraints.
@@ -194,8 +216,8 @@ class IdentifiableSurface {
     // name and the target value. Output is the result --- true or false.
     kMediaQuery_DEPRECATED = 28,
 
-    // Reserved 29.
-    // Was kLocalFontLoadPostScriptName.
+    // Represents loading a font locally. Input is the PostScript name.
+    kLocalFontLoadPostScriptName = 29,
 
     // Getting supported codecs, etc. for WebRTC sender -- key is hash of kind
     // (audio or video).
@@ -216,7 +238,12 @@ class IdentifiableSurface {
     // analysis.
     kReservedMetadata = 34,
 
-    // Reserved 35 (was kCanvasReadback).
+    // Represents a readback of a canvas. Input is the
+    // CanvasRenderingContextType.
+    //
+    // Was 2 before change to paint op serialization, then 33 before removing
+    // paint op serialization and using only direct canvas2d instrumentation.
+    kCanvasReadback = 35,
 
     // Represents a media feature being tested. Input is the feature name.
     // Output is the feature value
@@ -227,23 +254,17 @@ class IdentifiableSurface {
     // correspond to any Web APIs specifically.
     kReidScoreEstimator = 37,
 
-    // Reserved 38.
-    // Was kFontFamilyAvailable.
+    // Type for binary surfaces telling whether a font family is available or
+    // not in the system. The key of the surface is the name of the font family,
+    // the value is a boolean. These surfaces are currently only actively
+    // sampled in the browser.
+    kFontFamilyAvailable = 38,
 
     // Represents determining that a local font exists or does not, based on a
     // name lookup that is allowed to match either a unique name or a family
     // name. This occurs when a font-family CSS rule doesn't match any
     // @font-face rule. Input is the lookup name. Output is a bool.
     kLocalFontExistenceByUniqueOrFamilyName = 39,
-
-    // Represents a readback of a canvas. Input is the
-    // CanvasRenderingContextType.
-    //
-    // Was 2 before change to paint op serialization, then 33 before removing
-    // paint op serialization and using only direct canvas2d instrumentation,
-    // then 35 before changing color hashing functions in
-    // BaseRenderingContext2D.
-    kCanvasReadback = 40,
 
     // We can use values up to and including |kMax|.
     kMax = (1 << kTypeBits) - 1
@@ -293,6 +314,14 @@ class IdentifiableSurface {
     // At least one drawing operation was only partially digested, for
     // performance reasons.
     kPartiallyDigested = UINT64_C(0x40)
+  };
+
+  // Possible inputs for Type::kScrollbarSize.
+  enum class ScrollbarSurface : uint64_t {
+    kScrollingElementWidth = 0,
+    kScrollingElementHeight = 1,
+    kElemScrollbarWidth = 2,
+    kElemScrollbarHeight = 3,
   };
 
   // Possible inputs for Type::kMediaFeature.
@@ -377,11 +406,6 @@ class IdentifiableSurface {
 
   constexpr bool IsValid() const { return metric_hash_ != kInvalidHash; }
 
-  friend constexpr auto operator<=>(const IdentifiableSurface& lhs,
-                                    const IdentifiableSurface& rhs) = default;
-  friend constexpr bool operator==(const IdentifiableSurface& lhs,
-                                   const IdentifiableSurface& rhs) = default;
-
  private:
   constexpr explicit IdentifiableSurface(uint64_t metric_hash)
       : metric_hash_(metric_hash) {}
@@ -411,10 +435,48 @@ class IdentifiableSurface {
   uint64_t metric_hash_;
 };
 
+constexpr bool operator<(const IdentifiableSurface& left,
+                         const IdentifiableSurface& right) {
+  return left.ToUkmMetricHash() < right.ToUkmMetricHash();
+}
+
+constexpr bool operator<=(const IdentifiableSurface& left,
+                          const IdentifiableSurface& right) {
+  return left.ToUkmMetricHash() <= right.ToUkmMetricHash();
+}
+
+constexpr bool operator>(const IdentifiableSurface& left,
+                         const IdentifiableSurface& right) {
+  return left.ToUkmMetricHash() > right.ToUkmMetricHash();
+}
+
+constexpr bool operator>=(const IdentifiableSurface& left,
+                          const IdentifiableSurface& right) {
+  return left.ToUkmMetricHash() >= right.ToUkmMetricHash();
+}
+
+constexpr bool operator==(const IdentifiableSurface& left,
+                          const IdentifiableSurface& right) {
+  return left.ToUkmMetricHash() == right.ToUkmMetricHash();
+}
+
+constexpr bool operator!=(const IdentifiableSurface& left,
+                          const IdentifiableSurface& right) {
+  return left.ToUkmMetricHash() != right.ToUkmMetricHash();
+}
+
 // Hash function compatible with std::hash.
 struct IdentifiableSurfaceHash {
   size_t operator()(const IdentifiableSurface& s) const {
     return std::hash<uint64_t>{}(s.ToUkmMetricHash());
+  }
+};
+
+// Compare function compatible with std::less
+struct IdentifiableSurfaceCompLess {
+  bool operator()(const IdentifiableSurface& lhs,
+                  const IdentifiableSurface& rhs) const {
+    return lhs.ToUkmMetricHash() < rhs.ToUkmMetricHash();
   }
 };
 

@@ -32,6 +32,7 @@
 #include "base/memory/scoped_refptr.h"
 #include "cc/paint/paint_flags.h"
 #include "third_party/blink/renderer/platform/graphics/color.h"
+#include "third_party/blink/renderer/platform/graphics/graphics_types.h"
 #include "third_party/blink/renderer/platform/graphics/paint/paint_shader.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
@@ -57,7 +58,7 @@ class PLATFORM_EXPORT Gradient : public RefCounted<Gradient> {
  public:
   enum class Type { kLinear, kRadial, kConic };
 
-  enum class PremultipliedAlpha {
+  enum class ColorInterpolation {
     kPremultiplied,
     kUnpremultiplied,
   };
@@ -67,17 +68,11 @@ class PLATFORM_EXPORT Gradient : public RefCounted<Gradient> {
     kDisallow,
   };
 
-  enum class SpreadMethod {
-    kPad,
-    kReflect,
-    kRepeat,
-  };
-
   static scoped_refptr<Gradient> CreateLinear(
       const gfx::PointF& p0,
       const gfx::PointF& p1,
-      SpreadMethod = SpreadMethod::kPad,
-      PremultipliedAlpha = PremultipliedAlpha::kUnpremultiplied,
+      GradientSpreadMethod = kSpreadMethodPad,
+      ColorInterpolation = ColorInterpolation::kUnpremultiplied,
       DegenerateHandling = DegenerateHandling::kAllow);
 
   static scoped_refptr<Gradient> CreateRadial(
@@ -86,8 +81,8 @@ class PLATFORM_EXPORT Gradient : public RefCounted<Gradient> {
       const gfx::PointF& p1,
       float r1,
       float aspect_ratio = 1,
-      SpreadMethod = SpreadMethod::kPad,
-      PremultipliedAlpha = PremultipliedAlpha::kUnpremultiplied,
+      GradientSpreadMethod = kSpreadMethodPad,
+      ColorInterpolation = ColorInterpolation::kUnpremultiplied,
       DegenerateHandling = DegenerateHandling::kAllow);
 
   static scoped_refptr<Gradient> CreateConic(
@@ -95,8 +90,8 @@ class PLATFORM_EXPORT Gradient : public RefCounted<Gradient> {
       float rotation,
       float start_angle,
       float end_angle,
-      SpreadMethod = SpreadMethod::kPad,
-      PremultipliedAlpha = PremultipliedAlpha::kUnpremultiplied,
+      GradientSpreadMethod = kSpreadMethodPad,
+      ColorInterpolation = ColorInterpolation::kUnpremultiplied,
       DegenerateHandling = DegenerateHandling::kAllow);
 
   Gradient(const Gradient&) = delete;
@@ -124,30 +119,14 @@ class PLATFORM_EXPORT Gradient : public RefCounted<Gradient> {
   void SetColorInterpolationSpace(
       Color::ColorSpace color_space_interpolation_space,
       Color::HueInterpolationMethod hue_interpolation_method) {
-    if (color_space_interpolation_space == color_space_interpolation_space_ &&
-        hue_interpolation_method == hue_interpolation_method_) {
-      return;
-    }
     color_space_interpolation_space_ = color_space_interpolation_space;
     hue_interpolation_method_ = hue_interpolation_method;
-    cached_shader_.reset();
-  }
-
-  void SetPremultipliedAlphaForInterpolation(bool premultiplied_alpha) {
-    PremultipliedAlpha color_interpolation =
-        premultiplied_alpha ? PremultipliedAlpha::kPremultiplied
-                            : PremultipliedAlpha::kUnpremultiplied;
-    if (color_interpolation == premultiplied_alpha_) {
-      return;
-    }
-    premultiplied_alpha_ = color_interpolation;
-    cached_shader_.reset();
   }
 
   DarkModeFilter& EnsureDarkModeFilter();
 
  protected:
-  Gradient(Type, SpreadMethod, PremultipliedAlpha, DegenerateHandling);
+  Gradient(Type, GradientSpreadMethod, ColorInterpolation, DegenerateHandling);
 
   using ColorBuffer = Vector<SkColor4f, 8>;
   using OffsetBuffer = Vector<SkScalar, 8>;
@@ -171,9 +150,8 @@ class PLATFORM_EXPORT Gradient : public RefCounted<Gradient> {
   bool HasNonLegacyColor() const;
 
   const Type type_;
-  const SpreadMethod spread_method_;
-  PremultipliedAlpha premultiplied_alpha_ =
-      PremultipliedAlpha::kUnpremultiplied;
+  const GradientSpreadMethod spread_method_;
+  const ColorInterpolation color_interpolation_;
   const DegenerateHandling degenerate_handling_;
 
   mutable Vector<ColorStop, 2> stops_;

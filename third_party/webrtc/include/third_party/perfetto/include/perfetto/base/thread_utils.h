@@ -29,9 +29,6 @@ __declspec(dllimport) unsigned long __stdcall GetCurrentThreadId();
 }
 #elif PERFETTO_BUILDFLAG(PERFETTO_OS_FUCHSIA)
 #include <zircon/types.h>
-#elif PERFETTO_BUILDFLAG(PERFETTO_OS_QNX)
-#include <sys/types.h>
-#include <unistd.h>
 #elif PERFETTO_BUILDFLAG(PERFETTO_OS_LINUX) || \
     PERFETTO_BUILDFLAG(PERFETTO_OS_ANDROID)
 #include <sys/syscall.h>
@@ -44,8 +41,7 @@ __declspec(dllimport) unsigned long __stdcall GetCurrentThreadId();
 namespace perfetto {
 namespace base {
 
-#if PERFETTO_BUILDFLAG(PERFETTO_OS_ANDROID) || \
-    PERFETTO_BUILDFLAG(PERFETTO_OS_QNX)
+#if PERFETTO_BUILDFLAG(PERFETTO_OS_ANDROID)
 using PlatformThreadId = pid_t;
 inline PlatformThreadId GetThreadId() {
   return gettid();

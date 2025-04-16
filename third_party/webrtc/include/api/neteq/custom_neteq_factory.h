@@ -14,11 +14,10 @@
 #include <memory>
 
 #include "api/audio_codecs/audio_decoder_factory.h"
-#include "api/environment/environment.h"
-#include "api/neteq/neteq.h"
 #include "api/neteq/neteq_controller_factory.h"
 #include "api/neteq/neteq_factory.h"
 #include "api/scoped_refptr.h"
+#include "system_wrappers/include/clock.h"
 
 namespace webrtc {
 
@@ -32,10 +31,10 @@ class CustomNetEqFactory : public NetEqFactory {
   CustomNetEqFactory(const CustomNetEqFactory&) = delete;
   CustomNetEqFactory& operator=(const CustomNetEqFactory&) = delete;
 
-  std::unique_ptr<NetEq> Create(
-      const Environment& env,
+  std::unique_ptr<NetEq> CreateNetEq(
       const NetEq::Config& config,
-      scoped_refptr<AudioDecoderFactory> decoder_factory) const override;
+      const rtc::scoped_refptr<AudioDecoderFactory>& decoder_factory,
+      Clock* clock) const override;
 
  private:
   std::unique_ptr<NetEqControllerFactory> controller_factory_;

@@ -48,19 +48,12 @@ class HTMLDetailsElement final : public HTMLElement {
   // setting the open attribute.
   static bool ExpandDetailsAncestors(const Node&);
 
-  bool IsValidBuiltinCommand(HTMLElement& invoker,
-                             CommandEventType command) override;
-  bool HandleCommandInternal(HTMLElement& invoker,
-                             CommandEventType command) override;
+ private:
+  void DispatchPendingEvent(const AttributeModificationReason);
 
-  // The name attribute for grouping of related details; empty string
-  // means no grouping.
   const AtomicString& GetName() const {
     return FastGetAttribute(html_names::kNameAttr);
   }
-
- private:
-  void DispatchPendingEvent(const AttributeModificationReason);
 
   // Return all the <details> elements in the group created by the name
   // attribute, excluding |this|, in tree order.  If there is no such group
@@ -68,6 +61,7 @@ class HTMLDetailsElement final : public HTMLElement {
   HeapVector<Member<HTMLDetailsElement>> OtherElementsInNameGroup();
   void MaybeCloseForExclusivity();
 
+  LayoutObject* CreateLayoutObject(const ComputedStyle&) override;
   void ParseAttribute(const AttributeModificationParams&) override;
   void AttributeChanged(const AttributeModificationParams&) override;
   InsertionNotificationRequest InsertedInto(ContainerNode&) override;

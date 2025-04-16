@@ -6,11 +6,12 @@
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_SCREEN_ORIENTATION_LOCK_ORIENTATION_CALLBACK_H_
 
 #include "base/memory/scoped_refptr.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/modules/screen_orientation/web_lock_orientation_callback.h"
 #include "third_party/blink/renderer/platform/heap/persistent.h"
 
 namespace blink {
+
+class ScriptPromiseResolver;
 
 // LockOrientationCallback is an implementation of WebLockOrientationCallback
 // that will resolve the underlying promise depending on the result passed to
@@ -19,7 +20,7 @@ class LockOrientationCallback final : public WebLockOrientationCallback {
   USING_FAST_MALLOC(LockOrientationCallback);
 
  public:
-  explicit LockOrientationCallback(ScriptPromiseResolver<IDLUndefined>*);
+  explicit LockOrientationCallback(ScriptPromiseResolver*);
 
   LockOrientationCallback(const LockOrientationCallback&) = delete;
   LockOrientationCallback& operator=(const LockOrientationCallback&) = delete;
@@ -30,7 +31,7 @@ class LockOrientationCallback final : public WebLockOrientationCallback {
   void OnError(WebLockOrientationError) override;
 
  private:
-  Persistent<ScriptPromiseResolver<IDLUndefined>> resolver_;
+  Persistent<ScriptPromiseResolver> resolver_;
 };
 
 }  // namespace blink

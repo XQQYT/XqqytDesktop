@@ -19,14 +19,15 @@
 #ifndef GRPC_TEST_CPP_END2END_INTERCEPTORS_UTIL_H
 #define GRPC_TEST_CPP_END2END_INTERCEPTORS_UTIL_H
 
-#include <grpcpp/channel.h>
-
 #include <condition_variable>
 
-#include "absl/log/check.h"
+#include <gtest/gtest.h>
+
 #include "absl/strings/str_format.h"
-#include "gtest/gtest.h"
-#include "src/core/util/crash.h"
+
+#include <grpcpp/channel.h>
+
+#include "src/core/lib/gprpp/crash.h"
 #include "src/proto/grpc/testing/echo.grpc.pb.h"
 #include "test/cpp/util/string_ref_helper.h"
 
@@ -146,8 +147,8 @@ class EchoTestServiceStreamingImpl : public EchoTestService::Service {
   Status Echo(ServerContext* context, const EchoRequest* request,
               EchoResponse* response) override {
     auto client_metadata = context->client_metadata();
-    for (const auto& [key, value] : client_metadata) {
-      context->AddTrailingMetadata(ToString(key), ToString(value));
+    for (const auto& pair : client_metadata) {
+      context->AddTrailingMetadata(ToString(pair.first), ToString(pair.second));
     }
     response->set_message(request->message());
     return Status::OK;
@@ -159,8 +160,8 @@ class EchoTestServiceStreamingImpl : public EchoTestService::Service {
     EchoRequest req;
     EchoResponse resp;
     auto client_metadata = context->client_metadata();
-    for (const auto& [key, value] : client_metadata) {
-      context->AddTrailingMetadata(ToString(key), ToString(value));
+    for (const auto& pair : client_metadata) {
+      context->AddTrailingMetadata(ToString(pair.first), ToString(pair.second));
     }
 
     while (stream->Read(&req)) {
@@ -174,8 +175,8 @@ class EchoTestServiceStreamingImpl : public EchoTestService::Service {
                        ServerReader<EchoRequest>* reader,
                        EchoResponse* resp) override {
     auto client_metadata = context->client_metadata();
-    for (const auto& [key, value] : client_metadata) {
-      context->AddTrailingMetadata(ToString(key), ToString(value));
+    for (const auto& pair : client_metadata) {
+      context->AddTrailingMetadata(ToString(pair.first), ToString(pair.second));
     }
 
     EchoRequest req;
@@ -190,8 +191,8 @@ class EchoTestServiceStreamingImpl : public EchoTestService::Service {
   Status ResponseStream(ServerContext* context, const EchoRequest* req,
                         ServerWriter<EchoResponse>* writer) override {
     auto client_metadata = context->client_metadata();
-    for (const auto& [key, value] : client_metadata) {
-      context->AddTrailingMetadata(ToString(key), ToString(value));
+    for (const auto& pair : client_metadata) {
+      context->AddTrailingMetadata(ToString(pair.first), ToString(pair.second));
     }
 
     EchoResponse resp;
@@ -292,7 +293,7 @@ class Verifier {
   // This version of Verify allows optionally ignoring the
   // outcome of the expectation
   void Verify(CompletionQueue* cq, bool ignore_ok) {
-    CHECK(!expectations_.empty() || !maybe_expectations_.empty());
+    GPR_ASSERT(!expectations_.empty() || !maybe_expectations_.empty());
     while (!expectations_.empty()) {
       Next(cq, ignore_ok);
     }
@@ -328,17 +329,19 @@ class Verifier {
         EXPECT_EQ(it->second, ok);
       }
       expectations_.erase(it);
-    } else if (auto it2 = maybe_expectations_.find(got_tag);
-               it2 != maybe_expectations_.end()) {
-      if (it2->second.seen != nullptr) {
-        EXPECT_FALSE(*it2->second.seen);
-        *it2->second.seen = true;
-      }
-      if (!ignore_ok) {
-        EXPECT_EQ(it2->second.ok, ok);
-      }
     } else {
-      grpc_core::Crash(absl::StrFormat("Unexpected tag: %p", got_tag));
+      auto it2 = maybe_expectations_.find(got_tag);
+      if (it2 != maybe_expectations_.end()) {
+        if (it2->second.seen != nullptr) {
+          EXPECT_FALSE(*it2->second.seen);
+          *it2->second.seen = true;
+        }
+        if (!ignore_ok) {
+          EXPECT_EQ(it2->second.ok, ok);
+        }
+      } else {
+        grpc_core::Crash(absl::StrFormat("Unexpected tag: %p", got_tag));
+      }
     }
   }
 

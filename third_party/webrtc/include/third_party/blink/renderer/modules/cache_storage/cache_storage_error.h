@@ -10,11 +10,11 @@
 
 namespace blink {
 
-class ScriptPromiseResolverBase;
+class ScriptPromiseResolver;
 
 // Reject the |resolver| with the appropriate error given |web_error|.
 // When no |message| is provided, the standard one is chosen.
-void RejectCacheStorageWithError(ScriptPromiseResolverBase* resolver,
+void RejectCacheStorageWithError(ScriptPromiseResolver* resolver,
                                  mojom::blink::CacheStorageError web_error,
                                  const String& message = String());
 }  // namespace blink

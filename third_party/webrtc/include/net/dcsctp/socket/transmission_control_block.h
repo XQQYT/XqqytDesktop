@@ -67,8 +67,8 @@ class TransmissionControlBlock : public Context {
   TSN my_initial_tsn() const override { return my_initial_tsn_; }
   TSN peer_initial_tsn() const override { return peer_initial_tsn_; }
   DcSctpSocketCallbacks& callbacks() const override { return callbacks_; }
-  void ObserveRTT(webrtc::TimeDelta rtt) override;
-  webrtc::TimeDelta current_rto() const override { return rto_.rto(); }
+  void ObserveRTT(DurationMs rtt) override;
+  DurationMs current_rto() const override { return rto_.rto(); }
   bool IncrementTxErrorCounter(absl::string_view reason) override {
     return tx_error_counter_.Increment(reason);
   }
@@ -91,7 +91,7 @@ class TransmissionControlBlock : public Context {
   StreamResetHandler& stream_reset_handler() { return stream_reset_handler_; }
   HeartbeatHandler& heartbeat_handler() { return heartbeat_handler_; }
   size_t cwnd() const { return retransmission_queue_.cwnd(); }
-  webrtc::TimeDelta current_srtt() const { return rto_.srtt(); }
+  DurationMs current_srtt() const { return rto_.srtt(); }
 
   // Returns this socket's verification tag, set in all packet headers.
   VerificationTag my_verification_tag() const { return my_verification_tag_; }
@@ -108,7 +108,7 @@ class TransmissionControlBlock : public Context {
   void MaybeSendSack();
 
   // Sends a FORWARD-TSN, if it is needed and allowed (rate-limited).
-  void MaybeSendForwardTsn(SctpPacket::Builder& builder, webrtc::Timestamp now);
+  void MaybeSendForwardTsn(SctpPacket::Builder& builder, TimeMs now);
 
   // Will be set while the socket is in kCookieEcho state. In this state, there
   // can only be a single packet outstanding, and it must contain the COOKIE
@@ -120,7 +120,7 @@ class TransmissionControlBlock : public Context {
 
   // Called when the COOKIE ACK chunk has been received, to allow further
   // packets to be sent.
-  void ClearCookieEchoChunk() { cookie_echo_chunk_ = std::nullopt; }
+  void ClearCookieEchoChunk() { cookie_echo_chunk_ = absl::nullopt; }
 
   bool has_cookie_echo_chunk() const { return cookie_echo_chunk_.has_value(); }
 
@@ -129,12 +129,12 @@ class TransmissionControlBlock : public Context {
   // Fills `builder` (which may already be filled with control chunks) with
   // other control and data chunks, and sends packets as much as can be
   // allowed by the congestion control algorithm.
-  void SendBufferedPackets(SctpPacket::Builder& builder, webrtc::Timestamp now);
+  void SendBufferedPackets(SctpPacket::Builder& builder, TimeMs now);
 
   // As above, but without passing in a builder. If `cookie_echo_chunk_` is
   // present, then only one packet will be sent, with this chunk as the first
   // chunk.
-  void SendBufferedPackets(webrtc::Timestamp now) {
+  void SendBufferedPackets(TimeMs now) {
     SctpPacket::Builder builder(peer_verification_tag_, options_);
     SendBufferedPackets(builder, now);
   }
@@ -149,9 +149,9 @@ class TransmissionControlBlock : public Context {
 
  private:
   // Will be called when the retransmission timer (t3-rtx) expires.
-  webrtc::TimeDelta OnRtxTimerExpiry();
+  absl::optional<DurationMs> OnRtxTimerExpiry();
   // Will be called when the delayed ack timer expires.
-  webrtc::TimeDelta OnDelayedAckTimerExpiry();
+  absl::optional<DurationMs> OnDelayedAckTimerExpiry();
 
   const absl::string_view log_prefix_;
   const DcSctpOptions options_;
@@ -172,7 +172,7 @@ class TransmissionControlBlock : public Context {
   const std::function<bool()> is_connection_established_;
   PacketSender& packet_sender_;
   // Rate limiting of FORWARD-TSN. Next can be sent at or after this timestamp.
-  webrtc::Timestamp limit_forward_tsn_until_ = webrtc::Timestamp::Zero();
+  TimeMs limit_forward_tsn_until_ = TimeMs(0);
 
   RetransmissionTimeout rto_;
   RetransmissionErrorCounter tx_error_counter_;
@@ -187,7 +187,7 @@ class TransmissionControlBlock : public Context {
   // including a COOKIE ECHO). So if `cookie_echo_chunk_` is present, the
   // SendBufferedChunks will always only just send one packet, with this chunk
   // as the first chunk in the packet.
-  std::optional<CookieEchoChunk> cookie_echo_chunk_ = std::nullopt;
+  absl::optional<CookieEchoChunk> cookie_echo_chunk_ = absl::nullopt;
 };
 }  // namespace dcsctp
 

@@ -15,11 +15,11 @@
 
 #include <functional>
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "api/array_view.h"
 #include "api/audio_options.h"
 #include "api/crypto/crypto_options.h"
@@ -39,7 +39,6 @@
 #include "media/base/media_config.h"
 #include "media/base/media_engine.h"
 #include "pc/channel_interface.h"
-#include "pc/codec_vendor.h"
 #include "pc/connection_context.h"
 #include "pc/proxy.h"
 #include "pc/rtp_receiver.h"
@@ -92,9 +91,7 @@ class RtpTransceiver : public RtpTransceiverInterface {
   // channel set.
   // `media_type` specifies the type of RtpTransceiver (and, by transitivity,
   // the type of senders, receivers, and channel). Can either by audio or video.
-  RtpTransceiver(webrtc::MediaType media_type,
-                 ConnectionContext* context,
-                 cricket::CodecLookupHelper* codec_lookup_helper);
+  RtpTransceiver(cricket::MediaType media_type, ConnectionContext* context);
   // Construct a Unified Plan-style RtpTransceiver with the given sender and
   // receiver. The media type will be derived from the media types of the sender
   // and receiver. The sender and receiver should have the same media type.
@@ -105,7 +102,6 @@ class RtpTransceiver : public RtpTransceiverInterface {
       rtc::scoped_refptr<RtpReceiverProxyWithInternal<RtpReceiverInternal>>
           receiver,
       ConnectionContext* context,
-      cricket::CodecLookupHelper* codec_lookup_helper,
       std::vector<RtpHeaderExtensionCapability> HeaderExtensionsToNegotiate,
       std::function<void()> on_negotiation_needed);
   ~RtpTransceiver() override;
@@ -185,8 +181,8 @@ class RtpTransceiver : public RtpTransceiverInterface {
       rtc::scoped_refptr<RtpReceiverProxyWithInternal<RtpReceiverInternal>>
           receiver);
 
-  // Removes the given RtpReceiver. Returns false if the receiver is not owned
-  // by this transceiver.
+  // Removes the given RtpReceiver. Returns false if the sender is not owned by
+  // this transceiver.
   bool RemoveReceiver(RtpReceiverInterface* receiver);
 
   // Returns a vector of the receivers owned by this transceiver.
@@ -207,15 +203,15 @@ class RtpTransceiver : public RtpTransceiverInterface {
   // when setting a local offer we need a way to remember which transceiver was
   // used to create which media section in the offer. Storing the mline index
   // in CreateOffer is specified in JSEP to allow us to do that.
-  std::optional<size_t> mline_index() const { return mline_index_; }
-  void set_mline_index(std::optional<size_t> mline_index) {
+  absl::optional<size_t> mline_index() const { return mline_index_; }
+  void set_mline_index(absl::optional<size_t> mline_index) {
     mline_index_ = mline_index;
   }
 
   // Sets the MID for this transceiver. If the MID is not null, then the
   // transceiver is considered "associated" with the media section that has the
   // same MID.
-  void set_mid(const std::optional<std::string>& mid) { mid_ = mid; }
+  void set_mid(const absl::optional<std::string>& mid) { mid_ = mid; }
 
   // Sets the intended direction for this transceiver. Intended to be used
   // internally over SetDirection since this does not trigger a negotiation
@@ -232,7 +228,7 @@ class RtpTransceiver : public RtpTransceiverInterface {
   // Sets the fired direction for this transceiver. The fired direction is null
   // until SetRemoteDescription is called or an answer is set (either local or
   // remote) after which the only valid reason to go back to null is rollback.
-  void set_fired_direction(std::optional<RtpTransceiverDirection> direction);
+  void set_fired_direction(absl::optional<RtpTransceiverDirection> direction);
 
   // According to JSEP rules for SetRemoteDescription, RtpTransceivers can be
   // reused only if they were added by AddTrack.
@@ -264,8 +260,8 @@ class RtpTransceiver : public RtpTransceiverInterface {
   void StopTransceiverProcedure();
 
   // RtpTransceiverInterface implementation.
-  webrtc::MediaType media_type() const override;
-  std::optional<std::string> mid() const override;
+  cricket::MediaType media_type() const override;
+  absl::optional<std::string> mid() const override;
   rtc::scoped_refptr<RtpSenderInterface> sender() const override;
   rtc::scoped_refptr<RtpReceiverInterface> receiver() const override;
   bool stopped() const override;
@@ -273,19 +269,15 @@ class RtpTransceiver : public RtpTransceiverInterface {
   RtpTransceiverDirection direction() const override;
   RTCError SetDirectionWithError(
       RtpTransceiverDirection new_direction) override;
-  std::optional<RtpTransceiverDirection> current_direction() const override;
-  std::optional<RtpTransceiverDirection> fired_direction() const override;
+  absl::optional<RtpTransceiverDirection> current_direction() const override;
+  absl::optional<RtpTransceiverDirection> fired_direction() const override;
   RTCError StopStandard() override;
   void StopInternal() override;
   RTCError SetCodecPreferences(
       rtc::ArrayView<RtpCodecCapability> codecs) override;
-  // TODO(https://crbug.com/webrtc/391275081): Delete codec_preferences() in
-  // favor of filtered_codec_preferences() because it's not used anywhere.
-  std::vector<RtpCodecCapability> codec_preferences() const override;
-  // A direction()-filtered view of codec_preferences(). If this filtering
-  // results in not having any media codecs, an empty list is returned to mean
-  // "no preferences".
-  std::vector<RtpCodecCapability> filtered_codec_preferences() const;
+  std::vector<RtpCodecCapability> codec_preferences() const override {
+    return codec_preferences_;
+  }
   std::vector<RtpHeaderExtensionCapability> GetHeaderExtensionsToNegotiate()
       const override;
   std::vector<RtpHeaderExtensionCapability> GetNegotiatedHeaderExtensions()
@@ -302,37 +294,24 @@ class RtpTransceiver : public RtpTransceiverInterface {
   // method. This will happen with the ownership of the channel object being
   // moved into the transceiver.
   void OnNegotiationUpdate(SdpType sdp_type,
-                           const MediaContentDescription* content);
+                           const cricket::MediaContentDescription* content);
 
  private:
   cricket::MediaEngineInterface* media_engine() const {
     return context_->media_engine();
   }
   ConnectionContext* context() const { return context_; }
-  cricket::CodecVendor& codec_vendor() {
-    if (mid_) {
-      return *codec_lookup_helper_->CodecVendor(*mid_);
-    } else {
-      return *codec_lookup_helper_->CodecVendor("");
-    }
-  }
   void OnFirstPacketReceived();
-  void OnFirstPacketSent();
   void StopSendingAndReceiving();
-  // Tell the senders and receivers about possibly-new media channels
-  // in a newly created `channel_`.
-  void PushNewMediaChannel();
-  // Delete `channel_`, and ensure that references to its media channels
+  // Delete a channel, and ensure that references to its media channel
   // are updated before deleting it.
-  void DeleteChannel();
-
-  RTCError UpdateCodecPreferencesCaches(
-      const std::vector<RtpCodecCapability>& codecs);
+  void PushNewMediaChannelAndDeleteChannel(
+      std::unique_ptr<cricket::ChannelInterface> channel_to_delete);
 
   // Enforce that this object is created, used and destroyed on one thread.
   TaskQueueBase* const thread_;
   const bool unified_plan_;
-  const webrtc::MediaType media_type_;
+  const cricket::MediaType media_type_;
   rtc::scoped_refptr<PendingTaskSafetyFlag> signaling_thread_safety_;
   std::vector<rtc::scoped_refptr<RtpSenderProxyWithInternal<RtpSenderInternal>>>
       senders_;
@@ -344,10 +323,10 @@ class RtpTransceiver : public RtpTransceiverInterface {
   bool stopping_ RTC_GUARDED_BY(thread_) = false;
   bool is_pc_closed_ = false;
   RtpTransceiverDirection direction_ = RtpTransceiverDirection::kInactive;
-  std::optional<RtpTransceiverDirection> current_direction_;
-  std::optional<RtpTransceiverDirection> fired_direction_;
-  std::optional<std::string> mid_;
-  std::optional<size_t> mline_index_;
+  absl::optional<RtpTransceiverDirection> current_direction_;
+  absl::optional<RtpTransceiverDirection> fired_direction_;
+  absl::optional<std::string> mid_;
+  absl::optional<size_t> mline_index_;
   bool created_by_addtrack_ = false;
   bool reused_for_addtrack_ = false;
   bool has_ever_been_used_to_send_ = false;
@@ -357,11 +336,7 @@ class RtpTransceiver : public RtpTransceiverInterface {
   // from thread_.
   std::unique_ptr<cricket::ChannelInterface> channel_ = nullptr;
   ConnectionContext* const context_;
-  cricket::CodecLookupHelper* const codec_lookup_helper_;
   std::vector<RtpCodecCapability> codec_preferences_;
-  std::vector<RtpCodecCapability> sendrecv_codec_preferences_;
-  std::vector<RtpCodecCapability> sendonly_codec_preferences_;
-  std::vector<RtpCodecCapability> recvonly_codec_preferences_;
   std::vector<RtpHeaderExtensionCapability> header_extensions_to_negotiate_;
 
   // `negotiated_header_extensions_` is read and written to on the signaling
@@ -376,25 +351,27 @@ class RtpTransceiver : public RtpTransceiverInterface {
 BEGIN_PRIMARY_PROXY_MAP(RtpTransceiver)
 
 PROXY_PRIMARY_THREAD_DESTRUCTOR()
-BYPASS_PROXY_CONSTMETHOD0(webrtc::MediaType, media_type)
-PROXY_CONSTMETHOD0(std::optional<std::string>, mid)
+BYPASS_PROXY_CONSTMETHOD0(cricket::MediaType, media_type)
+PROXY_CONSTMETHOD0(absl::optional<std::string>, mid)
 PROXY_CONSTMETHOD0(rtc::scoped_refptr<RtpSenderInterface>, sender)
 PROXY_CONSTMETHOD0(rtc::scoped_refptr<RtpReceiverInterface>, receiver)
 PROXY_CONSTMETHOD0(bool, stopped)
 PROXY_CONSTMETHOD0(bool, stopping)
 PROXY_CONSTMETHOD0(RtpTransceiverDirection, direction)
-PROXY_METHOD1(RTCError, SetDirectionWithError, RtpTransceiverDirection)
-PROXY_CONSTMETHOD0(std::optional<RtpTransceiverDirection>, current_direction)
-PROXY_CONSTMETHOD0(std::optional<RtpTransceiverDirection>, fired_direction)
-PROXY_METHOD0(RTCError, StopStandard)
+PROXY_METHOD1(webrtc::RTCError, SetDirectionWithError, RtpTransceiverDirection)
+PROXY_CONSTMETHOD0(absl::optional<RtpTransceiverDirection>, current_direction)
+PROXY_CONSTMETHOD0(absl::optional<RtpTransceiverDirection>, fired_direction)
+PROXY_METHOD0(webrtc::RTCError, StopStandard)
 PROXY_METHOD0(void, StopInternal)
-PROXY_METHOD1(RTCError, SetCodecPreferences, rtc::ArrayView<RtpCodecCapability>)
+PROXY_METHOD1(webrtc::RTCError,
+              SetCodecPreferences,
+              rtc::ArrayView<RtpCodecCapability>)
 PROXY_CONSTMETHOD0(std::vector<RtpCodecCapability>, codec_preferences)
 PROXY_CONSTMETHOD0(std::vector<RtpHeaderExtensionCapability>,
                    GetHeaderExtensionsToNegotiate)
 PROXY_CONSTMETHOD0(std::vector<RtpHeaderExtensionCapability>,
                    GetNegotiatedHeaderExtensions)
-PROXY_METHOD1(RTCError,
+PROXY_METHOD1(webrtc::RTCError,
               SetHeaderExtensionsToNegotiate,
               rtc::ArrayView<const RtpHeaderExtensionCapability>)
 END_PROXY_MAP(RtpTransceiver)

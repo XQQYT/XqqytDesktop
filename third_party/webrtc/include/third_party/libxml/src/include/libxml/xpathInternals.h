@@ -12,7 +12,6 @@
 #ifndef __XML_XPATH_INTERNALS_H__
 #define __XML_XPATH_INTERNALS_H__
 
-#include <stdio.h>
 #include <libxml/xmlversion.h>
 #include <libxml/xpath.h>
 
@@ -516,7 +515,6 @@ XMLPUBFUN void
 
 XMLPUBFUN void
 		xmlXPathRoot			(xmlXPathParserContextPtr ctxt);
-XML_DEPRECATED
 XMLPUBFUN void
 		xmlXPathEvalExpr		(xmlXPathParserContextPtr ctxt);
 XMLPUBFUN xmlChar *

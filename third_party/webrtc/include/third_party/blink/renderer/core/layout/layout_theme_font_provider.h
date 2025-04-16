@@ -40,6 +40,8 @@ class CORE_EXPORT LayoutThemeFontProvider {
   STATIC_ONLY(LayoutThemeFontProvider);
 
  public:
+  static const FontSelectionValue& SystemFontStyle(CSSValueID system_font_id);
+  static const FontSelectionValue& SystemFontWeight(CSSValueID system_font_id);
   static const AtomicString& SystemFontFamily(CSSValueID system_font_id);
   static float SystemFontSize(CSSValueID system_font_id,
                               const Document* document);

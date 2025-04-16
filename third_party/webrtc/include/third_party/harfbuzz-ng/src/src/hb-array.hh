@@ -47,8 +47,6 @@ enum hb_not_found_t
 template <typename Type>
 struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
 {
-  static constexpr bool realloc_move = true;
-
   /*
    * Constructors.
    */
@@ -251,8 +249,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     if (end < start + 2)
       return;
 
-    unsigned stop = start + (end - start) / 2;
-    for (unsigned lhs = start, rhs = end - 1; lhs < stop; lhs++, rhs--)
+    for (unsigned lhs = start, rhs = end - 1; lhs < rhs; lhs++, rhs--)
       hb_swap (arrayZ[rhs], arrayZ[lhs]);
   }
 

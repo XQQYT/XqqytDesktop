@@ -80,7 +80,7 @@ struct SsrcGroup {
 
   std::string ToString() const;
 
-  std::string semantics;        // e.g FID, FEC-FR, SIM.
+  std::string semantics;        // e.g FIX, FEC, SIM.
   std::vector<uint32_t> ssrcs;  // SSRCs of this type.
 };
 
@@ -164,7 +164,7 @@ struct StreamParams {
 
   // Convenience to get all the SIM SSRCs if there are SIM ssrcs, or
   // the first SSRC otherwise.
-  void GetPrimarySsrcs(std::vector<uint32_t>* primary_ssrcs) const;
+  void GetPrimarySsrcs(std::vector<uint32_t>* ssrcs) const;
 
   // Convenience to get all the secondary SSRCs for the given primary ssrcs
   // of a particular semantic.

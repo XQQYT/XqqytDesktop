@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<meta name=fuzzy content="maxDifference=0-3; totalPixels=0-1000">
+<html>
+<head>
 <script src="../../../resources/testharness.js"></script>
 <script src="../../../resources/testharnessreport.js"></script>
 <script src="../../../resources/testdriver.js"></script>
@@ -7,7 +8,8 @@
 <script src="../resources/common.js"></script>
 <script src="../resources/picker-common.js"></script>
 <script src="../calendar-picker/resources/calendar-picker-common.js"></script>
-
+</head>
+<body>
 <input type="date" id="date-0" value="2019-02-14">
 <script>
 
@@ -45,3 +47,5 @@ promise_test(() => {
 }, "Date picker: Previous/next month hotkey (PageDown/PageUp)");
 
 </script>
+</body>
+</html>

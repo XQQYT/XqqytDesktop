@@ -7,7 +7,6 @@
 
 #include "third_party/blink/public/mojom/keyboard_lock/keyboard_lock.mojom-blink.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_remote.h"
@@ -16,6 +15,7 @@
 namespace blink {
 
 class ExceptionState;
+class ScriptPromiseResolver;
 
 class KeyboardLock final : public GarbageCollected<KeyboardLock>,
                            public ExecutionContextClient {
@@ -27,9 +27,7 @@ class KeyboardLock final : public GarbageCollected<KeyboardLock>,
 
   ~KeyboardLock();
 
-  ScriptPromise<IDLUndefined> lock(ScriptState*,
-                                   const Vector<String>&,
-                                   ExceptionState&);
+  ScriptPromise lock(ScriptState*, const Vector<String>&, ExceptionState&);
   void unlock(ScriptState*);
 
   void Trace(Visitor*) const override;
@@ -44,11 +42,11 @@ class KeyboardLock final : public GarbageCollected<KeyboardLock>,
   // Returns true if the current frame is a top-level browsing context.
   bool CalledFromSupportedContext(ExecutionContext*);
 
-  void LockRequestFinished(ScriptPromiseResolver<IDLUndefined>*,
+  void LockRequestFinished(ScriptPromiseResolver*,
                            mojom::KeyboardLockRequestResult);
 
   HeapMojoRemote<mojom::blink::KeyboardLockService> service_;
-  Member<ScriptPromiseResolver<IDLUndefined>> request_keylock_resolver_;
+  Member<ScriptPromiseResolver> request_keylock_resolver_;
 };
 
 }  // namespace blink

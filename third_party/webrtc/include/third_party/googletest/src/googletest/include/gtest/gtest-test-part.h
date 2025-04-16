@@ -35,8 +35,6 @@
 #define GOOGLETEST_INCLUDE_GTEST_GTEST_TEST_PART_H_
 
 #include <iosfwd>
-#include <ostream>
-#include <string>
 #include <vector>
 
 #include "gtest/internal/gtest-internal.h"
@@ -133,7 +131,7 @@ std::ostream& operator<<(std::ostream& os, const TestPartResult& result);
 // virtual.
 class GTEST_API_ TestPartResultArray {
  public:
-  TestPartResultArray() = default;
+  TestPartResultArray() {}
 
   // Appends the given TestPartResult to the array.
   void Append(const TestPartResult& result);
@@ -147,14 +145,13 @@ class GTEST_API_ TestPartResultArray {
  private:
   std::vector<TestPartResult> array_;
 
-  TestPartResultArray(const TestPartResultArray&) = delete;
-  TestPartResultArray& operator=(const TestPartResultArray&) = delete;
+  GTEST_DISALLOW_COPY_AND_ASSIGN_(TestPartResultArray);
 };
 
 // This interface knows how to report a test part result.
 class GTEST_API_ TestPartResultReporterInterface {
  public:
-  virtual ~TestPartResultReporterInterface() = default;
+  virtual ~TestPartResultReporterInterface() {}
 
   virtual void ReportTestPartResult(const TestPartResult& result) = 0;
 };
@@ -179,8 +176,7 @@ class GTEST_API_ HasNewFatalFailureHelper
   bool has_new_fatal_failure_;
   TestPartResultReporterInterface* original_reporter_;
 
-  HasNewFatalFailureHelper(const HasNewFatalFailureHelper&) = delete;
-  HasNewFatalFailureHelper& operator=(const HasNewFatalFailureHelper&) = delete;
+  GTEST_DISALLOW_COPY_AND_ASSIGN_(HasNewFatalFailureHelper);
 };
 
 }  // namespace internal

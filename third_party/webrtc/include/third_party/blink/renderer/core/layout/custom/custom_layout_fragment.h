@@ -13,13 +13,13 @@
 
 namespace blink {
 
+class NGLayoutInputNode;
 class CustomLayoutChild;
 class LayoutBox;
-class LayoutInputNode;
-class LayoutResult;
+struct LogicalSize;
+class NGLayoutResult;
 class ScriptState;
 class ScriptValue;
-struct LogicalSize;
 
 // This represents the result of a layout (on a LayoutChild).
 //
@@ -29,17 +29,17 @@ struct LogicalSize;
 // The web developer can position this child fragment (setting inlineOffset,
 // and blockOffset), which are relative to its parent.
 //
-// This should eventually mirror the information in a LogicalFragment, it has
-// the additional capability that it is exposed to web developers.
+// This should eventually mirror the information in a NGFragment, it has the
+// additional capability that it is exposed to web developers.
 class CustomLayoutFragment : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
   CustomLayoutFragment(CustomLayoutChild*,
                        CustomLayoutToken*,
-                       const LayoutResult*,
+                       const NGLayoutResult*,
                        const LogicalSize& size,
-                       const std::optional<LayoutUnit> baseline,
+                       const absl::optional<LayoutUnit> baseline,
                        v8::Isolate*);
   CustomLayoutFragment(const CustomLayoutFragment&) = delete;
   CustomLayoutFragment& operator=(const CustomLayoutFragment&) = delete;
@@ -54,12 +54,12 @@ class CustomLayoutFragment : public ScriptWrappable {
   void setInlineOffset(double inline_offset) { inline_offset_ = inline_offset; }
   void setBlockOffset(double block_offset) { block_offset_ = block_offset; }
 
-  std::optional<double> baseline() const { return baseline_; }
+  absl::optional<double> baseline() const { return baseline_; }
 
   ScriptValue data(ScriptState*) const;
 
-  const LayoutResult& GetLayoutResult() const;
-  const LayoutInputNode& GetLayoutNode() const;
+  const NGLayoutResult& GetLayoutResult() const;
+  const NGLayoutInputNode& GetLayoutNode() const;
 
   bool IsValid() const { return token_->IsValid(); }
 
@@ -83,7 +83,7 @@ class CustomLayoutFragment : public ScriptWrappable {
   // that the last layout on the child wasn't with the same inputs, and force a
   // layout again.
 
-  Member<const LayoutResult> layout_result_;
+  Member<const NGLayoutResult> layout_result_;
 
   // The inline and block size on this object should never change.
   const double inline_size_;
@@ -94,7 +94,7 @@ class CustomLayoutFragment : public ScriptWrappable {
   double block_offset_ = 0;
 
   // The first-line baseline.
-  const std::optional<double> baseline_;
+  const absl::optional<double> baseline_;
 
   TraceWrapperV8Reference<v8::Value> layout_worklet_world_v8_data_;
 };

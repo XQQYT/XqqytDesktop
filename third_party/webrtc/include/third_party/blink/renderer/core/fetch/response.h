@@ -25,7 +25,6 @@ namespace blink {
 class ExceptionState;
 class ResponseInit;
 class ScriptState;
-class V8ResponseType;
 
 class CORE_EXPORT Response final : public ScriptWrappable, public Body {
   DEFINE_WRAPPERTYPEINFO();
@@ -78,7 +77,7 @@ class CORE_EXPORT Response final : public ScriptWrappable, public Body {
   const FetchResponseData* GetResponse() const { return response_.Get(); }
 
   // From Response.idl:
-  V8ResponseType type() const;
+  String type() const;
   String url() const;
   bool redirected() const;
   uint16_t status() const;

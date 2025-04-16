@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include "third_party/googletest/src/include/gtest/gtest.h"
 
 #include "./vpx_config.h"
 #if CONFIG_VP8_ENCODER || CONFIG_VP9_ENCODER
@@ -33,23 +33,14 @@ enum TestMode {
   kTwoPassGood,
   kTwoPassBest
 };
-
-#if CONFIG_REALTIME_ONLY
-#define ALL_TEST_MODES ::testing::Values(::libvpx_test::kRealTime)
-#define ONE_PASS_TEST_MODES ::testing::Values(::libvpx_test::kRealTime)
-#define ONE_OR_TWO_PASS_TEST_MODES ::testing::Values(::libvpx_test::kRealTime)
-#else
 #define ALL_TEST_MODES                                                        \
   ::testing::Values(::libvpx_test::kRealTime, ::libvpx_test::kOnePassGood,    \
                     ::libvpx_test::kOnePassBest, ::libvpx_test::kTwoPassGood, \
                     ::libvpx_test::kTwoPassBest)
+
 #define ONE_PASS_TEST_MODES                                                \
   ::testing::Values(::libvpx_test::kRealTime, ::libvpx_test::kOnePassGood, \
                     ::libvpx_test::kOnePassBest)
-
-#define ONE_OR_TWO_PASS_TEST_MODES \
-  ::testing::Values(::libvpx_test::kOnePassGood, ::libvpx_test::kTwoPassGood)
-#endif
 
 #define TWO_PASS_TEST_MODES \
   ::testing::Values(::libvpx_test::kTwoPassGood, ::libvpx_test::kTwoPassBest)
@@ -95,7 +86,7 @@ class TwopassStatsStore {
 // level of abstraction will be fleshed out as more tests are written.
 class Encoder {
  public:
-  Encoder(vpx_codec_enc_cfg_t cfg, vpx_enc_deadline_t deadline,
+  Encoder(vpx_codec_enc_cfg_t cfg, unsigned long deadline,
           const unsigned long init_flags, TwopassStatsStore *stats)
       : cfg_(cfg), deadline_(deadline), init_flags_(init_flags), stats_(stats) {
     memset(&encoder_, 0, sizeof(encoder_));
@@ -186,7 +177,7 @@ class Encoder {
     cfg_ = *cfg;
   }
 
-  void set_deadline(vpx_enc_deadline_t deadline) { deadline_ = deadline; }
+  void set_deadline(unsigned long deadline) { deadline_ = deadline; }
 
  protected:
   virtual vpx_codec_iface_t *CodecInterface() const = 0;
@@ -205,7 +196,7 @@ class Encoder {
 
   vpx_codec_ctx_t encoder_;
   vpx_codec_enc_cfg_t cfg_;
-  vpx_enc_deadline_t deadline_;
+  unsigned long deadline_;
   unsigned long init_flags_;
   TwopassStatsStore *stats_;
 };
@@ -300,7 +291,7 @@ class EncoderTest {
   vpx_codec_enc_cfg_t cfg_;
   vpx_codec_dec_cfg_t dec_cfg_;
   unsigned int passes_;
-  vpx_enc_deadline_t deadline_;
+  unsigned long deadline_;
   TwopassStatsStore stats_;
   unsigned long init_flags_;
   vpx_enc_frame_flags_t frame_flags_;

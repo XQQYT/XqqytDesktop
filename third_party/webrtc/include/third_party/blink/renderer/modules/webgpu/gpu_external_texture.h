@@ -61,9 +61,6 @@ class ExternalTextureCache : public GarbageCollected<ExternalTextureCache> {
   void Add(VideoFrame* frame, GPUExternalTexture* external_texture);
   void Remove(VideoFrame* frame);
 
-  void ReferenceUntilGPUIsFinished(
-      scoped_refptr<WebGPUMailboxTexture> mailbox_texture);
-
   void Trace(Visitor* visitor) const;
   GPUDevice* device() const;
 
@@ -84,7 +81,7 @@ class ExternalTextureCache : public GarbageCollected<ExternalTextureCache> {
   Member<GPUDevice> device_;
 };
 
-class GPUExternalTexture : public DawnObject<wgpu::ExternalTexture> {
+class GPUExternalTexture : public DawnObject<WGPUExternalTexture> {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
@@ -104,18 +101,15 @@ class GPUExternalTexture : public DawnObject<wgpu::ExternalTexture> {
       ExceptionState& exception_state);
   explicit GPUExternalTexture(
       ExternalTextureCache* cache,
-      wgpu::ExternalTexture external_texture,
+      WGPUExternalTexture external_texture,
       scoped_refptr<WebGPUMailboxTexture> mailbox_texture,
       bool is_zero_copy,
-      bool read_lock_fences_enabled,
-      std::optional<media::VideoFrame::ID> media_video_frame_unique_id,
-      const String& label);
+      absl::optional<media::VideoFrame::ID> media_video_frame_unique_id);
 
   GPUExternalTexture(const GPUExternalTexture&) = delete;
   GPUExternalTexture& operator=(const GPUExternalTexture&) = delete;
 
   bool isZeroCopy() const;
-  bool isReadLockFenceEnabled() const;
 
   void Destroy();
   void Expire();
@@ -157,12 +151,12 @@ class GPUExternalTexture : public DawnObject<wgpu::ExternalTexture> {
       const GPUExternalTextureDescriptor* webgpu_desc,
       scoped_refptr<media::VideoFrame> media_video_frame,
       media::PaintCanvasVideoRenderer* video_renderer,
-      std::optional<media::VideoFrame::ID> media_video_frame_unique_id,
+      absl::optional<media::VideoFrame::ID> media_video_frame_unique_id,
       ExceptionState& exception_state);
 
   void setLabelImpl(const String& value) override {
     std::string utf8_label = value.Utf8();
-    GetHandle().SetLabel(utf8_label.c_str());
+    GetProcs().externalTextureSetLabel(GetHandle(), utf8_label.c_str());
   }
 
   bool IsCurrentFrameFromHTMLVideoElementValid();
@@ -185,18 +179,13 @@ class GPUExternalTexture : public DawnObject<wgpu::ExternalTexture> {
   bool is_zero_copy_ = false;
   bool remove_from_cache_task_scheduled_ = false;
 
-  // read_lock_fences_enabled_ comes from media::VideoFrame metadata.
-  // VideoFrame set this metadata as a hint to ensure all previous gpu
-  // execution complete before returning video frame to producer.
-  bool read_lock_fences_enabled_ = false;
-
-  std::optional<media::VideoFrame::ID> media_video_frame_unique_id_;
+  absl::optional<media::VideoFrame::ID> media_video_frame_unique_id_;
   WeakMember<HTMLVideoElement> video_;
   WeakMember<VideoFrame> frame_;
   WeakMember<ExternalTextureCache> cache_;
   scoped_refptr<base::SingleThreadTaskRunner> task_runner_;
 
-  std::atomic<Status> status_ = Status::Active;
+  std::atomic<Status> status_ = Status::Expired;
 };
 
 }  // namespace blink

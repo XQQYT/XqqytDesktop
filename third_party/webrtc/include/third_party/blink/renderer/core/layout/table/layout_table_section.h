@@ -77,9 +77,9 @@ class CORE_EXPORT LayoutTableSection : public LayoutBlock {
   unsigned NumRows() const;
 
  protected:
-  bool IsTableSection() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectTableSection || LayoutBlock::IsOfType(type);
   }
 
   // Table section paints background specially.

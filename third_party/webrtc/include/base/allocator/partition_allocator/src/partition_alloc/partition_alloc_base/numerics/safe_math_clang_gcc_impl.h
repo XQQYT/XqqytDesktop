@@ -2,17 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_CLANG_GCC_IMPL_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_CLANG_GCC_IMPL_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_CLANG_GCC_IMPL_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_CLANG_GCC_IMPL_H_
 
 #include <cassert>
 #include <limits>
 #include <type_traits>
 
-#include "partition_alloc/partition_alloc_base/numerics/safe_conversions.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/numerics/safe_conversions.h"
 
 #if !defined(__native_client__) && (defined(__ARMEL__) || defined(__arch64__))
-#include "partition_alloc/partition_alloc_base/numerics/safe_math_arm_impl.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/numerics/safe_math_arm_impl.h"
 #define PA_BASE_HAS_ASSEMBLER_SAFE_MATH (1)
 #else
 #define PA_BASE_HAS_ASSEMBLER_SAFE_MATH (0)
@@ -152,4 +152,4 @@ struct ClampedNegFastOp {
 
 }  // namespace partition_alloc::internal::base::internal
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_CLANG_GCC_IMPL_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_CLANG_GCC_IMPL_H_

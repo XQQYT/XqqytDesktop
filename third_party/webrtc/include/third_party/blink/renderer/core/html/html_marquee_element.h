@@ -61,7 +61,7 @@ class HTMLMarqueeElement final : public HTMLElement {
   void CollectStyleForPresentationAttribute(
       const QualifiedName&,
       const AtomicString&,
-      HeapVector<CSSPropertyValue, 8>&) override;
+      MutableCSSPropertyValueSet*) override;
 
   class RequestAnimationFrameCallback;
   class AnimationFinished;

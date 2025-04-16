@@ -33,11 +33,11 @@ class PLATFORM_EXPORT MainThreadImpl : public MainThread {
   void AddTaskTimeObserver(base::sequence_manager::TaskTimeObserver*) override;
   void RemoveTaskTimeObserver(
       base::sequence_manager::TaskTimeObserver*) override;
-  base::TimeTicks CurrentTaskStartTime() const override;
 
  private:
   scoped_refptr<base::SingleThreadTaskRunner> task_runner_;
-  raw_ptr<MainThreadSchedulerImpl, DanglingUntriaged> scheduler_;  // Not owned.
+  raw_ptr<MainThreadSchedulerImpl, ExperimentalRenderer>
+      scheduler_;  // Not owned.
 };
 
 }  // namespace scheduler

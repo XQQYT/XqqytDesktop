@@ -34,13 +34,13 @@
 
 namespace blink {
 
-class BlockNode;
 struct PaintInfo;
+class NGBlockNode;
 
-using TrackedLayoutBoxLinkedHashSet = GCedHeapLinkedHashSet<Member<LayoutBox>>;
-using TrackedDescendantsMap =
-    GCedHeapHashMap<WeakMember<const LayoutBlock>,
-                    Member<TrackedLayoutBoxLinkedHashSet>>;
+typedef HeapLinkedHashSet<Member<LayoutBox>> TrackedLayoutBoxLinkedHashSet;
+typedef HeapHashMap<WeakMember<const LayoutBlock>,
+                    Member<TrackedLayoutBoxLinkedHashSet>>
+    TrackedDescendantsMap;
 
 // LayoutBlock is the class that is used by any LayoutObject
 // that is a containing block.
@@ -135,6 +135,8 @@ class CORE_EXPORT LayoutBlock : public LayoutBox {
   // These two functions are overridden for inline-block.
   LayoutUnit FirstLineHeight() const override;
 
+  bool UseLogicalBottomMarginEdgeForInlineBlockBaseline() const;
+
   const char* GetName() const override;
 
  protected:
@@ -171,7 +173,7 @@ class CORE_EXPORT LayoutBlock : public LayoutBox {
       const LayoutObject* parent) const override;
 
  public:
-  RecalcScrollableOverflowResult RecalcScrollableOverflow() override;
+  RecalcLayoutOverflowResult RecalcLayoutOverflow() override;
 
   void RecalcVisualOverflow() override;
 
@@ -198,13 +200,18 @@ class CORE_EXPORT LayoutBlock : public LayoutBox {
  protected:
   void WillBeDestroyed() override;
 
+  void UpdateLayout() override {
+    NOT_DESTROYED();
+    NOTREACHED_NORETURN();
+  }
+
  public:
   void Paint(const PaintInfo&) const override;
 
   virtual bool HasLineIfEmpty() const;
   // Returns baseline offset if we can get |SimpleFontData| from primary font.
   // Or returns no value if we can't get font data.
-  std::optional<LayoutUnit> BaselineForEmptyLine() const;
+  absl::optional<LayoutUnit> BaselineForEmptyLine() const;
 
   bool NodeAtPoint(HitTestResult&,
                    const HitTestLocation&,
@@ -226,7 +233,16 @@ class CORE_EXPORT LayoutBlock : public LayoutBox {
   void AddOutlineRects(OutlineRectCollector&,
                        OutlineInfo*,
                        const PhysicalOffset& additional_offset,
-                       OutlineType) const override;
+                       NGOutlineType) const override;
+
+  // TODO(jchaffraix): We should rename this function as inline-flex and
+  // inline-grid as also covered.
+  // Alternatively it should be removed as we clarify the meaning of
+  // IsAtomicInlineLevel to imply isInline.
+  bool IsInlineBlockOrInlineTable() const final {
+    NOT_DESTROYED();
+    return IsInline() && IsAtomicInlineLevel();
+  }
 
   bool IsInSelfHitTestingPhase(HitTestPhase phase) const final {
     NOT_DESTROYED();
@@ -256,7 +272,9 @@ class CORE_EXPORT LayoutBlock : public LayoutBox {
   void ImageChanged(WrappedImagePtr, CanDeferInvalidation) override;
 
  private:
-  PhysicalRect LocalCaretRect(int caret_offset) const final;
+  PhysicalRect LocalCaretRect(
+      int caret_offset,
+      LayoutUnit* extra_width_to_end_of_line = nullptr) const final;
   bool IsInlineBoxWrapperActuallyChild() const;
 
   // End helper functions and structs used by layoutBlockChildren.
@@ -279,7 +297,7 @@ class CORE_EXPORT LayoutBlock : public LayoutBox {
 
   // This is necessary for now for interoperability between the old and new
   // layout code. Primarily for calling layoutPositionedObjects at the moment.
-  friend class BlockNode;
+  friend class NGBlockNode;
 };
 
 template <>

@@ -1,14 +1,13 @@
 <html>
 <head>
-<script src="/resources/prevent-bfcache.js"></script>
 <script>
 if (window.testRunner) {
     testRunner.dumpAsText();
     testRunner.waitUntilDone();
 }
 
-async function test() {
-    await preventBFCache();
+function test()
+{
     if (sessionStorage["form"] != 1) {
         sessionStorage["form"] = 1;
         var form = document.getElementById("testForm");

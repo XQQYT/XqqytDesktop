@@ -2,18 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_MEMORY_RECLAIMER_H_
-#define PARTITION_ALLOC_MEMORY_RECLAIMER_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_MEMORY_RECLAIMER_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_MEMORY_RECLAIMER_H_
 
 #include <memory>
 #include <set>
 
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_base/no_destructor.h"
-#include "partition_alloc/partition_alloc_base/thread_annotations.h"
-#include "partition_alloc/partition_alloc_base/time/time.h"
-#include "partition_alloc/partition_alloc_forward.h"
-#include "partition_alloc/partition_lock.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/no_destructor.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/thread_annotations.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/time/time.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_forward.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_lock.h"
 
 namespace partition_alloc {
 
@@ -51,8 +51,6 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC) MemoryReclaimer {
 
   // Triggers an explicit reclaim now reclaiming all free memory
   void ReclaimAll();
-  // Same as ReclaimNormal(), but return early if reclaim takes too long.
-  void ReclaimFast();
 
  private:
   MemoryReclaimer();
@@ -70,4 +68,4 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC) MemoryReclaimer {
 
 }  // namespace partition_alloc
 
-#endif  // PARTITION_ALLOC_MEMORY_RECLAIMER_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_MEMORY_RECLAIMER_H_

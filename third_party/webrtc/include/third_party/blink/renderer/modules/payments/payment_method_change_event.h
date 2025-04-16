@@ -36,7 +36,7 @@ class MODULES_EXPORT PaymentMethodChangeEvent final
                                           const PaymentMethodChangeEventInit*);
 
   const String& methodName() const;
-  const ScriptObject& methodDetails() const;
+  const ScriptValue methodDetails(ScriptState*) const;
 
   PaymentMethodChangeEvent(ScriptState*,
                            const AtomicString& type,
@@ -46,7 +46,7 @@ class MODULES_EXPORT PaymentMethodChangeEvent final
 
  private:
   String method_name_;
-  const ScriptObject method_details_;
+  WorldSafeV8Reference<v8::Value> method_details_;
 };
 
 }  // namespace blink

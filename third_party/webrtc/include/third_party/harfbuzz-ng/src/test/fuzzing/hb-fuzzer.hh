@@ -1,5 +1,3 @@
-#include <hb-config.hh>
-
 #include <hb.h>
 #include <stddef.h>
 

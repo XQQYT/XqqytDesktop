@@ -6,24 +6,25 @@
 // the low-level platform-specific abstraction to the OS's threading interface.
 // You should instead be using a message-loop driven Thread, see thread.h.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_H_
 
-#include <cstddef>
+#include <stddef.h>
+
 #include <iosfwd>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_base/threading/platform_thread_ref.h"
-#include "partition_alloc/partition_alloc_base/time/time.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/threading/platform_thread_ref.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/time/time.h"
+#include "build/build_config.h"
 
-#if PA_BUILDFLAG(IS_WIN)
-#include "partition_alloc/partition_alloc_base/win/windows_types.h"
-#elif PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_WIN)
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/windows_types.h"
+#elif BUILDFLAG(IS_FUCHSIA)
 #include <zircon/types.h>
-#elif PA_BUILDFLAG(IS_APPLE)
+#elif BUILDFLAG(IS_APPLE)
 #include <mach/mach_types.h>
-#elif PA_BUILDFLAG(IS_POSIX)
+#elif BUILDFLAG(IS_POSIX)
 #include <pthread.h>
 #include <unistd.h>
 #endif
@@ -31,22 +32,22 @@
 namespace partition_alloc::internal::base {
 
 // Used for logging. Always an integer value.
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 typedef DWORD PlatformThreadId;
-#elif PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_FUCHSIA)
 typedef zx_handle_t PlatformThreadId;
-#elif PA_BUILDFLAG(IS_APPLE)
+#elif BUILDFLAG(IS_APPLE)
 typedef mach_port_t PlatformThreadId;
-#elif PA_BUILDFLAG(IS_POSIX)
+#elif BUILDFLAG(IS_POSIX)
 typedef pid_t PlatformThreadId;
 #endif
 
 // Used to operate on threads.
 class PlatformThreadHandle {
  public:
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   typedef void* Handle;
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
   typedef pthread_t Handle;
 #endif
 
@@ -71,7 +72,7 @@ const PlatformThreadId kInvalidThreadId(0);
 typedef void (*SetThreadNameProc)(const std::string&);
 
 // A namespace for low-level thread functions.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) PlatformThread {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) PlatformThread {
  public:
   PlatformThread() = delete;
   PlatformThread(const PlatformThread&) = delete;
@@ -106,4 +107,4 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) PlatformThread {
 
 }  // namespace partition_alloc::internal::base
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_H_

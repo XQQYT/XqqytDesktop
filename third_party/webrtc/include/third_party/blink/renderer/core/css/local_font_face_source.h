@@ -48,12 +48,17 @@ class LocalFontFaceSource final : public CSSFontFaceSource,
   void NotifyFontUniqueNameLookupReady();
 
  protected:
-  const SimpleFontData* CreateLoadingFallbackFontData(const FontDescription&);
+  scoped_refptr<SimpleFontData> CreateLoadingFallbackFontData(
+      const FontDescription&);
 
  private:
-  const SimpleFontData* CreateFontData(
+  scoped_refptr<SimpleFontData> CreateFontData(
       const FontDescription&,
       const FontSelectionCapabilities&) override;
+
+  void ReportFontLookup(const FontDescription& font_description,
+                        SimpleFontData* font_data,
+                        bool is_loading_fallback = false) override;
 
   class LocalFontHistograms {
     DISALLOW_NEW();

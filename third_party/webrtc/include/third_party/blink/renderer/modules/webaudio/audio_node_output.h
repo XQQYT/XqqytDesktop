@@ -66,15 +66,6 @@ class MODULES_EXPORT AudioNodeOutput final {
   // during the course of a render quantum.
   unsigned RenderingFanOutCount() const;
 
-  // Returns the number of AudioParams that this output is connected to
-  // during rendering. Unlike `ParamFanOutCount()` this will not change
-  // during a render quantum. MUST be called from the audio thread.
-  unsigned RenderingParamFanOutCount() const;
-
-  // Return true if either `RenderingFanOutCount()` or
-  // `RenderingParamFanOutCount()` is greater than zero.
-  bool IsConnectedDuringRendering() const;
-
   // Must be called with the context's graph lock.
   void DisconnectAll();
 
@@ -108,7 +99,7 @@ class MODULES_EXPORT AudioNodeOutput final {
 
   // This reference is safe because the AudioHandler owns this AudioNodeOutput
   // object.
-  const raw_ref<AudioHandler> handler_;
+  const raw_ref<AudioHandler, ExperimentalRenderer> handler_;
 
   // fanOutCount() is the number of AudioNodeInputs that we're connected to.
   // This method should not be called in audio thread rendering code, instead
@@ -116,10 +107,10 @@ class MODULES_EXPORT AudioNodeOutput final {
   // It must be called with the context's graph lock.
   unsigned FanOutCount();
 
-  // Similar to `FanOutCount()`, `ParamFanOutCount()` is the number of
-  // AudioParams that this output is connected to.  This method MUST be
-  // called from the main thread with the context graph lock.
-  // For audio thread, use `RenderingParamFanOutCount()` instead.
+  // Similar to fanOutCount(), paramFanOutCount() is the number of AudioParams
+  // that we're connected to.  This method should not be called in audio thread
+  // rendering code, instead renderingParamFanOutCount() should be used.
+  // It must be called with the context's graph lock.
   unsigned ParamFanOutCount();
 
   // Must be called with the context's graph lock.

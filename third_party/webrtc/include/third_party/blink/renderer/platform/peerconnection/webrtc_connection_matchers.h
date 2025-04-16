@@ -5,17 +5,19 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_PEERCONNECTION_WEBRTC_CONNECTION_MATCHERS_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_PEERCONNECTION_WEBRTC_CONNECTION_MATCHERS_H_
 
-#include <algorithm>
 #include <iterator>
 #include <ostream>
 #include <vector>
 
+#include "base/ranges/algorithm.h"
 #include "base/strings/strcat.h"
 #include "testing/gmock/include/gmock/gmock.h"
+
 #include "third_party/webrtc/api/rtc_error.h"
 #include "third_party/webrtc/p2p/base/connection.h"
 #include "third_party/webrtc/p2p/base/ice_controller_interface.h"
 #include "third_party/webrtc/p2p/base/ice_switch_reason.h"
+
 #include "third_party/webrtc_overrides/p2p/base/ice_switch_proposal.h"
 
 namespace cricket {
@@ -26,7 +28,7 @@ inline void PrintTo(const Connection* conn, std::ostream* os) {
 }
 
 // Pretty prints an optional connection object for tests.
-inline void PrintTo(std::optional<const Connection*> conn, std::ostream* os) {
+inline void PrintTo(absl::optional<const Connection*> conn, std::ostream* os) {
   if (conn.has_value()) {
     PrintTo(conn.value(), os);
   } else {
@@ -113,8 +115,8 @@ MATCHER_P(ConnectionEq,
 // Tests the equality of two optionals containing a blink::IceConnection and a
 // cricket::Connection each.
 MATCHER_P(ConnectionOptionalsEq,
-          /* const std::optional<blink::IceConnection> arg, */
-          /* const std::optional<cricket::Connection*> */ conn,
+          /* const absl::optional<blink::IceConnection> arg, */
+          /* const absl::optional<cricket::Connection*> */ conn,
           "") {
   if (arg.has_value()) {
     return ExplainMatchResult(ConnectionEq(conn.value_or(nullptr)), arg.value(),
@@ -137,12 +139,12 @@ MATCHER(CricketBlinkConnectionTupleEq,
 // cricket::Connection objects each, ignoring null cricket::Connections and
 // ordering.
 MATCHER_P(ConnectionSequenceEq,
-          /* std::vector<blink::IceConnection> arg, */
+          /* std::vector<const blink::IceConnection> arg, */
           /* std::vector<const cricket::Connection*> */ connections,
           "") {
   std::vector<const cricket::Connection*> non_null_connections;
-  std::ranges::copy_if(connections, std::back_inserter(non_null_connections),
-                       [](auto conn) { return conn != nullptr; });
+  base::ranges::copy_if(connections, std::back_inserter(non_null_connections),
+                        [](auto conn) { return conn != nullptr; });
   return ExplainMatchResult(
       UnorderedPointwise(CricketBlinkConnectionTupleEq(), non_null_connections),
       arg, result_listener);

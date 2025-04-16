@@ -38,10 +38,6 @@
 #include "v8/include/v8-inspector.h"
 #include "v8/include/v8.h"
 
-namespace WTF {
-class String;
-}  // namespace WTF
-
 namespace blink {
 
 class ErrorEvent;
@@ -90,7 +86,7 @@ class CORE_EXPORT MainThreadDebugger final : public ThreadDebuggerCommonImpl {
   void ReportConsoleMessage(ExecutionContext*,
                             mojom::ConsoleMessageSource,
                             mojom::ConsoleMessageLevel,
-                            const WTF::String& message,
+                            const String& message,
                             SourceLocation*) override;
   int ContextGroupId(ExecutionContext*) override;
 
@@ -126,6 +122,7 @@ class CORE_EXPORT MainThreadDebugger final : public ThreadDebuggerCommonImpl {
 
   std::unique_ptr<ClientMessageLoop> client_message_loop_;
   bool paused_;
+  static MainThreadDebugger* instance_;
   std::unique_ptr<DocumentLifecycle::PostponeTransitionScope>
       postponed_transition_scope_;
 };

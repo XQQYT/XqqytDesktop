@@ -421,9 +421,8 @@ class Module {
   // If symbol_data is CFI then:
   // - all CFI records.
   // Addresses in the output are all relative to the load address
-  // established by SetLoadAddress, unless preserve_load_address
-  // is equal to true, in which case each address will remain unchanged.
-  bool Write(std::ostream& stream, SymbolData symbol_data, bool preserve_load_address = false);
+  // established by SetLoadAddress.
+  bool Write(std::ostream& stream, SymbolData symbol_data);
 
   // Place the name in the global set of strings. Return a StringView points to
   // a string inside the pool.

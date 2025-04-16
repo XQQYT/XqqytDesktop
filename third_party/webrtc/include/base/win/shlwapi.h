@@ -4,14 +4,12 @@
 #ifndef BASE_WIN_SHLWAPI_H_
 #define BASE_WIN_SHLWAPI_H_
 
-// clang-format off
 // Check no prior poisonous defines were made.
 #include "base/win/windows_defines.inc"
 // Undefine before windows header will make the poisonous defines
 #include "base/win/windows_undefines.inc"
-// clang-format on
 
-#include <shlwapi.h>
+#include <shlwapi.h>  // NOLINT(build/include_order)
 
 // Undefine the poisonous defines
 #include "base/win/windows_undefines.inc"  // NOLINT(build/include)

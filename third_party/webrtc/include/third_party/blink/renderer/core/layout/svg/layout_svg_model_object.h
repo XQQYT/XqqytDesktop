@@ -47,14 +47,16 @@ class LayoutSVGModelObject : public LayoutObject {
 
   bool IsChildAllowed(LayoutObject*, const ComputedStyle&) const override;
 
+  PhysicalRect VisualRectInDocument(
+      VisualRectFlags = kDefaultVisualRectFlags) const override;
+
   gfx::RectF VisualRectInLocalSVGCoordinates() const override {
     NOT_DESTROYED();
     return DecoratedBoundingBox();
   }
 
-  void QuadsInAncestorInternal(Vector<gfx::QuadF>&,
-                               const LayoutBoxModelObject* ancestor,
-                               MapCoordinatesFlags) const override;
+  void AbsoluteQuads(Vector<gfx::QuadF>&,
+                     MapCoordinatesFlags mode = 0) const override;
   gfx::RectF LocalBoundingBoxRectForAccessibility() const final;
 
   void MapLocalToAncestor(const LayoutBoxModelObject* ancestor,
@@ -70,20 +72,18 @@ class LayoutSVGModelObject : public LayoutObject {
     return To<SVGElement>(LayoutObject::GetNode());
   }
 
-  bool IsSVG() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectSVG || LayoutObject::IsOfType(type);
   }
 
  protected:
-  void ImageChanged(WrappedImagePtr, CanDeferInvalidation) override;
   void WillBeDestroyed() override;
 
   void InsertedIntoTree() override;
   void WillBeRemovedFromTree() override;
 
-  bool CheckForImplicitTransformChange(const SVGLayoutInfo&,
-                                       bool bbox_changed) const;
+  bool CheckForImplicitTransformChange(bool bbox_changed) const;
 
  private:
   // LayoutSVGModelObject subclasses should use GetElement() instead.
@@ -92,7 +92,7 @@ class LayoutSVGModelObject : public LayoutObject {
   void AddOutlineRects(OutlineRectCollector&,
                        OutlineInfo*,
                        const PhysicalOffset& additional_offset,
-                       OutlineType) const final;
+                       NGOutlineType) const final;
 };
 
 }  // namespace blink

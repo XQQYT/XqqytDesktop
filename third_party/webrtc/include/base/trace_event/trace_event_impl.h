@@ -2,10 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/40284755): Remove this and spanify to fix the errors.
-#pragma allow_unsafe_buffers
-#endif
 
 #ifndef BASE_TRACE_EVENT_TRACE_EVENT_IMPL_H_
 #define BASE_TRACE_EVENT_TRACE_EVENT_IMPL_H_
@@ -16,15 +12,14 @@
 #include <string>
 
 #include "base/base_export.h"
-#include "base/compiler_specific.h"
 #include "base/functional/callback.h"
-#include "base/memory/raw_ptr.h"
 #include "base/process/process_handle.h"
 #include "base/strings/string_util.h"
 #include "base/threading/platform_thread.h"
 #include "base/time/time.h"
 #include "base/trace_event/common/trace_event_common.h"
 #include "base/trace_event/trace_arguments.h"
+#include "base/trace_event/trace_event_memory_overhead.h"
 #include "build/build_config.h"
 
 namespace base {
@@ -42,12 +37,17 @@ typedef base::RepeatingCallback<bool(const std::string& metadata_name)>
     MetadataFilterPredicate;
 
 struct TraceEventHandle {
-  uint64_t dummy;
+  uint32_t chunk_seq;
+  // These numbers of bits must be kept consistent with
+  // TraceBufferChunk::kMaxTrunkIndex and
+  // TraceBufferChunk::kTraceBufferChunkSize (in trace_buffer.h).
+  unsigned chunk_index : 26;
+  unsigned event_index : 6;
 };
 
 class BASE_EXPORT TraceEvent {
  public:
-  // TODO(crbug.com/40599662): Remove once all users have been updated.
+  // TODO(898794): Remove once all users have been updated.
   using TraceValue = base::trace_event::TraceValue;
 
   TraceEvent();
@@ -60,6 +60,7 @@ class BASE_EXPORT TraceEvent {
              const char* name,
              const char* scope,
              unsigned long long id,
+             unsigned long long bind_id,
              TraceArguments* args,
              unsigned int flags);
 
@@ -89,10 +90,13 @@ class BASE_EXPORT TraceEvent {
              const char* name,
              const char* scope,
              unsigned long long id,
+             unsigned long long bind_id,
              TraceArguments* args,
              unsigned int flags);
 
   void UpdateDuration(const TimeTicks& now, const ThreadTicks& thread_now);
+
+  void EstimateTraceMemoryOverhead(TraceEventMemoryOverhead* overhead);
 
   // Serialize event data to JSON
   void AppendAsJSON(
@@ -110,9 +114,10 @@ class BASE_EXPORT TraceEvent {
   const char* scope() const { return scope_; }
   unsigned long long id() const { return id_; }
   unsigned int flags() const { return flags_; }
+  unsigned long long bind_id() const { return bind_id_; }
   // Exposed for unittesting:
 
-  const StringStorage& parameter_copy_storage() const LIFETIME_BOUND {
+  const StringStorage& parameter_copy_storage() const {
     return parameter_copy_storage_;
   }
 
@@ -150,7 +155,7 @@ class BASE_EXPORT TraceEvent {
   // The equivalence is checked with a static_assert() in trace_event_impl.cc.
   const char* scope_ = nullptr;
   unsigned long long id_ = 0u;
-  raw_ptr<const unsigned char> category_group_enabled_ = nullptr;
+  const unsigned char* category_group_enabled_ = nullptr;
   const char* name_ = nullptr;
   StringStorage parameter_copy_storage_;
   TraceArguments args_;
@@ -158,10 +163,11 @@ class BASE_EXPORT TraceEvent {
   //  tid: thread_id_, pid: current_process_id (default case).
   //  tid: -1, pid: process_id_ (when flags_ & TRACE_EVENT_FLAG_HAS_PROCESS_ID).
   union {
-    PlatformThreadId thread_id_ = kInvalidThreadId;
+    PlatformThreadId thread_id_ = 0;
     ProcessId process_id_;
   };
   unsigned int flags_ = 0;
+  unsigned long long bind_id_ = 0;
   char phase_ = TRACE_EVENT_PHASE_BEGIN;
 };
 

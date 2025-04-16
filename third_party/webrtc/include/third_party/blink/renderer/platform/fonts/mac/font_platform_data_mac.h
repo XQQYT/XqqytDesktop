@@ -36,6 +36,8 @@
 #include "third_party/blink/renderer/platform/fonts/text_rendering_mode.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 
+#include <memory>
+
 @class NSFont;
 class SkTypeface;
 typedef uint32_t SkFourByteTag;
@@ -53,12 +55,12 @@ bool PLATFORM_EXPORT VariableAxisChangeEffective(SkTypeface* typeface,
                                                  SkFourByteTag axis,
                                                  float new_value);
 
-// Creates a FontPlatform object for specified original CTFont and font
-// parameters. `size` is scaled size, `specified_size` is passed in to control
+// Creates a FontPlatform object for specified original NSFont and font
+// parameters.  size is scaled size, specified size is passed in to control
 // optical sizing and tracking, needed in particular for the San Francisco
 // system font.
-const FontPlatformData* FontPlatformDataFromCTFont(
-    CTFontRef,
+std::unique_ptr<FontPlatformData> FontPlatformDataFromNSFont(
+    NSFont*,
     float size,
     float specified_size,
     bool synthetic_bold,
@@ -67,7 +69,7 @@ const FontPlatformData* FontPlatformDataFromCTFont(
     ResolvedFontFeatures resolved_font_features,
     FontOrientation,
     OpticalSizing,
-    const FontVariationSettings*);
+    FontVariationSettings*);
 
 }  // namespace blink
 

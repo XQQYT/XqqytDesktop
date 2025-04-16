@@ -11,32 +11,32 @@
 
 namespace blink {
 
-// An import attribute key/value pair per spec:
-// https://tc39.es/proposal-import-attributes/
-struct ImportAttribute {
+// An import assertion key/value pair per spec:
+// https://tc39.es/proposal-import-assertions/
+struct ImportAssertion {
   String key;
   String value;
   TextPosition position;
-  ImportAttribute(const String& key,
+  ImportAssertion(const String& key,
                   const String& value,
                   const TextPosition& position)
       : key(key), value(value), position(position) {}
 };
 
 // An instance of a ModuleRequest record:
-// https://tc39.es/proposal-import-attributes/#sec-modulerequest-record
+// https://tc39.es/proposal-import-assertions/#sec-modulerequest-record
 // Represents a module script's request to import a module given a specifier and
-// list of import attributes.
+// list of import assertions.
 struct CORE_EXPORT ModuleRequest {
   String specifier;
   TextPosition position;
-  Vector<ImportAttribute> import_attributes;
+  Vector<ImportAssertion> import_assertions;
   ModuleRequest(const String& specifier,
                 const TextPosition& position,
-                const Vector<ImportAttribute>& import_attributes)
+                const Vector<ImportAssertion>& import_assertions)
       : specifier(specifier),
         position(position),
-        import_attributes(import_attributes) {}
+        import_assertions(import_assertions) {}
 
   String GetModuleTypeString() const;
 

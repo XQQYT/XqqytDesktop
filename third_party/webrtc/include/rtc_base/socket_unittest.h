@@ -11,16 +11,13 @@
 #ifndef RTC_BASE_SOCKET_UNITTEST_H_
 #define RTC_BASE_SOCKET_UNITTEST_H_
 
-#include <cstddef>
-
 #include "absl/strings/string_view.h"
-#include "rtc_base/ip_address.h"
-#include "rtc_base/socket_factory.h"
-#include "test/gtest.h"
+#include "rtc_base/gunit.h"
+#include "rtc_base/thread.h"
 
-namespace webrtc {
+namespace rtc {
 
-// Generic socket tests, to be used when testing individual socket servers.
+// Generic socket tests, to be used when testing individual socketservers.
 // Derive your specific test class from SocketTest, install your
 // socketserver, and call the SocketTest test methods.
 class SocketTest : public ::testing::Test {
@@ -67,9 +64,8 @@ class SocketTest : public ::testing::Test {
   void TestSocketRecvTimestampIPv6();
   void TestUdpSocketRecvTimestampUseRtcEpochIPv4();
   void TestUdpSocketRecvTimestampUseRtcEpochIPv6();
-  void TestSocketSendRecvWithEcnIPV4();
-  void TestSocketSendRecvWithEcnIPV6();
 
+  static const int kTimeout = 5000;  // ms
   const IPAddress kIPv4Loopback;
   const IPAddress kIPv6Loopback;
 
@@ -99,22 +95,14 @@ class SocketTest : public ::testing::Test {
   void GetSetOptionsInternal(const IPAddress& loopback);
   void SocketRecvTimestamp(const IPAddress& loopback);
   void UdpSocketRecvTimestampUseRtcEpoch(const IPAddress& loopback);
-  void SocketSendRecvWithEcn(const IPAddress& loopback);
 
-  rtc::SocketFactory* socket_factory_;
+  SocketFactory* socket_factory_;
 };
 
 // For unbound sockets, GetLocalAddress / GetRemoteAddress return AF_UNSPEC
 // values on Windows, but an empty address of the same family on Linux/MacOS X.
 bool IsUnspecOrEmptyIP(const IPAddress& address);
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace rtc {
-using ::webrtc::IsUnspecOrEmptyIP;
-using ::webrtc::SocketTest;
 }  // namespace rtc
 
 #endif  // RTC_BASE_SOCKET_UNITTEST_H_

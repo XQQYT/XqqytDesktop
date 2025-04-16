@@ -16,11 +16,10 @@
 
 #include <map>
 #include <memory>
-#include <optional>
 #include <utility>
 #include <vector>
 
-#include "api/environment/environment.h"
+#include "absl/types/optional.h"
 #include "api/sequence_checker.h"
 #include "api/task_queue/task_queue_base.h"
 #include "api/test/videocodec_test_fixture.h"
@@ -62,8 +61,7 @@ class VideoProcessor {
   using FrameWriterList = std::vector<std::unique_ptr<FrameWriter>>;
   using FrameStatistics = VideoCodecTestStats::FrameStatistics;
 
-  VideoProcessor(const Environment& env,
-                 VideoEncoder* encoder,
+  VideoProcessor(webrtc::VideoEncoder* encoder,
                  VideoDecoderList* decoders,
                  FrameReader* input_frame_reader,
                  const VideoCodecTestFixture::Config& config,
@@ -141,13 +139,13 @@ class VideoProcessor {
     int32_t Decoded(webrtc::VideoFrame& image) override;
 
     int32_t Decoded(webrtc::VideoFrame& image,
-                    int64_t /* decode_time_ms */) override {
+                    int64_t decode_time_ms) override {
       return Decoded(image);
     }
 
     void Decoded(webrtc::VideoFrame& image,
-                 std::optional<int32_t> /* decode_time_ms */,
-                 std::optional<uint8_t> /* qp */) override {
+                 absl::optional<int32_t> decode_time_ms,
+                 absl::optional<uint8_t> qp) override {
       Decoded(image);
     }
 

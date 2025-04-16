@@ -17,23 +17,13 @@
 #ifndef SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_EXPERIMENTAL_SLICE_LAYOUT_H_
 #define SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_EXPERIMENTAL_SLICE_LAYOUT_H_
 
-#include <cstdint>
-#include <map>
-#include <memory>
-#include <optional>
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include <set>
 
-#include "perfetto/ext/base/status_or.h"
-#include "perfetto/trace_processor/basic_types.h"
-#include "src/trace_processor/containers/string_pool.h"
-#include "src/trace_processor/db/table.h"
 #include "src/trace_processor/perfetto_sql/intrinsics/table_functions/static_table_function.h"
 #include "src/trace_processor/storage/trace_storage.h"
-#include "src/trace_processor/tables/slice_tables_py.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 class ExperimentalSliceLayout : public StaticTableFunction {
  public:
@@ -44,14 +34,17 @@ class ExperimentalSliceLayout : public StaticTableFunction {
   Table::Schema CreateSchema() override;
   std::string TableName() override;
   uint32_t EstimateRowCount() override;
-  base::StatusOr<std::unique_ptr<Table>> ComputeTable(
-      const std::vector<SqlValue>& arguments) override;
+  base::Status ValidateConstraints(const QueryConstraints&) override;
+  base::Status ComputeTable(const std::vector<Constraint>& cs,
+                            const std::vector<Order>& ob,
+                            const BitVector& cols_used,
+                            std::unique_ptr<Table>& table_return) override;
 
  private:
   std::unique_ptr<Table> ComputeLayoutTable(
       std::vector<tables::SliceTable::RowNumber> rows,
       StringPool::Id filter_id);
-  static tables::SliceTable::Id InsertSlice(
+  tables::SliceTable::Id InsertSlice(
       std::map<tables::SliceTable::Id, tables::SliceTable::Id>& id_map,
       tables::SliceTable::Id id,
       std::optional<tables::SliceTable::Id> parent_id);
@@ -65,6 +58,7 @@ class ExperimentalSliceLayout : public StaticTableFunction {
   const StringPool::Id empty_string_id_;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_EXPERIMENTAL_SLICE_LAYOUT_H_

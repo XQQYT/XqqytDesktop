@@ -23,7 +23,6 @@ class CSSInterpolationEnvironment : public InterpolationEnvironment {
       : InterpolationEnvironment(map),
         state_(&state),
         base_style_(state.StyleBuilder().GetBaseComputedStyle()),
-        animation_controls_style_(base_style_),
         cascade_(cascade),
         cascade_resolver_(cascade_resolver) {}
 
@@ -32,11 +31,8 @@ class CSSInterpolationEnvironment : public InterpolationEnvironment {
       : InterpolationEnvironment(map), state_(&state) {}
 
   CSSInterpolationEnvironment(const InterpolationTypesMap& map,
-                              const ComputedStyle& base_style,
-                              const ComputedStyle& animation_controls_style)
-      : InterpolationEnvironment(map),
-        base_style_(&base_style),
-        animation_controls_style_(&animation_controls_style) {}
+                              const ComputedStyle& base_style)
+      : InterpolationEnvironment(map), base_style_(&base_style) {}
 
   bool IsCSS() const final { return true; }
 
@@ -54,31 +50,12 @@ class CSSInterpolationEnvironment : public InterpolationEnvironment {
     return *base_style_;
   }
 
-  // This is the style that should be used for properties that control
-  // animation behavior.  This is usually the same as BaseStyle, except in the
-  // case of the interpolation environment used for the before-change style
-  // for CSS transitions.  In that case, the AnimationControlsStyle() is the
-  // after-change style.
-  const ComputedStyle& AnimationControlsStyle() const {
-    DCHECK(animation_controls_style_);
-    return *animation_controls_style_;
-  }
-
-  // Eliminates substitution functions, and handles other cascade interactions,
-  // such as 'revert', 'revert-layer', etc.
-  //
-  // The TreeScope is the tree scope of the associated @keyframes rule
-  // (if any).
-  //
   // TODO(crbug.com/985023): This effective violates const.
-  const CSSValue* Resolve(const PropertyHandle&,
-                          const CSSValue*,
-                          const TreeScope*) const;
+  const CSSValue* Resolve(const PropertyHandle&, const CSSValue*) const;
 
  private:
   StyleResolverState* state_ = nullptr;
   const ComputedStyle* base_style_ = nullptr;
-  const ComputedStyle* animation_controls_style_ = nullptr;
   StyleCascade* cascade_ = nullptr;
   CascadeResolver* cascade_resolver_ = nullptr;
 };

@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_DEBUG_ALIAS_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_DEBUG_ALIAS_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_DEBUG_ALIAS_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_DEBUG_ALIAS_H_
 
-#include <cstddef>
+#include <stddef.h>
 
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
 
 namespace partition_alloc::internal::base::debug {
 
@@ -35,7 +35,7 @@ namespace partition_alloc::internal::base::debug {
 //   strncpy(name_copy, p->name, sizeof(name_copy)-1);
 //   name_copy[sizeof(name_copy)-1] = '\0';;
 //   base::debug::alias(name_copy);
-//   NOTREACHED();
+//   CHECK(false);
 //
 // Case #2: Prevent a tail call into a function. This is useful to make sure the
 // function containing the call to base::debug::Alias() will be present in the
@@ -70,7 +70,7 @@ namespace partition_alloc::internal::base::debug {
 // stack variable (case #1) using base::debug::Alias() will also inhibit
 // tail calls for calls in earlier lines and prevent code folding.
 
-void PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Alias(const void* var);
+void PA_COMPONENT_EXPORT(PARTITION_ALLOC) Alias(const void* var);
 
 }  // namespace partition_alloc::internal::base::debug
 
@@ -89,4 +89,4 @@ void PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Alias(const void* var);
   const int line_number = __LINE__; \
   ::partition_alloc::internal::base::debug::Alias(&line_number)
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_DEBUG_ALIAS_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_DEBUG_ALIAS_H_

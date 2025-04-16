@@ -14,19 +14,25 @@ namespace blink {
 using AllowSharedBufferSource =
     V8UnionArrayBufferAllowSharedOrArrayBufferViewAllowShared;
 
-// Helper function for turning various DOMArray-like things into a span.
-inline base::span<uint8_t> AsByteSpan(
-    const AllowSharedBufferSource& buffer_union) {
-  switch (buffer_union.GetContentType()) {
+// Helper function for turning various DOMArray-like things into a pointer+size.
+template <typename T>
+base::span<T> AsSpan(const AllowSharedBufferSource* buffer_union) {
+  switch (buffer_union->GetContentType()) {
     case AllowSharedBufferSource::ContentType::kArrayBufferAllowShared: {
-      auto* buffer = buffer_union.GetAsArrayBufferAllowShared();
-      return (buffer && !buffer->IsDetached()) ? buffer->ByteSpanMaybeShared()
-                                               : base::span<uint8_t>();
+      auto* buffer = buffer_union->GetAsArrayBufferAllowShared();
+      return (buffer && !buffer->IsDetached())
+                 ? base::span<T>(
+                       reinterpret_cast<T*>(buffer->DataMaybeShared()),
+                       buffer->ByteLength())
+                 : base::span<T>();
     }
     case AllowSharedBufferSource::ContentType::kArrayBufferViewAllowShared: {
-      auto* buffer = buffer_union.GetAsArrayBufferViewAllowShared().Get();
-      return (buffer && !buffer->IsDetached()) ? buffer->ByteSpanMaybeShared()
-                                               : base::span<uint8_t>();
+      auto* buffer = buffer_union->GetAsArrayBufferViewAllowShared().Get();
+      return (buffer && !buffer->IsDetached())
+                 ? base::span<T>(
+                       reinterpret_cast<T*>(buffer->BaseAddressMaybeShared()),
+                       buffer->byteLength())
+                 : base::span<T>();
     }
   }
 }

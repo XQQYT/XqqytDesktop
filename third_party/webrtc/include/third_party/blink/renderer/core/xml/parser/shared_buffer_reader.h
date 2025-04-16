@@ -31,7 +31,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_XML_PARSER_SHARED_BUFFER_READER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_XML_PARSER_SHARED_BUFFER_READER_H_
 
-#include "base/containers/span.h"
 #include "base/memory/scoped_refptr.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
@@ -50,8 +49,10 @@ class CORE_EXPORT SharedBufferReader {
   ~SharedBufferReader();
 
   // Returns the number of bytes that were read (i.e. written to
-  // `output_buffer`).
-  size_t ReadData(base::span<char> output_buffer);
+  // |outputBuffer|).
+  // TODO(junov): use size_t instead of int. Until then, readData uses safeCast
+  // internally.
+  int ReadData(char* output_buffer, int asked_to_read);
 
  private:
   scoped_refptr<const SharedBuffer> buffer_;

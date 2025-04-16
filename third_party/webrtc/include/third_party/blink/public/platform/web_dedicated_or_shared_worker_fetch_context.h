@@ -6,14 +6,11 @@
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_DEDICATED_OR_SHARED_WORKER_FETCH_CONTEXT_H_
 
 #include <memory>
-#include <string_view>
-#include <vector>
 
 #include "base/task/single_thread_task_runner.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 #include "third_party/blink/public/common/renderer_preferences/renderer_preferences.h"
-#include "third_party/blink/public/common/tokens/tokens.h"
 #include "third_party/blink/public/mojom/loader/resource_load_info_notifier.mojom-forward.h"
 #include "third_party/blink/public/mojom/renderer_preference_watcher.mojom-shared.h"
 #include "third_party/blink/public/mojom/worker/subresource_loader_updater.mojom-shared.h"
@@ -24,6 +21,8 @@
 namespace blink {
 
 class WebString;
+template <typename T>
+class WebVector;
 class WebServiceWorkerProviderContext;
 
 // Worker fetch context for dedicated worker or shared worker.
@@ -59,7 +58,7 @@ class BLINK_PLATFORM_EXPORT WebDedicatedOrSharedWorkerFetchContext
           pending_fallback_factory,
       CrossVariantMojoReceiver<mojom::SubresourceLoaderUpdaterInterfaceBase>
           pending_subresource_loader_updater,
-      const std::vector<WebString>& cors_exempt_header_list,
+      const WebVector<WebString>& cors_exempt_header_list,
       mojo::PendingRemote<mojom::ResourceLoadInfoNotifier>
           pending_resource_load_info_notifier);
 
@@ -93,13 +92,13 @@ class BLINK_PLATFORM_EXPORT WebDedicatedOrSharedWorkerFetchContext
   //
   // TODO(nhiroki): Add more comments about security/privacy implications to
   // each property, for example, site_for_cookies and top_frame_origin.
-  virtual void SetAncestorFrameToken(const LocalFrameToken&) = 0;
+  virtual void set_ancestor_frame_id(int id) = 0;
   virtual void set_site_for_cookies(
       const net::SiteForCookies& site_for_cookies) = 0;
   virtual void set_top_frame_origin(
       const blink::WebSecurityOrigin& top_frame_origin) = 0;
 
-  using RewriteURLFunction = WebURL (*)(std::string_view, bool);
+  using RewriteURLFunction = WebURL (*)(base::StringPiece, bool);
   static void InstallRewriteURLFunction(RewriteURLFunction rewrite_url);
 };
 

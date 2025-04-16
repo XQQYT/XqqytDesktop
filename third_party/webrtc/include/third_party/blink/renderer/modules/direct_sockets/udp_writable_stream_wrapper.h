@@ -37,8 +37,7 @@ class MODULES_EXPORT UDPWritableStreamWrapper final
   bool HasPendingWrite() const override;
   void Trace(Visitor*) const override;
   void OnAbortSignal() override;
-  ScriptPromise<IDLUndefined> Write(ScriptValue chunk,
-                                    ExceptionState&) override;
+  ScriptPromise Write(ScriptValue chunk, ExceptionState&) override;
 
  private:
   // Callback for RestrictedUDPSocket::Send().
@@ -49,7 +48,7 @@ class MODULES_EXPORT UDPWritableStreamWrapper final
   const Member<UDPSocketMojoRemote> udp_socket_;
   const network::mojom::blink::RestrictedUDPSocketMode mode_;
 
-  Member<ScriptPromiseResolver<IDLUndefined>> write_promise_resolver_;
+  Member<ScriptPromiseResolver> write_promise_resolver_;
 };
 
 }  // namespace blink

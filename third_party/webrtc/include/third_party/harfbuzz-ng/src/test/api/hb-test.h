@@ -35,18 +35,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef HAVE_STDBOOL_H
-# include <stdbool.h>
-#else
-typedef short bool;
-# ifndef true
-#  define true 1
-# endif
-# ifndef false
-#  define false 0
-# endif
-#endif
-
 HB_BEGIN_DECLS
 
 /* Just in case */
@@ -183,12 +171,6 @@ typedef void (*hb_test_fixture_func_t) (void);
 #endif
 #ifndef g_assert_true
 #define g_assert_true g_assert
-#endif
-#ifndef g_assert_false
-#define g_assert_false(expr) g_assert(!(expr))
-#endif
-#ifndef g_assert_nonnull
-#define g_assert_nonnull  g_assert
 #endif
 #ifndef g_assert_cmpmem
 #define g_assert_cmpmem(m1, l1, m2, l2) g_assert_true (l1 == l2 && memcmp (m1, m2, l1) == 0)

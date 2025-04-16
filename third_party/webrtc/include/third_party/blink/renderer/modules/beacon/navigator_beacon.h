@@ -24,7 +24,7 @@ class NavigatorBeacon final : public GarbageCollected<NavigatorBeacon>,
   static NavigatorBeacon& From(Navigator&);
 
   explicit NavigatorBeacon(Navigator&);
-  ~NavigatorBeacon();
+  virtual ~NavigatorBeacon();
 
   static bool sendBeacon(
       ScriptState* script_state,

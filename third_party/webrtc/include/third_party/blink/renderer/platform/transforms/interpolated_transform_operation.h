@@ -42,23 +42,13 @@ namespace blink {
 class PLATFORM_EXPORT InterpolatedTransformOperation final
     : public TransformOperation {
  public:
-  InterpolatedTransformOperation(const TransformOperations& from,
-                                 const TransformOperations& to,
-                                 int starting_index,
-                                 double progress)
-      : from_(from),
-        to_(to),
-        starting_index_(starting_index),
-        progress_(progress) {
-    // This should only be generated during interpolation when it is impossible
-    // to create a Matrix3DTransformOperation due to layout-dependence.
-    DCHECK(BoxSizeDependencies());
-  }
-
-  void Trace(Visitor* visitor) const override {
-    visitor->Trace(from_);
-    visitor->Trace(to_);
-    TransformOperation::Trace(visitor);
+  static scoped_refptr<InterpolatedTransformOperation> Create(
+      const TransformOperations& from,
+      const TransformOperations& to,
+      int starting_index,
+      double progress) {
+    return base::AdoptRef(
+        new InterpolatedTransformOperation(from, to, starting_index, progress));
   }
 
  protected:
@@ -69,16 +59,19 @@ class PLATFORM_EXPORT InterpolatedTransformOperation final
 
   void Apply(gfx::Transform&, const gfx::SizeF& border_box_size) const override;
 
-  TransformOperation* Accumulate(const TransformOperation&) override {
+  scoped_refptr<TransformOperation> Accumulate(
+      const TransformOperation&) override {
     NOTREACHED();
+    return this;
   }
 
-  TransformOperation* Blend(const TransformOperation* from,
-                            double progress,
-                            bool blend_to_identity = false) override;
-  TransformOperation* Zoom(double factor) final {
-    return MakeGarbageCollected<InterpolatedTransformOperation>(
-        from_.Zoom(factor), to_.Zoom(factor), starting_index_, progress_);
+  scoped_refptr<TransformOperation> Blend(
+      const TransformOperation* from,
+      double progress,
+      bool blend_to_identity = false) override;
+  scoped_refptr<TransformOperation> Zoom(double factor) final {
+    return Create(from_.Zoom(factor), to_.Zoom(factor), starting_index_,
+                  progress_);
   }
 
   bool PreservesAxisAlignment() const final {
@@ -91,6 +84,19 @@ class PLATFORM_EXPORT InterpolatedTransformOperation final
   BoxSizeDependency BoxSizeDependencies() const override {
     return CombineDependencies(from_.BoxSizeDependencies(starting_index_),
                                to_.BoxSizeDependencies(starting_index_));
+  }
+
+  InterpolatedTransformOperation(const TransformOperations& from,
+                                 const TransformOperations& to,
+                                 int starting_index,
+                                 double progress)
+      : from_(from),
+        to_(to),
+        starting_index_(starting_index),
+        progress_(progress) {
+    // This should only be generated during interpolation when it is impossible
+    // to create a Matrix3DTransformOperation due to layout-dependence.
+    DCHECK(BoxSizeDependencies());
   }
 
   const TransformOperations from_;

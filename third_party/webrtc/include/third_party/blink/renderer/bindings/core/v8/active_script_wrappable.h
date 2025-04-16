@@ -11,7 +11,6 @@
 #include "third_party/blink/renderer/platform/bindings/active_script_wrappable_base.h"
 
 namespace blink {
-
 // Derived by wrappable objects which need to remain alive due to ongoing
 // asynchronous activity, even if they are not referenced in the JavaScript or
 // Blink heap.
@@ -29,8 +28,8 @@ namespace blink {
 // ActiveScriptWrappableCreationKey as a friend.
 //
 // The objects should derive from ActiveScriptWrappable<T>, and override
-// `ActiveScriptWrappableBase::HasPendingActivity()`. The method is not allowed
-// to allocate.
+// `ScriptWrappable::HasPendingActivity()`. The method is not allowed to
+// allocate.
 //
 // Caveat:
 // - To avoid leaking objects after the context is destroyed, users of
@@ -62,6 +61,10 @@ class ActiveScriptWrappable : public ActiveScriptWrappableBase {
     return IsContextDestroyedForActiveScriptWrappable(
         static_cast<const T*>(this)->GetExecutionContext());
   }
+
+  bool DispatchHasPendingActivity() const final {
+    return static_cast<const T*>(this)->HasPendingActivity();
+  }
 };
 
 // Same as ActiveScriptWrappable with the difference the the object is not
@@ -85,6 +88,10 @@ class LazyActiveScriptWrappable : public ActiveScriptWrappableBase {
   bool IsContextDestroyed() const final {
     return IsContextDestroyedForActiveScriptWrappable(
         static_cast<const T*>(this)->GetExecutionContext());
+  }
+
+  bool DispatchHasPendingActivity() const final {
+    return static_cast<const T*>(this)->HasPendingActivity();
   }
 
  protected:

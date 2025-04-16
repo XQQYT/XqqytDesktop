@@ -41,7 +41,7 @@ namespace base {
 // `observer.h`:
 //   class Observer {
 //    public:
-//     virtual ~Observer() = default;
+//     virtual ~Observer() {}
 //
 //     virtual void OnEvent() {}
 //   };
@@ -125,10 +125,6 @@ class ScopedObservation {
     return source_ == source;
   }
 
-  // Gets a pointer to the observer that observes the source.
-  Observer* GetObserver() { return observer_; }
-  const Observer* GetObserver() const { return observer_; }
-
   // Gets a pointer to the observed source, or nullptr if no source is being
   // observed.
   Source* GetSource() { return source_; }
@@ -137,7 +133,7 @@ class ScopedObservation {
  private:
   using Traits = ScopedObservationTraits<Source, Observer>;
 
-  const raw_ptr<Observer> observer_;
+  const raw_ptr<Observer, DanglingUntriaged> observer_;
 
   // The observed source, if any.
   raw_ptr<Source, LeakedDanglingUntriaged> source_ = nullptr;

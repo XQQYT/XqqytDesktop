@@ -21,8 +21,6 @@
 extern const char kNewOperatorName[];
 extern const char kCreateName[];
 extern const char kTraceName[];
-extern const char kTraceMultipleName[];
-extern const char kTraceEphemeronName[];
 extern const char kFinalizeName[];
 extern const char kTraceAfterDispatchName[];
 extern const char kRegisterWeakMembersName[];
@@ -30,6 +28,8 @@ extern const char kHeapAllocatorName[];
 extern const char kTraceIfNeededName[];
 extern const char kVisitorDispatcherName[];
 extern const char kVisitorVarName[];
+extern const char kAdjustAndMarkName[];
+extern const char kIsHeapObjectAliveName[];
 extern const char kConstIteratorName[];
 extern const char kIteratorName[];
 extern const char kConstReverseIteratorName[];
@@ -113,8 +113,8 @@ class Config {
                                         llvm::StringRef ns_name,
                                         RecordInfo* info,
                                         RecordInfo::TemplateArgs* args) {
-    return name == "TracedReference" &&
-           VerifyNamespaceAndArgCount("v8", 1, ns_name, info, args);
+    return name == "TraceWrapperV8Reference" &&
+           VerifyNamespaceAndArgCount("blink", 1, ns_name, info, args);
   }
 
   static bool IsWTFCollection(llvm::StringRef name) {
@@ -135,8 +135,7 @@ class Config {
   static bool IsGCCollection(llvm::StringRef name) {
     return name == "HeapVector" || name == "HeapDeque" ||
            name == "HeapHashSet" || name == "HeapLinkedHashSet" ||
-           name == "HeapHashCountedSet" || name == "HeapHashMap" ||
-           name == "HeapLinkedStack";
+           name == "HeapHashCountedSet" || name == "HeapHashMap";
   }
 
   static bool IsHashMap(llvm::StringRef name) {
@@ -189,10 +188,6 @@ class Config {
 
   static bool IsIgnoreAnnotated(const clang::Decl* decl) {
     return IsAnnotated(decl, "blink_gc_plugin_ignore");
-  }
-
-  static bool IsStackAllocatedIgnoreAnnotated(const clang::Decl* decl) {
-    return IsAnnotated(decl, "stack_allocated_ignore");
   }
 
   static bool IsVisitor(llvm::StringRef name) { return name == "Visitor"; }

@@ -18,24 +18,26 @@
 
 namespace blink {
 
+template <typename T, bool = WTF::IsTraceable<T>::value>
+struct TraceIfNeeded;
+
 template <typename T>
-struct TraceIfNeeded {
+struct TraceIfNeeded<T, false> {
   STATIC_ONLY(TraceIfNeeded);
-  static void Trace(Visitor* visitor, const T& t) {
-    if constexpr (WTF::IsTraceable<T>::value) {
-      visitor->Trace(t);
-    }
-  }
+  static void Trace(Visitor*, const T&) {}
 };
 
-// `WTF::IsWeak<typename Traits::TraitType>::value` is always false when used
-// from vectors (on and off the GCed heap).
+template <typename T>
+struct TraceIfNeeded<T, true> {
+  STATIC_ONLY(TraceIfNeeded);
+  static void Trace(Visitor* visitor, const T& t) { visitor->Trace(t); }
+};
+
 template <WTF::WeakHandlingFlag weakness,
           typename T,
           typename Traits,
-          bool = WTF::IsTraceable<typename Traits::TraitType>::value &&
-                 !WTF::IsWeak<typename Traits::TraitType>::value,
-          WTF::WeakHandlingFlag = WTF::kWeakHandlingTrait<T>>
+          bool = WTF::IsTraceableInCollectionTrait<Traits>::value,
+          WTF::WeakHandlingFlag = WTF::WeakHandlingTrait<T>::value>
 struct TraceCollectionIfEnabled;
 
 template <WTF::WeakHandlingFlag weakness, typename T, typename Traits>
@@ -51,8 +53,7 @@ struct TraceCollectionIfEnabled<weakness,
   }
 
   static void Trace(Visitor*, const void*) {
-    static_assert(!WTF::IsTraceable<typename Traits::TraitType>::value ||
-                      WTF::IsWeak<typename Traits::TraitType>::value,
+    static_assert(!WTF::IsTraceableInCollectionTrait<Traits>::value,
                   "T should not be traced");
   }
 };
@@ -85,8 +86,7 @@ struct TraceCollectionIfEnabled {
   }
 
   static void Trace(Visitor* visitor, const void* t) {
-    static_assert((WTF::IsTraceable<typename Traits::TraitType>::value &&
-                   !WTF::IsWeak<typename Traits::TraitType>::value) ||
+    static_assert(WTF::IsTraceableInCollectionTrait<Traits>::value ||
                       weakness == WTF::kWeakHandling,
                   "Traits should be traced");
     WTF::TraceInCollectionTrait<weakness, T, Traits>::Trace(
@@ -104,7 +104,10 @@ template <typename _KeyType,
           typename _ValueTraits,
           bool = WTF::IsWeak<_ValueType>::value>
 struct EphemeronKeyValuePair {
-  STACK_ALLOCATED();
+  // Should be STACK_ALLOCATED but the fields below are detected as Member
+  // fields which are not allowed in a stack-allocated class. Using
+  // DISALLOW_NEW() prevents a plugin ignore annotation.
+  DISALLOW_NEW();
 
  public:
   using KeyType = _KeyType;
@@ -165,10 +168,10 @@ struct KeyValuePairInCollectionTrait {
     // (ephemeron). Order of invocation does not matter as `IsAlive()` does not
     // have any side effects.
     return blink::TraceCollectionIfEnabled<
-               WTF::kWeakHandlingTrait<Key>, Key,
+               WTF::WeakHandlingTrait<Key>::value, Key,
                typename Traits::KeyTraits>::IsAlive(info, kvp.key) &&
            blink::TraceCollectionIfEnabled<
-               WTF::kWeakHandlingTrait<Value>, Value,
+               WTF::WeakHandlingTrait<Value>::value, Value,
                typename Traits::ValueTraits>::IsAlive(info, kvp.value);
   }
 
@@ -266,8 +269,7 @@ struct TraceInCollectionTrait<kNoWeakHandling, T, Traits> {
   }
 
   static void Trace(blink::Visitor* visitor, const T& t) {
-    static_assert(WTF::IsTraceable<typename Traits::TraitType>::value &&
-                      !WTF::IsWeak<typename Traits::TraitType>::value,
+    static_assert(IsTraceableInCollectionTrait<Traits>::value,
                   "T should be traceable");
     visitor->Trace(t);
   }
@@ -311,6 +313,7 @@ struct TraceTrait<std::pair<T, U>> {
     // should always happen eagerly by directly invoking `Trace()` below. This
     // happens e.g. when being used in HeapVector<std::pair<...>>.
     NOTREACHED();
+    return {nullptr, Trace};
   }
 
   static void Trace(Visitor* visitor, const std::pair<T, U>* pair) {

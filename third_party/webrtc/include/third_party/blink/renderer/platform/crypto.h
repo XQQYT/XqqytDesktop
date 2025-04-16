@@ -8,7 +8,6 @@
 #include "base/containers/span.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
-#include "third_party/blink/renderer/platform/wtf/forward.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "third_party/boringssl/src/include/openssl/digest.h"
@@ -26,19 +25,14 @@ enum HashAlgorithm {
 };
 
 PLATFORM_EXPORT bool ComputeDigest(HashAlgorithm,
-                                   base::span<const uint8_t> digestable,
-                                   DigestValue& digest_result);
-
-PLATFORM_EXPORT bool ComputeDigest(HashAlgorithm,
-                                   const SegmentedBuffer* buffer,
+                                   const char* digestable,
+                                   size_t length,
                                    DigestValue& digest_result);
 
 class PLATFORM_EXPORT Digestor {
  public:
   explicit Digestor(HashAlgorithm);
   ~Digestor();
-  Digestor(Digestor&& other) = default;
-  Digestor& operator=(Digestor&& other) = default;
 
   bool has_failed() const { return has_failed_; }
 
@@ -46,7 +40,7 @@ class PLATFORM_EXPORT Digestor {
   // set. This object cannot be reused; do not update it after Finish.
   bool Update(base::span<const uint8_t>);
   bool UpdateUtf8(const String&,
-                  WTF::Utf8ConversionMode = WTF::Utf8ConversionMode::kLenient);
+                  WTF::UTF8ConversionMode = WTF::kLenientUTF8Conversion);
   bool Finish(DigestValue&);
 
  private:

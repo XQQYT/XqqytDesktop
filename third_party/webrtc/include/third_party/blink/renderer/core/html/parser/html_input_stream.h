@@ -65,8 +65,7 @@ class HTMLInputStream {
   bool HasInsertionPoint() const { return &first_ != last_; }
 
   void MarkEndOfFile() {
-    last_->Append(
-        SegmentedString(String(base::span_from_ref(kEndOfFileMarker))));
+    last_->Append(SegmentedString(String(&kEndOfFileMarker, 1)));
     last_->Close();
   }
 

@@ -5,7 +5,6 @@
 #ifndef BASE_LOCATION_H_
 #define BASE_LOCATION_H_
 
-#include <compare>
 #include <string>
 
 #include "base/base_export.h"
@@ -33,17 +32,14 @@ class BASE_EXPORT Location {
 
   // Comparator for testing. The program counter should uniquely
   // identify a location.
-  friend bool operator==(const Location& lhs, const Location& rhs) {
-    return lhs.program_counter_ == rhs.program_counter_;
+  bool operator==(const Location& other) const {
+    return program_counter_ == other.program_counter_;
   }
 
-  // The program counter should uniquely identify a location. There is no
-  // guarantee that a program counter corresponds to unique function/file/line
-  // values, based on how it's constructed, and therefore equivalent locations
-  // could be distinguishable.
-  friend std::weak_ordering operator<=>(const Location& lhs,
-                                        const Location& rhs) {
-    return lhs.program_counter_ <=> rhs.program_counter_;
+  // Comparator is necessary to use location object within an ordered container
+  // type (eg. std::map).
+  bool operator<(const Location& other) const {
+    return program_counter_ < other.program_counter_;
   }
 
   // Returns true if there is source code location info. If this is false,
@@ -78,10 +74,6 @@ class BASE_EXPORT Location {
   static Location Current(const char* function_name = __builtin_FUNCTION(),
                           const char* file_name = __builtin_FILE(),
                           int line_number = __builtin_LINE());
-
-  static Location CurrentWithoutFunctionName(
-      const char* file_name = __builtin_FILE(),
-      int line_number = __builtin_LINE());
 
  private:
   // Only initializes the file name and program counter, the source information

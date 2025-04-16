@@ -7,9 +7,6 @@
   <sn-form slot="form-slot"></sn-form>
 </sn-show-element>
 <script>
-  var isDone = false;
-  var startTime;
-
   const TABLE_COLS = 5;
   const TABLE_ROWS = 5;
   const FORM_CONTROLS = 5;
@@ -100,6 +97,9 @@
   customElements.define('sn-form', snForm);
   customElements.define('sn-show-element', snShowElement);
 
+  var isDone = false;
+  var startTime;
+
   function toggleDisplay() {
     const snShowElem = document.querySelector('sn-show-element');
     const currentState = snShowElem.getAttribute('active');
@@ -115,7 +115,7 @@
       PerfTestRunner.addRunTestStartMarker();
       startTime = PerfTestRunner.now();
 
-      toggleDisplay();
+      setTimeout(toggleDisplay, 250);
 
       // Re-run the same test.
       // Wait to allow the asynchronous accessibility code that's
@@ -125,26 +125,22 @@
   }
 
   PerfTestRunner.startMeasureValuesAsync({
-    description: 'Test accessibility performance when updating slots',
-    unit: 'ms',
-    done: function () {
-        isDone = true;
-    },
-    run: function() {
-        runTest();
-    },
-    iterationCount: 6,
-    tracingCategories: 'accessibility',
-    traceEventsToMeasure: [
-      'TotalAccessibilityCleanLayoutLifecycleStages',
-      'ProcessDeferredUpdatesLifecycleStage',
-      'FinalizingTreeLifecycleStage',
-      'SerializeLifecycleStage',
-      'RenderAccessibilityImpl::SendPendingAccessibilityEvents',
-      'BrowserAccessibilityManager::OnAccessibilityEvents',
-      'SerializeLocationChanges',
-      "BrowserAccessibilityManager::OnLocationChanges"
-    ]
+      description: 'Test accessibility performance when updating slots',
+      unit: 'ms',
+      done: function () {
+          isDone = true;
+      },
+      run: function() {
+          runTest();
+      },
+      iterationCount: 6,
+      tracingCategories: 'accessibility',
+      traceEventsToMeasure: [
+        'AXObjectCacheImpl::ChildrenChanged(LayoutObject)',
+        'BrowserAccessibilityManager::OnAccessibilityEvents',
+        'ProcessDeferredAccessibilityEvents',
+        'RenderAccessibilityImpl::SendPendingAccessibilityEvents'
+      ]
   });
 </script>
 </body>

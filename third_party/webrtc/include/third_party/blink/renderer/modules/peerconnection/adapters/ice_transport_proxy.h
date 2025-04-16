@@ -16,6 +16,10 @@
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/webrtc/p2p/base/p2p_transport_channel.h"
 
+namespace rtc {
+class Thread;
+}
+
 namespace blink {
 
 class IceTransportHost;
@@ -85,7 +89,7 @@ class IceTransportProxy final {
   // Since the Host is deleted on the host thread (via OnTaskRunnerDeleter), as
   // long as this is alive it is safe to post tasks to it (using unretained).
   std::unique_ptr<IceTransportHost, base::OnTaskRunnerDeleter> host_;
-  const raw_ptr<Delegate> delegate_;
+  const raw_ptr<Delegate, ExperimentalRenderer> delegate_;
 
   // This handle notifies scheduler about an active connection associated
   // with a frame. Handle should be destroyed when connection is closed.

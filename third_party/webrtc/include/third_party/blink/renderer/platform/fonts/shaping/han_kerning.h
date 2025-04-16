@@ -5,10 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_SHAPING_HAN_KERNING_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_SHAPING_HAN_KERNING_H_
 
-#include "base/gtest_prod_util.h"
-#include "third_party/blink/renderer/platform/platform_export.h"
+#include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 #include "third_party/blink/renderer/platform/text/han_kerning_char_type.h"
-#include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
@@ -47,9 +45,7 @@ class PLATFORM_EXPORT HanKerning {
  public:
   struct Options {
     bool is_horizontal = true;
-    bool is_line_start = false;
     bool apply_start = false;
-    bool apply_end = false;
   };
 
   HanKerning(const String& text,
@@ -59,19 +55,18 @@ class PLATFORM_EXPORT HanKerning {
              const FontDescription& font_description,
              Options options,
              FontFeatures* features) {
+    if (!RuntimeEnabledFeatures::CSSTextSpacingTrimEnabled()) {
+      return;
+    }
     if (text.Is8Bit()) {
       return;
     }
     Compute(text, start, end, font_data, font_description, options, features);
   }
   ~HanKerning() {
-    if (features_) [[unlikely]] {
+    if (UNLIKELY(features_)) {
       ResetFeatures();
     }
-  }
-
-  const Vector<unsigned, 32>& UnsafeToBreakBefore() const {
-    return unsafe_to_break_before_;
   }
 
   using CharType = HanKerningCharType;
@@ -105,12 +100,13 @@ class PLATFORM_EXPORT HanKerning {
     CharType type_for_semicolon = CharType::kOther;
   };
 
+  // Check if the `CharType` of a character may be `kOpen` without knowing the
+  // font. `CharType` depends on fonts, so it may not be `kOpen` even when this
+  // function returns `true`.
+  static bool MaybeOpen(UChar ch);
+
  private:
-  FRIEND_TEST_ALL_PREFIXES(HanKerningTest, MayApply);
-
   static CharType GetCharType(UChar ch, const FontData& font_data);
-
-  static bool MayApply(StringView text);
 
   static bool ShouldKern(CharType type, CharType last_type);
   static bool ShouldKernLast(CharType type, CharType last_type);
@@ -127,7 +123,6 @@ class PLATFORM_EXPORT HanKerning {
 
   FontFeatures* features_ = nullptr;
   wtf_size_t num_features_before_;
-  Vector<unsigned, 32> unsafe_to_break_before_;
 };
 
 }  // namespace blink

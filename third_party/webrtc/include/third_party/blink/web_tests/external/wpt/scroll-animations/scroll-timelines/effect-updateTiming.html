@@ -347,7 +347,6 @@ const gGoodDurationValuesForProgressBased = [
   // will be represented as 100
   { specified: 123.45, computed: 100 },
   { specified: 'auto', computed: 100 },
-  { specified: Infinity, computed: 100 },
 ];
 
 for (const duration of gGoodDurationValuesForProgressBased) {
@@ -371,7 +370,7 @@ for (const duration of gGoodDurationValuesForProgressBased) {
 
 // adapted for progress based animations
 const gBadDurationValuesForProgressBased = [
-  -1, NaN, -Infinity, 'abc', '100'
+  -1, NaN, Infinity, -Infinity, 'abc', '100'
 ];
 
 for (const invalid of gBadDurationValuesForProgressBased) {

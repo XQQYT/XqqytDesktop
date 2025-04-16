@@ -7,14 +7,11 @@
 
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/geometry/logical_size.h"
+#include "third_party/blink/renderer/platform/geometry/layout_size.h"
 #include "third_party/blink/renderer/platform/geometry/layout_unit.h"
 #include "third_party/blink/renderer/platform/text/writing_mode.h"
 #include "ui/gfx/geometry/size.h"
 #include "ui/gfx/geometry/size_f.h"
-
-namespace WTF {
-class String;
-}  // namespace WTF
 
 namespace blink {
 
@@ -121,6 +118,14 @@ struct CORE_EXPORT PhysicalSize {
   PhysicalSize FitToAspectRatio(const PhysicalSize& aspect_ratio,
                                 AspectRatioFit fit) const;
 
+  // Conversions from/to existing code. New code prefers type safety for
+  // logical/physical distinctions.
+  constexpr explicit PhysicalSize(const DeprecatedLayoutSize& size)
+      : width(size.Width()), height(size.Height()) {}
+  constexpr DeprecatedLayoutSize ToLayoutSize() const {
+    return {width, height};
+  }
+
   constexpr explicit operator gfx::SizeF() const { return {width, height}; }
 
   static PhysicalSize FromSizeFRound(const gfx::SizeF& size) {
@@ -135,7 +140,7 @@ struct CORE_EXPORT PhysicalSize {
   explicit PhysicalSize(const gfx::Size& size)
       : width(size.width()), height(size.height()) {}
 
-  WTF::String ToString() const;
+  String ToString() const;
 };
 
 CORE_EXPORT std::ostream& operator<<(std::ostream&, const PhysicalSize&);
@@ -145,10 +150,6 @@ inline PhysicalSize ToPhysicalSize(const LogicalSize& other, WritingMode mode) {
              ? PhysicalSize(other.inline_size, other.block_size)
              : PhysicalSize(other.block_size, other.inline_size);
 }
-
-// Convert an aspect ratio represented as a gfx::SizeF (width:height) to the
-// closest PhysicalSize representation.
-PhysicalSize LayoutRatioFromSizeF(gfx::SizeF ratio);
 
 // TODO(crbug.com/962299): These functions should upgraded to force correct
 // pixel snapping in a type-safe way.
@@ -160,6 +161,13 @@ inline gfx::Size ToFlooredSize(const PhysicalSize& s) {
 }
 inline gfx::Size ToCeiledSize(const PhysicalSize& s) {
   return {s.width.Ceil(), s.height.Ceil()};
+}
+
+// TODO(wangxianzhu): For temporary conversion from DeprecatedLayoutSize to
+// PhysicalSize, where the input will be changed to PhysicalSize soon, to avoid
+// redundant PhysicalSize() which can't be discovered by the compiler.
+inline PhysicalSize PhysicalSizeToBeNoop(const DeprecatedLayoutSize& s) {
+  return PhysicalSize(s);
 }
 
 }  // namespace blink

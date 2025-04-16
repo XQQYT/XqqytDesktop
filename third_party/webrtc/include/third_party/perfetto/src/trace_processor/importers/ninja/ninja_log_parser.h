@@ -17,15 +17,17 @@
 #ifndef SRC_TRACE_PROCESSOR_IMPORTERS_NINJA_NINJA_LOG_PARSER_H_
 #define SRC_TRACE_PROCESSOR_IMPORTERS_NINJA_NINJA_LOG_PARSER_H_
 
-#include <cstdint>
+#include <stdint.h>
+
+#include <map>
 #include <string>
 #include <vector>
 
-#include "perfetto/base/status.h"
 #include "src/trace_processor/importers/common/chunked_trace_reader.h"
 #include "src/trace_processor/importers/common/trace_parser.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 class TraceProcessorContext;
 
@@ -48,8 +50,8 @@ class NinjaLogParser : public ChunkedTraceReader {
   NinjaLogParser& operator=(const NinjaLogParser&) = delete;
 
   // ChunkedTraceReader implementation
-  base::Status Parse(TraceBlobView) override;
-  base::Status NotifyEndOfFile() override;
+  util::Status Parse(TraceBlobView) override;
+  void NotifyEndOfFile() override;
 
  private:
   struct Job {
@@ -71,6 +73,7 @@ class NinjaLogParser : public ChunkedTraceReader {
   std::vector<char> log_;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_IMPORTERS_NINJA_NINJA_LOG_PARSER_H_

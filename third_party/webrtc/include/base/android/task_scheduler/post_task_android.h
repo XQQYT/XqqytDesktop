@@ -20,9 +20,6 @@ class BASE_EXPORT PostTaskAndroid {
   // Routes tasks posted via the Java PostTask APIs through the C++ PostTask
   // APIs. Invoked once the C++ PostTask APIs are fully initialized.
   static void SignalNativeSchedulerReady();
-
-  // Called to resets all the task runners for after each unit test.
-  static void ResetTaskRunnerForTesting();
 };
 
 }  // namespace base

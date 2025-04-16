@@ -24,10 +24,12 @@ namespace internal {
 
 // `HasVoidValueType<T>` is true iff `T` satisfies
 // `base::internal::IsExpected<T>` and `T`'s `value_type` is `void`.
+template <typename T, typename = void>
+constexpr bool HasVoidValueType = false;
 template <typename T>
-concept HasVoidValueType =
-    base::internal::IsExpected<T> &&
-    std::is_void_v<typename std::remove_cvref_t<T>::value_type>;
+constexpr bool
+    HasVoidValueType<T, std::enable_if_t<base::internal::IsExpected<T>>> =
+        std::is_void_v<typename std::remove_cvref_t<T>::value_type>;
 
 // Implementation for matcher `HasValue`.
 class HasValueMatcher {
@@ -40,9 +42,17 @@ class HasValueMatcher {
   }
 
  private:
+  // Reject instantiation with types that do not satisfy
+  // `base::internal::IsExpected<T>`.
+  template <typename T, typename = void>
+  class Impl {
+    static_assert(base::internal::IsExpected<T>,
+                  "Must be used with base::expected<T, E>");
+  };
+
   template <typename T>
-    requires(base::internal::IsExpected<T>)
-  class Impl : public ::testing::MatcherInterface<T> {
+  class Impl<T, std::enable_if_t<base::internal::IsExpected<T>>>
+      : public ::testing::MatcherInterface<T> {
    public:
     Impl() = default;
 
@@ -77,9 +87,21 @@ class ValueIsMatcher {
   }
 
  private:
+  // Reject instantiation with types that do not satisfy
+  // `base::internal::IsExpected<U> && !HasVoidValueType<U>`.
+  template <typename U, typename = void>
+  class Impl {
+    static_assert(base::internal::IsExpected<U>,
+                  "Must be used with base::expected<T, E>");
+    static_assert(!HasVoidValueType<U>,
+                  "expected object must have non-void value type");
+  };
+
   template <typename U>
-    requires(base::internal::IsExpected<U> && !HasVoidValueType<U>)
-  class Impl : public ::testing::MatcherInterface<U> {
+  class Impl<
+      U,
+      std::enable_if_t<base::internal::IsExpected<U> && !HasVoidValueType<U>>>
+      : public ::testing::MatcherInterface<U> {
    public:
     explicit Impl(const T& matcher)
         : matcher_(::testing::SafeMatcherCast<const V&>(matcher)) {}
@@ -134,9 +156,17 @@ class ErrorIsMatcher {
   }
 
  private:
+  // Reject instantiation with types that do not satisfy
+  // `base::internal::IsExpected<U>`.
+  template <typename U, typename = void>
+  class Impl {
+    static_assert(base::internal::IsExpected<U>,
+                  "Must be used with base::expected<T, E>");
+  };
+
   template <typename U>
-    requires(base::internal::IsExpected<U>)
-  class Impl : public ::testing::MatcherInterface<U> {
+  class Impl<U, std::enable_if_t<base::internal::IsExpected<U>>>
+      : public ::testing::MatcherInterface<U> {
    public:
     explicit Impl(const T& matcher)
         : matcher_(::testing::SafeMatcherCast<const E&>(matcher)) {}
@@ -209,11 +239,11 @@ inline internal::ErrorIsMatcher<typename std::decay_t<T>> ErrorIs(T&& matcher) {
 
 }  // namespace base::test
 
-// Executes an expression that returns an `expected<T, E>` or
-// `std::optional<T>`, and assigns the contained `T` to `lhs` if the result is a
-// value. If the result is an error, generates a test failure and returns from
-// the current function, which must have a `void` return type. For more usage
-// examples and caveats, see the documentation for `ASSIGN_OR_RETURN`.
+// Executes an expression that returns an `expected<T, E>` or some subclass
+// thereof, and assigns the contained `T` to `lhs` if the result is a value. If
+// the result is an error, generates a test failure and returns from the current
+// function, which must have a `void` return type. For more usage examples and
+// caveats, see the documentation for `ASSIGN_OR_RETURN`.
 //
 // Example: Declaring and initializing a new value:
 //   ASSERT_OK_AND_ASSIGN(ValueType value, MaybeGetValue(arg));
@@ -221,34 +251,12 @@ inline internal::ErrorIsMatcher<typename std::decay_t<T>> ErrorIs(T&& matcher) {
 // Example: Assigning to an existing value:
 //   ValueType value;
 //   ASSERT_OK_AND_ASSIGN(value, MaybeGetValue(arg));
-#define ASSERT_OK_AND_ASSIGN(lhs, rexpr)                             \
-  ASSIGN_OR_RETURN(lhs, rexpr, []<typename... Ts>(const Ts&... e) {  \
-    std::string message;                                             \
-    if constexpr (sizeof...(Ts) > 0) {                               \
-      message = base::StrCat(                                        \
-          {#rexpr, " returned error: ", (..., base::ToString(e))});  \
-    } else {                                                         \
-      message = base::StrCat({#rexpr, " returned nullopt"});         \
-    }                                                                \
-    return GTEST_MESSAGE_(message.c_str(),                           \
-                          ::testing::TestPartResult::kFatalFailure); \
+#define ASSERT_OK_AND_ASSIGN(lhs, rexpr)                               \
+  ASSIGN_OR_RETURN(lhs, rexpr, [](const auto& e) {                     \
+    return GTEST_MESSAGE_(                                             \
+        base::StrCat({#rexpr, " returned error: ", base::ToString(e)}) \
+            .c_str(),                                                  \
+        ::testing::TestPartResult::kFatalFailure);                     \
   })
-
-namespace base {
-template <typename T, typename E>
-void PrintTo(const expected<T, E>& expected, ::std::ostream* os) {
-  *os << expected.ToString();
-}
-
-template <typename T>
-void PrintTo(const ok<T>& a, ::std::ostream* os) {
-  *os << a.ToString();
-}
-
-template <typename T>
-void PrintTo(const unexpected<T>& a, ::std::ostream* os) {
-  *os << a.ToString();
-}
-}  // namespace base
 
 #endif  // BASE_TEST_GMOCK_EXPECTED_SUPPORT_H_

@@ -19,11 +19,11 @@
 namespace webrtc {
 
 template <>
-std::optional<DataRate> ParseTypedParameter<DataRate>(absl::string_view str);
+absl::optional<DataRate> ParseTypedParameter<DataRate>(absl::string_view str);
 template <>
-std::optional<DataSize> ParseTypedParameter<DataSize>(absl::string_view str);
+absl::optional<DataSize> ParseTypedParameter<DataSize>(absl::string_view str);
 template <>
-std::optional<TimeDelta> ParseTypedParameter<TimeDelta>(absl::string_view str);
+absl::optional<TimeDelta> ParseTypedParameter<TimeDelta>(absl::string_view str);
 
 extern template class FieldTrialParameter<DataRate>;
 extern template class FieldTrialParameter<DataSize>;

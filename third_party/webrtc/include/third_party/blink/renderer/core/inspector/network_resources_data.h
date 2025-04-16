@@ -131,6 +131,11 @@ class NetworkResourcesData final
       text_encoding_name_ = text_encoding_name;
     }
 
+    scoped_refptr<SharedBuffer> Buffer() const { return buffer_; }
+    void SetBuffer(scoped_refptr<SharedBuffer> buffer) {
+      buffer_ = std::move(buffer);
+    }
+
     const Resource* CachedResource() const { return cached_resource_.Get(); }
     void SetResource(const Resource*);
 
@@ -170,11 +175,9 @@ class NetworkResourcesData final
 
     void Trace(Visitor*) const override;
 
-    const std::optional<SegmentedBuffer>& Data() const { return data_buffer_; }
-
    private:
-    bool HasData() const { return data_buffer_.has_value(); }
-    void AppendData(base::span<const char> data);
+    bool HasData() const { return data_buffer_.get(); }
+    void AppendData(const char* data, size_t data_length);
     // Removes just the response content.
     [[nodiscard]] size_t RemoveResponseContent();
     size_t DecodeDataToContent();
@@ -188,7 +191,7 @@ class NetworkResourcesData final
     String content_;
     Member<XHRReplayData> xhr_replay_data_;
     bool base64_encoded_;
-    std::optional<SegmentedBuffer> data_buffer_;
+    scoped_refptr<SharedBuffer> data_buffer_;
     bool is_content_evicted_;
     InspectorPageAgent::ResourceType type_;
     int http_status_code_;
@@ -197,6 +200,8 @@ class NetworkResourcesData final
     String text_encoding_name_;
     int64_t raw_header_size_;
     int64_t pending_encoded_data_length_;
+
+    scoped_refptr<SharedBuffer> buffer_;
 
     // We use UntracedMember<> here to do custom weak processing.
     UntracedMember<const Resource> cached_resource_;
@@ -224,7 +229,8 @@ class NetworkResourcesData final
                           const String& content,
                           bool base64_encoded = false);
   void MaybeAddResourceData(const String& request_id,
-                            base::span<const char> data);
+                            const char* data,
+                            uint64_t data_length);
   void MaybeDecodeDataToContent(const String& request_id);
   void AddResource(const String& request_id, const Resource*);
   ResourceData const* Data(const String& request_id);

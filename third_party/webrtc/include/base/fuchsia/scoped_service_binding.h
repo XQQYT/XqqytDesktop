@@ -5,7 +5,9 @@
 #ifndef BASE_FUCHSIA_SCOPED_SERVICE_BINDING_H_
 #define BASE_FUCHSIA_SCOPED_SERVICE_BINDING_H_
 
-// TODO(crbug.com/42050587): Remove this include once the explicit
+#include <utility>
+
+// TODO(crbug.com/1427626): Remove this include once the explicit
 // async_get_default_dispatcher() is no longer needed.
 #include <lib/async/default.h>
 #include <lib/fidl/cpp/binding.h>
@@ -14,13 +16,11 @@
 #include <lib/fidl/cpp/wire/connect_service.h>
 #include <lib/zx/channel.h>
 
-#include <optional>
-#include <string_view>
-#include <utility>
-
 #include "base/base_export.h"
 #include "base/fuchsia/scoped_service_publisher.h"
 #include "base/functional/callback.h"
+#include "base/strings/string_piece_forward.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace sys {
 class OutgoingDirectory;
@@ -40,14 +40,13 @@ class BASE_EXPORT ScopedServiceBinding {
   // unpublished on destruction.
   ScopedServiceBinding(sys::OutgoingDirectory* outgoing_directory,
                        Interface* impl,
-                       std::string_view name = Interface::Name_)
+                       base::StringPiece name = Interface::Name_)
       : publisher_(outgoing_directory, bindings_.GetHandler(impl), name) {}
 
   // Publishes a service in the specified |pseudo_dir|. |pseudo_dir| and |impl|
   // must outlive the binding. The service is unpublished on destruction.
-  ScopedServiceBinding(vfs::PseudoDir* pseudo_dir,
-                       Interface* impl,
-                       std::string_view name = Interface::Name_)
+  ScopedServiceBinding(vfs::PseudoDir* pseudo_dir, Interface* impl,
+                       base::StringPiece name = Interface::Name_)
       : publisher_(pseudo_dir, bindings_.GetHandler(impl), name) {}
 
   ScopedServiceBinding(const ScopedServiceBinding&) = delete;
@@ -78,12 +77,12 @@ class BASE_EXPORT ScopedNaturalServiceBinding {
   ScopedNaturalServiceBinding(
       sys::OutgoingDirectory* outgoing_directory,
       fidl::Server<Protocol>* impl,
-      std::string_view name = fidl::DiscoverableProtocolName<Protocol>)
+      base::StringPiece name = fidl::DiscoverableProtocolName<Protocol>)
       : publisher_(
             outgoing_directory,
             bindings_.CreateHandler(
                 impl,
-                // TODO(crbug.com/42050587): Remove this param once there's an
+                // TODO(crbug.com/1427626): Remove this param once there's an
                 // overload of `CreateHandler` that doesn't require it.
                 async_get_default_dispatcher(),
                 [](fidl::UnbindInfo info) {}),
@@ -94,12 +93,12 @@ class BASE_EXPORT ScopedNaturalServiceBinding {
   ScopedNaturalServiceBinding(
       vfs::PseudoDir* pseudo_dir,
       fidl::Server<Protocol>* impl,
-      std::string_view name = fidl::DiscoverableProtocolName<Protocol>)
+      base::StringPiece name = fidl::DiscoverableProtocolName<Protocol>)
       : publisher_(
             pseudo_dir,
             bindings_.CreateHandler(
                 impl,
-                // TODO(crbug.com/42050587): Remove this param once there's an
+                // TODO(crbug.com/1427626): Remove this param once there's an
                 // overload of `CreateHandler` that doesn't require it.
                 async_get_default_dispatcher(),
                 [](fidl::UnbindInfo info) {}),
@@ -141,7 +140,7 @@ class BASE_EXPORT ScopedSingleClientServiceBinding {
   // |outgoing_directory| and |impl| must outlive the binding.
   ScopedSingleClientServiceBinding(sys::OutgoingDirectory* outgoing_directory,
                                    Interface* impl,
-                                   std::string_view name = Interface::Name_)
+                                   base::StringPiece name = Interface::Name_)
       : binding_(impl) {
     publisher_.emplace(
         outgoing_directory,
@@ -153,7 +152,7 @@ class BASE_EXPORT ScopedSingleClientServiceBinding {
 
   ScopedSingleClientServiceBinding(vfs::PseudoDir* publish_to,
                                    Interface* impl,
-                                   std::string_view name = Interface::Name_)
+                                   base::StringPiece name = Interface::Name_)
       : binding_(impl) {
     publisher_.emplace(
         publish_to,
@@ -200,7 +199,7 @@ class BASE_EXPORT ScopedSingleClientServiceBinding {
   }
 
   fidl::Binding<Interface> binding_;
-  std::optional<ScopedServicePublisher<Interface>> publisher_;
+  absl::optional<ScopedServicePublisher<Interface>> publisher_;
   base::OnceClosure on_last_client_callback_;
 };
 

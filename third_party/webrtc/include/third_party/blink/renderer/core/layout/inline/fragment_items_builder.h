@@ -5,11 +5,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_INLINE_FRAGMENT_ITEMS_BUILDER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_INLINE_FRAGMENT_ITEMS_BUILDER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/inline/fragment_item.h"
-#include "third_party/blink/renderer/core/layout/inline/logical_line_container.h"
 #include "third_party/blink/renderer/core/layout/inline/logical_line_item.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
 #include "third_party/blink/renderer/platform/text/writing_direction_mode.h"
@@ -43,44 +41,47 @@ class CORE_EXPORT FragmentItemsBuilder {
 
   wtf_size_t Size() const { return items_.size(); }
 
+  // Returns true if we have any floating descendants which need to be
+  // traversed during the float paint phase.
+  bool HasFloatingDescendantsForPaint() const {
+    return has_floating_descendants_for_paint_;
+  }
+
   const String& TextContent(bool first_line) const {
-    if (first_line && first_line_text_content_) [[unlikely]] {
-      return first_line_text_content_;
-    }
-    return text_content_;
+    return UNLIKELY(first_line && first_line_text_content_)
+               ? first_line_text_content_
+               : text_content_;
   }
 
   // Adding a line is a three-pass operation, because |InlineLayoutAlgorithm|
   // creates and positions children within a line box, but its parent algorithm
   // positions the line box.
   //
-  // 1. |AcquireLogicalLineContainer| to get an instance of
-  //    |LogicalLineContainer|.
-  // 2. Add items to |LogicalLineContainer::BaseLine()| and create
-  //    |PhysicalFragment|, then associate them by
-  //    |AssociateLogicalLineContainer|.
+  // 1. |AcquireLogicalLineItems| to get an instance of |LogicalLineItems|.
+  // 2. Add items to |LogicalLineItems| and create |NGPhysicalFragment|,
+  //    then associate them by |AssociateLogicalLineItems|.
   // 3. |AddLine| adds the |PhysicalLineBoxFragment|.
   //
-  // |BlockLayoutAlgorithm| runs these phases in the order for each line. In
-  // this case, one instance of |LogicalLineContainer| is reused for all lines
-  // to reduce memory allocations.
+  // |NGBlockLayoutAlgorithm| runs these phases in the order for each line. In
+  // this case, one instance of |LogicalLineItems| is reused for all lines to
+  // reduce memory allocations.
   //
   // Custom layout produces all line boxes first by running only 1 and 2 (in
   // |InlineLayoutAlgorithm|). Then after worklet determined the position and
   // the order of line boxes, it runs 3 for each line. In this case,
   // |FragmentItemsBuilder| allocates new instance for each line, and keeps
   // them alive until |AddLine|.
-  LogicalLineContainer* AcquireLogicalLineContainer();
-  void ReleaseCurrentLogicalLineContainer();
+  LogicalLineItems* AcquireLogicalLineItems();
+  void ReleaseCurrentLogicalLineItems();
   const LogicalLineItems& GetLogicalLineItems(
       const PhysicalLineBoxFragment&) const;
-  void AssociateLogicalLineContainer(LogicalLineContainer* line_container,
-                                     const PhysicalFragment& line_fragment);
+  void AssociateLogicalLineItems(LogicalLineItems* line_items,
+                                 const NGPhysicalFragment& line_fragment);
   void AddLine(const PhysicalLineBoxFragment& line,
                const LogicalOffset& offset);
 
   // Add a list marker to the current line.
-  void AddListMarker(const PhysicalBoxFragment& marker_fragment,
+  void AddListMarker(const NGPhysicalBoxFragment& marker_fragment,
                      const LogicalOffset& offset);
 
   // See |AddPreviousItems| below.
@@ -98,11 +99,12 @@ class CORE_EXPORT FragmentItemsBuilder {
   //
   // When |stop_at_dirty| is true, this function checks reusability of previous
   // items and stops copying before the first dirty line.
-  AddPreviousItemsResult AddPreviousItems(const PhysicalBoxFragment& container,
-                                          const FragmentItems& items,
-                                          const FragmentItem& end_item,
-                                          BoxFragmentBuilder* container_builder,
-                                          wtf_size_t max_lines = 0);
+  AddPreviousItemsResult AddPreviousItems(
+      const NGPhysicalBoxFragment& container,
+      const FragmentItems& items,
+      NGBoxFragmentBuilder* container_builder = nullptr,
+      const FragmentItem* end_item = nullptr,
+      wtf_size_t max_lines = 0);
 
   struct ItemWithOffset {
     DISALLOW_NEW();
@@ -125,6 +127,9 @@ class CORE_EXPORT FragmentItemsBuilder {
   // heuristic. Usually 10-40, some wikipedia pages have >64 items.
   using ItemWithOffsetList = HeapVector<ItemWithOffset, 128>;
 
+  // Find |LogicalOffset| of the first |FragmentItem| for |LayoutObject|.
+  absl::optional<LogicalOffset> LogicalOffsetFor(const LayoutObject&) const;
+
   // Moves all the |FragmentItem|s by |offset| in the block-direction.
   void MoveChildrenInBlockDirection(LayoutUnit offset);
 
@@ -140,13 +145,13 @@ class CORE_EXPORT FragmentItemsBuilder {
   //
   // This function returns new size of the container if the container is an
   // SVG <text>.
-  std::optional<PhysicalSize> ToFragmentItems(const PhysicalSize& outer_size,
-                                              void* data);
+  absl::optional<PhysicalSize> ToFragmentItems(const PhysicalSize& outer_size,
+                                               void* data);
 
  private:
   void MoveCurrentLogicalLineItemsToMap();
 
-  void AddItems(base::span<LogicalLineItem> child_span);
+  void AddItems(LogicalLineItem* child_begin, LogicalLineItem* child_end);
 
   void ConvertToPhysical(const PhysicalSize& outer_size);
 
@@ -155,18 +160,19 @@ class CORE_EXPORT FragmentItemsBuilder {
   String first_line_text_content_;
 
   // Keeps children of a line until the offset is determined. See |AddLine|.
-  LogicalLineContainer* current_line_container_ = nullptr;
-  const PhysicalFragment* current_line_fragment_ = nullptr;
+  LogicalLineItems* current_line_items_ = nullptr;
+  const NGPhysicalFragment* current_line_fragment_ = nullptr;
 
-  HeapHashMap<Member<const PhysicalFragment>, Member<LogicalLineContainer>>
-      line_container_map_;
-  LogicalLineContainer* const line_container_pool_ =
-      MakeGarbageCollected<LogicalLineContainer>();
+  HeapHashMap<Member<const NGPhysicalFragment>, Member<LogicalLineItems>>
+      line_items_map_;
+  LogicalLineItems* const line_items_pool_ =
+      MakeGarbageCollected<LogicalLineItems>();
 
   InlineNode node_;
 
   WritingDirectionMode writing_direction_;
 
+  bool has_floating_descendants_for_paint_ = false;
   bool is_converted_to_physical_ = false;
   bool is_line_items_pool_acquired_ = false;
 

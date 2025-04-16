@@ -13,8 +13,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/video_codecs/bitstream_parser.h"
 #include "common_video/h264/pps_parser.h"
 #include "common_video/h264/sps_parser.h"
@@ -33,7 +32,7 @@ class H264BitstreamParser : public BitstreamParser {
   ~H264BitstreamParser() override;
 
   void ParseBitstream(rtc::ArrayView<const uint8_t> bitstream) override;
-  std::optional<int> GetLastSliceQp() const override;
+  absl::optional<int> GetLastSliceQp() const override;
 
  protected:
   enum Result {
@@ -41,16 +40,17 @@ class H264BitstreamParser : public BitstreamParser {
     kInvalidStream,
     kUnsupportedStream,
   };
-  void ParseSlice(rtc::ArrayView<const uint8_t> slice);
-  Result ParseNonParameterSetNalu(rtc::ArrayView<const uint8_t> source,
+  void ParseSlice(const uint8_t* slice, size_t length);
+  Result ParseNonParameterSetNalu(const uint8_t* source,
+                                  size_t source_length,
                                   uint8_t nalu_type);
 
   // SPS/PPS state, updated when parsing new SPS/PPS, used to parse slices.
-  std::optional<SpsParser::SpsState> sps_;
-  std::optional<PpsParser::PpsState> pps_;
+  absl::optional<SpsParser::SpsState> sps_;
+  absl::optional<PpsParser::PpsState> pps_;
 
   // Last parsed slice QP.
-  std::optional<int32_t> last_slice_qp_delta_;
+  absl::optional<int32_t> last_slice_qp_delta_;
 };
 
 }  // namespace webrtc

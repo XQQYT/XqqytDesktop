@@ -16,9 +16,9 @@
 
 #include <array>
 #include <bitset>
-#include <optional>
 #include <string>
 
+#include "absl/types/optional.h"
 #include "api/array_view.h"
 #include "modules/video_coding/utility/vp9_constants.h"
 
@@ -90,14 +90,14 @@ enum class Vp9InterpolationFilter : uint8_t {
 
 struct Vp9UncompressedHeader {
   int profile = 0;  // Profiles 0-3 are valid.
-  std::optional<uint8_t> show_existing_frame;
+  absl::optional<uint8_t> show_existing_frame;
   bool is_keyframe = false;
   bool show_frame = false;
   bool error_resilient = false;
   Vp9BitDept bit_detph = Vp9BitDept::k8Bit;
-  std::optional<Vp9ColorSpace> color_space;
-  std::optional<Vp9ColorRange> color_range;
-  std::optional<Vp9YuvSubsampling> sub_sampling;
+  absl::optional<Vp9ColorSpace> color_space;
+  absl::optional<Vp9ColorRange> color_range;
+  absl::optional<Vp9YuvSubsampling> sub_sampling;
   int frame_width = 0;
   int frame_height = 0;
   int render_width = 0;
@@ -105,10 +105,7 @@ struct Vp9UncompressedHeader {
   // Width/height of the tiles used (in units of 8x8 blocks).
   size_t tile_cols_log2 = 0;  // tile_cols = 1 << tile_cols_log2
   size_t tile_rows_log2 = 0;  // tile_rows = 1 << tile_rows_log2
-  std::optional<size_t> render_size_offset_bits;
-  // Number of bits from the start of the frame header to where the loop filter
-  // parameters are located.
-  std::optional<size_t> loop_filter_params_offset_bits;
+  absl::optional<size_t> render_size_offset_bits;
   Vp9InterpolationFilter interpolation_filter =
       Vp9InterpolationFilter::kEightTap;
   bool allow_high_precision_mv = false;
@@ -117,10 +114,10 @@ struct Vp9UncompressedHeader {
   uint8_t frame_context_idx = 0;
 
   bool segmentation_enabled = false;
-  std::optional<std::array<uint8_t, 7>> segmentation_tree_probs;
-  std::optional<std::array<uint8_t, 3>> segmentation_pred_prob;
+  absl::optional<std::array<uint8_t, 7>> segmentation_tree_probs;
+  absl::optional<std::array<uint8_t, 3>> segmentation_pred_prob;
   bool segmentation_is_delta = false;
-  std::array<std::array<std::optional<int>, kVp9SegLvlMax>, kVp9MaxSegments>
+  std::array<std::array<absl::optional<int>, kVp9SegLvlMax>, kVp9MaxSegments>
       segmentation_features;
 
   // Which of the 8 reference buffers may be used as references for this frame.
@@ -132,7 +129,7 @@ struct Vp9UncompressedHeader {
   std::bitset<kVp9MaxRefFrames> reference_buffers_sign_bias = 0;
 
   // Indicates which reference buffer [0,7] to infer the frame size from.
-  std::optional<int> infer_size_from_reference;
+  absl::optional<int> infer_size_from_reference;
   // Which of the 8 reference buffers are updated by this frame.
   std::bitset<kVp9NumRefFrames> updated_buffers = 0;
 
@@ -150,7 +147,7 @@ struct Vp9UncompressedHeader {
 
 // Parses the uncompressed header and populates (most) values in a
 // UncompressedHeader struct. Returns nullopt on failure.
-std::optional<Vp9UncompressedHeader> ParseUncompressedVp9Header(
+absl::optional<Vp9UncompressedHeader> ParseUncompressedVp9Header(
     rtc::ArrayView<const uint8_t> buf);
 
 }  // namespace webrtc

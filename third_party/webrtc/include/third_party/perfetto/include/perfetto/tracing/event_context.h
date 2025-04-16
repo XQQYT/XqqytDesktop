@@ -138,8 +138,7 @@ class PERFETTO_EXPORT_COMPONENT EventContext {
   using TracePacketHandle =
       ::protozero::MessageHandle<protos::pbzero::TracePacket>;
 
-  EventContext(TraceWriterBase* trace_writer,
-               TracePacketHandle,
+  EventContext(TracePacketHandle,
                internal::TrackEventIncrementalState*,
                internal::TrackEventTlsState*);
   EventContext(const EventContext&) = delete;
@@ -148,7 +147,6 @@ class PERFETTO_EXPORT_COMPONENT EventContext {
   protos::pbzero::DebugAnnotation* AddDebugAnnotation(
       ::perfetto::DynamicString name);
 
-  TraceWriterBase* trace_writer_ = nullptr;
   TracePacketHandle trace_packet_;
   protos::pbzero::TrackEvent* event_;
   internal::TrackEventIncrementalState* incremental_state_;

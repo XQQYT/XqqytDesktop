@@ -11,10 +11,6 @@
 #include "third_party/blink/renderer/core/css/css_value.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 
-namespace WTF {
-class String;
-}  // namespace WTF
-
 namespace blink {
 
 class CSSValuePool;
@@ -28,7 +24,7 @@ class CORE_EXPORT CSSRevertLayerValue : public CSSValue {
   explicit CSSRevertLayerValue(base::PassKey<CSSValuePool>)
       : CSSValue(kRevertLayerClass) {}
 
-  WTF::String CustomCSSText() const;
+  String CustomCSSText() const;
 
   bool Equals(const CSSRevertLayerValue&) const { return true; }
 

@@ -32,8 +32,8 @@ class PLATFORM_EXPORT SourceGraphic final : public FilterEffect {
   explicit SourceGraphic(Filter*);
   ~SourceGraphic() override;
 
-  StringBuilder& ExternalRepresentation(StringBuilder&,
-                                        wtf_size_t indent) const override;
+  WTF::TextStream& ExternalRepresentation(WTF::TextStream&,
+                                          int indention) const override;
 
   void SetSourceRectForTests(const gfx::Rect&);
 

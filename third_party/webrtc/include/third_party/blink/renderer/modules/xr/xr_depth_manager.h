@@ -17,18 +17,22 @@ class ExceptionState;
 class XRCPUDepthInformation;
 class XRWebGLDepthInformation;
 class XRFrame;
-class XRViewData;
+class XRSession;
 
 // Helper class, used to separate the code related to depth buffer processing
-// out of XRViewData.
+// out of XRSession.
 class XRDepthManager : public GarbageCollected<XRDepthManager> {
  public:
   explicit XRDepthManager(
-      base::PassKey<XRViewData> pass_key,
+      base::PassKey<XRSession> pass_key,
+      XRSession* session,
       const device::mojom::blink::XRDepthConfig& device_configuration);
   virtual ~XRDepthManager();
 
   void ProcessDepthInformation(device::mojom::blink::XRDepthDataPtr depth_data);
+
+  const String& depthUsage() const { return usage_str_; }
+  const String& depthDataFormat() const { return data_format_str_; }
 
   XRCPUDepthInformation* GetCpuDepthInformation(
       const XRFrame* xr_frame,
@@ -41,8 +45,13 @@ class XRDepthManager : public GarbageCollected<XRDepthManager> {
   void Trace(Visitor* visitor) const;
 
  private:
+  Member<XRSession> session_;
+
   const device::mojom::XRDepthUsage usage_;
   const device::mojom::XRDepthDataFormat data_format_;
+
+  const String usage_str_;
+  const String data_format_str_;
 
   // Current depth data buffer.
   device::mojom::blink::XRDepthDataUpdatedPtr depth_data_;

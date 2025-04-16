@@ -41,7 +41,7 @@ sudo apt install qtbase5-dev cmake
 
 ```bash
 sudo apt install qtcreator
-sudo apt install qt5-qtdesigner
+sudo apt install qttools5-dev-tools
 ```
 #### Build & Run the Project
 Clone the repository (if not done already):

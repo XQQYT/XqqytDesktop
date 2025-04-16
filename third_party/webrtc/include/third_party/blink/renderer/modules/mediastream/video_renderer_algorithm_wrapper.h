@@ -21,8 +21,6 @@ namespace blink {
 
 class VideoRendererAlgorithmWrapper {
  public:
-  enum RendererAlgorithm { kDefault, kLowLatency };
-
   VideoRendererAlgorithmWrapper(
       const media::TimeSource::WallClockTimeCB& wall_clock_time_cb,
       media::MediaLog* media_log);
@@ -48,11 +46,11 @@ class VideoRendererAlgorithmWrapper {
 
   bool NeedsReferenceTime() const;
 
-  RendererAlgorithm renderer_algorithm() const { return renderer_algorithm_; }
-
  private:
+  enum RendererAlgorithm { kDefault, kLowLatency };
+
   const media::TimeSource::WallClockTimeCB wall_clock_time_cb_;
-  raw_ptr<media::MediaLog> media_log_;
+  raw_ptr<media::MediaLog, ExperimentalRenderer> media_log_;
   RendererAlgorithm renderer_algorithm_;
   std::unique_ptr<media::VideoRendererAlgorithm>
       default_rendering_frame_buffer_;

@@ -5,16 +5,11 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSSOM_CSS_UNIT_VALUE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSSOM_CSS_UNIT_VALUE_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/css/css_numeric_literal_value.h"
 #include "third_party/blink/renderer/core/css/cssom/css_numeric_value.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
-
-namespace WTF {
-class StringBuilder;
-}  // namespace WTF
 
 namespace blink {
 
@@ -53,7 +48,7 @@ class CORE_EXPORT CSSUnitValue final : public CSSNumericValue {
 
   // From CSSNumericValue.
   bool IsUnitValue() const final { return true; }
-  std::optional<CSSNumericSumValue> SumValue() const final;
+  absl::optional<CSSNumericSumValue> SumValue() const final;
 
   bool Equals(const CSSNumericValue&) const final;
 
@@ -67,7 +62,7 @@ class CORE_EXPORT CSSUnitValue final : public CSSNumericValue {
   double ConvertFixedLength(CSSPrimitiveValue::UnitType) const;
   double ConvertAngle(CSSPrimitiveValue::UnitType) const;
 
-  void BuildCSSText(Nested, ParenLess, WTF::StringBuilder&) const final;
+  void BuildCSSText(Nested, ParenLess, StringBuilder&) const final;
 
   // From CSSNumericValue
   CSSNumericValue* Negate() final;

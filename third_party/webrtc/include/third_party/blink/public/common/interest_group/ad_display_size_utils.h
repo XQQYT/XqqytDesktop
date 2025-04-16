@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_PUBLIC_COMMON_INTEREST_GROUP_AD_DISPLAY_SIZE_UTILS_H_
 
 #include <string>
-#include <string_view>
 #include <tuple>
 
 #include "third_party/blink/public/common/common_export.h"
@@ -16,15 +15,6 @@ namespace blink {
 
 BLINK_COMMON_EXPORT std::string ConvertAdSizeUnitToString(
     const blink::AdSize::LengthUnit& unit);
-
-// Converts a valid ad size back to a string.
-BLINK_COMMON_EXPORT std::string ConvertAdSizeToString(
-    const blink::AdSize& ad_size);
-
-// Converts a valid ad dimension back to a string.
-BLINK_COMMON_EXPORT std::string ConvertAdDimensionToString(
-    double value,
-    AdSize::LengthUnit units);
 
 // Helper function that converts a size string into its corresponding value and
 // units. Accepts measurements in pixels (px), screen width (sw) and screen
@@ -36,7 +26,7 @@ BLINK_COMMON_EXPORT std::string ConvertAdDimensionToString(
 // - " 25sw "
 // - "100"
 BLINK_COMMON_EXPORT std::tuple<double, blink::AdSize::LengthUnit>
-ParseAdSizeString(std::string_view input);
+ParseAdSizeString(const base::StringPiece input);
 
 BLINK_COMMON_EXPORT bool IsValidAdSize(const blink::AdSize& size);
 

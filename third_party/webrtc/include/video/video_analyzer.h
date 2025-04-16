@@ -110,8 +110,8 @@ class VideoAnalyzer : public PacketReceiver,
                     int64_t render_time_ms,
                     size_t encoded_frame_size);
 
-    std::optional<VideoFrame> reference;
-    std::optional<VideoFrame> render;
+    absl::optional<VideoFrame> reference;
+    absl::optional<VideoFrame> render;
     bool dropped;
     int64_t input_time_ms;
     int64_t send_time_ms;
@@ -259,7 +259,7 @@ class VideoAnalyzer : public PacketReceiver,
   SamplesStatsCounter audio_jitter_buffer_ms_ RTC_GUARDED_BY(comparison_lock_);
   SamplesStatsCounter pixels_ RTC_GUARDED_BY(comparison_lock_);
   // Rendered frame with worst PSNR is saved for further analysis.
-  std::optional<FrameWithPsnr> worst_frame_ RTC_GUARDED_BY(comparison_lock_);
+  absl::optional<FrameWithPsnr> worst_frame_ RTC_GUARDED_BY(comparison_lock_);
   // Freeze metrics.
   SamplesStatsCounter time_between_freezes_ RTC_GUARDED_BY(comparison_lock_);
   uint32_t freeze_count_ RTC_GUARDED_BY(comparison_lock_);
@@ -292,22 +292,22 @@ class VideoAnalyzer : public PacketReceiver,
   int64_t wallclock_time_ RTC_GUARDED_BY(cpu_measurement_lock_);
 
   std::deque<VideoFrame> frames_ RTC_GUARDED_BY(lock_);
-  std::optional<VideoFrame> last_rendered_frame_ RTC_GUARDED_BY(lock_);
+  absl::optional<VideoFrame> last_rendered_frame_ RTC_GUARDED_BY(lock_);
   RtpTimestampUnwrapper wrap_handler_ RTC_GUARDED_BY(lock_);
   std::map<int64_t, int64_t> send_times_ RTC_GUARDED_BY(lock_);
   std::map<int64_t, int64_t> recv_times_ RTC_GUARDED_BY(lock_);
   std::map<int64_t, size_t> encoded_frame_sizes_ RTC_GUARDED_BY(lock_);
-  std::optional<uint32_t> first_encoded_timestamp_ RTC_GUARDED_BY(lock_);
-  std::optional<uint32_t> first_sent_timestamp_ RTC_GUARDED_BY(lock_);
+  absl::optional<uint32_t> first_encoded_timestamp_ RTC_GUARDED_BY(lock_);
+  absl::optional<uint32_t> first_sent_timestamp_ RTC_GUARDED_BY(lock_);
   const double avg_psnr_threshold_;
   const double avg_ssim_threshold_;
   bool is_quick_test_enabled_;
 
-  std::vector<PlatformThread> comparison_thread_pool_;
-  Event comparison_available_event_;
+  std::vector<rtc::PlatformThread> comparison_thread_pool_;
+  rtc::Event comparison_available_event_;
   std::deque<FrameComparison> comparisons_ RTC_GUARDED_BY(comparison_lock_);
   bool quit_ RTC_GUARDED_BY(comparison_lock_);
-  Event done_;
+  rtc::Event done_;
 
   std::unique_ptr<VideoRtpDepacketizer> vp8_depacketizer_;
   std::unique_ptr<VideoRtpDepacketizer> vp9_depacketizer_;

@@ -107,7 +107,7 @@ class CORE_EXPORT StyleScopeFrame {
  private:
   friend class SelectorChecker;
 
-  using ScopeSet = GCedHeapHashSet<Member<const StyleScope>>;
+  using ScopeSet = HeapHashSet<Member<const StyleScope>>;
 
   ScopeSet* CalculateSeenImplicitScopes();
 
@@ -121,5 +121,6 @@ class CORE_EXPORT StyleScopeFrame {
 }  // namespace blink
 
 WTF_ALLOW_MOVE_INIT_AND_COMPARE_WITH_MEM_FUNCTIONS(blink::StyleScopeActivation)
+WTF_ALLOW_MOVE_INIT_AND_COMPARE_WITH_MEM_FUNCTIONS(blink::StyleScopeFrame)
 
 #endif  // THIRD_PARTY_BLINK_RENDERER_CORE_CSS_STYLE_SCOPE_FRAME_H_

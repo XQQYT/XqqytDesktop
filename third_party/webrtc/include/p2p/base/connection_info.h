@@ -11,11 +11,9 @@
 #ifndef P2P_BASE_CONNECTION_INFO_H_
 #define P2P_BASE_CONNECTION_INFO_H_
 
-#include <cstddef>
-#include <cstdint>
-#include <optional>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/candidate.h"
 #include "api/units/timestamp.h"
 
@@ -62,10 +60,8 @@ struct ConnectionInfo {
   size_t packets_received;     // Number of packets that were received.
   size_t recv_ping_requests;   // Number of STUN ping request received.
   size_t recv_ping_responses;  // Number of STUN ping response received.
-  webrtc::Candidate
-      local_candidate;  // The local candidate for this connection.
-  webrtc::Candidate
-      remote_candidate;        // The remote candidate for this connection.
+  Candidate local_candidate;   // The local candidate for this connection.
+  Candidate remote_candidate;  // The remote candidate for this connection.
   void* key;                   // A static value that identifies this conn.
   // https://w3c.github.io/webrtc-stats/#dom-rtcicecandidatepairstats-state
   IceCandidatePairState state;
@@ -76,11 +72,11 @@ struct ConnectionInfo {
   // https://w3c.github.io/webrtc-stats/#dom-rtcicecandidatepairstats-totalroundtriptime
   uint64_t total_round_trip_time_ms;
   // https://w3c.github.io/webrtc-stats/#dom-rtcicecandidatepairstats-currentroundtriptime
-  std::optional<uint32_t> current_round_trip_time_ms;
+  absl::optional<uint32_t> current_round_trip_time_ms;
 
   // https://w3c.github.io/webrtc-stats/#dom-rtcicecandidatepairstats-lastpacketreceivedtimestamp
-  std::optional<webrtc::Timestamp> last_data_received;
-  std::optional<webrtc::Timestamp> last_data_sent;
+  absl::optional<webrtc::Timestamp> last_data_received;
+  absl::optional<webrtc::Timestamp> last_data_sent;
 };
 
 // Information about all the candidate pairs of a channel.

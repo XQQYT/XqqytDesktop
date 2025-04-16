@@ -28,12 +28,11 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_RESOURCE_ERROR_H_
 
 #include <iosfwd>
-#include <optional>
-
 #include "net/dns/public/resolve_error_info.h"
 #include "services/network/public/cpp/cors/cors_error_status.h"
 #include "services/network/public/mojom/blocked_by_response_reason.mojom-blink.h"
 #include "services/network/public/mojom/trust_tokens.mojom-blink.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
@@ -71,7 +70,7 @@ class PLATFORM_EXPORT ResourceError final {
   // |error_code| must not be 0.
   ResourceError(int error_code,
                 const KURL& failing_url,
-                std::optional<network::CorsErrorStatus>);
+                absl::optional<network::CorsErrorStatus>);
   ResourceError(const KURL& failing_url,
                 const network::CorsErrorStatus& status);
   explicit ResourceError(const WebURLError&);
@@ -107,12 +106,12 @@ class PLATFORM_EXPORT ResourceError final {
     return is_cancelled_from_http_error_;
   }
 
-  std::optional<ResourceRequestBlockedReason> GetResourceRequestBlockedReason()
+  absl::optional<ResourceRequestBlockedReason> GetResourceRequestBlockedReason()
       const;
-  std::optional<network::mojom::BlockedByResponseReason>
+  absl::optional<network::mojom::BlockedByResponseReason>
   GetBlockedByResponseReason() const;
 
-  std::optional<network::CorsErrorStatus> CorsErrorStatus() const {
+  absl::optional<network::CorsErrorStatus> CorsErrorStatus() const {
     return cors_error_status_;
   }
 
@@ -135,11 +134,11 @@ class PLATFORM_EXPORT ResourceError final {
   String localized_description_;
   bool is_access_check_ = false;
   bool has_copy_in_cache_ = false;
-  std::optional<network::CorsErrorStatus> cors_error_status_;
+  absl::optional<network::CorsErrorStatus> cors_error_status_;
   bool should_collapse_inititator_ = false;
   bool is_cancelled_from_http_error_ = false;
 
-  std::optional<network::mojom::BlockedByResponseReason>
+  absl::optional<network::mojom::BlockedByResponseReason>
       blocked_by_response_reason_;
 
   // Refer to the member comment in WebURLError.

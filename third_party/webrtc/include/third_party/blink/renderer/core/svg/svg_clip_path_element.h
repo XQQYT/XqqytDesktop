@@ -40,9 +40,7 @@ class SVGClipPathElement final : public SVGTransformableElement {
   void Trace(Visitor*) const override;
 
  private:
-  FocusableState SupportsFocus(UpdateBehavior) const override {
-    return FocusableState::kNotFocusable;
-  }
+  bool SupportsFocus() const override { return false; }
 
   void SvgAttributeChanged(const SvgAttributeChangedParams&) override;
   void ChildrenChanged(const ChildrenChange&) override;

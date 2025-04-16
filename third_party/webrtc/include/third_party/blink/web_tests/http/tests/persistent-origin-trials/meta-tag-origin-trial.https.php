@@ -2,9 +2,9 @@
 // Token for FrobulatePersistent
 $ORIGIN_TRIAL_TOKEN = "A7eQahvlWGVqTPZ/Rpyq3p+Lw+CZaKPs8POfJ7SURAykNb7kG6+xv4I3O4E03VALwnxZJy4aB83PX5q5yseoSQEAAABceyJvcmlnaW4iOiAiaHR0cHM6Ly8xMjcuMC4wLjE6ODQ0MyIsICJmZWF0dXJlIjogIkZyb2J1bGF0ZVBlcnNpc3RlbnQiLCAiZXhwaXJ5IjogMjAwMDAwMDAwMH0=";
 $headers = getallheaders();
-$trials = $headers['X-Web-Test-Enabled-Origin-Trials'] ?? null;
+$trials = $headers['X-Web-Test-Enabled-Origin-Trials'];
 
-$child = ($_REQUEST['child'] ?? null) == "true";
+$child = $_REQUEST['child'] == "true";
 
 if (!$child) {
 // Main page

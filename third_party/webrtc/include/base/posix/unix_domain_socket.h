@@ -8,7 +8,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
-
 #include <vector>
 
 #include "base/base_export.h"

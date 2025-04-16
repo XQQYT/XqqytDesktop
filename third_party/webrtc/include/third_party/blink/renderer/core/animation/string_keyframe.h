@@ -10,7 +10,6 @@
 #include "third_party/blink/renderer/core/css/css_property_value_set.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
-#include "third_party/blink/renderer/platform/text/writing_direction_mode.h"
 #include "third_party/blink/renderer/platform/wtf/hash_map.h"
 
 namespace blink {
@@ -98,8 +97,8 @@ class CORE_EXPORT StringKeyframe : public Keyframe {
 
   bool HasLogicalProperty() { return has_logical_property_; }
 
-  bool SetLogicalPropertyResolutionContext(
-      WritingDirectionMode writing_direction);
+  bool SetLogicalPropertyResolutionContext(TextDirection text_direction,
+                                           WritingMode writing_mode);
 
   void Trace(Visitor*) const override;
 
@@ -109,26 +108,13 @@ class CORE_EXPORT StringKeyframe : public Keyframe {
     CSSPropertySpecificKeyframe(double offset,
                                 scoped_refptr<TimingFunction> easing,
                                 const CSSValue* value,
-                                const TreeScope* tree_scope,
                                 EffectModel::CompositeOperation composite)
         : Keyframe::PropertySpecificKeyframe(offset,
                                              std::move(easing),
                                              composite),
-          value_(value),
-          tree_scope_(tree_scope) {}
+          value_(value) {}
 
     const CSSValue* Value() const { return value_.Get(); }
-
-    // The originating TreeScope for this keyframe. Note that certain
-    // values also bake the TreeScope into their value (see CSSValue::
-    // EnsureScopedValue); this is needed when need to represent a mix
-    // of two interpolable values that originate from two different tree
-    // scopes.
-    //
-    // CSSUnparsedDeclarationValue does *not* bake the TreeScope into
-    // its value, however, since it's somewhat expensive, and we never
-    // need to represent a mix of such values.
-    const TreeScope* GetTreeScope() const { return tree_scope_.Get(); }
 
     bool PopulateCompositorKeyframeValue(
         const PropertyHandle&,
@@ -154,7 +140,6 @@ class CORE_EXPORT StringKeyframe : public Keyframe {
     bool IsCSSPropertySpecificKeyframe() const override { return true; }
 
     Member<const CSSValue> value_;
-    Member<const TreeScope> tree_scope_;
     mutable Member<CompositorKeyframeValue> compositor_keyframe_value_cache_;
   };
 
@@ -210,12 +195,14 @@ class CORE_EXPORT StringKeyframe : public Keyframe {
     const CSSValue* CssValue();
 
     void AppendTo(MutableCSSPropertyValueSet* property_value_set,
-                  WritingDirectionMode writing_direction);
+                  TextDirection text_direction,
+                  WritingMode writing_mode);
 
     void SetProperty(MutableCSSPropertyValueSet* property_value_set,
                      CSSPropertyID property_id,
                      const CSSValue& value,
-                     WritingDirectionMode writing_direction);
+                     TextDirection text_direction,
+                     WritingMode writing_mode);
 
     static bool HasLowerPriority(PropertyResolver* first,
                                  PropertyResolver* second);
@@ -281,12 +268,12 @@ class CORE_EXPORT StringKeyframe : public Keyframe {
   // changes.
   bool has_logical_property_ = false;
 
-  // The following member is required for mapping logical to physical
+  // The following properties are required for mapping logical to physical
   // property names. Though the same for all keyframes within the same model,
   // we store the value here to facilitate lazy evaluation of the CSS
   // properties.
-  WritingDirectionMode writing_direction_{WritingMode::kHorizontalTb,
-                                          TextDirection::kLtr};
+  TextDirection text_direction_ = TextDirection::kLtr;
+  WritingMode writing_mode_ = WritingMode::kHorizontalTb;
 };
 
 using CSSPropertySpecificKeyframe = StringKeyframe::CSSPropertySpecificKeyframe;

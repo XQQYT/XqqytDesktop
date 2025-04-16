@@ -57,8 +57,6 @@ class ObjectPainter {
                          const gfx::Rect& paint_rect,
                          const DisplayItemClient&);
 
-  cc::HitTestOpaqueness GetHitTestOpaqueness() const;
-
   // If true, we should record hit test data for the second purpose described
   // above. As an optimization, some callers of RecordHitTestData() doesn't
   // need to call it just for the first purpose. For example, a text fragment

@@ -26,6 +26,7 @@
 #include "audio.h"
 #include "avfilter.h"
 #include "formats.h"
+#include "internal.h"
 
 typedef struct AudioNLMDNDSPContext {
     float (*compute_distance_ssd)(const float *f1, const float *f2, ptrdiff_t K);

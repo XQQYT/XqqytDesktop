@@ -20,26 +20,23 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-template <class _From>
+template <class _From, class _To>
 struct __copy_cvref {
-  template <class _To>
-  using __apply _LIBCPP_NODEBUG = __copy_cv_t<_From, _To>;
-};
-
-template <class _From>
-struct __copy_cvref<_From&> {
-  template <class _To>
-  using __apply _LIBCPP_NODEBUG = __add_lvalue_reference_t<__copy_cv_t<_From, _To> >;
-};
-
-template <class _From>
-struct __copy_cvref<_From&&> {
-  template <class _To>
-  using __apply _LIBCPP_NODEBUG = __add_rvalue_reference_t<__copy_cv_t<_From, _To> >;
+  using type = __copy_cv_t<_From, _To>;
 };
 
 template <class _From, class _To>
-using __copy_cvref_t _LIBCPP_NODEBUG = typename __copy_cvref<_From>::template __apply<_To>;
+struct __copy_cvref<_From&, _To> {
+  using type = __add_lvalue_reference_t<__copy_cv_t<_From, _To> >;
+};
+
+template <class _From, class _To>
+struct __copy_cvref<_From&&, _To> {
+  using type = __add_rvalue_reference_t<__copy_cv_t<_From, _To> >;
+};
+
+template <class _From, class _To>
+using __copy_cvref_t = typename __copy_cvref<_From, _To>::type;
 
 _LIBCPP_END_NAMESPACE_STD
 

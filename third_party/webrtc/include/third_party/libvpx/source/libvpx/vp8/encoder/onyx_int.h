@@ -20,7 +20,6 @@
 #include "tokenize.h"
 #include "vp8/common/onyxc_int.h"
 #include "vpx_dsp/variance.h"
-#include "vpx_util/vpx_pthread.h"
 #include "encodemb.h"
 #include "vp8/encoder/quantize.h"
 #include "vp8/common/entropy.h"
@@ -216,7 +215,7 @@ enum {
 typedef struct {
   /* Layer configuration */
   double framerate;
-  int target_bandwidth; /* bits per second */
+  int target_bandwidth;
 
   /* Layer specific coding parameters */
   int64_t starting_buffer_level;
@@ -232,7 +231,7 @@ typedef struct {
   int64_t bits_off_target;
 
   int64_t total_actual_bits;
-  int64_t total_target_vs_actual;
+  int total_target_vs_actual;
 
   int worst_quality;
   int active_worst_quality;
@@ -413,7 +412,7 @@ typedef struct VP8_COMP {
   int long_rolling_actual_bits;
 
   int64_t total_actual_bits;
-  int64_t total_target_vs_actual; /* debug stats */
+  int total_target_vs_actual; /* debug stats */
 
   int worst_quality;
   int active_worst_quality;
@@ -439,7 +438,7 @@ typedef struct VP8_COMP {
   int kf_boost;
   int last_boost;
 
-  int target_bandwidth; /* bits per second */
+  int target_bandwidth;
   struct vpx_codec_pkt_list *output_pkt_list;
 
 #if 0
@@ -541,10 +540,10 @@ typedef struct VP8_COMP {
   LPFTHREAD_DATA lpf_thread_data;
 
   /* events */
-  vp8_sem_t *h_event_start_encoding;
-  vp8_sem_t *h_event_end_encoding;
-  vp8_sem_t h_event_start_lpf;
-  vp8_sem_t h_event_end_lpf;
+  sem_t *h_event_start_encoding;
+  sem_t *h_event_end_encoding;
+  sem_t h_event_start_lpf;
+  sem_t h_event_end_lpf;
 #endif
 
   TOKENLIST *tplist;
@@ -556,12 +555,10 @@ typedef struct VP8_COMP {
   vp8_refining_search_fn_t refining_search_sad;
   vp8_diamond_search_fn_t diamond_search_sad;
   vp8_variance_fn_ptr_t fn_ptr[BLOCK_MAX_SEGMENTS];
-#if CONFIG_INTERNAL_STATS
   uint64_t time_receive_data;
   uint64_t time_compress_data;
   uint64_t time_pick_lpf;
   uint64_t time_encode_mb_row;
-#endif
 
   int base_skip_false_prob[128];
 
@@ -625,7 +622,7 @@ typedef struct VP8_COMP {
   double totalp_v;
   double totalp;
   double total_sq_error2;
-  uint64_t bytes;
+  int bytes;
   double summed_quality;
   double summed_weights;
   unsigned int tot_recode_hits;
@@ -711,10 +708,6 @@ typedef struct VP8_COMP {
   // Always update correction factor used for rate control after each frame for
   // realtime encoding.
   int rt_always_update_correction_factor;
-
-  // Flag to indicate frame may be dropped due to large expected overshoot,
-  // and re-encoded on next frame at max_qp.
-  int rt_drop_recode_on_overshoot;
 } VP8_COMP;
 
 void vp8_initialize_enc(void);
@@ -738,8 +731,6 @@ void vp8_pack_bitstream(VP8_COMP *cpi, unsigned char *dest,
 void vp8_tokenize_mb(VP8_COMP *, MACROBLOCK *, TOKENEXTRA **);
 
 void vp8_set_speed_features(VP8_COMP *cpi);
-
-int vp8_check_drop_buffer(VP8_COMP *cpi);
 
 #ifdef __cplusplus
 }  // extern "C"

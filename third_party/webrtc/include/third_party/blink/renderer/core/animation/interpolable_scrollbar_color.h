@@ -5,6 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_INTERPOLABLE_SCROLLBAR_COLOR_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_INTERPOLABLE_SCROLLBAR_COLOR_H_
 
+#include <memory>
 #include "base/notreached.h"
 #include "third_party/blink/renderer/core/animation/interpolable_color.h"
 #include "third_party/blink/renderer/core/animation/interpolable_value.h"
@@ -19,39 +20,40 @@ class StyleResolverState;
 class CORE_EXPORT InterpolableScrollbarColor : public InterpolableValue {
  public:
   InterpolableScrollbarColor();
-  InterpolableScrollbarColor(InterpolableColor* thumb_color,
-                             InterpolableColor* track_color);
 
-  static InterpolableScrollbarColor* Create(const StyleScrollbarColor&);
+  static std::unique_ptr<InterpolableScrollbarColor> Create(
+      StyleScrollbarColor);
   bool IsScrollbarColor() const final { return true; }
 
-  StyleScrollbarColor* GetScrollbarColor(const StyleResolverState&) const;
+  StyleScrollbarColor GetScrollbarColor(const StyleResolverState&) const;
 
   void Scale(double scale) final;
   void Add(const InterpolableValue& other) final;
   void AssertCanInterpolateWith(const InterpolableValue& other) const final;
-  bool Equals(const InterpolableValue& other) const final { NOTREACHED(); }
+  bool Equals(const InterpolableValue& other) const final {
+    NOTREACHED();
+    return false;
+  }
 
   void Interpolate(const InterpolableValue& to,
                    const double progress,
                    InterpolableValue& result) const final;
 
-  InterpolableScrollbarColor* Clone() const { return RawClone(); }
+  std::unique_ptr<InterpolableScrollbarColor> Clone() const {
+    return std::unique_ptr<InterpolableScrollbarColor>(RawClone());
+  }
 
   void Composite(const InterpolableScrollbarColor& other, double fraction);
 
-  void Trace(Visitor* v) const override {
-    InterpolableValue::Trace(v);
-    v->Trace(thumb_color_);
-    v->Trace(track_color_);
-  }
-
  private:
+  InterpolableScrollbarColor(InterpolableColor thumb_color,
+                             InterpolableColor track_color);
+
   InterpolableScrollbarColor* RawClone() const final;
   InterpolableScrollbarColor* RawCloneAndZero() const final;
 
-  Member<InterpolableColor> thumb_color_;
-  Member<InterpolableColor> track_color_;
+  InterpolableColor thumb_color_;
+  InterpolableColor track_color_;
 };
 
 template <>

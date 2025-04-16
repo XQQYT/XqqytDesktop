@@ -211,11 +211,6 @@ typedef enum {
     XML_ERR_USER_STOP, /* 111 */
     XML_ERR_COMMENT_ABRUPTLY_ENDED, /* 112 */
     XML_WAR_ENCODING_MISMATCH, /* 113 */
-    XML_ERR_RESOURCE_LIMIT, /* 114 */
-    XML_ERR_ARGUMENT, /* 115 */
-    XML_ERR_SYSTEM, /* 116 */
-    XML_ERR_REDECL_PREDEF_ENTITY, /* 117 */
-    XML_ERR_INT_SUBSET_NOT_FINISHED, /* 118 */
     XML_NS_ERR_XML_NAMESPACE = 200,
     XML_NS_ERR_UNDEFINED_NAMESPACE, /* 201 */
     XML_NS_ERR_QNAME, /* 202 */
@@ -478,7 +473,6 @@ typedef enum {
     XML_IO_EADDRINUSE, /* 1554 */
     XML_IO_EALREADY, /* 1555 */
     XML_IO_EAFNOSUPPORT, /* 1556 */
-    XML_IO_UNSUPPORTED_PROTOCOL, /* 1557 */
     XML_XINCLUDE_RECURSION=1600,
     XML_XINCLUDE_PARSE_VALUE, /* 1601 */
     XML_XINCLUDE_ENTITY_DEF_MISMATCH, /* 1602 */
@@ -862,23 +856,15 @@ typedef void (*xmlGenericErrorFunc) (void *ctx,
  * Signature of the function to use when there is an error and
  * the module handles the new error reporting mechanism.
  */
-typedef void (*xmlStructuredErrorFunc) (void *userData, const xmlError *error);
+typedef void (*xmlStructuredErrorFunc) (void *userData, xmlErrorPtr error);
 
 /** DOC_DISABLE */
-#if defined(LIBXML_THREAD_ENABLED)
-XML_DEPRECATED
-XMLPUBFUN const xmlError *
-__xmlLastError(void);
-#elif !defined(IN_LIBXML)
-XML_DEPRECATED
-XMLPUBVAR const xmlError xmlLastError;
-#endif
-
 #define XML_GLOBALS_ERROR \
-  XML_OP(xmlGenericError, xmlGenericErrorFunc, XML_NO_ATTR) \
-  XML_OP(xmlGenericErrorContext, void *, XML_NO_ATTR) \
-  XML_OP(xmlStructuredError, xmlStructuredErrorFunc, XML_NO_ATTR) \
-  XML_OP(xmlStructuredErrorContext, void *, XML_NO_ATTR)
+  XML_OP(xmlLastError, xmlError, XML_DEPRECATED) \
+  XML_OP(xmlGenericError, xmlGenericErrorFunc, XML_EMPTY) \
+  XML_OP(xmlGenericErrorContext, void *, XML_EMPTY) \
+  XML_OP(xmlStructuredError, xmlStructuredErrorFunc, XML_EMPTY) \
+  XML_OP(xmlStructuredErrorContext, void *, XML_EMPTY)
 
 #define XML_OP XML_DECLARE_GLOBAL
 XML_GLOBALS_ERROR
@@ -900,7 +886,6 @@ XML_GLOBALS_ERROR
 XMLPUBFUN void
     xmlSetGenericErrorFunc	(void *ctx,
 				 xmlGenericErrorFunc handler);
-XML_DEPRECATED
 XMLPUBFUN void
     xmlThrDefSetGenericErrorFunc(void *ctx,
                                  xmlGenericErrorFunc handler);
@@ -911,7 +896,6 @@ XMLPUBFUN void
 XMLPUBFUN void
     xmlSetStructuredErrorFunc	(void *ctx,
 				 xmlStructuredErrorFunc handler);
-XML_DEPRECATED
 XMLPUBFUN void
     xmlThrDefSetStructuredErrorFunc(void *ctx,
                                  xmlStructuredErrorFunc handler);
@@ -935,17 +919,11 @@ XMLPUBFUN void
     xmlParserValidityWarning	(void *ctx,
 				 const char *msg,
 				 ...) LIBXML_ATTR_FORMAT(2,3);
-/** DOC_DISABLE */
 struct _xmlParserInput;
-/** DOC_ENABLE */
 XMLPUBFUN void
     xmlParserPrintFileInfo	(struct _xmlParserInput *input);
 XMLPUBFUN void
     xmlParserPrintFileContext	(struct _xmlParserInput *input);
-XMLPUBFUN void
-xmlFormatError			(const xmlError *err,
-				 xmlGenericErrorFunc channel,
-				 void *data);
 
 /*
  * Extended error information routines
@@ -954,7 +932,7 @@ XMLPUBFUN const xmlError *
     xmlGetLastError		(void);
 XMLPUBFUN void
     xmlResetLastError		(void);
-XMLPUBFUN const xmlError *
+XMLPUBFUN xmlErrorPtr
     xmlCtxtGetLastError		(void *ctx);
 XMLPUBFUN void
     xmlCtxtResetLastError	(void *ctx);

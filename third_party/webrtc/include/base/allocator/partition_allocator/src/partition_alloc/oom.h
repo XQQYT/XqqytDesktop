@@ -2,18 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_OOM_H_
-#define PARTITION_ALLOC_OOM_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_OOM_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_OOM_H_
 
 #include <cstddef>
 
-#include "partition_alloc/allocation_guard.h"
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_base/compiler_specific.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/allocation_guard.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/compiler_specific.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "build/build_config.h"
 
-#if PA_BUILDFLAG(IS_WIN)
-#include "partition_alloc/partition_alloc_base/win/windows_types.h"
+#if BUILDFLAG(IS_WIN)
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/windows_types.h"
 #endif
 
 namespace partition_alloc {
@@ -22,15 +22,15 @@ namespace partition_alloc {
 // |size| is the size of the failed allocation, or 0 if not known.
 // Crash reporting classifies such crashes as OOM.
 // Must be allocation-safe.
-[[noreturn]] PA_NOT_TAIL_CALLED PA_COMPONENT_EXPORT(
-    PARTITION_ALLOC) void TerminateBecauseOutOfMemory(size_t size);
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
+void TerminateBecauseOutOfMemory(size_t size);
 
 // Records the size of the allocation that caused the current OOM crash, for
 // consumption by Breakpad.
 // TODO: this can be removed when Breakpad is no longer supported.
 PA_COMPONENT_EXPORT(PARTITION_ALLOC) extern size_t g_oom_size;
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 namespace win {
 
 // Custom Windows exception code chosen to indicate an out of memory error.
@@ -67,4 +67,4 @@ namespace internal {
 
 }  // namespace partition_alloc
 
-#endif  // PARTITION_ALLOC_OOM_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_OOM_H_

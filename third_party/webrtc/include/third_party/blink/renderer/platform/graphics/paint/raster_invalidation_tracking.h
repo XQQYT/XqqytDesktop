@@ -5,14 +5,13 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_GRAPHICS_PAINT_RASTER_INVALIDATION_TRACKING_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_GRAPHICS_PAINT_RASTER_INVALIDATION_TRACKING_H_
 
-#include <optional>
-
 #include "cc/base/region.h"
-#include "third_party/blink/renderer/platform/graphics/paint/display_item_client_types.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
+#include "third_party/blink/renderer/platform/graphics/graphics_types.h"
 #include "third_party/blink/renderer/platform/graphics/paint/paint_record.h"
 #include "third_party/blink/renderer/platform/graphics/paint_invalidation_reason.h"
-#include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/json/json_values.h"
+#include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/skia/include/core/SkColor.h"
 #include "ui/gfx/geometry/rect.h"
@@ -62,11 +61,10 @@ struct RasterUnderInvalidation {
   SkColor new_pixel;
 };
 
-class PLATFORM_EXPORT RasterInvalidationTracking
-    : public GarbageCollected<RasterInvalidationTracking> {
- public:
-  void Trace(Visitor*) const {}
+class PLATFORM_EXPORT RasterInvalidationTracking {
+  USING_FAST_MALLOC(RasterInvalidationTracking);
 
+ public:
   // When RuntimeEnabledFeatures::PaintUnderInvalidationCheckingEnabled() and
   // SimulateRasterUnderInvalidation(true) is called, all changed pixels will
   // be reported as raster under-invalidations. Used to visually test raster
@@ -112,7 +110,7 @@ class PLATFORM_EXPORT RasterInvalidationTracking
   Vector<RasterInvalidationInfo> invalidations_;
 
   // The following fields are for raster under-invalidation detection.
-  std::optional<PaintRecord> last_painted_record_;
+  absl::optional<PaintRecord> last_painted_record_;
   gfx::Rect last_interest_rect_;
   cc::Region invalidation_region_since_last_paint_;
   Vector<RasterUnderInvalidation> under_invalidations_;

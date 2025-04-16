@@ -5,7 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_WEBUSB_USB_ISOCHRONOUS_IN_TRANSFER_PACKET_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_WEBUSB_USB_ISOCHRONOUS_IN_TRANSFER_PACKET_H_
 
-#include "third_party/blink/renderer/bindings/modules/v8/v8_usb_transfer_status.h"
 #include "third_party/blink/renderer/core/typed_arrays/array_buffer_view_helpers.h"
 #include "third_party/blink/renderer/core/typed_arrays/dom_data_view.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
@@ -18,25 +17,23 @@ class USBIsochronousInTransferPacket final : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
-  static USBIsochronousInTransferPacket* Create(
-      const V8USBTransferStatus& status) {
-    return MakeGarbageCollected<USBIsochronousInTransferPacket>(
-        status, NotShared<DOMDataView>());
+  static USBIsochronousInTransferPacket* Create(const String& status) {
+    return MakeGarbageCollected<USBIsochronousInTransferPacket>(status,
+                                                                nullptr);
   }
 
-  static USBIsochronousInTransferPacket* Create(
-      const V8USBTransferStatus& status,
-      NotShared<DOMDataView> data) {
-    return MakeGarbageCollected<USBIsochronousInTransferPacket>(status, data);
+  static USBIsochronousInTransferPacket* Create(const String& status,
+                                                NotShared<DOMDataView> data) {
+    return MakeGarbageCollected<USBIsochronousInTransferPacket>(status,
+                                                                data.Get());
   }
 
-  USBIsochronousInTransferPacket(const V8USBTransferStatus& status,
-                                 NotShared<DOMDataView> data)
+  USBIsochronousInTransferPacket(const String& status, DOMDataView* data)
       : status_(status), data_(data) {}
   ~USBIsochronousInTransferPacket() override = default;
 
-  V8USBTransferStatus status() const { return status_; }
-  NotShared<DOMDataView> data() const { return data_; }
+  String status() const { return status_; }
+  DOMDataView* data() const { return data_.Get(); }
 
   void Trace(Visitor* visitor) const override {
     visitor->Trace(data_);
@@ -44,8 +41,8 @@ class USBIsochronousInTransferPacket final : public ScriptWrappable {
   }
 
  private:
-  const V8USBTransferStatus status_;
-  const NotShared<DOMDataView> data_;
+  const String status_;
+  const Member<DOMDataView> data_;
 };
 
 }  // namespace blink

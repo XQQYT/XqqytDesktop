@@ -40,7 +40,14 @@ class MODULES_EXPORT MediaStreamDeviceObserver
   void AddStreams(
       const String& label,
       const mojom::blink::StreamDevicesSet& stream_devices_set,
-      const WebMediaStreamDeviceObserver::StreamCallbacks& stream_callbacks);
+      WebMediaStreamDeviceObserver::OnDeviceStoppedCb on_device_stopped_cb,
+      WebMediaStreamDeviceObserver::OnDeviceChangedCb on_device_changed_cb,
+      WebMediaStreamDeviceObserver::OnDeviceRequestStateChangeCb
+          on_device_request_state_change_cb,
+      WebMediaStreamDeviceObserver::OnDeviceCaptureConfigurationChangeCb
+          on_device_capture_configuration_change_cb,
+      WebMediaStreamDeviceObserver::OnDeviceCaptureHandleChangeCb
+          on_device_capture_handle_change_cb);
   void AddStream(const String& label, const blink::MediaStreamDevice& device);
   bool RemoveStreams(const String& label);
   void RemoveStreamDevice(const blink::MediaStreamDevice& device);
@@ -84,9 +91,6 @@ class MODULES_EXPORT MediaStreamDeviceObserver
         on_device_capture_configuration_change_cb;
     WebMediaStreamDeviceObserver::OnDeviceCaptureHandleChangeCb
         on_device_capture_handle_change_cb;
-#if !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_IOS)
-    WebMediaStreamDeviceObserver::OnZoomLevelChangeCb on_zoom_level_change_cb;
-#endif
     MediaStreamDevices audio_devices;
     MediaStreamDevices video_devices;
 
@@ -108,9 +112,6 @@ class MODULES_EXPORT MediaStreamDeviceObserver
       const MediaStreamDevice& device) override;
   void OnDeviceCaptureHandleChange(const String& label,
                                    const MediaStreamDevice& device) override;
-  void OnZoomLevelChange(const String& label,
-                         const MediaStreamDevice& device,
-                         int zoom_level) override;
 
   void BindMediaStreamDeviceObserverReceiver(
       mojo::PendingReceiver<mojom::blink::MediaStreamDeviceObserver> receiver);

@@ -20,10 +20,13 @@
 
 namespace blink {
 
-class CORE_EXPORT StyleNonInheritedVariables
-    : public GarbageCollected<StyleNonInheritedVariables> {
+class CORE_EXPORT StyleNonInheritedVariables {
+  USING_FAST_MALLOC(StyleNonInheritedVariables);
+
  public:
-  void Trace(Visitor* visitor) const { visitor->Trace(variables_); }
+  std::unique_ptr<StyleNonInheritedVariables> Clone() {
+    return base::WrapUnique(new StyleNonInheritedVariables(*this));
+  }
 
   bool operator==(const StyleNonInheritedVariables& other) const {
     return variables_ == other.variables_;
@@ -33,18 +36,18 @@ class CORE_EXPORT StyleNonInheritedVariables
     return !(*this == other);
   }
 
-  void SetData(const AtomicString& name, CSSVariableData* value) {
+  void SetData(const AtomicString& name, scoped_refptr<CSSVariableData> value) {
     DCHECK(!value || !value->NeedsVariableResolution());
-    variables_.SetData(name, value);
+    variables_.SetData(name, std::move(value));
   }
-  std::optional<CSSVariableData*> GetData(const AtomicString& name) const {
+  StyleVariables::OptionalData GetData(const AtomicString& name) const {
     return variables_.GetData(name);
   }
 
   void SetValue(const AtomicString& name, const CSSValue* value) {
     variables_.SetValue(name, value);
   }
-  std::optional<const CSSValue*> GetValue(const AtomicString& name) const {
+  StyleVariables::OptionalValue GetValue(const AtomicString& name) const {
     return variables_.GetValue(name);
   }
 
@@ -52,19 +55,12 @@ class CORE_EXPORT StyleNonInheritedVariables
     variables_.CollectNames(names);
   }
 
-  friend CORE_EXPORT std::ostream& operator<<(
-      std::ostream& stream,
-      const StyleNonInheritedVariables& variables);
+  const StyleVariables::DataMap& Data() const { return variables_.Data(); }
+  const StyleVariables::ValueMap& Values() const { return variables_.Values(); }
 
  private:
   StyleVariables variables_;
 };
-
-inline CORE_EXPORT std::ostream& operator<<(
-    std::ostream& stream,
-    const StyleNonInheritedVariables& variables) {
-  return stream << variables.variables_;
-}
 
 }  // namespace blink
 

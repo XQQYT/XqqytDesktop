@@ -7,7 +7,7 @@
 
 #if defined(USING_SYSTEM_ICU)
 
-#include <unicode/umachine.h>  // IWYU pragma: export
+#include <unicode/umachine.h>
 
 #else
 

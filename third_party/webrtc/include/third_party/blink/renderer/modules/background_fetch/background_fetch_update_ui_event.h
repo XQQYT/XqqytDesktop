@@ -19,6 +19,7 @@ class BackgroundFetchEvent;
 class BackgroundFetchIconLoader;
 class BackgroundFetchUIOptions;
 class ExceptionState;
+class ScriptPromiseResolver;
 class WaitUntilObserver;
 
 // Event for interacting with fetch requests that have completed.
@@ -52,21 +53,20 @@ class MODULES_EXPORT BackgroundFetchUpdateUIEvent final
   ~BackgroundFetchUpdateUIEvent() override;
 
   // Web Exposed method defined in the IDL file.
-  ScriptPromise<IDLUndefined> updateUI(
-      ScriptState* script_state,
-      const BackgroundFetchUIOptions* ui_options,
-      ExceptionState&);
+  ScriptPromise updateUI(ScriptState* script_state,
+                         const BackgroundFetchUIOptions* ui_options,
+                         ExceptionState&);
 
   void Trace(Visitor* visitor) const override;
 
  private:
   void DidGetIcon(const String& title,
-                  ScriptPromiseResolver<IDLUndefined>* resolver,
+                  ScriptPromiseResolver* resolver,
 
                   const SkBitmap& icon,
                   int64_t ideal_to_chosen_icon_size);
 
-  void DidUpdateUI(ScriptPromiseResolver<IDLUndefined>* resolver,
+  void DidUpdateUI(ScriptPromiseResolver* resolver,
                    mojom::blink::BackgroundFetchError error);
 
   bool update_ui_called_ = false;

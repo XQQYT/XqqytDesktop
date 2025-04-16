@@ -46,8 +46,8 @@ struct CustomInfoEntry {
 
   CustomInfoEntry() {
     // Putting name and value in initializer list makes VC++ show warning 4351.
-    set_name(nullptr);
-    set_value(nullptr);
+    set_name(NULL);
+    set_value(NULL);
   }
 
   CustomInfoEntry(const wchar_t* name_arg, const wchar_t* value_arg) {
@@ -105,12 +105,12 @@ struct ProtocolMessage {
         id(0),
         dump_type(MiniDumpNormal),
         thread_id(0),
-        exception_pointers(nullptr),
-        assert_info(nullptr),
+        exception_pointers(NULL),
+        assert_info(NULL),
         custom_client_info(),
-        dump_request_handle(nullptr),
-        dump_generated_handle(nullptr),
-        server_alive_handle(nullptr) {
+        dump_request_handle(NULL),
+        dump_generated_handle(NULL),
+        server_alive_handle(NULL) {
   }
 
   // Creates an instance with the given parameters.

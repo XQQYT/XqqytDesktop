@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_DANGLING_RAW_PTR_CHECKS_H_
-#define PARTITION_ALLOC_DANGLING_RAW_PTR_CHECKS_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_DANGLING_RAW_PTR_CHECKS_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_DANGLING_RAW_PTR_CHECKS_H_
 
 #include <cstdint>
 
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
 
 // When compiled with build flags `enable_dangling_raw_ptr_checks`, dangling
 // raw_ptr are reported. Its behavior can be configured here.
@@ -64,4 +64,4 @@ bool IsUnretainedDanglingRawPtrCheckEnabled();
 }  // namespace internal
 }  // namespace partition_alloc
 
-#endif  // PARTITION_ALLOC_DANGLING_RAW_PTR_CHECKS_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_DANGLING_RAW_PTR_CHECKS_H_

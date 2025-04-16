@@ -29,7 +29,7 @@ namespace grpc_php_generator {
 inline std::string GetPHPServiceClassname(
     const grpc::protobuf::ServiceDescriptor* service,
     const std::string& class_suffix, bool is_server) {
-  return std::string(service->name()) +
+  return service->name() +
          (class_suffix == "" ? (is_server ? "" : "Client") : class_suffix) +
          (is_server ? "Stub" : "");
 }
@@ -54,16 +54,14 @@ inline std::string GetPHPServiceFilename(
     oss << ReplaceAll(file->options().php_namespace(), "\\", "/");
   } else {
     std::vector<std::string> tokens =
-        grpc_generator::tokenize(std::string(file->package()), ".");
+        grpc_generator::tokenize(file->package(), ".");
     for (unsigned int i = 0; i < tokens.size(); i++) {
       oss << (i == 0 ? "" : "/")
           << grpc_generator::CapitalizeFirstLetter(tokens[i]);
     }
   }
-  std::string path = oss.str();
-  if (!path.empty()) path += "/";
-  path += GetPHPServiceClassname(service, class_suffix, is_server) + ".php";
-  return path;
+  return oss.str() + "/" +
+         GetPHPServiceClassname(service, class_suffix, is_server) + ".php";
 }
 
 // Get leading or trailing comments in a string. Comment lines start with "// ".

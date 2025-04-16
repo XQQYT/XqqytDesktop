@@ -43,7 +43,7 @@ class IncomingSSNResetRequestParameter
       : request_sequence_number_(request_sequence_number),
         stream_ids_(std::move(stream_ids)) {}
 
-  static std::optional<IncomingSSNResetRequestParameter> Parse(
+  static absl::optional<IncomingSSNResetRequestParameter> Parse(
       rtc::ArrayView<const uint8_t> data);
 
   void SerializeTo(std::vector<uint8_t>& out) const override;

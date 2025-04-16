@@ -1,6 +1,5 @@
 // META: script=/common/utils.js
 // META: script=resources/support.sub.js
-// META: timeout=long
 //
 // Spec: https://wicg.github.io/private-network-access
 //

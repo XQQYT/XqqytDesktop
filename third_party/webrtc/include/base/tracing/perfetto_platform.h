@@ -5,23 +5,37 @@
 #ifndef BASE_TRACING_PERFETTO_PLATFORM_H_
 #define BASE_TRACING_PERFETTO_PLATFORM_H_
 
-#include "base/base_export.h"
-#include "base/memory/scoped_refptr.h"
-#include "base/memory/weak_ptr.h"
-#include "base/threading/thread_local_storage.h"
 #include "third_party/perfetto/include/perfetto/base/thread_utils.h"
 #include "third_party/perfetto/include/perfetto/tracing/platform.h"
 
+#include "base/base_export.h"
+#include "base/memory/scoped_refptr.h"
+#include "base/threading/thread_local_storage.h"
+
 namespace base {
+class DeferredSequencedTaskRunner;
 
 namespace tracing {
 
-class PerfettoTaskRunner;
-
 class BASE_EXPORT PerfettoPlatform : public perfetto::Platform {
  public:
-  explicit PerfettoPlatform(scoped_refptr<base::SequencedTaskRunner>);
+  // Specifies the type of task runner used by Perfetto.
+  // TODO(skyostil): Move all scenarios to use the default task runner to
+  // avoid problems with unexpected re-entrancy and IPC deadlocks.
+  enum class TaskRunnerType {
+    // Use Perfetto's own task runner which runs tasks on a dedicated (internal)
+    // thread.
+    kBuiltin,
+    // Use base::ThreadPool.
+    kThreadPool,
+  };
+
+  explicit PerfettoPlatform(TaskRunnerType = TaskRunnerType::kThreadPool);
   ~PerfettoPlatform() override;
+
+  SequencedTaskRunner* task_runner() const;
+  bool did_start_task_runner() const { return did_start_task_runner_; }
+  void StartTaskRunner(scoped_refptr<SequencedTaskRunner>);
 
   // perfetto::Platform implementation:
   ThreadLocalObject* GetOrCreateThreadLocalObject() override;
@@ -34,11 +48,10 @@ class BASE_EXPORT PerfettoPlatform : public perfetto::Platform {
   // thread IDs.
   perfetto::base::PlatformThreadId GetCurrentThreadId() override;
 
-  void ResetTaskRunner(scoped_refptr<base::SequencedTaskRunner> task_runner);
-
  private:
-  WeakPtr<PerfettoTaskRunner> perfetto_task_runner_;
-  scoped_refptr<base::SequencedTaskRunner> task_runner_;
+  const TaskRunnerType task_runner_type_;
+  scoped_refptr<DeferredSequencedTaskRunner> deferred_task_runner_;
+  bool did_start_task_runner_ = false;
   ThreadLocalStorage::Slot thread_local_object_;
 };
 

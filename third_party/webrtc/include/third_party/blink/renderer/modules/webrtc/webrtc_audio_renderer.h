@@ -10,7 +10,6 @@
 #include <atomic>
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -29,7 +28,8 @@
 #include "media/base/audio_pull_fifo.h"
 #include "media/base/audio_renderer_sink.h"
 #include "media/base/channel_layout.h"
-#include "third_party/blink/renderer/modules/mediastream/media_stream_audio_renderer.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
+#include "third_party/blink/public/platform/modules/mediastream/web_media_stream_audio_renderer.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/allow_discouraged_type.h"
 #include "third_party/blink/renderer/platform/mediastream/media_stream_descriptor.h"
@@ -55,7 +55,7 @@ class WebRtcAudioRendererSource;
 // for connecting WebRtc MediaStream with the audio pipeline.
 class MODULES_EXPORT WebRtcAudioRenderer
     : public media::AudioRendererSink::RenderCallback,
-      public MediaStreamAudioRenderer {
+      public blink::WebMediaStreamAudioRenderer {
  public:
   // This is a little utility class that holds the configured state of an audio
   // stream.
@@ -127,7 +127,8 @@ class MODULES_EXPORT WebRtcAudioRenderer
   // When Stop() is called or when the proxy goes out of scope, the proxy
   // will ensure that Pause() is called followed by a call to Stop(), which
   // is the usage pattern that WebRtcAudioRenderer requires.
-  scoped_refptr<MediaStreamAudioRenderer> CreateSharedAudioRendererProxy(
+  scoped_refptr<blink::WebMediaStreamAudioRenderer>
+  CreateSharedAudioRendererProxy(
       MediaStreamDescriptor* media_stream_descriptor);
 
   // Used to DCHECK on the expected state.
@@ -142,9 +143,9 @@ class MODULES_EXPORT WebRtcAudioRenderer
   bool CurrentThreadIsRenderingThread();
 
  private:
-  // MediaStreamAudioRenderer implementation.  This is private since
+  // blink::WebMediaStreamAudioRenderer implementation.  This is private since
   // we want callers to use proxy objects.
-  // TODO(tommi): Make the MediaStreamAudioRenderer implementation a
+  // TODO(tommi): Make the blink::WebMediaStreamAudioRenderer implementation a
   // pimpl?
   void Start() override;
   void Play() override;
@@ -152,6 +153,7 @@ class MODULES_EXPORT WebRtcAudioRenderer
   void Stop() override;
   void SetVolume(float volume) override;
   base::TimeDelta GetCurrentRenderTime() override;
+  bool IsLocalRenderer() override;
   void SwitchOutputDevice(const std::string& device_id,
                           media::OutputDeviceStatusCB callback) override;
 
@@ -196,7 +198,7 @@ class MODULES_EXPORT WebRtcAudioRenderer
 
     // Using a raw pointer is safe since the OC instance will outlive this
     // object.
-    const raw_ptr<WebRtcAudioRenderer> renderer_;
+    WebRtcAudioRenderer* const renderer_;
 
     // Stores when the timer starts. Used to calculate the stream duration.
     const base::TimeTicks start_time_;
@@ -241,7 +243,7 @@ class MODULES_EXPORT WebRtcAudioRenderer
  private:
   // Holds raw pointers to PlaingState objects.  Ownership is managed outside
   // of this type.
-  typedef std::vector<raw_ptr<PlayingState, VectorExperimental>> PlayingStates;
+  typedef std::vector<PlayingState*> PlayingStates;
   // Maps an audio source to a list of playing states that collectively hold
   // volume information for that source.
   typedef std::map<webrtc::AudioSourceInterface*, PlayingStates>
@@ -324,7 +326,7 @@ class MODULES_EXPORT WebRtcAudioRenderer
   // Audio data source from the browser process.
   //
   // TODO(crbug.com/704136): Make it a Member.
-  raw_ptr<WebRtcAudioRendererSource> source_;
+  raw_ptr<WebRtcAudioRendererSource, ExperimentalRenderer> source_;
 
   // Protects access to |state_|, |source_|, |audio_fifo_|,
   // |audio_delay_milliseconds_|, |fifo_delay_milliseconds_|, |current_time_|,
@@ -372,7 +374,7 @@ class MODULES_EXPORT WebRtcAudioRenderer
   // Used for keeping track of and logging stats for playing audio streams.
   // Created when a stream starts and destroyed when a stream stops.
   // See comments for AudioStreamTracker for more details.
-  std::optional<AudioStreamTracker> audio_stream_tracker_;
+  absl::optional<AudioStreamTracker> audio_stream_tracker_;
 
   base::RepeatingCallback<void()> on_render_error_callback_;
 

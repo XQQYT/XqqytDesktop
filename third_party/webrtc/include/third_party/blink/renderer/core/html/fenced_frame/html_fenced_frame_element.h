@@ -7,11 +7,9 @@
 
 #include "base/gtest_prod_util.h"
 #include "base/notreached.h"
-#include "services/network/public/cpp/permissions_policy/permissions_policy_declaration.h"
 #include "third_party/blink/public/common/fenced_frame/fenced_frame_utils.h"
 #include "third_party/blink/public/mojom/fenced_frame/fenced_frame.mojom-blink.h"
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/dom/events/event_target.h"
 #include "third_party/blink/renderer/core/dom/node.h"
 #include "third_party/blink/renderer/core/html/fenced_frame/fenced_frame_config.h"
 #include "third_party/blink/renderer/core/html/html_frame_owner_element.h"
@@ -79,7 +77,7 @@ class CORE_EXPORT HTMLFencedFrameElement : public HTMLFrameOwnerElement {
   FrameOwnerElementType OwnerType() const override {
     return FrameOwnerElementType::kFencedframe;
   }
-  network::ParsedPermissionsPolicy ConstructContainerPolicy() const override;
+  ParsedPermissionsPolicy ConstructContainerPolicy() const override;
   void SetCollapsed(bool) override;
   void DidChangeContainerPolicy() override;
 
@@ -95,7 +93,7 @@ class CORE_EXPORT HTMLFencedFrameElement : public HTMLFrameOwnerElement {
   // The frozen state is kept in this element so that it can survive across
   // reattaches.
   // The size is in layout size (i.e., DSF multiplied.)
-  const std::optional<PhysicalSize> FrozenFrameSize() const;
+  const absl::optional<PhysicalSize> FrozenFrameSize() const;
   // True if the frame size should be frozen when the next resize completed.
   // When `config` is set but layout is not completed yet, the frame size is
   // frozen after the first layout.
@@ -121,21 +119,15 @@ class CORE_EXPORT HTMLFencedFrameElement : public HTMLFrameOwnerElement {
   // `NavigatorAuction::canLoadAdAuctionFencedFrame` instead.
   static bool canLoadOpaqueURL(ScriptState*);
 
-  // Fires an event named `event_type` at `this`. This path is only invoked for
-  // events that were originally fired *inside* of the fenced frame content, and
-  // that have been intentionally propagated outwards to `this`, the frame
-  // owner, for reception by the embedder script.
-  void DispatchFencedEvent(const WTF::String& event_type);
-
  private:
   // This method will only navigate the underlying frame if the element
   // `isConnected()`. It will be deferred if the page is currently prerendering.
-  void Navigate(
-      const KURL& url,
-      std::optional<bool> deprecated_should_freeze_initial_size = std::nullopt,
-      std::optional<gfx::Size> container_size = std::nullopt,
-      std::optional<gfx::Size> content_size = std::nullopt,
-      String embedder_shared_storage_context = String());
+  void Navigate(const KURL& url,
+                absl::optional<bool> deprecated_should_freeze_initial_size =
+                    absl::nullopt,
+                absl::optional<gfx::Size> container_size = absl::nullopt,
+                absl::optional<gfx::Size> content_size = absl::nullopt,
+                String embedder_shared_storage_context = String());
 
   // This method delegates to `Navigate()` above only if `this` has a non-null
   // `config_`. If that's the case, this method pulls the appropriate URL off of
@@ -158,11 +150,11 @@ class CORE_EXPORT HTMLFencedFrameElement : public HTMLFrameOwnerElement {
   void CollectStyleForPresentationAttribute(
       const QualifiedName&,
       const AtomicString&,
-      HeapVector<CSSPropertyValue, 8>&) override;
+      MutableCSSPropertyValueSet*) override;
   bool LayoutObjectIsNeeded(const DisplayStyle&) const override;
   LayoutObject* CreateLayoutObject(const ComputedStyle&) override;
   void AttachLayoutTree(AttachContext& context) override;
-  FocusableState SupportsFocus(UpdateBehavior update_behavior) const override;
+  bool SupportsFocus() const override;
 
   // Set the size of the fenced frame outer container. Used for container size
   // specified by FencedFrameConfig.
@@ -206,8 +198,8 @@ class CORE_EXPORT HTMLFencedFrameElement : public HTMLFrameOwnerElement {
   Member<ResizeObserver> resize_observer_;
   Member<FencedFrameConfig> config_;
   // See |FrozenFrameSize| above. Stored in CSS pixel (without DSF multiplied.)
-  std::optional<PhysicalSize> frozen_frame_size_;
-  std::optional<PhysicalRect> content_rect_;
+  absl::optional<PhysicalSize> frozen_frame_size_;
+  absl::optional<PhysicalRect> content_rect_;
   bool should_freeze_frame_size_on_next_layout_ = false;
   bool collapsed_by_client_ = false;
   // This represents the element's `mode` attribute. We store it here instead of
@@ -231,7 +223,7 @@ class CORE_EXPORT HTMLFencedFrameElement : public HTMLFrameOwnerElement {
   friend class FencedFrameShadowDOMDelegate;
   friend class ResizeObserverDelegate;
   FRIEND_TEST_ALL_PREFIXES(HTMLFencedFrameElementTest,
-                           FreezeSizeLayoutZoomFactor);
+                           FreezeSizePageZoomFactor);
   FRIEND_TEST_ALL_PREFIXES(HTMLFencedFrameElementTest, CoerceFrameSizeTest);
   FRIEND_TEST_ALL_PREFIXES(HTMLFencedFrameElementTest,
                            HistogramTestResizeAfterFreeze);

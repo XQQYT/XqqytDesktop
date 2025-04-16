@@ -28,7 +28,6 @@ class BoundaryEventDispatcher {
   virtual ~BoundaryEventDispatcher() = default;
 
   void SendBoundaryEvents(EventTarget* exited_target,
-                          bool original_exited_target_removed,
                           EventTarget* entered_target);
 
  protected:

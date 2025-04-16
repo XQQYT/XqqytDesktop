@@ -33,8 +33,6 @@
 
 #include <stdint.h>
 
-#include <vector>
-
 #include "base/functional/callback_forward.h"
 #include "base/types/pass_key.h"
 #include "components/viz/common/surfaces/frame_sink_id.h"
@@ -43,6 +41,7 @@
 #include "third_party/blink/public/platform/cross_variant_mojo_util.h"
 #include "third_party/blink/public/platform/web_common.h"
 #include "third_party/blink/public/platform/web_touch_action.h"
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/blink/public/web/web_widget.h"
 #include "third_party/skia/include/core/SkColor.h"
 #include "ui/base/dragdrop/mojom/drag_drop_types.mojom-shared.h"
@@ -62,11 +61,6 @@ namespace gfx {
 class PointF;
 class RectF;
 }  // namespace gfx
-
-namespace viz {
-struct FrameTimingDetails;
-class LocalSurfaceId;
-}  // namespace viz
 
 namespace blink {
 
@@ -167,7 +161,7 @@ class WebFrameWidget : public WebWidget {
   // passed to the callback is the presentation timestamp; otherwise, it would
   // be timestamp of when the failure is detected.
   virtual void NotifyPresentationTime(
-      base::OnceCallback<void(const viz::FrameTimingDetails&)> callback) = 0;
+      base::OnceCallback<void(base::TimeTicks)> callback) = 0;
 
 #if BUILDFLAG(IS_APPLE)
   virtual void NotifyCoreAnimationErrorCode(
@@ -202,12 +196,6 @@ class WebFrameWidget : public WebWidget {
   // If the widget is currently selecting a range.
   virtual bool HandlingSelectRange() = 0;
 
-  // Calculates the selection bounds in the root frame. Returns bounds unchanged
-  // when there is no focused frame. Returns the caret bounds if the selection
-  // range is empty.
-  virtual void CalculateSelectionBounds(gfx::Rect& anchor_in_root_frame,
-                                        gfx::Rect& focus_in_root_frame) = 0;
-
   // Returns true if a pinch gesture is currently active in main frame.
   virtual bool PinchGestureActiveInMainFrame() = 0;
 
@@ -223,10 +211,9 @@ class WebFrameWidget : public WebWidget {
   // Override the device scale factor for testing.
   virtual void SetDeviceScaleFactorForTesting(float factor) = 0;
 
-  // Get the viewport segments for this widget.
-  // See
-  // https://github.com/WICG/visual-viewport/blob/gh-pages/segments-explainer/SEGMENTS-EXPLAINER.md
-  virtual const std::vector<gfx::Rect>& ViewportSegments() const = 0;
+  // Get the window segments for this widget.
+  // See https://github.com/webscreens/window-segments/blob/master/EXPLAINER.md
+  virtual const WebVector<gfx::Rect>& WindowSegments() const = 0;
 
   // Release any mouse lock or pointer capture held. This is used to reset
   // state between WebTest runs.
@@ -243,23 +230,6 @@ class WebFrameWidget : public WebWidget {
   // This should be called for the local root frame before calling the final
   // UpdateAllLifecyclePhases() just before dumping pixels.
   virtual void PrepareForFinalLifecyclUpdateForTesting() = 0;
-
-  // Returns the current zoom level.  0 is "original size", and each increment
-  // above or below represents zooming 20% larger or smaller to default limits
-  // of 300% and 50% of original size, respectively.  Only plugins use
-  // non whole-numbers, since they might choose to have specific zoom level so
-  // that fixed-width content is fit-to-page-width, for example.
-  virtual double GetZoomLevel() = 0;
-  // Changes the zoom level to the specified level, clamping at the limits
-  // defined by the associated `webView`.
-  virtual void SetZoomLevel(double zoom_level) = 0;
-
-  // Returns the cumulative effect of the CSS "zoom" property on the embedding
-  // element of this widget (if any) and all of its WebFrame ancestors.
-  virtual double GetCSSZoomFactor() const = 0;
-
-  // Update the LocalSurfaceId used for frames produced by this widget.
-  virtual void ApplyLocalSurfaceIdUpdate(const viz::LocalSurfaceId& id) = 0;
 
  private:
   // This is a private virtual method so we don't expose cc::LayerTreeHost

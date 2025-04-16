@@ -5,13 +5,12 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_HID_HID_INPUT_REPORT_EVENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_HID_HID_INPUT_REPORT_EVENT_H_
 
-#include "third_party/blink/renderer/core/typed_arrays/array_buffer_view_helpers.h"
-#include "third_party/blink/renderer/core/typed_arrays/dom_data_view.h"
 #include "third_party/blink/renderer/modules/event_modules.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 
 namespace blink {
 
+class DOMDataView;
 class HIDDevice;
 
 class HIDInputReportEvent final : public Event {
@@ -26,7 +25,7 @@ class HIDInputReportEvent final : public Event {
 
   HIDDevice* device() const { return device_.Get(); }
   uint8_t reportId() const { return report_id_; }
-  NotShared<DOMDataView> data() const { return data_; }
+  DOMDataView* data() const { return data_.Get(); }
 
   // Event:
   const AtomicString& InterfaceName() const override;
@@ -35,7 +34,7 @@ class HIDInputReportEvent final : public Event {
  private:
   Member<HIDDevice> device_;
   uint8_t report_id_;
-  NotShared<DOMDataView> data_;
+  Member<DOMDataView> data_;
 };
 
 }  // namespace blink

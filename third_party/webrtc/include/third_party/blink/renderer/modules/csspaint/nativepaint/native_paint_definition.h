@@ -30,8 +30,6 @@ class MODULES_EXPORT NativePaintDefinition : public PaintDefinition {
 
   void Trace(Visitor* visitor) const override;
 
-  int GetWorkletId() const;
-
  protected:
   NativePaintDefinition(LocalFrame*, PaintWorkletInput::PaintWorkletInputType);
   NativePaintDefinition() = default;
@@ -44,6 +42,8 @@ class MODULES_EXPORT NativePaintDefinition : public PaintDefinition {
                            PaintWorkletInput::PaintWorkletInputType);
 
   int worklet_id_;
+  // The worker thread that does the paint work.
+  std::unique_ptr<WorkerBackingThread> worker_backing_thread_;
   Member<PaintWorkletProxyClient> proxy_client_;
 };
 

@@ -5,9 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_WEBCODECS_VIDEO_COLOR_SPACE_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_WEBCODECS_VIDEO_COLOR_SPACE_H_
 
-#include <optional>
-
 #include "media/base/video_color_space.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_video_color_primaries.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_video_matrix_coefficients.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_video_transfer_characteristics.h"
@@ -33,20 +32,20 @@ class MODULES_EXPORT VideoColorSpace final : public ScriptWrappable {
   gfx::ColorSpace ToGfxColorSpace() const;
   media::VideoColorSpace ToMediaColorSpace() const;
 
-  std::optional<V8VideoColorPrimaries> primaries() const { return primaries_; }
-  std::optional<V8VideoTransferCharacteristics> transfer() const {
+  absl::optional<V8VideoColorPrimaries> primaries() const { return primaries_; }
+  absl::optional<V8VideoTransferCharacteristics> transfer() const {
     return transfer_;
   }
-  std::optional<V8VideoMatrixCoefficients> matrix() const { return matrix_; }
-  std::optional<bool> fullRange() const { return full_range_; }
+  absl::optional<V8VideoMatrixCoefficients> matrix() const { return matrix_; }
+  absl::optional<bool> fullRange() const { return full_range_; }
 
   VideoColorSpaceInit* toJSON() const;
 
  private:
-  std::optional<V8VideoColorPrimaries> primaries_;
-  std::optional<V8VideoTransferCharacteristics> transfer_;
-  std::optional<V8VideoMatrixCoefficients> matrix_;
-  std::optional<bool> full_range_;
+  absl::optional<V8VideoColorPrimaries> primaries_;
+  absl::optional<V8VideoTransferCharacteristics> transfer_;
+  absl::optional<V8VideoMatrixCoefficients> matrix_;
+  absl::optional<bool> full_range_;
 };
 
 }  // namespace blink

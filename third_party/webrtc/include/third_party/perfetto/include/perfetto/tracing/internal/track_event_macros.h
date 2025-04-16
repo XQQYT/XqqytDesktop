@@ -21,24 +21,14 @@
 // implementation. Perfetto API users typically don't need to use anything here
 // directly.
 
-#include "perfetto/base/thread_annotations.h"
+#include "perfetto/base/compiler.h"
 #include "perfetto/tracing/internal/track_event_data_source.h"
 #include "perfetto/tracing/string_helpers.h"
 #include "perfetto/tracing/track_event_category_registry.h"
 
-#if defined(__GNUC__) || defined(__clang__)
-#if defined(__clang__)
-#pragma clang diagnostic push
-// Fix 'error: #pragma system_header ignored in main file' for clang in Google3.
-#pragma clang diagnostic ignored "-Wpragma-system-header-outside-header"
-#endif
-
 // Ignore GCC warning about a missing argument for a variadic macro parameter.
+#if defined(__GNUC__) || defined(__clang__)
 #pragma GCC system_header
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
 #endif
 
 // Defines data structures for backing a category registry.
@@ -120,15 +110,6 @@
 #define PERFETTO_INTERNAL_CONCAT(a, b) PERFETTO_INTERNAL_CONCAT2(a, b)
 #define PERFETTO_UID(prefix) PERFETTO_INTERNAL_CONCAT(prefix, __LINE__)
 
-#if PERFETTO_BUILDFLAG(PERFETTO_COMPILER_MSVC)
-// MSVC with /permissive- fails to build without this. Probably a compiler bug.
-#define PERFETTO_INTERNAL_STATIC_FOR_MSVC static
-#else
-// On the other hand, if we add static with clang, binary size of the chromium
-// build will increase dramatically.
-#define PERFETTO_INTERNAL_STATIC_FOR_MSVC
-#endif
-
 // Efficiently determines whether tracing is enabled for the given category, and
 // if so, emits one trace event with the given arguments.
 #define PERFETTO_INTERNAL_TRACK_EVENT_WITH_METHOD(method, category, name, ...) \
@@ -137,17 +118,14 @@
     namespace tns = PERFETTO_TRACK_EVENT_NAMESPACE;                            \
     /* Compute the category index outside the lambda to work around a */       \
     /* GCC 7 bug */                                                            \
-    PERFETTO_INTERNAL_STATIC_FOR_MSVC constexpr auto PERFETTO_UID(             \
+    constexpr auto PERFETTO_UID(                                               \
         kCatIndex_ADD_TO_PERFETTO_DEFINE_CATEGORIES_IF_FAILS_) =               \
         PERFETTO_GET_CATEGORY_INDEX(category);                                 \
     if (::PERFETTO_TRACK_EVENT_NAMESPACE::internal::IsDynamicCategory(         \
             category)) {                                                       \
       tns::TrackEvent::CallIfEnabled(                                          \
           [&](uint32_t instances) PERFETTO_NO_THREAD_SAFETY_ANALYSIS {         \
-            tns::TrackEvent::method(                                           \
-                instances, category,                                           \
-                ::perfetto::internal::DecayEventNameType(name),                \
-                ##__VA_ARGS__);                                                \
+            tns::TrackEvent::method(instances, category, name, ##__VA_ARGS__); \
           });                                                                  \
     } else {                                                                   \
       tns::TrackEvent::CallIfCategoryEnabled(                                  \
@@ -157,11 +135,16 @@
                 instances,                                                     \
                 PERFETTO_UID(                                                  \
                     kCatIndex_ADD_TO_PERFETTO_DEFINE_CATEGORIES_IF_FAILS_),    \
-                ::perfetto::internal::DecayEventNameType(name),                \
-                ##__VA_ARGS__);                                                \
+                name, ##__VA_ARGS__);                                          \
           });                                                                  \
     }                                                                          \
   } while (false)
+
+// This internal macro is unused from the repo now, but some improper usage
+// remain outside of the repo.
+// TODO(b/294800182): Remove this.
+#define PERFETTO_INTERNAL_TRACK_EVENT(...) \
+  PERFETTO_INTERNAL_TRACK_EVENT_WITH_METHOD(TraceForCategory, ##__VA_ARGS__)
 
 // C++17 doesn't like a move constructor being defined for the EventFinalizer
 // class but C++11 and MSVC doesn't compile without it being defined so support
@@ -183,9 +166,7 @@
       /* that the scoped event is exactly ONE line and can't escape the    */ \
       /* scope if used in a single line if statement.                      */ \
       EventFinalizer(...) {}                                                  \
-      ~EventFinalizer() {                                                     \
-        TRACE_EVENT_END(category);                                            \
-      }                                                                       \
+      ~EventFinalizer() { TRACE_EVENT_END(category); }                        \
                                                                               \
       EventFinalizer(const EventFinalizer&) = delete;                         \
       inline EventFinalizer& operator=(const EventFinalizer&) = delete;       \

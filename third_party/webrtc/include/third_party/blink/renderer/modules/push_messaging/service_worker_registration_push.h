@@ -27,7 +27,7 @@ class ServiceWorkerRegistrationPush final
   ServiceWorkerRegistrationPush& operator=(
       const ServiceWorkerRegistrationPush&) = delete;
 
-  ~ServiceWorkerRegistrationPush();
+  virtual ~ServiceWorkerRegistrationPush();
   static ServiceWorkerRegistrationPush& From(
       ServiceWorkerRegistration& registration);
 

@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
-<title>CSS Reference: Masonry grid container size changes when item sizes change</title>
+
 <head>
 <meta charset="utf-8">
 <link rel="author" title="Brandon Stewart" href="mailto:brandonstewart@apple.com">
+<link rel="help" href="https://drafts.csswg.org/css-grid-3">
+<meta name="assert" content="When the height of an element in the grid changes, ensure the grid is properly resized">
 </head>
 
 <style>
   grid {
-    display: inline-grid;
+    display: grid;
     grid-template-rows: masonry;
     grid-template-columns: auto;
     grid-gap: 10px;
@@ -18,7 +20,7 @@
   item1 {
     background-color: grey;
     height: 125px;
-    width: 300px;
+    width: 250px;
   }
   item2 {
     background-color: grey;

@@ -19,6 +19,7 @@
 #include "third_party/blink/public/common/media/video_capture.h"
 #include "third_party/blink/public/common/mediastream/media_stream_request.h"
 #include "third_party/blink/public/platform/web_common.h"
+#include "third_party/blink/public/platform/web_vector.h"
 
 namespace blink {
 
@@ -54,7 +55,7 @@ class BLINK_PLATFORM_EXPORT WebVideoCaptureImplManager {
   // resources.
   base::OnceClosure UseDevice(
       const media::VideoCaptureSessionId& id,
-      const BrowserInterfaceBrokerProxy& browser_interface_broker);
+      BrowserInterfaceBrokerProxy* browser_interface_broker);
 
   // Start receiving video frames for the given session ID.
   //
@@ -130,7 +131,7 @@ class BLINK_PLATFORM_EXPORT WebVideoCaptureImplManager {
 
   virtual std::unique_ptr<VideoCaptureImpl> CreateVideoCaptureImpl(
       const media::VideoCaptureSessionId& session_id,
-      const BrowserInterfaceBrokerProxy& browser_interface_broker) const;
+      BrowserInterfaceBrokerProxy* browser_interface_broker) const;
 
   static void ProcessFeedback(VideoCaptureFeedbackCB callback_to_io_thread,
                               const media::VideoCaptureFeedback& feedback);
@@ -142,7 +143,7 @@ class BLINK_PLATFORM_EXPORT WebVideoCaptureImplManager {
   void UnrefDevice(const media::VideoCaptureSessionId& id);
 
   // Devices currently in use.
-  std::vector<DeviceEntry> devices_;
+  WebVector<DeviceEntry> devices_;
 
   // This is an internal ID for identifying clients of VideoCaptureImpl.
   // The ID is global for the render process.

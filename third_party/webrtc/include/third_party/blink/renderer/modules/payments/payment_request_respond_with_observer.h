@@ -13,7 +13,7 @@
 namespace blink {
 
 class ExecutionContext;
-class PaymentHandlerResponse;
+class ScriptValue;
 class WaitUntilObserver;
 
 // Implementation for PaymentRequestEvent.respondWith(), which is used by the
@@ -31,8 +31,10 @@ class MODULES_EXPORT PaymentRequestRespondWithObserver final
                                                    int event_id,
                                                    WaitUntilObserver*);
 
-  void OnResponseFulfilled(ScriptState*, PaymentHandlerResponse*);
   void OnResponseRejected(mojom::ServiceWorkerResponseError) override;
+  void OnResponseFulfilled(ScriptState*,
+                           const ScriptValue&,
+                           const ExceptionContext&) override;
   void OnNoResponse(ScriptState*) override;
 
   void Trace(Visitor*) const override;

@@ -37,7 +37,7 @@ class UserInitiatedAbortCause : public Parameter,
   explicit UserInitiatedAbortCause(absl::string_view upper_layer_abort_reason)
       : upper_layer_abort_reason_(upper_layer_abort_reason) {}
 
-  static std::optional<UserInitiatedAbortCause> Parse(
+  static absl::optional<UserInitiatedAbortCause> Parse(
       rtc::ArrayView<const uint8_t> data);
 
   void SerializeTo(std::vector<uint8_t>& out) const override;

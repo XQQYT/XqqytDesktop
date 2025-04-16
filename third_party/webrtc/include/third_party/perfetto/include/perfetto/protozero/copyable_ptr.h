@@ -18,7 +18,6 @@
 #define INCLUDE_PERFETTO_PROTOZERO_COPYABLE_PTR_H_
 
 #include <memory>
-#include <utility>
 
 namespace protozero {
 

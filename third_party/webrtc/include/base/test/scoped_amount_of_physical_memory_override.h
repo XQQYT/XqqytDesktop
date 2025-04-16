@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#include <optional>
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base::test {
 
@@ -29,7 +29,7 @@ class ScopedAmountOfPhysicalMemoryOverride {
   ~ScopedAmountOfPhysicalMemoryOverride();
 
  private:
-  std::optional<uint64_t> old_amount_of_physical_memory_mb_;
+  absl::optional<uint64_t> old_amount_of_physical_memory_mb_;
 };
 
 }  // namespace base::test

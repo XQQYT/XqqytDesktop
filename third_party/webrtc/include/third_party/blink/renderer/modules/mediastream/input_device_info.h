@@ -6,14 +6,13 @@
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_MEDIASTREAM_INPUT_DEVICE_INFO_H_
 
 #include "third_party/blink/renderer/modules/mediastream/media_device_info.h"
-#include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/mediastream/media_stream_source.h"
 
 namespace blink {
 
 class MediaTrackCapabilities;
 
-class MODULES_EXPORT InputDeviceInfo final : public MediaDeviceInfo {
+class InputDeviceInfo final : public MediaDeviceInfo {
   DEFINE_WRAPPERTYPEINFO();
 
  public:

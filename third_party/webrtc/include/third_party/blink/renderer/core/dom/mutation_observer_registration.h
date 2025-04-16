@@ -91,7 +91,7 @@ class CORE_EXPORT MutationObserverRegistration final
   Member<MutationObserver> observer_;
   WeakMember<Node> registration_node_;
   Member<Node> registration_node_keep_alive_;
-  using NodeHashSet = GCedHeapHashSet<Member<Node>>;
+  typedef HeapHashSet<Member<Node>> NodeHashSet;
   Member<NodeHashSet> transient_registration_nodes_;
 
   MutationObserverOptions options_;

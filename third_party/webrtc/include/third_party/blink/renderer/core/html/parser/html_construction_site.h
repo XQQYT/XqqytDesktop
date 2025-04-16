@@ -98,6 +98,7 @@ class Element;
 class HTMLFormElement;
 class HTMLParserReentryPermit;
 class PartRoot;
+enum class DeclarativeShadowRootType;
 
 class HTMLConstructionSite final {
   DISALLOW_NEW();
@@ -149,7 +150,7 @@ class HTMLConstructionSite final {
   void InsertCommentOnHTMLHtmlElement(AtomicHTMLToken*);
   void InsertDOMPart(AtomicHTMLToken*);
   void InsertHTMLElement(AtomicHTMLToken*);
-  void InsertHTMLTemplateElement(AtomicHTMLToken*, String);
+  void InsertHTMLTemplateElement(AtomicHTMLToken*, DeclarativeShadowRootType);
   void InsertSelfClosingHTMLElementDestroyingToken(AtomicHTMLToken*);
   void InsertFormattingElement(AtomicHTMLToken*);
   void InsertHTMLHeadElement(AtomicHTMLToken*);
@@ -221,11 +222,6 @@ class HTMLConstructionSite final {
 
   void FinishedTemplateElement(DocumentFragment* content_fragment);
 
-  static CustomElementDefinition* LookUpCustomElementDefinition(
-      Document&,
-      const QualifiedName&,
-      const AtomicString& is);
-
   class RedirectToFosterParentGuard {
     STACK_ALLOCATED();
 
@@ -273,6 +269,11 @@ class HTMLConstructionSite final {
 
   void ExecuteTask(HTMLConstructionSiteTask&);
   void QueueTask(const HTMLConstructionSiteTask&, bool flush_pending_text);
+
+  CustomElementDefinition* LookUpCustomElementDefinition(
+      Document&,
+      const QualifiedName&,
+      const AtomicString& is);
 
   void SetAttributes(Element* element, AtomicHTMLToken* token);
 
@@ -361,6 +362,7 @@ class HTMLConstructionSite final {
     void Trace(Visitor*) const;
 
    private:
+    Member<Comment> pending_node_part_comment_node_;
     Vector<String> pending_node_part_metadata_;
     HeapVector<Member<PartRoot>> part_root_stack_;
   };
@@ -382,6 +384,9 @@ class HTMLConstructionSite final {
 
   // Whether duplicate attribute was reported.
   bool reported_duplicate_attribute_ = false;
+
+  // Whether strings should be canonicalized (deduplicated).
+  bool canonicalize_whitespace_strings_ = true;
 };
 
 }  // namespace blink

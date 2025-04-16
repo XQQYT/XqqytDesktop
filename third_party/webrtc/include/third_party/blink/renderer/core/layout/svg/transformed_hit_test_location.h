@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_SVG_TRANSFORMED_HIT_TEST_LOCATION_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_SVG_TRANSFORMED_HIT_TEST_LOCATION_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/hit_test_location.h"
 
@@ -30,12 +29,6 @@ class CORE_EXPORT TransformedHitTestLocation {
   // false, in which case the object cannot (must not) be used.
   TransformedHitTestLocation(const HitTestLocation&, const AffineTransform&);
 
-  // The AffineTransform passed will be applied without computing the inverse.
-  enum InverseTag { kDontComputeInverse };
-  TransformedHitTestLocation(const HitTestLocation&,
-                             const AffineTransform&,
-                             InverseTag);
-
   const HitTestLocation* operator->() const {
     DCHECK(location_);
     return location_;
@@ -47,7 +40,7 @@ class CORE_EXPORT TransformedHitTestLocation {
   explicit operator bool() const { return location_; }
 
  private:
-  std::optional<HitTestLocation> storage_;
+  absl::optional<HitTestLocation> storage_;
   const HitTestLocation* location_;
 };
 

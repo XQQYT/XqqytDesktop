@@ -29,7 +29,7 @@ class NoNetworkURLLoader : public URLLoader {
                          base::TimeDelta timeout_interval,
                          URLLoaderClient* client,
                          WebURLResponse& response,
-                         std::optional<WebURLError>&,
+                         absl::optional<WebURLError>&,
                          scoped_refptr<SharedBuffer>&,
                          int64_t& encoded_data_length,
                          uint64_t& encoded_body_length,

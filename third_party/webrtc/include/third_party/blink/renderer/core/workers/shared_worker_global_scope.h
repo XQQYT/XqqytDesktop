@@ -51,8 +51,7 @@ class CORE_EXPORT SharedWorkerGlobalScope final : public WorkerGlobalScope {
       std::unique_ptr<GlobalScopeCreationParams> creation_params,
       SharedWorkerThread* thread,
       base::TimeTicks time_origin,
-      const SharedWorkerToken& token,
-      bool require_cross_site_request_for_cookies);
+      const SharedWorkerToken& token);
 
   ~SharedWorkerGlobalScope() override;
 
@@ -102,14 +101,6 @@ class CORE_EXPORT SharedWorkerGlobalScope final : public WorkerGlobalScope {
     return token_;
   }
 
-  // If true, then all requests made must have an empty site_for_cookies to
-  // ensure only SameSite=None cookies can be attached to the request.
-  // For context on usage see:
-  // https://privacycg.github.io/saa-non-cookie-storage/shared-workers.html
-  bool DoesRequireCrossSiteRequestForCookies() const {
-    return require_cross_site_request_for_cookies_;
-  }
-
  private:
   void DidReceiveResponseForClassicScript(
       WorkerClassicScriptLoader* classic_script_loader);
@@ -119,8 +110,6 @@ class CORE_EXPORT SharedWorkerGlobalScope final : public WorkerGlobalScope {
   void ExceptionThrown(ErrorEvent*) override;
 
   const SharedWorkerToken token_;
-
-  const bool require_cross_site_request_for_cookies_;
 };
 
 template <>

@@ -11,15 +11,13 @@
 #ifndef MODULES_VIDEO_CODING_INCLUDE_VIDEO_CODEC_INTERFACE_H_
 #define MODULES_VIDEO_CODING_INCLUDE_VIDEO_CODEC_INTERFACE_H_
 
-#include <optional>
-#include <variant>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/video/video_frame.h"
 #include "api/video_codecs/scalability_mode.h"
 #include "api/video_codecs/video_decoder.h"
 #include "api/video_codecs/video_encoder.h"
-#include "common_video/frame_instrumentation_data.h"
 #include "common_video/generic_frame_descriptor/generic_frame_info.h"
 #include "modules/video_coding/codecs/h264/include/h264_globals.h"
 #include "modules/video_coding/codecs/vp9/include/vp9_globals.h"
@@ -52,9 +50,7 @@ struct CodecSpecificInfoVP8 {
   size_t updatedBuffers[kBuffersCount];
   size_t updatedBuffersCount;
 };
-static_assert(std::is_trivial_v<CodecSpecificInfoVP8> &&
-                  std::is_standard_layout_v<CodecSpecificInfoVP8>,
-              "");
+static_assert(std::is_pod<CodecSpecificInfoVP8>::value, "");
 
 // Hack alert - the code assumes that thisstruct is memset when constructed.
 struct CodecSpecificInfoVP9 {
@@ -83,9 +79,7 @@ struct CodecSpecificInfoVP9 {
   uint8_t num_ref_pics;
   uint8_t p_diff[kMaxVp9RefPics];
 };
-static_assert(std::is_trivial_v<CodecSpecificInfoVP9> &&
-                  std::is_standard_layout_v<CodecSpecificInfoVP9>,
-              "");
+static_assert(std::is_pod<CodecSpecificInfoVP9>::value, "");
 
 // Hack alert - the code assumes that thisstruct is memset when constructed.
 struct CodecSpecificInfoH264 {
@@ -94,18 +88,14 @@ struct CodecSpecificInfoH264 {
   bool base_layer_sync;
   bool idr_frame;
 };
-static_assert(std::is_trivial_v<CodecSpecificInfoH264> &&
-                  std::is_standard_layout_v<CodecSpecificInfoH264>,
-              "");
+static_assert(std::is_pod<CodecSpecificInfoH264>::value, "");
 
 union CodecSpecificInfoUnion {
   CodecSpecificInfoVP8 VP8;
   CodecSpecificInfoVP9 VP9;
   CodecSpecificInfoH264 H264;
 };
-static_assert(std::is_trivial_v<CodecSpecificInfoUnion> &&
-                  std::is_standard_layout_v<CodecSpecificInfoUnion>,
-              "");
+static_assert(std::is_pod<CodecSpecificInfoUnion>::value, "");
 
 // Note: if any pointers are added to this struct or its sub-structs, it
 // must be fitted with a copy-constructor. This is because it is copied
@@ -118,14 +108,9 @@ struct RTC_EXPORT CodecSpecificInfo {
   VideoCodecType codecType;
   CodecSpecificInfoUnion codecSpecific;
   bool end_of_picture = true;
-  std::optional<GenericFrameInfo> generic_frame_info;
-  std::optional<FrameDependencyStructure> template_structure;
-  std::optional<ScalabilityMode> scalability_mode;
-
-  // Required for automatic corruption detection.
-  std::optional<
-      std::variant<FrameInstrumentationSyncData, FrameInstrumentationData>>
-      frame_instrumentation_data;
+  absl::optional<GenericFrameInfo> generic_frame_info;
+  absl::optional<FrameDependencyStructure> template_structure;
+  absl::optional<ScalabilityMode> scalability_mode;
 };
 
 }  // namespace webrtc

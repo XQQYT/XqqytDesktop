@@ -67,7 +67,7 @@ class MockNetworkControllerInterface : public NetworkControllerInterface {
 
 class MockNetworkStateEstimator : public NetworkStateEstimator {
  public:
-  MOCK_METHOD(std::optional<NetworkStateEstimate>,
+  MOCK_METHOD(absl::optional<NetworkStateEstimate>,
               GetCurrentEstimate,
               (),
               (override));

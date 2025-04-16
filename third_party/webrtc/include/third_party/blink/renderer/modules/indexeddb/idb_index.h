@@ -32,6 +32,8 @@
 #include "third_party/blink/renderer/modules/indexeddb/idb_key_range.h"
 #include "third_party/blink/renderer/modules/indexeddb/idb_metadata.h"
 #include "third_party/blink/renderer/modules/indexeddb/idb_request.h"
+#include "third_party/blink/renderer/modules/indexeddb/web_idb_cursor.h"
+#include "third_party/blink/renderer/modules/indexeddb/web_idb_database.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
@@ -39,7 +41,6 @@
 namespace blink {
 
 class ExceptionState;
-class IDBGetAllRecordsOptions;
 class IDBObjectStore;
 
 class IDBIndex final : public ScriptWrappable {
@@ -68,11 +69,11 @@ class IDBIndex final : public ScriptWrappable {
 
   IDBRequest* openCursor(ScriptState*,
                          const ScriptValue& key,
-                         const V8IDBCursorDirection& direction,
+                         const String& direction,
                          ExceptionState&);
   IDBRequest* openKeyCursor(ScriptState*,
                             const ScriptValue& range,
-                            const V8IDBCursorDirection& direction,
+                            const String& direction,
                             ExceptionState&);
   IDBRequest* count(ScriptState*, const ScriptValue& range, ExceptionState&);
   IDBRequest* get(ScriptState*, const ScriptValue& key, ExceptionState&);
@@ -89,9 +90,6 @@ class IDBIndex final : public ScriptWrappable {
                          const ScriptValue& range,
                          uint32_t max_count,
                          ExceptionState&);
-  IDBRequest* getAllRecords(ScriptState*,
-                            const IDBGetAllRecordsOptions* options,
-                            ExceptionState&);
 
   void MarkDeleted() {
     DCHECK(transaction_->IsVersionChange())
@@ -122,7 +120,7 @@ class IDBIndex final : public ScriptWrappable {
       mojom::IDBCursorDirection,
       IDBRequest::AsyncTraceState = IDBRequest::AsyncTraceState());
 
-  IDBDatabase& db();
+  WebIDBDatabase* BackendDB() const;
 
  private:
   const IDBIndexMetadata& Metadata() const { return *metadata_; }
@@ -132,13 +130,12 @@ class IDBIndex final : public ScriptWrappable {
                           ExceptionState&,
                           bool key_only,
                           IDBRequest::AsyncTraceState metrics);
-  IDBRequest* CreateGetAllRequest(IDBRequest::TypeForMetrics,
-                                  ScriptState*,
-                                  const ScriptValue& range,
-                                  mojom::blink::IDBGetAllResultType result_type,
-                                  uint32_t max_count,
-                                  mojom::blink::IDBCursorDirection direction,
-                                  ExceptionState&);
+  IDBRequest* GetAllInternal(ScriptState*,
+                             const ScriptValue& range,
+                             uint32_t max_count,
+                             ExceptionState&,
+                             bool key_only,
+                             IDBRequest::AsyncTraceState metrics);
 
   scoped_refptr<IDBIndexMetadata> metadata_;
   Member<IDBObjectStore> object_store_;

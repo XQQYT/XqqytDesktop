@@ -13,7 +13,6 @@
 
 namespace blink {
 
-class ExceptionState;
 class Navigator;
 class ScriptState;
 class ClipboardUnsanitizedFormats;
@@ -29,21 +28,12 @@ class Clipboard : public EventTarget, public Supplement<Navigator> {
   Clipboard(const Clipboard&) = delete;
   Clipboard& operator=(const Clipboard&) = delete;
 
-  ScriptPromise<IDLSequence<ClipboardItem>>
-  read(ScriptState*, ClipboardUnsanitizedFormats* formats, ExceptionState&);
-  ScriptPromise<IDLSequence<ClipboardItem>> read(
-      ScriptState* script_state,
-      ExceptionState& exception_state) {
-    return read(script_state, nullptr, exception_state);
-  }
-  ScriptPromise<IDLString> readText(ScriptState*, ExceptionState&);
+  ScriptPromise read(ScriptState*,
+                     ClipboardUnsanitizedFormats* formats = nullptr);
+  ScriptPromise readText(ScriptState*);
 
-  ScriptPromise<IDLUndefined> write(ScriptState*,
-                                    const HeapVector<Member<ClipboardItem>>&,
-                                    ExceptionState&);
-  ScriptPromise<IDLUndefined> writeText(ScriptState*,
-                                        const String&,
-                                        ExceptionState&);
+  ScriptPromise write(ScriptState*, const HeapVector<Member<ClipboardItem>>&);
+  ScriptPromise writeText(ScriptState*, const String&);
 
   // EventTarget
   const AtomicString& InterfaceName() const override;

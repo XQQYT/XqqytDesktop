@@ -11,22 +11,24 @@
 #ifndef MEDIA_BASE_CODEC_H_
 #define MEDIA_BASE_CODEC_H_
 
-#include <cstddef>
-#include <optional>
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
 
 #include "absl/container/inlined_vector.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "api/audio_codecs/audio_format.h"
+#include "api/field_trials_view.h"
 #include "api/rtp_parameters.h"
-#include "api/video_codecs/scalability_mode.h"
 #include "api/video_codecs/sdp_video_format.h"
 #include "media/base/media_constants.h"
 #include "rtc_base/system/rtc_export.h"
 
 namespace cricket {
+
+using CodecParameterMap = std::map<std::string, std::string>;
 
 class FeedbackParam {
  public:
@@ -56,7 +58,6 @@ class FeedbackParams {
 
   bool Has(const FeedbackParam& param) const;
   void Add(const FeedbackParam& param);
-  bool Remove(const FeedbackParam& param);
 
   void Intersect(const FeedbackParams& from);
 
@@ -81,8 +82,6 @@ struct RTC_EXPORT Codec {
     kFlexfec,
     kRtx,
   };
-  // Value of "id" if it's not explicitly set. Exposed for tests.
-  static const int kIdNotSet = -1;
 
   Type type;
   int id;
@@ -96,18 +95,13 @@ struct RTC_EXPORT Codec {
   size_t channels;
 
   // Video only
-  std::optional<std::string> packetization;
+  absl::optional<std::string> packetization;
   absl::InlinedVector<webrtc::ScalabilityMode, webrtc::kScalabilityModeCount>
       scalability_modes;
 
-  // H.265 only
-  std::optional<std::string> tx_mode;
-
   // Non key-value parameters such as the telephone-event "0‐15" are
   // represented using an empty string as key, i.e. {"": "0-15"}.
-  // The equivalent of fmtp in SDP.
-  webrtc::CodecParameterMap params;
-  // The equivalent of rtcp-fb in SDP.
+  CodecParameterMap params;
   FeedbackParams feedback_params;
 
   Codec(const Codec& c);
@@ -117,33 +111,17 @@ struct RTC_EXPORT Codec {
 
   // Indicates if this codec is compatible with the specified codec by
   // checking the assigned id and profile values for the relevant video codecs.
-  // The rules for this comparison, in particular the parameters are
-  // codec-specific as described in RFC 3264 6.1:
-  // https://www.rfc-editor.org/rfc/rfc3264#section-6.1
-  // For H.264, packetization modes will be compared.
-  // If H.265 is enabled, TxModes will be compared.
-  // H.264 (and H.265, if enabled) levels are not compared.
-  // In all other cases, parameters do not need to match.
-  // This is used in SDP offer/answer codec matching.
-  bool Matches(const Codec& codec) const;
-
-  // This is an exact match similar to what is described in
-  // https://w3c.github.io/webrtc-pc/#dfn-codec-match
-  // with two differences:
-  // - rtx which is included in capabilities  without the apt parameter
-  //   so number of channels, clock rate or the equality of the parameters
-  //   are not compared.
-  // - parameters is compared element-wise, not as a string comparison.
-  // This method should only be used to compare input on our end to something we
-  // generated, done e.g. by setCodecPreferences or setParameters.
+  // H264 levels are not compared.
+  bool Matches(const Codec& codec,
+               const webrtc::FieldTrialsView* field_trials = nullptr) const;
   bool MatchesRtpCodec(const webrtc::RtpCodec& capability) const;
 
-  // Find the parameter for `key` and write the value to `out`.
-  bool GetParam(const std::string& key, std::string* out) const;
-  bool GetParam(const std::string& key, int* out) const;
+  // Find the parameter for `name` and write the value to `out`.
+  bool GetParam(const std::string& name, std::string* out) const;
+  bool GetParam(const std::string& name, int* out) const;
 
-  void SetParam(const std::string& key, const std::string& value);
-  void SetParam(const std::string& key, int value);
+  void SetParam(const std::string& name, const std::string& value);
+  void SetParam(const std::string& name, int value);
 
   // It is safe to input a non-existent parameter.
   // Returns true if the parameter existed, false if it did not exist.
@@ -178,26 +156,6 @@ struct RTC_EXPORT Codec {
 
   bool operator!=(const Codec& c) const { return !(*this == c); }
 
-  template <typename Sink>
-  friend void AbslStringify(Sink& sink, const Codec& c) {
-    absl::Format(&sink, "[%d:", c.id);
-    switch (c.type) {
-      case Codec::Type::kAudio:
-        sink.Append("audio/");
-        break;
-      case Codec::Type::kVideo:
-        sink.Append("video/");
-    }
-    absl::Format(&sink, "%s/%d/%d", c.name, c.clockrate, c.channels);
-    for (auto param : c.params) {
-      sink.Append(";");
-      sink.Append(param.first);
-      sink.Append("=");
-      sink.Append(param.second);
-    }
-    sink.Append("]");
-  }
-
  protected:
   // Creates an empty codec.
   explicit Codec(Type type);
@@ -226,12 +184,11 @@ struct RTC_EXPORT Codec {
 };
 
 // TODO(webrtc:15214): Compatibility names, to be migrated away and removed.
-using VideoCodec [[deprecated]] = Codec;
-using AudioCodec [[deprecated]] = Codec;
+using VideoCodec = Codec;
+using AudioCodec = Codec;
 
-using VideoCodecs [[deprecated]] = std::vector<Codec>;
-using AudioCodecs [[deprecated]] = std::vector<Codec>;
-using Codecs = std::vector<Codec>;
+using VideoCodecs = std::vector<Codec>;
+using AudioCodecs = std::vector<Codec>;
 
 Codec CreateAudioCodec(int id,
                        const std::string& name,
@@ -242,7 +199,6 @@ Codec CreateAudioRtxCodec(int rtx_payload_type, int associated_payload_type);
 Codec CreateVideoCodec(const std::string& name);
 Codec CreateVideoCodec(int id, const std::string& name);
 Codec CreateVideoCodec(const webrtc::SdpVideoFormat& c);
-Codec CreateVideoCodec(int id, const webrtc::SdpVideoFormat& c);
 Codec CreateVideoRtxCodec(int rtx_payload_type, int associated_payload_type);
 
 // Get the codec setting associated with `payload_type`. If there
@@ -253,6 +209,7 @@ bool HasLntf(const Codec& codec);
 bool HasNack(const Codec& codec);
 bool HasRemb(const Codec& codec);
 bool HasRrtr(const Codec& codec);
+bool HasTransportCc(const Codec& codec);
 
 // Returns the first codec in `supported_codecs` that matches `codec`, or
 // nullptr if no codec matches.

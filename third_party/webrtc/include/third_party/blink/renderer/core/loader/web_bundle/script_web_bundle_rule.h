@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LOADER_WEB_BUNDLE_SCRIPT_WEB_BUNDLE_RULE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LOADER_WEB_BUNDLE_SCRIPT_WEB_BUNDLE_RULE_H_
 
-#include <variant>
-
+#include "third_party/abseil-cpp/absl/types/variant.h"
 #include "third_party/blink/public/mojom/fetch/fetch_api_request.mojom-blink.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/loader/web_bundle/script_web_bundle_error.h"
@@ -22,7 +21,7 @@ namespace blink {
 // https://github.com/WICG/webpackage/blob/main/explainers/subresource-loading.md
 class CORE_EXPORT ScriptWebBundleRule final {
  public:
-  static std::variant<ScriptWebBundleRule, ScriptWebBundleError> ParseJson(
+  static absl::variant<ScriptWebBundleRule, ScriptWebBundleError> ParseJson(
       const String& inline_text,
       const KURL& base_url,
       ConsoleLogger* logger);

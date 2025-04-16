@@ -9,15 +9,13 @@
 #include <stdlib.h>
 
 #include <limits>
-#include <optional>
-#include <string_view>
 
 #include "base/check.h"
-#include "base/compiler_specific.h"
 #include "base/logging.h"
 #include "base/numerics/safe_math.h"
 #include "base/strings/string_util.h"
 #include "base/third_party/double_conversion/double-conversion/double-conversion.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base {
 
@@ -40,16 +38,16 @@ static STR IntToStringT(INT value) {
   std::make_unsigned_t<INT> res =
       CheckedNumeric<INT>(value).UnsignedAbs().ValueOrDie();
 
-  CHR* end = UNSAFE_TODO(outbuf + kOutputBufSize);
+  CHR* end = outbuf + kOutputBufSize;
   CHR* i = end;
   do {
-    UNSAFE_TODO(--i);
+    --i;
     DCHECK(i != outbuf);
     *i = static_cast<CHR>((res % 10) + '0');
     res /= 10;
   } while (res != 0);
   if (IsValueNegative(value)) {
-    UNSAFE_TODO(--i);
+    --i;
     DCHECK(i != outbuf);
     *i = static_cast<CHR>('-');
   }
@@ -58,21 +56,18 @@ static STR IntToStringT(INT value) {
 
 // Utility to convert a character to a digit in a given base
 template <int BASE, typename CHAR>
-std::optional<uint8_t> CharToDigit(CHAR c) {
+absl::optional<uint8_t> CharToDigit(CHAR c) {
   static_assert(1 <= BASE && BASE <= 36, "BASE needs to be in [1, 36]");
-  if (c >= '0' && c < '0' + std::min(BASE, 10)) {
+  if (c >= '0' && c < '0' + std::min(BASE, 10))
     return static_cast<uint8_t>(c - '0');
-  }
 
-  if (c >= 'a' && c < 'a' + BASE - 10) {
+  if (c >= 'a' && c < 'a' + BASE - 10)
     return static_cast<uint8_t>(c - 'a' + 10);
-  }
 
-  if (c >= 'A' && c < 'A' + BASE - 10) {
+  if (c >= 'A' && c < 'A' + BASE - 10)
     return static_cast<uint8_t>(c - 'A' + 10);
-  }
 
-  return std::nullopt;
+  return absl::nullopt;
 }
 
 template <typename Number, int kBase>
@@ -110,7 +105,7 @@ class StringToNumberParser {
       }
 
       for (Iter current = begin; current != end; ++current) {
-        std::optional<uint8_t> new_digit = CharToDigit<kBase>(*current);
+        absl::optional<uint8_t> new_digit = CharToDigit<kBase>(*current);
 
         if (!new_digit) {
           return {value, false};
@@ -118,9 +113,8 @@ class StringToNumberParser {
 
         if (current != begin) {
           Result result = Sign::CheckBounds(value, *new_digit);
-          if (!result.valid) {
+          if (!result.valid)
             return result;
-          }
 
           value *= kBase;
         }
@@ -158,7 +152,7 @@ class StringToNumberParser {
 };
 
 template <typename Number, int kBase, typename CharT>
-auto StringToNumber(std::basic_string_view<CharT> input) {
+auto StringToNumber(BasicStringPiece<CharT> input) {
   using Parser = StringToNumberParser<Number, kBase>;
   using Result = typename Parser::Result;
 
@@ -220,11 +214,9 @@ StringT ToString(const typename StringT::value_type* data, size_t size) {
   return StringT(data, size);
 }
 
-// TODO(tsepez): should be UNSAFE_BUFFER_USAGE.
 template <typename StringT, typename CharT>
 StringT ToString(const CharT* data, size_t size) {
-  // SAFETY: required from caller.
-  return StringT(data, UNSAFE_BUFFERS(data + size));
+  return StringT(data, data + size);
 }
 
 template <typename StringT>
@@ -263,16 +255,15 @@ bool StringToDoubleImpl(STRING input, const CHAR* data, double& output) {
 }
 
 template <typename Char, typename OutIter>
-static bool HexStringToByteContainer(std::string_view input, OutIter output) {
+static bool HexStringToByteContainer(StringPiece input, OutIter output) {
   size_t count = input.size();
-  if (count == 0 || (count % 2) != 0) {
+  if (count == 0 || (count % 2) != 0)
     return false;
-  }
   for (uintptr_t i = 0; i < count / 2; ++i) {
     // most significant 4 bits
-    std::optional<uint8_t> msb = CharToDigit<16>(input[i * 2]);
+    absl::optional<uint8_t> msb = CharToDigit<16>(input[i * 2]);
     // least significant 4 bits
-    std::optional<uint8_t> lsb = CharToDigit<16>(input[i * 2 + 1]);
+    absl::optional<uint8_t> lsb = CharToDigit<16>(input[i * 2 + 1]);
     if (!msb || !lsb) {
       return false;
     }

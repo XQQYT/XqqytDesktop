@@ -12,15 +12,15 @@ const HELPER = '/webcodecs/videoFrame-serialization.crossAgentCluster.helper.htm
 const CROSSORIGIN_BASE = get_host_info().HTTPS_NOTSAMESITE_ORIGIN;
 const CROSSORIGIN_HELPER = CROSSORIGIN_BASE + HELPER;
 
-promise_test(async (t) => {
+promise_test(async () => {
   const target = (await appendIframe(CROSSORIGIN_HELPER)).contentWindow;
-  let frame = createVideoFrame(t, 20);
+  let frame = createVideoFrame(20);
   assert_false(await canSerializeVideoFrame(target, frame));
 }, 'Verify frames cannot be passed accross the different agent clusters');
 
-promise_test(async (t) => {
+promise_test(async () => {
   const target = (await appendIframe(CROSSORIGIN_HELPER)).contentWindow;
-  let frame = createVideoFrame(t, 80);
+  let frame = createVideoFrame(80);
   assert_false(await canTransferVideoFrame(target, frame));
 }, 'Verify frames cannot be transferred accross the different agent clusters');
 
@@ -31,19 +31,17 @@ function appendIframe(src) {
   return new Promise(resolve => frame.onload = () => resolve(frame));
 };
 
-function createVideoFrame(test, timestamp) {
+function createVideoFrame(ts) {
   let data = new Uint8Array([
     1, 2, 3, 4, 5, 6, 7, 8,
     9, 10, 11, 12, 13, 14, 15, 16,
   ]);
-  const frame = new VideoFrame(data, {
-    timestamp,
+  return new VideoFrame(data, {
+    timestamp: ts,
     codedWidth: 2,
     codedHeight: 2,
     format: 'RGBA',
   });
-  test.add_cleanup(() => frame.close());
-  return frame;
 }
 
 function canSerializeVideoFrame(target, vf) {

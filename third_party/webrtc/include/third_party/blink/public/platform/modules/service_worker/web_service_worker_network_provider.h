@@ -39,7 +39,6 @@
 #include "third_party/blink/public/platform/cross_variant_mojo_util.h"
 
 namespace network {
-struct ResourceRequest;
 class SharedURLLoaderFactory;
 }  // namespace network
 
@@ -67,8 +66,7 @@ class WebServiceWorkerNetworkProvider {
   // Returns a SharedURLLoaderFactory for loading |request|. May return nullptr
   // to fall back to the default loading behavior.
   virtual scoped_refptr<network::SharedURLLoaderFactory>
-  GetSubresourceLoaderFactory(const network::ResourceRequest& network_request,
-                              bool is_from_origin_dirty_style_sheet) = 0;
+  GetSubresourceLoaderFactory(const WebURLRequest& request) = 0;
 
   // For service worker clients.
   virtual blink::mojom::ControllerServiceWorkerMode

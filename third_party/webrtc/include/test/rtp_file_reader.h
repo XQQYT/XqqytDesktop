@@ -10,7 +10,6 @@
 #ifndef TEST_RTP_FILE_READER_H_
 #define TEST_RTP_FILE_READER_H_
 
-#include <cstdint>
 #include <set>
 #include <string>
 

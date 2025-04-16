@@ -19,10 +19,11 @@
 #ifndef GRPCPP_IMPL_METADATA_MAP_H
 #define GRPCPP_IMPL_METADATA_MAP_H
 
-#include <grpc/grpc.h>
-#include <grpcpp/support/slice.h>
-
 #include <map>
+
+#include <grpc/grpc.h>
+#include <grpc/support/log.h>
+#include <grpcpp/support/slice.h>
 
 namespace grpc {
 

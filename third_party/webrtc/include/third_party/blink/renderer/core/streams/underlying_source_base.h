@@ -26,18 +26,20 @@ class CORE_EXPORT UnderlyingSourceBase
   void Trace(Visitor*) const override;
   ~UnderlyingSourceBase() override = default;
 
-  ScriptPromise<IDLUndefined> StartWrapper(ScriptState*,
-                                           ReadableStreamDefaultController*);
-  virtual ScriptPromise<IDLUndefined> Start(ScriptState*);
+  ScriptPromise startWrapper(ScriptState*, ReadableStreamDefaultController*);
+  virtual ScriptPromise Start(ScriptState*);
 
-  virtual ScriptPromise<IDLUndefined> Pull(ScriptState*, ExceptionState&);
+  virtual ScriptPromise pull(ScriptState*);
 
-  ScriptPromise<IDLUndefined> CancelWrapper(ScriptState*,
-                                            ScriptValue reason,
-                                            ExceptionState&);
-  virtual ScriptPromise<IDLUndefined> Cancel(ScriptState*,
-                                             ScriptValue reason,
-                                             ExceptionState&);
+  ScriptPromise cancelWrapper(ScriptState*, ExceptionState&);
+  ScriptPromise cancelWrapper(ScriptState*,
+                              ScriptValue reason,
+                              ExceptionState&);
+  virtual ScriptPromise Cancel(ScriptState*,
+                               ScriptValue reason,
+                               ExceptionState&);
+
+  ScriptValue type(ScriptState*) const;
 
   // ExecutionContextLifecycleObserver implementation:
 
@@ -64,7 +66,8 @@ class UnderlyingStartAlgorithm final : public StreamStartAlgorithm {
                            ReadableStreamDefaultController* controller)
       : source_(source), controller_(controller) {}
 
-  ScriptPromise<IDLUndefined> Run(ScriptState* script_state) final;
+  v8::MaybeLocal<v8::Promise> Run(ScriptState* script_state,
+                                  ExceptionState&) final;
   void Trace(Visitor* visitor) const final;
 
  private:
@@ -77,9 +80,9 @@ class UnderlyingPullAlgorithm final : public StreamAlgorithm {
   explicit UnderlyingPullAlgorithm(UnderlyingSourceBase* source)
       : source_(source) {}
 
-  ScriptPromise<IDLUndefined> Run(ScriptState* script_state,
-                                  int argc,
-                                  v8::Local<v8::Value> argv[]) final;
+  v8::Local<v8::Promise> Run(ScriptState* script_state,
+                             int argc,
+                             v8::Local<v8::Value> argv[]) final;
   void Trace(Visitor* visitor) const final;
 
  private:
@@ -91,9 +94,9 @@ class UnderlyingCancelAlgorithm final : public StreamAlgorithm {
   explicit UnderlyingCancelAlgorithm(UnderlyingSourceBase* source)
       : source_(source) {}
 
-  ScriptPromise<IDLUndefined> Run(ScriptState* script_state,
-                                  int argc,
-                                  v8::Local<v8::Value> argv[]) final;
+  v8::Local<v8::Promise> Run(ScriptState* script_state,
+                             int argc,
+                             v8::Local<v8::Value> argv[]) final;
   void Trace(Visitor* visitor) const final;
 
  private:

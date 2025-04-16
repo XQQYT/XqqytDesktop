@@ -1,22 +1,22 @@
-// Copyright 2023 The BoringSSL Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/* Copyright (c) 2023, Google Inc.
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #ifndef OPENSSL_HEADER_CRYPTO_KYBER_INTERNAL_H
 #define OPENSSL_HEADER_CRYPTO_KYBER_INTERNAL_H
 
 #include <openssl/base.h>
-#include <openssl/experimental/kyber.h>
+#include <openssl/kyber.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -42,15 +42,15 @@ OPENSSL_EXPORT void KYBER_generate_key_external_entropy(
     struct KYBER_private_key *out_private_key,
     const uint8_t entropy[KYBER_GENERATE_KEY_ENTROPY]);
 
-// KYBER_encap_external_entropy behaves like |KYBER_encap|, but uses
-// |KYBER_ENCAP_ENTROPY| bytes of |entropy| for randomization. The decapsulating
-// side will be able to recover |entropy| in full. This function should only be
-// used for tests, regular callers should use the non-deterministic
-// |KYBER_encap| directly.
+// KYBER_encap_external_entropy is a deterministic function to encapsulate
+// |out_shared_secret_len| bytes of |out_shared_secret| to |ciphertext|, using
+// |KYBER_ENCAP_ENTROPY| bytes of |entropy| for randomization. The
+// decapsulating side will be able to recover |entropy| in full. This
+// function is should only be used for tests, regular callers should use the
+// non-deterministic |KYBER_encap| directly.
 OPENSSL_EXPORT void KYBER_encap_external_entropy(
-    uint8_t out_ciphertext[KYBER_CIPHERTEXT_BYTES],
-    uint8_t out_shared_secret[KYBER_SHARED_SECRET_BYTES],
-    const struct KYBER_public_key *public_key,
+    uint8_t out_ciphertext[KYBER_CIPHERTEXT_BYTES], uint8_t *out_shared_secret,
+    size_t out_shared_secret_len, const struct KYBER_public_key *public_key,
     const uint8_t entropy[KYBER_ENCAP_ENTROPY]);
 
 #if defined(__cplusplus)

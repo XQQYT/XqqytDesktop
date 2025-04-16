@@ -5,18 +5,16 @@
 #ifndef BASE_MEMORY_PLATFORM_SHARED_MEMORY_REGION_H_
 #define BASE_MEMORY_PLATFORM_SHARED_MEMORY_REGION_H_
 
-#include <stdint.h>
-
-#include <optional>
-
 #include "base/base_export.h"
-#include "base/compiler_specific.h"
 #include "base/containers/span.h"
 #include "base/gtest_prod_util.h"
 #include "base/memory/platform_shared_memory_handle.h"
 #include "base/memory/shared_memory_mapper.h"
 #include "base/unguessable_token.h"
 #include "build/build_config.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
+
+#include <stdint.h>
 
 #if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
 namespace content {
@@ -96,7 +94,7 @@ class BASE_EXPORT PlatformSharedMemoryRegion {
     //
     // This is only used to support sandbox_ipc_linux.cc, and should not be used
     // anywhere else in chrome. This is restricted via AllowCreateExecutable.
-    // TODO(crbug.com/41470149): remove this when NaCl is unshipped.
+    // TODO(crbug.com/982879): remove this when NaCl is unshipped.
     //
     // Returns an invalid ScopedFD if the call fails.
     static ScopedFD CreateFD(size_t size);
@@ -193,18 +191,18 @@ class BASE_EXPORT PlatformSharedMemoryRegion {
   // |offset| into the caller's address space using the provided
   // |SharedMemoryMapper|. |offset| must be aligned to value of
   // |SysInfo::VMAllocationGranularity()|. Fails if requested bytes are out of
-  // the region limits. Returns the mapping as span on success, or std::nullopt
+  // the region limits. Returns the mapping as span on success, or absl::nullopt
   // on failure. The mapped address is guaranteed to have an alignment of at
   // least |kMapMinimumAlignment|.
-  std::optional<span<uint8_t>> MapAt(uint64_t offset,
-                                     size_t size,
-                                     SharedMemoryMapper* mapper) const;
+  absl::optional<span<uint8_t>> MapAt(uint64_t offset,
+                                      size_t size,
+                                      SharedMemoryMapper* mapper) const;
 
   // Unmaps the provided shared memory mapping, which must have previously been
   // created by calling |MapAt()| above.
   static void Unmap(span<uint8_t> mapping, SharedMemoryMapper* mapper);
 
-  const UnguessableToken& GetGUID() const LIFETIME_BOUND { return guid_; }
+  const UnguessableToken& GetGUID() const { return guid_; }
 
   size_t GetSize() const { return size_; }
 

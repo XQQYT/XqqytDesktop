@@ -12,10 +12,8 @@
 #define MODULES_VIDEO_CODING_CODECS_VP8_LIBVPX_VP8_DECODER_H_
 
 #include <memory>
-#include <optional>
 
-#include "api/environment/environment.h"
-#include "api/field_trials_view.h"
+#include "absl/types/optional.h"
 #include "api/video/encoded_image.h"
 #include "api/video_codecs/video_decoder.h"
 #include "common_video/include/video_frame_buffer_pool.h"
@@ -28,7 +26,7 @@ namespace webrtc {
 
 class LibvpxVp8Decoder : public VideoDecoder {
  public:
-  explicit LibvpxVp8Decoder(const Environment& env);
+  LibvpxVp8Decoder();
   ~LibvpxVp8Decoder() override;
 
   bool Configure(const Settings& settings) override;
@@ -58,7 +56,6 @@ class LibvpxVp8Decoder : public VideoDecoder {
 
  private:
   class QpSmoother;
-
   int ReturnFrame(const vpx_image_t* img,
                   uint32_t timeStamp,
                   int qp,
@@ -72,7 +69,7 @@ class LibvpxVp8Decoder : public VideoDecoder {
   int last_frame_width_;
   int last_frame_height_;
   bool key_frame_required_;
-  const std::optional<DeblockParams> deblock_params_;
+  const absl::optional<DeblockParams> deblock_params_;
   const std::unique_ptr<QpSmoother> qp_smoother_;
 };
 

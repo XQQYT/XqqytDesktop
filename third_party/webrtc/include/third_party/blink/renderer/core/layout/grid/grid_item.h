@@ -6,15 +6,16 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_GRID_GRID_ITEM_H_
 
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/layout/baseline_utils.h"
-#include "third_party/blink/renderer/core/layout/block_node.h"
-#include "third_party/blink/renderer/core/layout/constraint_space.h"
 #include "third_party/blink/renderer/core/layout/grid/grid_track_collection.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_baseline_utils.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_block_node.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_constraint_space.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 
 namespace blink {
 
 enum class AxisEdge { kStart, kCenter, kEnd, kFirstBaseline, kLastBaseline };
+enum class SizingConstraint { kLayout, kMinContent, kMaxContent };
 
 struct GridItemIndices {
   wtf_size_t begin{kNotFound};
@@ -26,73 +27,87 @@ struct OutOfFlowItemPlacement {
   GridItemIndices offset_in_range;
 };
 
-struct CORE_EXPORT GridItemData : public GarbageCollected<GridItemData> {
-  GridItemData() = default;
+struct CORE_EXPORT GridItemData {
+  USING_FAST_MALLOC(GridItemData);
+
+ public:
+  GridItemData() = delete;
   GridItemData(const GridItemData&) = default;
   GridItemData& operator=(const GridItemData&) = default;
 
-  GridItemData(BlockNode item_node,
-               const ComputedStyle& parent_grid_style,
+  GridItemData(NGBlockNode node,
                const ComputedStyle& root_grid_style,
+               FontBaseline parent_grid_font_baseline,
                bool parent_must_consider_grid_items_for_column_sizing = false,
                bool parent_must_consider_grid_items_for_row_sizing = false);
-
-  GridItemData(BlockNode item_node, const ComputedStyle& parent_style)
-      : GridItemData(std::move(item_node), parent_style, parent_style) {}
 
   void SetAlignmentFallback(GridTrackSizingDirection track_direction,
                             bool has_synthesized_baseline);
 
-  AxisEdge Alignment(GridTrackSizingDirection track_direction) const {
-    return (track_direction == kForColumns)
-               ? column_fallback_alignment.value_or(column_alignment)
-               : row_fallback_alignment.value_or(row_alignment);
+  AxisEdge InlineAxisAlignment() const {
+    return inline_axis_alignment_fallback.value_or(inline_axis_alignment);
+  }
+  AxisEdge BlockAxisAlignment() const {
+    return block_axis_alignment_fallback.value_or(block_axis_alignment);
   }
 
-  bool IsOverflowSafe(GridTrackSizingDirection track_direction) const {
-    return (track_direction == kForColumns)
-               ? column_fallback_alignment || is_overflow_safe_for_columns
-               : row_fallback_alignment || is_overflow_safe_for_rows;
+  bool IsInlineAxisOverflowSafe() const {
+    return is_inline_axis_overflow_safe_fallback.value_or(
+        is_inline_axis_overflow_safe);
+  }
+  bool IsBlockAxisOverflowSafe() const {
+    return is_block_axis_overflow_safe_fallback.value_or(
+        is_block_axis_overflow_safe);
   }
 
   bool IsBaselineAligned(GridTrackSizingDirection track_direction) const {
-    const auto axis_alignment = Alignment(track_direction);
+    const bool is_for_columns = track_direction == kForColumns;
+    const bool has_subgridded_axis =
+        is_for_columns ? has_subgridded_columns : has_subgridded_rows;
+
+    if (has_subgridded_axis) {
+      return false;
+    }
+
+    const auto axis_alignment =
+        is_for_columns ? InlineAxisAlignment() : BlockAxisAlignment();
     return (axis_alignment == AxisEdge::kFirstBaseline ||
             axis_alignment == AxisEdge::kLastBaseline);
   }
 
   bool IsBaselineSpecified(GridTrackSizingDirection track_direction) const {
-    const auto& axis_alignment =
-        (track_direction == kForColumns) ? column_alignment : row_alignment;
+    const bool is_for_columns = track_direction == kForColumns;
+    const bool has_subgridded_axis =
+        is_for_columns ? has_subgridded_columns : has_subgridded_rows;
+
+    if (has_subgridded_axis) {
+      return false;
+    }
+
+    const auto axis_alignment =
+        is_for_columns ? inline_axis_alignment : block_axis_alignment;
     return (axis_alignment == AxisEdge::kFirstBaseline ||
             axis_alignment == AxisEdge::kLastBaseline);
   }
 
   bool IsLastBaselineSpecified(GridTrackSizingDirection track_direction) const {
     return (track_direction == kForColumns)
-               ? column_alignment == AxisEdge::kLastBaseline
-               : row_alignment == AxisEdge::kLastBaseline;
+               ? inline_axis_alignment == AxisEdge::kLastBaseline
+               : block_axis_alignment == AxisEdge::kLastBaseline;
   }
 
-  // For this item and track direction, computes the pair of indices `begin` and
-  // `end` such that the item spans every set from the respective collection's
-  // `sets_` with an index in the range [begin, end).
+  // For this item and track direction, computes the pair of indices |begin| and
+  // |end| such that the item spans every set from the respective collection's
+  // |sets_| with an index in the range [begin, end).
   void ComputeSetIndices(const GridLayoutTrackCollection& track_collection);
 
   // For this out of flow item and track collection, computes and stores its
   // first and last spanned ranges, as well as the start and end track offset.
-  // `grid_placement` is used to resolve the grid lines.
+  // |grid_placement| is used to resolve the grid lines.
   void ComputeOutOfFlowItemPlacement(
       const GridLayoutTrackCollection& track_collection,
       const GridPlacementData& placement_data,
       const ComputedStyle& grid_style);
-
-  // Returns the total size of the tracks spanned by this item in the given
-  // track collection. If `start_offset` is provided, it will be set to the
-  // offset of the first track spanned by this grid item.
-  LayoutUnit CalculateAvailableSize(
-      const GridLayoutTrackCollection& track_collection,
-      LayoutUnit* start_offset = nullptr) const;
 
   enum BaselineGroup BaselineGroup(
       GridTrackSizingDirection track_direction) const {
@@ -113,13 +128,6 @@ struct CORE_EXPORT GridItemData : public GarbageCollected<GridItemData> {
       GridTrackSizingDirection track_direction) const {
     return (track_direction == kForColumns) ? column_set_indices
                                             : row_set_indices;
-  }
-
-  GridSizingTrackCollection::SetIterator SetIterator(
-      GridSizingTrackCollection* track_collection) const {
-    DCHECK(track_collection);
-    const auto& set_indices = SetIndices(track_collection->Direction());
-    return track_collection->GetSetIterator(set_indices.begin, set_indices.end);
   }
 
   GridItemIndices& RangeIndices(GridTrackSizingDirection track_direction) {
@@ -175,7 +183,7 @@ struct CORE_EXPORT GridItemData : public GarbageCollected<GridItemData> {
                : must_consider_grid_items_for_row_sizing;
   }
 
-  bool IsOutOfFlow() const { return node && node.IsOutOfFlowPositioned(); }
+  bool IsOutOfFlow() const { return node.IsOutOfFlowPositioned(); }
 
   const TrackSpanProperties& GetTrackSpanProperties(
       GridTrackSizingDirection track_direction) const {
@@ -216,43 +224,38 @@ struct CORE_EXPORT GridItemData : public GarbageCollected<GridItemData> {
         .HasProperty(TrackSpanProperties::kHasFixedMaximumTrack);
   }
 
-  void EncompassContributionSizes(MinMaxSizes&& sizes) {
-    if (contribution_sizes) {
-      contribution_sizes->Encompass(sizes);
-    } else {
-      contribution_sizes = std::move(sizes);
-    }
-  }
-
   void Trace(Visitor* visitor) const { visitor->Trace(node); }
 
-  BlockNode node{nullptr};
+  NGBlockNode node;
   GridArea resolved_position;
 
-  bool has_subgridded_columns : 1 {false};
-  bool has_subgridded_rows : 1 {false};
-  bool is_considered_for_column_sizing : 1 {true};
-  bool is_considered_for_row_sizing : 1 {true};
-  bool is_opposite_direction_in_root_grid_columns : 1 {false};
-  bool is_opposite_direction_in_root_grid_rows : 1 {false};
-  bool is_overflow_safe_for_columns : 1 {false};
-  bool is_overflow_safe_for_rows : 1 {false};
-  bool is_parallel_with_root_grid : 1 {false};
-  bool is_sizing_dependent_on_block_size : 1 {false};
-  bool is_subgridded_to_parent_grid : 1 {false};
-  bool must_consider_grid_items_for_column_sizing : 1 {false};
-  bool must_consider_grid_items_for_row_sizing : 1 {false};
+  bool has_subgridded_columns : 1;
+  bool has_subgridded_rows : 1;
+  bool is_block_axis_overflow_safe : 1;
+  bool is_considered_for_column_sizing : 1;
+  bool is_considered_for_row_sizing : 1;
+  bool is_inline_axis_overflow_safe : 1;
+  bool is_parallel_with_root_grid : 1;
+  bool is_sizing_dependent_on_block_size : 1;
+  bool is_subgridded_to_parent_grid : 1;
+  bool is_opposite_direction_in_root_grid_columns : 1;
+  bool is_opposite_direction_in_root_grid_rows : 1;
+  bool must_consider_grid_items_for_column_sizing : 1;
+  bool must_consider_grid_items_for_row_sizing : 1;
 
   FontBaseline parent_grid_font_baseline;
 
-  AxisEdge column_alignment;
-  AxisEdge row_alignment;
+  AxisEdge inline_axis_alignment;
+  AxisEdge block_axis_alignment;
 
-  std::optional<AxisEdge> column_fallback_alignment;
-  std::optional<AxisEdge> row_fallback_alignment;
+  absl::optional<AxisEdge> inline_axis_alignment_fallback;
+  absl::optional<AxisEdge> block_axis_alignment_fallback;
 
-  AutoSizeBehavior column_auto_behavior;
-  AutoSizeBehavior row_auto_behavior;
+  absl::optional<bool> is_inline_axis_overflow_safe_fallback;
+  absl::optional<bool> is_block_axis_overflow_safe_fallback;
+
+  NGAutoBehavior inline_auto_behavior;
+  NGAutoBehavior block_auto_behavior;
 
   enum BaselineGroup column_baseline_group;
   enum BaselineGroup row_baseline_group;
@@ -271,23 +274,19 @@ struct CORE_EXPORT GridItemData : public GarbageCollected<GridItemData> {
 
   // These fields are only for out of flow items. They are used to store their
   // start/end range indices, and offsets in range in the respective track
-  // collection; see `OutOfFlowItemPlacement`.
+  // collection; see |OutOfFlowItemPlacement|.
   OutOfFlowItemPlacement column_placement;
   OutOfFlowItemPlacement row_placement;
-
-  // Virtual masonry items don't have a node, so we cache the maximum of every
-  // intrinsic contribution among the items that make up its respective group.
-  std::optional<MinMaxSizes> contribution_sizes;
 };
 
 class CORE_EXPORT GridItems {
   DISALLOW_NEW();
 
  public:
-  using GridItemDataVector = HeapVector<Member<GridItemData>, 16>;
+  using GridItemDataVector = Vector<std::unique_ptr<GridItemData>, 16>;
 
   template <bool is_const>
-  class Iterator {
+  class IteratorBase {
     STACK_ALLOCATED();
 
    public:
@@ -299,23 +298,23 @@ class CORE_EXPORT GridItems {
                                   const GridItemDataVector*,
                                   GridItemDataVector*>::type;
 
-    Iterator(GridItemDataVectorPtr item_data, wtf_size_t current_index)
+    IteratorBase(GridItemDataVectorPtr item_data, wtf_size_t current_index)
         : current_index_(current_index), item_data_(item_data) {
       DCHECK(item_data_);
       DCHECK_LE(current_index_, item_data_->size());
     }
 
-    bool operator!=(const Iterator& other) {
+    bool operator!=(const IteratorBase& other) {
       return current_index_ != other.current_index_ ||
              item_data_ != other.item_data_;
     }
 
-    Iterator& operator++() {
+    IteratorBase& operator++() {
       ++current_index_;
       return *this;
     }
 
-    Iterator operator++(int) {
+    IteratorBase operator++(int) {
       auto current_iterator = *this;
       ++current_index_;
       return current_iterator;
@@ -323,7 +322,7 @@ class CORE_EXPORT GridItems {
 
     value_type* operator->() const {
       DCHECK_LT(current_index_, item_data_->size());
-      return item_data_->at(current_index_).Get();
+      return item_data_->at(current_index_).get();
     }
 
     value_type& operator*() const { return *operator->(); }
@@ -333,21 +332,8 @@ class CORE_EXPORT GridItems {
     GridItemDataVectorPtr item_data_;
   };
 
-  template <bool is_const>
-  class Range {
-    STACK_ALLOCATED();
-
-   public:
-    Range(Iterator<is_const>&& begin, Iterator<is_const>&& end)
-        : begin_(std::move(begin)), end_(std::move(end)) {}
-
-    Iterator<is_const> begin() const { return begin_; }
-    Iterator<is_const> end() const { return end_; }
-
-   private:
-    Iterator<is_const> begin_;
-    Iterator<is_const> end_;
-  };
+  typedef IteratorBase<false> Iterator;
+  typedef IteratorBase<true> ConstIterator;
 
   GridItems() = default;
   GridItems(GridItems&&) = default;
@@ -359,47 +345,24 @@ class CORE_EXPORT GridItems {
     return *this = GridItems(other);
   }
 
-  Iterator<false> begin() { return {&item_data_, 0}; }
-  Iterator<false> end() { return {&item_data_, first_subgridded_item_index_}; }
+  Iterator begin() { return {&item_data_, 0}; }
+  Iterator end() { return {&item_data_, item_data_.size()}; }
 
-  Range<false> IncludeSubgriddedItems() {
-    return {begin(), /* end */ {&item_data_, item_data_.size()}};
-  }
-
-  Iterator<true> begin() const { return {&item_data_, 0}; }
-  Iterator<true> end() const {
-    return {&item_data_, first_subgridded_item_index_};
-  }
-
-  Range<true> IncludeSubgriddedItems() const {
-    return {begin(), /* end */ {&item_data_, item_data_.size()}};
-  }
+  ConstIterator begin() const { return {&item_data_, 0}; }
+  ConstIterator end() const { return {&item_data_, item_data_.size()}; }
 
   bool IsEmpty() const { return item_data_.empty(); }
   wtf_size_t Size() const { return item_data_.size(); }
 
   void Append(GridItems* other);
+  void RemoveSubgriddedItems();
   void SortByOrderProperty();
 
-  void Append(GridItemData* new_item_data) {
-    DCHECK(new_item_data);
-    if (!new_item_data->is_subgridded_to_parent_grid) {
-      // Subgridded items are appended after non-subgridded ones; keep moving
-      // `first_subgridded_item_index_` while we append non-subgridded items.
-      DCHECK_EQ(first_subgridded_item_index_, item_data_.size());
-      ++first_subgridded_item_index_;
-    }
+  void Append(std::unique_ptr<GridItemData>&& new_item_data) {
     item_data_.emplace_back(std::move(new_item_data));
   }
 
   GridItemData& At(wtf_size_t index) {
-    DCHECK_LT(index, item_data_.size());
-    DCHECK(item_data_[index]);
-    return *item_data_[index];
-  }
-
-  const GridItemData& At(wtf_size_t index) const {
-    DCHECK_LT(index, item_data_.size());
     DCHECK(item_data_[index]);
     return *item_data_[index];
   }
@@ -408,12 +371,7 @@ class CORE_EXPORT GridItems {
     item_data_.ReserveInitialCapacity(initial_capacity);
   }
 
-  void Trace(Visitor* visitor) const { visitor->Trace(item_data_); }
-
  private:
-  // End index used to iterate over the non-subgridded items of the collection.
-  wtf_size_t first_subgridded_item_index_{0};
-
   // Grid items are rearranged in order-modified document order since
   // auto-placement and painting rely on it later in the algorithm.
   GridItemDataVector item_data_;

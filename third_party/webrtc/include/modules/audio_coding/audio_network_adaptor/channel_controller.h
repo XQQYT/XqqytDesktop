@@ -13,8 +13,7 @@
 
 #include <stddef.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "modules/audio_coding/audio_network_adaptor/controller.h"
 #include "modules/audio_coding/audio_network_adaptor/include/audio_network_adaptor_config.h"
 
@@ -51,7 +50,7 @@ class ChannelController final : public Controller {
  private:
   const Config config_;
   size_t channels_to_encode_;
-  std::optional<int> uplink_bandwidth_bps_;
+  absl::optional<int> uplink_bandwidth_bps_;
 };
 
 }  // namespace webrtc

@@ -49,7 +49,7 @@ class CORE_EXPORT HTMLEmbedElement final : public HTMLPlugInElement {
   void CollectStyleForPresentationAttribute(
       const QualifiedName&,
       const AtomicString&,
-      HeapVector<CSSPropertyValue, 8>&) override;
+      MutableCSSPropertyValueSet*) override;
 
   bool LayoutObjectIsNeeded(const DisplayStyle&) const override;
 

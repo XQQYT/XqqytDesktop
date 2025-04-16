@@ -64,15 +64,7 @@ Node* EnclosingEmptyListItem(const VisiblePosition&);
 
 bool IsTableStructureNode(const Node*);
 bool IsNodeRendered(const Node&);
-
-// Returns true if the ComputedStyle of the node is kInline or kRuby. It's
-// available for Element.
-bool IsInlineElement(const Node*);
-
-// Returns true if `IsInlineElement()` above is true or the LayoutObject of the
-// node is 'inline-level' (e.g., Text).
-bool IsInlineNode(const Node*);
-
+bool IsInline(const Node*);
 // Returns true if specified nodes are elements, have identical tag names,
 // have identical attributes, and are editable.
 CORE_EXPORT bool AreIdenticalElements(const Node&, const Node&);
@@ -144,7 +136,7 @@ const String& NonBreakingSpaceString();
 CORE_EXPORT void TidyUpHTMLStructure(Document&);
 
 SelectionInDOMTree CorrectedSelectionAfterCommand(const SelectionForUndoStep&,
-                                                  Document*);
+                                                  const Document*);
 void ChangeSelectionAfterCommand(LocalFrame*,
                                  const SelectionInDOMTree&,
                                  const SetSelectionOptions&);

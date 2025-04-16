@@ -12,7 +12,6 @@ namespace blink {
 class CSSImageSetValue;
 class CSSValue;
 class ComputedStyle;
-enum class CSSValuePhase;
 
 // A helper class that, from a CSS <image> value, produces a CSSValue that
 // somewhat resembles a computed value equivalent [1]. Primarily for
@@ -27,11 +26,8 @@ class StyleImageComputedCSSValueBuilder {
 
  public:
   StyleImageComputedCSSValueBuilder(const ComputedStyle& style,
-                                    bool allow_visited_style,
-                                    CSSValuePhase value_phase)
-      : style_(style),
-        allow_visited_style_(allow_visited_style),
-        value_phase_(value_phase) {}
+                                    bool allow_visited_style)
+      : style_(style), allow_visited_style_(allow_visited_style) {}
 
   CSSValue* Build(CSSValue* value) const;
 
@@ -41,7 +37,6 @@ class StyleImageComputedCSSValueBuilder {
 
   const ComputedStyle& style_;
   const bool allow_visited_style_;
-  CSSValuePhase value_phase_;
 };
 
 }  // namespace blink

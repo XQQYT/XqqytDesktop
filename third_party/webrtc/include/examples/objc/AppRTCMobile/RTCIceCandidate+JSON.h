@@ -13,12 +13,10 @@
 @interface RTC_OBJC_TYPE (RTCIceCandidate)
 (JSON)
 
-    + (RTC_OBJC_TYPE(RTCIceCandidate) *)candidateFromJSONDictionary
-    : (NSDictionary *)dictionary;
+    + (RTC_OBJC_TYPE(RTCIceCandidate) *)candidateFromJSONDictionary : (NSDictionary *)dictionary;
 + (NSArray<RTC_OBJC_TYPE(RTCIceCandidate) *> *)candidatesFromJSONDictionary:
     (NSDictionary *)dictionary;
-+ (NSData *)JSONDataForIceCandidates:
-                (NSArray<RTC_OBJC_TYPE(RTCIceCandidate) *> *)candidates
++ (NSData *)JSONDataForIceCandidates:(NSArray<RTC_OBJC_TYPE(RTCIceCandidate) *> *)candidates
                             withType:(NSString *)typeValue;
 - (NSData *)JSONData;
 

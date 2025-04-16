@@ -11,9 +11,9 @@
 #ifndef PC_VIDEO_TRACK_H_
 #define PC_VIDEO_TRACK_H_
 
-#include <optional>
 #include <string>
 
+#include "absl/types/optional.h"
 #include "api/media_stream_interface.h"
 #include "api/media_stream_track.h"
 #include "api/scoped_refptr.h"
@@ -40,7 +40,7 @@ class VideoTrack : public MediaStreamTrack<VideoTrackInterface>,
   static rtc::scoped_refptr<VideoTrack> Create(
       absl::string_view label,
       rtc::scoped_refptr<VideoTrackSourceInterface> source,
-      Thread* worker_thread);
+      rtc::Thread* worker_thread);
 
   void AddOrUpdateSink(rtc::VideoSinkInterface<VideoFrame>* sink,
                        const rtc::VideoSinkWants& wants) override;
@@ -63,15 +63,15 @@ class VideoTrack : public MediaStreamTrack<VideoTrackInterface>,
       absl::string_view id,
       rtc::scoped_refptr<
           VideoTrackSourceProxyWithInternal<VideoTrackSourceInterface>> source,
-      Thread* worker_thread);
+      rtc::Thread* worker_thread);
   ~VideoTrack();
 
  private:
   // Implements ObserverInterface. Observes `video_source_` state.
   void OnChanged() override;
 
-  RTC_NO_UNIQUE_ADDRESS SequenceChecker signaling_thread_;
-  Thread* const worker_thread_;
+  RTC_NO_UNIQUE_ADDRESS webrtc::SequenceChecker signaling_thread_;
+  rtc::Thread* const worker_thread_;
   const rtc::scoped_refptr<
       VideoTrackSourceProxyWithInternal<VideoTrackSourceInterface>>
       video_source_;

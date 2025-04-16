@@ -22,8 +22,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_SVG_SVG_FE_LIGHT_ELEMENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_SVG_SVG_FE_LIGHT_ELEMENT_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/svg/svg_element.h"
 #include "third_party/blink/renderer/core/svg_names.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
@@ -44,8 +43,8 @@ class SVGFELightElement : public SVGElement {
   static SVGFELightElement* FindLightElement(const SVGElement&);
 
   virtual scoped_refptr<LightSource> GetLightSource(Filter*) const = 0;
-  std::optional<bool> SetLightSourceAttribute(FELighting*,
-                                              const QualifiedName&) const;
+  absl::optional<bool> SetLightSourceAttribute(FELighting*,
+                                               const QualifiedName&) const;
 
   SVGAnimatedNumber* azimuth() { return azimuth_.Get(); }
   const SVGAnimatedNumber* azimuth() const { return azimuth_.Get(); }
@@ -104,6 +103,10 @@ class SVGFELightElement : public SVGElement {
   Member<SVGAnimatedNumber> limiting_cone_angle_;
 };
 
+template <>
+inline bool IsElementOfType<const SVGFELightElement>(const Node& node) {
+  return IsA<SVGFELightElement>(node);
+}
 template <>
 struct DowncastTraits<SVGFELightElement> {
   static bool AllowFrom(const Node& node) {

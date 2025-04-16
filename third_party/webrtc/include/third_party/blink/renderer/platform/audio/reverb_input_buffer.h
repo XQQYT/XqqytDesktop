@@ -37,7 +37,7 @@ namespace blink {
 
 // ReverbInputBuffer is used to buffer input samples for deferred processing by
 // the background threads.
-class ReverbInputBuffer final {
+class ReverbInputBuffer {
   DISALLOW_NEW();
 
  public:

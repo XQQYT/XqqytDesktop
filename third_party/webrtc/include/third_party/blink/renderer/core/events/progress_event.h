@@ -42,8 +42,8 @@ class CORE_EXPORT ProgressEvent : public Event {
   }
   static ProgressEvent* Create(const AtomicString& type,
                                bool length_computable,
-                               double loaded,
-                               double total) {
+                               uint64_t loaded,
+                               uint64_t total) {
     return MakeGarbageCollected<ProgressEvent>(type, length_computable, loaded,
                                                total);
   }
@@ -55,13 +55,13 @@ class CORE_EXPORT ProgressEvent : public Event {
   ProgressEvent();
   ProgressEvent(const AtomicString& type,
                 bool length_computable,
-                double loaded,
-                double total);
+                uint64_t loaded,
+                uint64_t total);
   ProgressEvent(const AtomicString&, const ProgressEventInit*);
 
   bool lengthComputable() const { return length_computable_; }
-  double loaded() const { return loaded_; }
-  double total() const { return total_; }
+  uint64_t loaded() const { return loaded_; }
+  uint64_t total() const { return total_; }
 
   const AtomicString& InterfaceName() const override;
 
@@ -69,8 +69,8 @@ class CORE_EXPORT ProgressEvent : public Event {
 
  private:
   bool length_computable_;
-  double loaded_;
-  double total_;
+  uint64_t loaded_;
+  uint64_t total_;
 };
 
 }  // namespace blink

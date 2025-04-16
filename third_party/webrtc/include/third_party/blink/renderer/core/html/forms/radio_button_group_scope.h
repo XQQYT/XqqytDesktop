@@ -48,8 +48,7 @@ class RadioButtonGroupScope {
  private:
   RadioButtonGroup* FindGroupByName(const AtomicString&) const;
 
-  using NameToGroupMap =
-      GCedHeapHashMap<AtomicString, Member<RadioButtonGroup>>;
+  using NameToGroupMap = HeapHashMap<AtomicString, Member<RadioButtonGroup>>;
   Member<NameToGroupMap> name_to_group_map_;
 };
 

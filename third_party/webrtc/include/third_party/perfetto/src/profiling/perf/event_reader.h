@@ -24,6 +24,7 @@
 #include <optional>
 
 #include "perfetto/ext/base/scoped_file.h"
+#include "perfetto/ext/tracing/core/basic_types.h"
 #include "src/profiling/perf/common_types.h"
 #include "src/profiling/perf/event_config.h"
 
@@ -74,17 +75,9 @@ class EventReader {
       uint32_t cpu,
       const EventConfig& event_cfg);
 
-  // Snapshots the counter values using the |read| syscall.
-  // The sample will always be timestamped ourselves, using CLOCK_BOOTTIME.
-  // Note: compatible with ring buffer mode, but not used in practice.
-  std::optional<CommonSampleData> ReadCounters();
-
   // Consumes records from the ring buffer until either encountering a sample,
   // or catching up to the writer. The other record of interest
   // (PERF_RECORD_LOST) is handled via the given callback.
-  //
-  // Valid only if using the ring buffer, i.e. the EventReader was constructed
-  // with EventConfig::RecordingMode::kSampling option.
   std::optional<ParsedSample> ReadUntilSample(
       std::function<void(uint64_t)> lost_events_callback);
 
@@ -106,8 +99,7 @@ class EventReader {
   EventReader(uint32_t cpu,
               perf_event_attr event_attr,
               base::ScopedFile perf_fd,
-              std::vector<base::ScopedFile> followers_fds,
-              std::optional<PerfRingBuffer> ring_buffer);
+              PerfRingBuffer ring_buffer);
 
   ParsedSample ParseSampleRecord(uint32_t cpu, const char* record_start);
 
@@ -115,9 +107,7 @@ class EventReader {
   const uint32_t cpu_;
   const perf_event_attr event_attr_;
   base::ScopedFile perf_fd_;
-  std::vector<base::ScopedFile> follower_fds_;
-  // Ring buffer is absent if and only if we're polling counters.
-  std::optional<PerfRingBuffer> ring_buffer_;
+  PerfRingBuffer ring_buffer_;
 };
 
 }  // namespace profiling

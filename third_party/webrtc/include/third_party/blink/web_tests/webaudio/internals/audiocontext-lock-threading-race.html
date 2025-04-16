@@ -14,8 +14,8 @@
       let ac = new window.AudioContext();
       ac.createMediaStreamDestination();
       ac.close();
-      setTimeout(async () => {
-        await asyncGC();
+      setTimeout(function() {
+        gc();
         finishJSTest();
       }, 200);
     </script>

@@ -11,7 +11,7 @@ class RangeCoder
     inline uint GetCurrentShiftCount(uint SHIFT);
     inline void Decode();
     inline void PutChar(unsigned int c);
-    inline byte GetChar();
+    inline unsigned int GetChar();
 
     uint low, code, range;
     struct SUBRANGE 

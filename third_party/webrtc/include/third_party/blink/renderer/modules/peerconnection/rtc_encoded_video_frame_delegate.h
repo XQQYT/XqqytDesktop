@@ -10,10 +10,7 @@
 #include <memory>
 
 #include "base/synchronization/lock.h"
-#include "base/time/time.h"
-#include "base/types/expected.h"
 #include "third_party/blink/renderer/bindings/core/v8/serialization/serialized_script_value.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_rtc_encoded_video_frame_type.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/blink/renderer/platform/wtf/thread_safe_ref_counted.h"
@@ -23,6 +20,7 @@
 namespace blink {
 
 class DOMArrayBuffer;
+class ExceptionState;
 
 // This class wraps a WebRTC video frame and allows making shallow
 // copies. Its purpose is to support making RTCEncodedVideoFrames
@@ -33,20 +31,15 @@ class RTCEncodedVideoFrameDelegate
   explicit RTCEncodedVideoFrameDelegate(
       std::unique_ptr<webrtc::TransformableVideoFrameInterface> webrtc_frame);
 
-  V8RTCEncodedVideoFrameType::Enum Type() const;
+  String Type() const;
   uint32_t RtpTimestamp() const;
-  std::optional<webrtc::Timestamp> PresentationTimestamp() const;
-  DOMArrayBuffer* CreateDataBuffer(v8::Isolate* isolate) const;
+  void SetRtpTimestamp(uint32_t timestamp, ExceptionState& exception_state);
+  absl::optional<webrtc::Timestamp> CaptureTimeIdentifier() const;
+  DOMArrayBuffer* CreateDataBuffer() const;
   void SetData(const DOMArrayBuffer* data);
-  std::optional<uint8_t> PayloadType() const;
-  std::optional<std::string> MimeType() const;
-  std::optional<webrtc::VideoFrameMetadata> GetMetadata() const;
-  std::optional<base::TimeTicks> ReceiveTime() const;
-  std::optional<base::TimeTicks> CaptureTime() const;
-  std::optional<base::TimeDelta> SenderCaptureTimeOffset() const;
-  base::expected<void, String> SetMetadata(
-      const webrtc::VideoFrameMetadata& metadata,
-      uint32_t rtpTimestamp);
+  absl::optional<uint8_t> PayloadType() const;
+  absl::optional<webrtc::VideoFrameMetadata> GetMetadata() const;
+  void SetMetadata(const webrtc::VideoFrameMetadata& metadata);
   std::unique_ptr<webrtc::TransformableVideoFrameInterface> PassWebRtcFrame();
   std::unique_ptr<webrtc::TransformableVideoFrameInterface> CloneWebRtcFrame();
 

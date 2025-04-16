@@ -14,7 +14,6 @@
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
-#include "v8/include/v8.h"
 
 namespace blink {
 
@@ -26,8 +25,7 @@ class ScriptState;
 
 class MODULES_EXPORT StreamWrapper : public GarbageCollectedMixin {
  public:
-  using CloseOnceCallback =
-      base::OnceCallback<void(v8::Local<v8::Value> exception, int net_error)>;
+  using CloseOnceCallback = base::OnceCallback<void(ScriptValue exception)>;
 
   enum class State { kOpen, kAborted, kClosed, kGracefullyClosing };
 
@@ -142,7 +140,7 @@ class WritableStreamWrapper : public StreamWrapper {
   virtual void OnAbortSignal() = 0;
 
   // Implements UnderlyingSink::write(...)
-  virtual ScriptPromise<IDLUndefined> Write(ScriptValue, ExceptionState&) = 0;
+  virtual ScriptPromise Write(ScriptValue, ExceptionState&) = 0;
 
   ControllerType* Controller() const { return controller_.Get(); }
   void SetController(ControllerType* controller) { controller_ = controller; }

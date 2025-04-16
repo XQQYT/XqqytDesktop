@@ -36,21 +36,21 @@
 #include "base/task/single_thread_task_runner.h"
 #include "mojo/public/cpp/bindings/pending_associated_remote.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
+#include "third_party/blink/public/mojom/feature_observer/feature_observer.mojom-blink.h"
 #include "third_party/blink/public/mojom/indexeddb/indexeddb.mojom-blink-forward.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/modules/indexeddb/idb_open_db_request.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
-#include "third_party/blink/renderer/platform/heap/weak_cell.h"
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_remote.h"
+#include "third_party/blink/renderer/platform/wtf/gc_plugin.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
 namespace blink {
 
 class ExceptionState;
 class ScriptState;
-class IDBDatabaseInfo;
 class IDBFactoryClient;
 
 // This implements the IDBFactory Web IDL interface, i.e. the `window.indexedDB`
@@ -59,6 +59,7 @@ class MODULES_EXPORT IDBFactory final
     : public ScriptWrappable,
       public ExecutionContextLifecycleObserver {
   DEFINE_WRAPPERTYPEINFO();
+  USING_PRE_FINALIZER(IDBFactory, Dispose);
 
  public:
   explicit IDBFactory(ExecutionContext* context);
@@ -85,8 +86,7 @@ class MODULES_EXPORT IDBFactory final
                                                       const String& name,
                                                       ExceptionState&);
 
-  ScriptPromise<IDLSequence<IDBDatabaseInfo>> GetDatabaseInfo(ScriptState*,
-                                                              ExceptionState&);
+  ScriptPromise GetDatabaseInfo(ScriptState*, ExceptionState&);
 
   // This method is exposed specifically for DevTools.
   void GetDatabaseInfoForDevTools(
@@ -94,6 +94,8 @@ class MODULES_EXPORT IDBFactory final
 
   // ExecutionContextLifecycleObserver
   void ContextDestroyed() override;
+
+  void Dispose();
 
   void Trace(Visitor*) const override;
 
@@ -128,10 +130,9 @@ class MODULES_EXPORT IDBFactory final
       const String& name,
       bool force_close);
 
-  void GetDatabaseInfoImpl(
-      ScriptPromiseResolver<IDLSequence<IDBDatabaseInfo>>*);
+  void GetDatabaseInfoImpl(ScriptPromiseResolver* resolver);
   void DidGetDatabaseInfo(
-      ScriptPromiseResolver<IDLSequence<IDBDatabaseInfo>>*,
+      ScriptPromiseResolver* resolver,
       Vector<mojom::blink::IDBNameAndVersionPtr> names_and_versions,
       mojom::blink::IDBErrorPtr error);
 
@@ -144,15 +145,19 @@ class MODULES_EXPORT IDBFactory final
   mojo::PendingAssociatedRemote<mojom::blink::IDBFactoryClient>
   CreatePendingRemote(std::unique_ptr<IDBFactoryClient> client);
 
+  mojo::PendingRemote<mojom::blink::ObservedFeature>
+  CreatePendingRemoteFeatureObserver();
+
   // Whether the context has permission to use IDB.
-  std::optional<bool> allowed_;
+  absl::optional<bool> allowed_;
   // Holds requests that were paused while `allowed_` is being fetched. These
   // will all be invoked in order when `allowed_` is decided.
   Vector<base::OnceClosure> callbacks_waiting_on_permission_decision_;
 
   HeapMojoRemote<mojom::blink::IDBFactory> remote_;
+  HeapMojoRemote<mojom::blink::FeatureObserver> feature_observer_;
 
-  WeakCellFactory<IDBFactory> weak_factory_{this};
+  base::WeakPtrFactory<IDBFactory> weak_factory_{this};
 };
 
 }  // namespace blink

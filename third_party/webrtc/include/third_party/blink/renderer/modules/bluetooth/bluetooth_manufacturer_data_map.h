@@ -5,7 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_BLUETOOTH_BLUETOOTH_MANUFACTURER_DATA_MAP_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_BLUETOOTH_BLUETOOTH_MANUFACTURER_DATA_MAP_H_
 
-#include "third_party/blink/public/mojom/bluetooth/web_bluetooth.mojom-blink.h"
 #include "third_party/blink/renderer/bindings/core/v8/maplike.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_binding_for_core.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_sync_iterator_bluetooth_manufacturer_data_map.h"
@@ -21,12 +20,7 @@ class BluetoothManufacturerDataMap final
   DEFINE_WRAPPERTYPEINFO();
 
  public:
-  // Uses `WebBluetoothCompanyPtr` (wrapper for uint16_t) as the key to avoid
-  // collisions with WTF::HashMap's reserved empty/deleted slot hash values.
-  // This allows us to utilize the full range of uint16_t (0x0000 to 0xffff) for
-  // valid manufacturer UUIDs.
-  using MapType =
-      HashMap<mojom::blink::WebBluetoothCompanyPtr, WTF::Vector<unsigned char>>;
+  using MapType = HashMap<uint16_t, WTF::Vector<unsigned char>>;
 
   explicit BluetoothManufacturerDataMap(const MapType&);
 
@@ -45,7 +39,7 @@ class BluetoothManufacturerDataMap final
                    NotShared<DOMDataView>& value,
                    ExceptionState&) override;
 
-  MapType parameter_map_;
+  const MapType parameter_map_;
 };
 
 }  // namespace blink

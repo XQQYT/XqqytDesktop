@@ -32,7 +32,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_RESOURCE_LOADER_OPTIONS_H_
 
 #include "base/memory/scoped_refptr.h"
-#include "base/memory/stack_allocated.h"
 #include "base/types/strong_alias.h"
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "services/network/public/mojom/content_security_policy.mojom-blink-forward.h"
@@ -42,7 +41,6 @@
 #include "third_party/blink/renderer/platform/loader/fetch/integrity_metadata.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
-#include "third_party/blink/renderer/platform/wtf/gc_plugin.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
 namespace blink {
@@ -70,22 +68,20 @@ using RejectCoepUnsafeNone =
     base::StrongAlias<class RejectCoepUnsafeNoneTag, bool>;
 
 // This class is thread-bound. Do not copy/pass an instance across threads.
-struct PLATFORM_EXPORT ResourceLoaderOptions final {
-  DISALLOW_NEW();
+struct PLATFORM_EXPORT ResourceLoaderOptions {
+  USING_FAST_MALLOC(ResourceLoaderOptions);
 
  public:
   // We define constructors, destructor, and assignment operator in
   // resource_loader_options.cc because they require the full definition of
   // URLLoaderFactory for |url_loader_factory| data member, and we'd like
   // to avoid to include huge url_loader_factory.mojom-blink.h.
-  explicit ResourceLoaderOptions(const DOMWrapperWorld* world);
+  explicit ResourceLoaderOptions(scoped_refptr<const DOMWrapperWorld> world);
   ResourceLoaderOptions(const ResourceLoaderOptions& other);
   ResourceLoaderOptions& operator=(const ResourceLoaderOptions& other);
   ResourceLoaderOptions(ResourceLoaderOptions&& other);
   ResourceLoaderOptions& operator=(ResourceLoaderOptions&& other);
   ~ResourceLoaderOptions();
-
-  void Trace(Visitor* visitor) const { visitor->Trace(world_for_csp); }
 
   FetchInitiatorInfo initiator_info;
 
@@ -104,7 +100,7 @@ struct PLATFORM_EXPORT ResourceLoaderOptions final {
 
   // The world in which this request initiated. This will be used for CSP checks
   // if specified. If null, the CSP bound to the FetchContext is used.
-  Member<const DOMWrapperWorld> world_for_csp;
+  scoped_refptr<const DOMWrapperWorld> world_for_csp;
 
   // If not null, this URLLoaderFactory should be used to load this resource
   // rather than whatever factory the system might otherwise use.

@@ -61,8 +61,7 @@ struct CrossThreadTraits {
 
   // Accept RepeatingCallback here since it's convertible to a OnceCallback.
   template <template <typename> class CallbackType>
-  static constexpr bool IsCrossThreadTask =
-      IsBaseCallback<CallbackType<void()>>;
+  using EnableIfIsCrossThreadTask = EnableIfIsBaseCallback<CallbackType>;
 };
 
 template <typename T, typename CrossThreadTraits>
@@ -85,7 +84,7 @@ class Storage {
   template <typename... Args>
   NO_SANITIZE("cfi-unrelated-cast")
   void Construct(SequencedTaskRunner& task_runner, Args&&... args) {
-    // TODO(crbug.com/40245687): Use universal forwarding and assert that
+    // TODO(https://crbug.com/1382549): Use universal forwarding and assert that
     // T is constructible from args for better error messages.
     DCHECK(!alloc_);
     DCHECK(!ptr_);
@@ -166,7 +165,7 @@ struct Storage<std::unique_ptr<T>, CrossThreadTraits> {
 
   template <typename U>
   void Construct(SequencedTaskRunner& task_runner, std::unique_ptr<U> arg) {
-    // TODO(crbug.com/40245687): Use universal forwarding and assert that
+    // TODO(https://crbug.com/1382549): Use universal forwarding and assert that
     // there is one arg that is a unique_ptr for better error messages.
     DCHECK(!ptr_);
 

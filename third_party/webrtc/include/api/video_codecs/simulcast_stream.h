@@ -11,26 +11,18 @@
 #ifndef API_VIDEO_CODECS_SIMULCAST_STREAM_H_
 #define API_VIDEO_CODECS_SIMULCAST_STREAM_H_
 
-#include <optional>
-
 #include "api/video_codecs/scalability_mode.h"
-#include "rtc_base/system/rtc_export.h"
 
 namespace webrtc {
 
 // TODO(bugs.webrtc.org/6883): Unify with struct VideoStream, part of
 // VideoEncoderConfig.
-struct RTC_EXPORT SimulcastStream {
+struct SimulcastStream {
   // Temporary utility methods for transition from numberOfTemporalLayers
   // setting to ScalabilityMode.
   unsigned char GetNumberOfTemporalLayers() const;
-  std::optional<ScalabilityMode> GetScalabilityMode() const;
+  ScalabilityMode GetScalabilityMode() const;
   void SetNumberOfTemporalLayers(unsigned char n);
-
-  bool operator==(const SimulcastStream& other) const;
-  bool operator!=(const SimulcastStream& other) const {
-    return !(*this == other);
-  }
 
   int width = 0;
   int height = 0;

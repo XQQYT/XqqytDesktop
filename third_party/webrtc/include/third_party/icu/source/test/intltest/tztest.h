@@ -107,8 +107,6 @@ public:
     void TestRawOffsetAndOffsetConsistency22041();
     void TestGMTMinus24ICU22526();
 
-    void TestGetIanaID();
-
     static const UDate INTERVAL;
 
 private:

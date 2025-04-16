@@ -27,8 +27,8 @@
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_ENCRYPTEDMEDIA_MEDIA_KEY_SESSION_H_
 
 #include <memory>
-#include <optional>
 
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/platform/web_content_decryption_module_session.h"
 #include "third_party/blink/public/platform/web_encrypted_media_types.h"
 #include "third_party/blink/renderer/bindings/core/v8/active_script_wrappable.h"
@@ -90,23 +90,21 @@ class MediaKeySession final
 
   String sessionId() const;
   double expiration() const { return expiration_; }
-  ScriptPromise<V8MediaKeySessionClosedReason> closed(ScriptState*);
+  ScriptPromise closed(ScriptState*);
   MediaKeyStatusMap* keyStatuses();
   DEFINE_ATTRIBUTE_EVENT_LISTENER(keystatuseschange, kKeystatuseschange)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(message, kMessage)
 
-  ScriptPromise<IDLUndefined> generateRequest(ScriptState*,
-                                              const String& init_data_type,
-                                              const DOMArrayPiece& init_data,
-                                              ExceptionState&);
-  ScriptPromise<IDLBoolean> load(ScriptState*,
-                                 const String& session_id,
-                                 ExceptionState&);
-  ScriptPromise<IDLUndefined> update(ScriptState*,
-                                     const DOMArrayPiece& response,
-                                     ExceptionState&);
-  ScriptPromise<IDLUndefined> close(ScriptState*, ExceptionState&);
-  ScriptPromise<IDLUndefined> remove(ScriptState*, ExceptionState&);
+  ScriptPromise generateRequest(ScriptState*,
+                                const String& init_data_type,
+                                const DOMArrayPiece& init_data,
+                                ExceptionState&);
+  ScriptPromise load(ScriptState*, const String& session_id, ExceptionState&);
+  ScriptPromise update(ScriptState*,
+                       const DOMArrayPiece& response,
+                       ExceptionState&);
+  ScriptPromise close(ScriptState*, ExceptionState&);
+  ScriptPromise remove(ScriptState*, ExceptionState&);
 
   // EventTarget
   const AtomicString& InterfaceName() const override;
@@ -149,7 +147,7 @@ class MediaKeySession final
                         size_t message_length) override;
   void OnSessionClosed(media::CdmSessionClosedReason reason) override;
   void OnSessionExpirationUpdate(double updated_expiry_time_in_ms) override;
-  void OnSessionKeysChange(const std::vector<WebEncryptedMediaKeyInformation>&,
+  void OnSessionKeysChange(const WebVector<WebEncryptedMediaKeyInformation>&,
                            bool has_additional_usable_key) override;
 
   Member<EventQueue> async_event_queue_;
@@ -173,7 +171,10 @@ class MediaKeySession final
   bool is_closed_ = false;
 
   // Keep track of the closed promise.
-  typedef ScriptPromiseProperty<V8MediaKeySessionClosedReason, DOMException>
+  // absl::optional<> is needed because V8MediaKeySessionClosedReason's default
+  // constructor is private.
+  typedef ScriptPromiseProperty<absl::optional<V8MediaKeySessionClosedReason>,
+                                Member<DOMException>>
       ClosedPromise;
   Member<ClosedPromise> closed_promise_;
 

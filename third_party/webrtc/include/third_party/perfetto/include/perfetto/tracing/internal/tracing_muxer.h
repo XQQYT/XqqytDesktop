@@ -21,13 +21,11 @@
 #include <memory>
 
 #include "perfetto/base/export.h"
-#include "perfetto/tracing/buffer_exhausted_policy.h"
 #include "perfetto/tracing/core/forward_decls.h"
 #include "perfetto/tracing/interceptor.h"
 #include "perfetto/tracing/internal/basic_types.h"
 #include "perfetto/tracing/internal/tracing_tls.h"
 #include "perfetto/tracing/platform.h"
-
 namespace perfetto {
 
 class DataSourceBase;
@@ -70,7 +68,6 @@ class PERFETTO_EXPORT_COMPONENT TracingMuxer {
   virtual bool RegisterDataSource(const DataSourceDescriptor&,
                                   DataSourceFactory,
                                   DataSourceParams,
-                                  bool no_flush,
                                   DataSourceStaticState*) = 0;
 
   // Updates the DataSourceDescriptor for the DataSource.

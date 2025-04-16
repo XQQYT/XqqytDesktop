@@ -12,7 +12,6 @@
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_linked_hash_set.h"
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_receiver.h"
-#include "third_party/blink/renderer/platform/wtf/wtf_size_t.h"
 
 namespace blink {
 
@@ -28,24 +27,16 @@ class CloseWatcher final : public EventTarget, public ExecutionContextClient {
                               CloseWatcherOptions*,
                               ExceptionState&);
 
-  static CloseWatcher* Create(LocalDOMWindow&);
+  static CloseWatcher* Create(LocalDOMWindow*);
 
-  explicit CloseWatcher(LocalDOMWindow&);
+  explicit CloseWatcher(LocalDOMWindow*);
 
   void Trace(Visitor*) const override;
 
   bool IsClosed() const { return state_ == State::kClosed; }
+  bool IsGroupedWithPrevious() const { return grouped_with_previous_; }
 
-  void setEnabled(bool enabled) { enabled_ = enabled; }
-
-  void requestCloseForBinding();
-
-  enum class AllowCancel {
-    kAlways,
-    kWithUserActivation,
-  };
-  bool RequestClose(AllowCancel allow_cancel);
-
+  void requestClose();
   void close();
   void destroy();
 
@@ -58,10 +49,10 @@ class CloseWatcher final : public EventTarget, public ExecutionContextClient {
     return ExecutionContextClient::GetExecutionContext();
   }
 
-  // If multiple close watchers are active in a given window, they form a stack
-  // of groups of close watchers. Groups close together in response to a single
-  // close request, and new close watchers are either added to the topmost group
-  // or to a new group depending on user activation state.
+  // If multiple CloseWatchers are active in a given window, they form a
+  // stack, and a close request will pop the top watcher. If the stack is empty,
+  // the first CloseWatcher is "free", but creating a new
+  // CloseWatcher when the stack is non-empty requires a user activation.
   class WatcherStack final : public GarbageCollected<WatcherStack>,
                              public mojom::blink::CloseListener {
    public:
@@ -69,9 +60,8 @@ class CloseWatcher final : public EventTarget, public ExecutionContextClient {
 
     void Add(CloseWatcher*);
     void Remove(CloseWatcher*);
-
-    void SetHadUserInteraction(bool);
-    bool CancelEventCanBeCancelable() const;
+    bool HasActiveWatcher() const { return !watchers_.empty(); }
+    bool HasConsumedFreeWatcher() const;
 
     void Trace(Visitor*) const;
 
@@ -81,9 +71,7 @@ class CloseWatcher final : public EventTarget, public ExecutionContextClient {
     // mojom::blink::CloseListener override:
     void Signal() final;
 
-    HeapVector<HeapVector<Member<CloseWatcher>>> watcher_groups_;
-    bool next_user_interaction_creates_a_new_allowed_group_ = true;
-    wtf_size_t allowed_groups_ = 1;
+    HeapLinkedHashSet<Member<CloseWatcher>> watchers_;
 
     // Holds a pipe which the service uses to notify this object
     // when the idle state has changed.
@@ -92,14 +80,15 @@ class CloseWatcher final : public EventTarget, public ExecutionContextClient {
   };
 
  private:
-  static CloseWatcher* CreateInternal(LocalDOMWindow&,
+  static CloseWatcher* CreateInternal(LocalDOMWindow*,
                                       WatcherStack&,
                                       CloseWatcherOptions*);
 
   enum class State { kActive, kClosed };
   State state_ = State::kActive;
   bool dispatching_cancel_ = false;
-  bool enabled_ = true;
+  bool grouped_with_previous_ = false;
+  bool created_with_user_activation_ = false;
   Member<AbortSignal::AlgorithmHandle> abort_handle_;
 };
 

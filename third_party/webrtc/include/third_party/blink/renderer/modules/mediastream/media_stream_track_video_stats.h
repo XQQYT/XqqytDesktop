@@ -25,7 +25,7 @@ class MODULES_EXPORT MediaStreamTrackVideoStats : public ScriptWrappable {
   uint64_t discardedFrames(ScriptState*);
   uint64_t totalFrames(ScriptState*);
 
-  ScriptObject toJSON(ScriptState*);
+  ScriptValue toJSON(ScriptState*);
 
   void Trace(Visitor*) const override;
 

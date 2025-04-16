@@ -12,8 +12,10 @@
 #define CALL_ADAPTATION_TEST_FAKE_RESOURCE_H_
 
 #include <string>
+#include <vector>
 
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "api/adaptation/resource.h"
 #include "api/scoped_refptr.h"
 

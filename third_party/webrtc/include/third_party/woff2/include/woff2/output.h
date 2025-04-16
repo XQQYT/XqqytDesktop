@@ -9,8 +9,6 @@
 #ifndef WOFF2_WOFF2_OUT_H_
 #define WOFF2_WOFF2_OUT_H_
 
-#include <stdint.h>
-
 #include <algorithm>
 #include <cstring>
 #include <memory>

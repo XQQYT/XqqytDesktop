@@ -27,7 +27,6 @@ using ArrayBufferArray = HeapVector<Member<DOMArrayBufferBase>>;
 using ImageBitmapArray = HeapVector<Member<ImageBitmap>>;
 using OffscreenCanvasArray = HeapVector<Member<OffscreenCanvas>>;
 using MessagePortArray = HeapVector<Member<MessagePort>>;
-using GCedMessagePortArray = GCedHeapVector<Member<MessagePort>>;
 using MojoHandleArray = HeapVector<Member<blink::MojoHandle>>;
 using ReadableStreamArray = HeapVector<Member<ReadableStream>>;
 using WritableStreamArray = HeapVector<Member<WritableStream>>;

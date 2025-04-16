@@ -12,13 +12,10 @@
 #define AUDIO_REMIX_RESAMPLE_H_
 
 #include "api/audio/audio_frame.h"
-#include "api/audio/audio_view.h"
 #include "common_audio/resampler/include/push_resampler.h"
 
 namespace webrtc {
 namespace voe {
-
-// Note: The RemixAndResample methods assume 10ms buffer sizes.
 
 // Upmix or downmix and resample the audio to `dst_frame`. Expects `dst_frame`
 // to have its sample rate and channels members set to the desired values.
@@ -31,9 +28,12 @@ void RemixAndResample(const AudioFrame& src_frame,
                       PushResampler<int16_t>* resampler,
                       AudioFrame* dst_frame);
 
-// TODO(tommi): The `sample_rate_hz` argument can probably be removed since it's
-// always related to `src_data.samples_per_frame()'.
-void RemixAndResample(InterleavedView<const int16_t> src_data,
+// This version has a pointer to the samples `src_data` as input and receives
+// `samples_per_channel`, `num_channels` and `sample_rate_hz` of the data as
+// parameters.
+void RemixAndResample(const int16_t* src_data,
+                      size_t samples_per_channel,
+                      size_t num_channels,
                       int sample_rate_hz,
                       PushResampler<int16_t>* resampler,
                       AudioFrame* dst_frame);

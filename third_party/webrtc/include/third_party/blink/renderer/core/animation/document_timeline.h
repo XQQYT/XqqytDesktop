@@ -71,7 +71,7 @@ class CORE_EXPORT DocumentTimeline : public AnimationTimeline {
   void ScheduleNextService() override;
 
   bool IsActive() const override;
-  std::optional<base::TimeDelta> InitialStartTimeForAnimations() override;
+  absl::optional<base::TimeDelta> InitialStartTimeForAnimations() override;
   bool HasPendingUpdates() const { return !animations_needing_update_.empty(); }
 
   // The zero time of DocumentTimeline is computed by adding a separate
@@ -86,8 +86,7 @@ class CORE_EXPORT DocumentTimeline : public AnimationTimeline {
 
   void PauseAnimationsForTesting(AnimationTimeDelta);
 
-  void InvalidateKeyframeEffects(const TreeScope&,
-                                 const StyleChangeReasonForTracing&);
+  void InvalidateKeyframeEffects(const TreeScope&);
 
   void SetPlaybackRate(double);
   double PlaybackRate() const;

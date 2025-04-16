@@ -13,15 +13,14 @@
 
 #include <jni.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/crypto/crypto_options.h"
 #include "sdk/android/native_api/jni/scoped_java_ref.h"
 
 namespace webrtc {
 namespace jni {
 
-std::optional<CryptoOptions> JavaToNativeOptionalCryptoOptions(
+absl::optional<CryptoOptions> JavaToNativeOptionalCryptoOptions(
     JNIEnv* jni,
     const JavaRef<jobject>& j_crypto_options);
 

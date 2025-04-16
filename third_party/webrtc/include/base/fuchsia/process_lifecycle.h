@@ -9,10 +9,9 @@
 #include <lib/fidl/cpp/binding.h>
 #include <lib/fidl/cpp/wire/channel.h>
 
-#include <optional>
-
 #include "base/base_export.h"
 #include "base/functional/callback.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base {
 
@@ -38,7 +37,7 @@ class BASE_EXPORT ProcessLifecycle final
  private:
   base::OnceClosure on_stop_;
 
-  std::optional<fidl::ServerBinding<fuchsia_process_lifecycle::Lifecycle>>
+  absl::optional<fidl::ServerBinding<fuchsia_process_lifecycle::Lifecycle>>
       binding_;
 };
 

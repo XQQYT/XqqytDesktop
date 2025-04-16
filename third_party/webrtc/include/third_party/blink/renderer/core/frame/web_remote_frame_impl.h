@@ -23,7 +23,7 @@ struct FrameVisualProperties;
 class RemoteFrame;
 class RemoteFrameClientImpl;
 enum class WebFrameLoadType;
-class WebFrameWidgetImpl;
+class WebFrameWidget;
 class WebView;
 class WindowAgentFactory;
 
@@ -42,7 +42,7 @@ class CORE_EXPORT WebRemoteFrameImpl final
       mojo::PendingAssociatedReceiver<mojom::blink::RemoteFrame> receiver,
       mojom::blink::FrameReplicationStatePtr replicated_state);
 
-  static WebRemoteFrameImpl* CreateForFencedFrame(
+  static WebRemoteFrameImpl* CreateForPortalOrFencedFrame(
       mojom::blink::TreeScopeType,
       const RemoteFrameToken& frame_token,
       const base::UnguessableToken& devtools_frame_token,
@@ -57,7 +57,7 @@ class CORE_EXPORT WebRemoteFrameImpl final
   ~WebRemoteFrameImpl() override;
 
   // WebFrame methods:
-  void Close(DetachReason detach_reason) override;
+  void Close() override;
   WebView* View() const override;
 
   // WebRemoteFrame methods:
@@ -72,13 +72,12 @@ class CORE_EXPORT WebRemoteFrameImpl final
       const LocalFrameToken& frame_token,
       WebFrame* opener,
       const DocumentToken& document_token,
-      CrossVariantMojoRemote<mojom::BrowserInterfaceBrokerInterfaceBase>,
       std::unique_ptr<blink::WebPolicyContainer> policy_container) override;
   void SetReplicatedOrigin(
       const WebSecurityOrigin&,
       bool is_potentially_trustworthy_opaque_origin) override;
   void DidStartLoading() override;
-  v8::Local<v8::Object> GlobalProxy(v8::Isolate*) const override;
+  v8::Local<v8::Object> GlobalProxy() const override;
   WebString UniqueName() const override;
   const FrameVisualProperties& GetPendingVisualPropertiesForTesting()
       const override;
@@ -125,7 +124,7 @@ class CORE_EXPORT WebRemoteFrameImpl final
   friend class RemoteFrameClientImpl;
 
   void SetCoreFrame(RemoteFrame*);
-  void InitializeFrameVisualProperties(WebFrameWidgetImpl* ancestor_widget,
+  void InitializeFrameVisualProperties(WebFrameWidget* ancestor_widget,
                                        WebView* web_view);
 
   // Inherited from WebFrame, but intentionally hidden: it never makes sense

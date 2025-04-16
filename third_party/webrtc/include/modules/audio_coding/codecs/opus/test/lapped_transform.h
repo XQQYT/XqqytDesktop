@@ -162,6 +162,7 @@ class LappedTransform {
   Callback* const block_processor_;
   Blocker blocker_;
 
+  // TODO(alessiob): Replace RealFourier with a different FFT library.
   std::unique_ptr<RealFourier> fft_;
   const size_t cplx_length_;
   AlignedArray<float> real_buf_;

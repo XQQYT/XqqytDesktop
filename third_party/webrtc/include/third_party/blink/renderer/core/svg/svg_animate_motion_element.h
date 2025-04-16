@@ -22,7 +22,7 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_SVG_SVG_ANIMATE_MOTION_ELEMENT_H_
 
 #include "third_party/blink/renderer/core/svg/svg_animation_element.h"
-#include "third_party/blink/renderer/platform/geometry/path.h"
+#include "third_party/blink/renderer/platform/graphics/path.h"
 
 namespace blink {
 
@@ -33,7 +33,7 @@ class SVGAnimateMotionElement final : public SVGAnimationElement {
   explicit SVGAnimateMotionElement(Document&);
   ~SVGAnimateMotionElement() override;
 
-  void ChildMPathChanged();
+  void UpdateAnimationPath();
 
  private:
   bool HasValidAnimation() const override;
@@ -46,9 +46,9 @@ class SVGAnimateMotionElement final : public SVGAnimationElement {
   void ClearAnimationValue() override;
   bool CalculateToAtEndOfDurationValue(
       const String& to_at_end_of_duration_string) override;
-  void CalculateFromAndToValues(const String& from_string,
+  bool CalculateFromAndToValues(const String& from_string,
                                 const String& to_string) override;
-  void CalculateFromAndByValues(const String& from_string,
+  bool CalculateFromAndByValues(const String& from_string,
                                 const String& by_string) override;
   void CalculateAnimationValue(SMILAnimationValue&,
                                float percentage,
@@ -60,8 +60,7 @@ class SVGAnimateMotionElement final : public SVGAnimationElement {
   enum RotateMode { kRotateAngle, kRotateAuto, kRotateAutoReverse };
   RotateMode GetRotateMode() const;
 
-  AnimationMode CalculateAnimationMode() override;
-  void UpdateAnimationPath();
+  void UpdateAnimationMode() override;
 
   // Note: we do not support percentage values for to/from coords as the spec
   // implies we should (opera doesn't either)

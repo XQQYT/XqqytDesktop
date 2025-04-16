@@ -73,10 +73,10 @@ class IncrementalMarkingTestDriver {
   ~IncrementalMarkingTestDriver();
 
   virtual void StartGC();
-  virtual void TriggerMarkingSteps();
+  virtual void TriggerMarkingSteps(
+      ThreadState::StackState stack_state =
+          ThreadState::StackState::kNoHeapPointers);
   virtual void FinishGC();
-
-  void TriggerMarkingStepsWithStack();
 
  protected:
   cppgc::testing::StandaloneTestingHeap heap_;
@@ -89,7 +89,9 @@ class ConcurrentMarkingTestDriver : public IncrementalMarkingTestDriver {
   explicit ConcurrentMarkingTestDriver(ThreadState*);
 
   void StartGC() override;
-  void TriggerMarkingSteps() override;
+  void TriggerMarkingSteps(
+      ThreadState::StackState stack_state =
+          ThreadState::StackState::kNoHeapPointers) override;
   void FinishGC() override;
 };
 

@@ -5,8 +5,6 @@
 #ifndef SRC_INCLUDE_PUFFIN_COMMON_H_
 #define SRC_INCLUDE_PUFFIN_COMMON_H_
 
-#include <stdint.h>
-
 #include <functional>
 #include <memory>
 #include <vector>

@@ -32,6 +32,8 @@
 #include "src/traced/probes/ftrace/ftrace_controller.h"
 #include "src/traced/probes/ftrace/ftrace_metadata.h"
 
+#include "protos/perfetto/trace/filesystem/inode_file_map.pbzero.h"
+
 namespace perfetto {
 
 class ProbesDataSource;
@@ -42,9 +44,6 @@ class ProbesProducer : public Producer, public FtraceController::Observer {
  public:
   ProbesProducer();
   ~ProbesProducer() override;
-
-  ProbesProducer(const ProbesProducer&) = delete;
-  ProbesProducer& operator=(const ProbesProducer&) = delete;
 
   static ProbesProducer* GetInstance();
 
@@ -79,7 +78,7 @@ class ProbesProducer : public Producer, public FtraceController::Observer {
 
   // Calls `cb` when all data sources have been registered.
   void SetAllDataSourcesRegisteredCb(std::function<void()> cb) {
-    all_data_sources_registered_cb_ = std::move(cb);
+    all_data_sources_registered_cb_ = cb;
   }
 
  private:
@@ -91,6 +90,9 @@ class ProbesProducer : public Producer, public FtraceController::Observer {
     kConnecting,
     kConnected,
   };
+
+  ProbesProducer(const ProbesProducer&) = delete;
+  ProbesProducer& operator=(const ProbesProducer&) = delete;
 
   void Connect();
   void Restart();

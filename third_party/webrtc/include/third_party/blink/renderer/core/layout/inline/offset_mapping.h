@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_INLINE_OFFSET_MAPPING_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_INLINE_OFFSET_MAPPING_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/dom/node.h"
 #include "third_party/blink/renderer/core/editing/forward.h"
@@ -22,7 +21,7 @@ namespace blink {
 class LayoutBlockFlow;
 class LayoutObject;
 
-enum class OffsetMappingUnitType { kIdentity, kCollapsed, kVariable };
+enum class OffsetMappingUnitType { kIdentity, kCollapsed };
 
 // An OffsetMappingUnit indicates a "simple" offset mapping between dom offset
 // range [dom_start, dom_end] on node |owner| and text content offset range
@@ -34,13 +33,9 @@ enum class OffsetMappingUnitType { kIdentity, kCollapsed, kVariable };
 // - kCollapsed: The mapping is collapsed, namely, |text_content_start| and
 //   |text_content_end| are the same, and characters in the dom range are
 //   collapsed.
-// - kVariable: The mapping is expanded or shrunk, namely.
-//   -- |dom_end == dom_start + 1|, and
-//      |text_content_end > text_content_start + 1|, indicating that the
-//      character in the dom range is expanded into multiple characters, or
-//   -- |dom_end > dom_start + 1|, and
-//      |text_content_end == text_content_start + 1|, indicating that multiple
-//      characters in the dom range is shrunk into a single character.
+// - kExpanded: The mapping is expanded, namely, |dom_end == dom_start + 1|, and
+//   |text_content_end > text_content_start + 1|, indicating that the character
+//   in the dom range is expanded into multiple characters.
 // See design doc https://goo.gl/CJbxky for details.
 class CORE_EXPORT OffsetMappingUnit {
   DISALLOW_NEW();
@@ -118,28 +113,6 @@ class CORE_EXPORT OffsetMapping final : public GarbageCollected<OffsetMapping> {
   const RangeMap& GetRanges() const { return ranges_; }
   const String& GetText() const { return text_; }
 
-  /// A utility class that converts offsets of `LayoutObject` to offsets of text
-  /// content.
-  class CORE_EXPORT LayoutObjectConverter {
-    STACK_ALLOCATED();
-
-   public:
-    // The `offset_mapping` must be non-null and outlive this instance.
-    LayoutObjectConverter(const OffsetMapping* offset_mapping,
-                          const LayoutObject& layout_object)
-        : units_(offset_mapping->GetMappingUnitsForLayoutObject(layout_object)),
-          last_unit_(units_.begin()) {}
-
-    unsigned TextContentOffset(unsigned offset) const;
-
-   private:
-    const base::span<const OffsetMappingUnit> units_;
-    // These are the cache of the last used `offset` and the result, to make
-    // the next search faster when `offset` increases.
-    mutable base::span<const OffsetMappingUnit>::iterator last_unit_;
-    mutable unsigned last_offset_ = 0;
-  };
-
   // ------ Static getters for offset mapping objects  ------
 
   // TODO(xiaochengh): Unify the following getters and make them work on both
@@ -206,7 +179,7 @@ class CORE_EXPORT OffsetMapping final : public GarbageCollected<OffsetMapping> {
 
   // Returns the text content offset corresponding to the given position.
   // Returns nullopt when the position is not laid out in this context.
-  std::optional<unsigned> GetTextContentOffset(const Position&) const;
+  absl::optional<unsigned> GetTextContentOffset(const Position&) const;
 
   // Starting from the given position, searches for non-collapsed content in
   // the anchor node in forward/backward direction and returns the position
@@ -223,7 +196,7 @@ class CORE_EXPORT OffsetMapping final : public GarbageCollected<OffsetMapping> {
 
   // Maps the given position to a text content offset, and then returns the text
   // content character before the offset. Returns nullopt if it does not exist.
-  std::optional<UChar> GetCharacterBefore(const Position&) const;
+  absl::optional<UChar> GetCharacterBefore(const Position&) const;
 
   // ------ Mapping APIs from text content to DOM ------
 

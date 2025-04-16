@@ -16,11 +16,10 @@ class PLATFORM_EXPORT WorkerMainScriptLoaderClient
     : public GarbageCollectedMixin {
  public:
   // Called when reading a chunk, with the chunk.
-  virtual void DidReceiveDataWorkerMainScript(base::span<const char> span) {}
+  virtual void DidReceiveData(base::span<const char> span) {}
 
   // Called when starting to load the body.
-  virtual void OnStartLoadingBodyWorkerMainScript(
-      const ResourceResponse& resource_response) {}
+  virtual void OnStartLoadingBody(const ResourceResponse& resource_response) {}
 
   // Called when the loading completes.
   virtual void OnFinishedLoadingWorkerMainScript() {}

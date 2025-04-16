@@ -14,11 +14,7 @@
 #include <memory>
 #include <vector>
 
-#include "api/environment/environment.h"
-#include "api/video_codecs/sdp_video_format.h"
-#include "api/video_codecs/video_decoder.h"
 #include "api/video_codecs/video_decoder_factory.h"
-#include "api/video_codecs/video_encoder.h"
 #include "api/video_codecs/video_encoder_factory.h"
 #include "rtc_base/system/rtc_export.h"
 
@@ -28,12 +24,14 @@ namespace webrtc {
 // the given bitrate constraints.
 class RTC_EXPORT FakeVideoEncoderFactory : public VideoEncoderFactory {
  public:
-  FakeVideoEncoderFactory() = default;
+  FakeVideoEncoderFactory();
+
+  static std::unique_ptr<VideoEncoder> CreateVideoEncoder();
 
   // VideoEncoderFactory implementation
   std::vector<SdpVideoFormat> GetSupportedFormats() const override;
-  std::unique_ptr<VideoEncoder> Create(const Environment& env,
-                                       const SdpVideoFormat& format) override;
+  std::unique_ptr<VideoEncoder> CreateVideoEncoder(
+      const SdpVideoFormat& format) override;
 };
 
 // Provides a fake video decoder instance that ignores the given bitstream and
@@ -46,8 +44,8 @@ class RTC_EXPORT FakeVideoDecoderFactory : public VideoDecoderFactory {
 
   // VideoDecoderFactory implementation
   std::vector<SdpVideoFormat> GetSupportedFormats() const override;
-  std::unique_ptr<VideoDecoder> Create(const Environment& env,
-                                       const SdpVideoFormat& format) override;
+  std::unique_ptr<VideoDecoder> CreateVideoDecoder(
+      const SdpVideoFormat& format) override;
 };
 
 }  // namespace webrtc

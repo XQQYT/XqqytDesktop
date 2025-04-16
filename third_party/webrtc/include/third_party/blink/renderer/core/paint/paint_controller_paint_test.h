@@ -21,6 +21,7 @@
 #include "third_party/blink/renderer/platform/graphics/paint/cull_rect.h"
 #include "third_party/blink/renderer/platform/graphics/paint/paint_chunk_subset.h"
 #include "third_party/blink/renderer/platform/graphics/paint/paint_controller_test.h"
+#include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 #include "third_party/blink/renderer/platform/testing/paint_test_configurations.h"
 
 namespace blink {
@@ -32,8 +33,8 @@ class PaintControllerPaintTestBase : public RenderingTest {
 
  protected:
   LayoutView& GetLayoutView() const { return *GetDocument().GetLayoutView(); }
-  PaintControllerPersistentData& GetPersistentData() const {
-    return GetDocument().View()->GetPaintControllerPersistentDataForTesting();
+  PaintController& RootPaintController() const {
+    return GetDocument().View()->GetPaintControllerForTesting();
   }
 
   void SetUp() override {
@@ -68,17 +69,17 @@ class PaintControllerPaintTestBase : public RenderingTest {
   }
 
   void InvalidateAll() {
-    GetPersistentData().InvalidateAllForTesting();
+    RootPaintController().InvalidateAllForTesting();
     GetLayoutView().Layer()->SetNeedsRepaint();
   }
 
   bool ClientCacheIsValid(const DisplayItemClient& client) {
-    return GetPersistentData().ClientCacheIsValid(client);
+    return RootPaintController().ClientCacheIsValid(client);
   }
 
-  const SubsequenceMarkers* GetSubsequenceMarkers(
-      const DisplayItemClient& client) {
-    return GetPersistentData().GetSubsequenceMarkers(client.Id());
+  using SubsequenceMarkers = const PaintController::SubsequenceMarkers;
+  SubsequenceMarkers* GetSubsequenceMarkers(const DisplayItemClient& client) {
+    return RootPaintController().GetSubsequenceMarkers(client.Id());
   }
 
   static bool IsNotContentType(DisplayItem::Type type) {
@@ -91,27 +92,25 @@ class PaintControllerPaintTestBase : public RenderingTest {
   // Excludes display items for LayoutView non-scrolling background, visual
   // viewport, overlays, etc. Includes LayoutView scrolling background.
   DisplayItemRange ContentDisplayItems() {
-    const auto& display_item_list = GetPersistentData().GetDisplayItemList();
+    const auto& display_item_list = RootPaintController().GetDisplayItemList();
     wtf_size_t begin_index = 0;
     wtf_size_t end_index = display_item_list.size();
     while (begin_index < end_index &&
-           UNSAFE_TODO(display_item_list[begin_index]).ClientId() ==
-               GetLayoutView().Id()) {
+           display_item_list[begin_index].ClientId() == GetLayoutView().Id()) {
       begin_index++;
     }
     while (end_index > begin_index &&
-           IsNotContentType(
-               UNSAFE_TODO(display_item_list[end_index - 1]).GetType())) {
+           IsNotContentType(display_item_list[end_index - 1].GetType())) {
       end_index--;
     }
-    return UNSAFE_TODO(display_item_list.ItemsInRange(begin_index, end_index));
+    return display_item_list.ItemsInRange(begin_index, end_index);
   }
 
   // Excludes paint chunks for LayoutView non-scrolling background and scroll
   // hit test, visual viewport, overlays, etc. Includes LayoutView scrolling
   // background.
   PaintChunkSubset ContentPaintChunks() {
-    const auto& chunks = GetPersistentData().GetPaintChunks();
+    const auto& chunks = RootPaintController().PaintChunks();
     wtf_size_t begin_index = 0;
     wtf_size_t end_index = chunks.size();
     while (begin_index < end_index) {
@@ -126,7 +125,7 @@ class PaintControllerPaintTestBase : public RenderingTest {
            IsNotContentType(chunks[end_index - 1].id.type)) {
       end_index--;
     }
-    const auto& artifact = GetPersistentData().GetPaintArtifact();
+    auto artifact = RootPaintController().GetPaintArtifactShared();
     PaintChunkSubset subset(artifact, chunks[begin_index]);
     for (wtf_size_t i = begin_index + 1; i < end_index; i++) {
       subset.Merge(PaintChunkSubset(artifact, chunks[i]));

@@ -53,7 +53,7 @@ class TrackListBase : public EventTarget {
     ScheduleEvent(TrackEvent::Create(event_type_names::kAddtrack, track));
   }
 
-  void Remove(const String& track_id) {
+  void Remove(WebMediaPlayer::TrackId track_id) {
     for (unsigned i = 0; i < tracks_.size(); ++i) {
       if (tracks_[i]->id() != track_id)
         continue;

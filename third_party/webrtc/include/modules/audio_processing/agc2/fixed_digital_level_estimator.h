@@ -25,16 +25,12 @@ class ApmDataDumper;
 // filtering.
 class FixedDigitalLevelEstimator {
  public:
-  // `samples_per_channel` is expected to be derived from this formula:
-  //   sample_rate_hz * kFrameDurationMs / 1000
-  // or, for a 10ms duration:
-  //   sample_rate_hz / 100
-  // I.e. the number of samples for 10ms of the given sample rate. The
-  // expectation is that samples per channel is divisible by
+  // Sample rates are allowed if the number of samples in a frame
+  // (sample_rate_hz * kFrameDurationMs / 1000) is divisible by
   // kSubFramesInSample. For kFrameDurationMs=10 and
-  // kSubFramesInSample=20, this means that the original sample rate has to be
-  // divisible by 2000 and therefore `samples_per_channel` by 20.
-  FixedDigitalLevelEstimator(size_t samples_per_channel,
+  // kSubFramesInSample=20, this means that sample_rate_hz has to be
+  // divisible by 2000.
+  FixedDigitalLevelEstimator(int sample_rate_hz,
                              ApmDataDumper* apm_data_dumper);
 
   FixedDigitalLevelEstimator(const FixedDigitalLevelEstimator&) = delete;
@@ -46,11 +42,11 @@ class FixedDigitalLevelEstimator {
   // ms of audio produces a level estimates in the same scale. The
   // level estimate contains kSubFramesInFrame values.
   std::array<float, kSubFramesInFrame> ComputeLevel(
-      DeinterleavedView<const float> float_frame);
+      const AudioFrameView<const float>& float_frame);
 
   // Rate may be changed at any time (but not concurrently) from the
   // value passed to the constructor. The class is not thread safe.
-  void SetSamplesPerChannel(size_t samples_per_channel);
+  void SetSampleRate(int sample_rate_hz);
 
   // Resets the level estimator internal state.
   void Reset();

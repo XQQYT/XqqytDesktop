@@ -7,15 +7,15 @@
 #include "NlohmannJson.h"
 #include "MessageParser.h"
 #include "UserInfo.h"
-#include "NetworkOperator.h"
+#include "Operator.h"
 const std::string server_address = "127.0.0.1";
 const std::string server_port = "8888";
 
-class NetworkController : public NetworkOperator{
+class NetworkController : public Operator{
 //NetworkOperator
 public:
-    void sendToServer(std::string msg);
-    void dispatch_void(const std::string event_name);
+    void sendToServer(std::string msg) override;
+    void dispatch_void(std::string event_name) override;
 //NetworkController
 public:
     NetworkController();
@@ -26,7 +26,7 @@ public:
     void stopRecvMsg();
     void sendMsg(std::string msg);
     void initNetworkSubscribe();
-    
+    void onCreateSDP(std::string sdp_str);
 private:
     void connectToTarget(std::string id, std::string target_id);
 private:

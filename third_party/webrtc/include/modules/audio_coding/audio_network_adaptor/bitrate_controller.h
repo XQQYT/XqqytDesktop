@@ -13,8 +13,7 @@
 
 #include <stddef.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "modules/audio_coding/audio_network_adaptor/controller.h"
 #include "modules/audio_coding/audio_network_adaptor/include/audio_network_adaptor_config.h"
 
@@ -50,8 +49,8 @@ class BitrateController final : public Controller {
   const Config config_;
   int bitrate_bps_;
   int frame_length_ms_;
-  std::optional<int> target_audio_bitrate_bps_;
-  std::optional<size_t> overhead_bytes_per_packet_;
+  absl::optional<int> target_audio_bitrate_bps_;
+  absl::optional<size_t> overhead_bytes_per_packet_;
 };
 
 }  // namespace audio_network_adaptor

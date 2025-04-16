@@ -12,7 +12,7 @@
 #define RTC_BASE_NET_HELPERS_H_
 
 #if defined(WEBRTC_POSIX)
-#include <sys/socket.h>  // IWYU pragma: export
+#include <sys/socket.h>
 #elif WEBRTC_WIN
 #include <winsock2.h>  // NOLINT
 

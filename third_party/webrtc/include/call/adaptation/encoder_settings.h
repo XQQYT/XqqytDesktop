@@ -11,9 +11,7 @@
 #ifndef CALL_ADAPTATION_ENCODER_SETTINGS_H_
 #define CALL_ADAPTATION_ENCODER_SETTINGS_H_
 
-#include <optional>
-
-#include "api/video/video_codec_type.h"
+#include "absl/types/optional.h"
 #include "api/video_codecs/video_codec.h"
 #include "api/video_codecs/video_encoder.h"
 #include "video/config/video_encoder_config.h"
@@ -43,7 +41,7 @@ class EncoderSettings {
 };
 
 VideoCodecType GetVideoCodecTypeOrGeneric(
-    const std::optional<EncoderSettings>& settings);
+    const absl::optional<EncoderSettings>& settings);
 
 }  // namespace webrtc
 

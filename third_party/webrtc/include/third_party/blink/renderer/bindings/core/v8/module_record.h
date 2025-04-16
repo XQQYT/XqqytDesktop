@@ -21,6 +21,7 @@
 
 namespace blink {
 
+class ExceptionState;
 class KURL;
 class ModuleScriptCreationParams;
 class ScriptFetchOptions;
@@ -63,6 +64,7 @@ class CORE_EXPORT ModuleRecord final {
       const ModuleScriptCreationParams& params,
       const ScriptFetchOptions&,
       const TextPosition&,
+      ExceptionState&,
       mojom::blink::V8CacheOptions = mojom::blink::V8CacheOptions::kDefault,
       ModuleRecordProduceCacheData** out_produce_cache_data = nullptr);
 
@@ -78,24 +80,24 @@ class CORE_EXPORT ModuleRecord final {
 
   static v8::Local<v8::Value> V8Namespace(v8::Local<v8::Module> record);
 
-  // ToBlinkImportAttributes deserializes v8::FixedArray encoded import
-  // attributes to blink::ImportAttribute. When
-  // |v8_import_attributes_has_positions| is set to true, it expects [key1,
+  // ToBlinkImportAssertions deserializes v8::FixedArray encoded import
+  // assertions to blink::ImportAssertion. When
+  // |v8_import_assertions_has_positions| is set to true, it expects [key1,
   // value1, position1, key2, value2, position2, ...] encoding used in
-  // v8::ModuleRequest::GetImportAttributes(). When it is set to false, it
+  // v8::ModuleRequest::GetImportAssertions(). When it is set to false, it
   // expects [key1, value1, key2, value2, ...] encoding used in the
   // |HostImportModuleDynamically| callback.
-  static Vector<ImportAttribute> ToBlinkImportAttributes(
+  static Vector<ImportAssertion> ToBlinkImportAssertions(
       v8::Local<v8::Context> context,
       v8::Local<v8::Module> record,
-      v8::Local<v8::FixedArray> v8_import_attributes,
-      bool v8_import_attributes_has_positions);
+      v8::Local<v8::FixedArray> v8_import_assertions,
+      bool v8_import_assertions_has_positions);
 
  private:
   static v8::MaybeLocal<v8::Module> ResolveModuleCallback(
       v8::Local<v8::Context>,
       v8::Local<v8::String> specifier,
-      v8::Local<v8::FixedArray> import_attributes,
+      v8::Local<v8::FixedArray> import_assertions,
       v8::Local<v8::Module> referrer);
 };
 

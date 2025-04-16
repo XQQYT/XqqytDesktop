@@ -30,36 +30,24 @@ class LayoutSVGInlineText final : public LayoutText {
  public:
   LayoutSVGInlineText(Node*, String);
 
-  void Trace(Visitor* visitor) const override {
-    visitor->Trace(scaled_font_);
-    LayoutText::Trace(visitor);
-  }
-
   float ScalingFactor() const {
     NOT_DESTROYED();
     return scaling_factor_;
   }
   const Font& ScaledFont() const {
     NOT_DESTROYED();
-    if (!scaled_font_) {
-      scaled_font_ = MakeGarbageCollected<Font>();
-    }
-    return *scaled_font_;
+    return scaled_font_;
   }
   void UpdateScaledFont();
-  static const Font* ComputeNewScaledFontForStyle(const LayoutObject&,
-                                                  float& scaling_factor);
+  static void ComputeNewScaledFontForStyle(const LayoutObject&,
+                                           float& scaling_factor,
+                                           Font& scaled_font);
 
   const char* GetName() const override {
     NOT_DESTROYED();
     return "LayoutSVGInlineText";
   }
   PositionWithAffinity PositionForPoint(const PhysicalOffset&) const override;
-
-  void Trace(Visitor* visitor) {
-    visitor->Trace(scaled_font_);
-    LayoutText::Trace(visitor);
-  }
 
  private:
   void TextDidChange() override;
@@ -69,21 +57,19 @@ class LayoutSVGInlineText final : public LayoutText {
 
   gfx::RectF ObjectBoundingBox() const override;
 
-  bool IsSVG() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
-  }
-  bool IsSVGInlineText() const final {
-    NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectSVG || type == kLayoutObjectSVGInlineText ||
+           LayoutText::IsOfType(type);
   }
 
   PhysicalRect PhysicalLinesBoundingBox() const override;
 
+  PhysicalRect VisualRectInDocument(VisualRectFlags) const final;
   gfx::RectF VisualRectInLocalSVGCoordinates() const final;
 
   float scaling_factor_;
-  mutable Member<const Font> scaled_font_;
+  Font scaled_font_;
 };
 
 template <>

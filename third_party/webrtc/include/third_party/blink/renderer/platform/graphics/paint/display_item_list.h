@@ -9,7 +9,6 @@
 #include <type_traits>
 
 #include "base/check_op.h"
-#include "base/compiler_specific.h"
 #include "third_party/blink/renderer/platform/graphics/paint/display_item.h"
 #include "third_party/blink/renderer/platform/graphics/paint/scrollbar_display_item.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
@@ -26,7 +25,7 @@ class PLATFORM_EXPORT DisplayItemList {
 
  public:
   DisplayItemList() = default;
-  ~DisplayItemList() { clear(); }
+  ~DisplayItemList();
 
   DisplayItemList(const DisplayItemList&) = delete;
   DisplayItemList& operator=(const DisplayItemList&) = delete;
@@ -36,8 +35,6 @@ class PLATFORM_EXPORT DisplayItemList {
   void ReserveCapacity(wtf_size_t initial_capacity) {
     items_.reserve(initial_capacity);
   }
-
-  void clear();
 
   // This private section is before the public APIs because some inline public
   // methods depend on the private definitions.
@@ -69,22 +66,19 @@ class PLATFORM_EXPORT DisplayItemList {
     }
     ItemType& operator*() const { return reinterpret_cast<ItemType&>(*it_); }
     ItemType* operator->() const { return &operator*(); }
-    UNSAFE_BUFFER_USAGE IteratorWrapper operator+(std::ptrdiff_t n) const {
-      // SAFETY: required from caller, enforced by UNSAFE_BUFFER_USAGE.
-      return UNSAFE_BUFFERS(IteratorWrapper(it_ + n));
+    IteratorWrapper operator+(std::ptrdiff_t n) const {
+      return IteratorWrapper(it_ + n);
     }
-    UNSAFE_BUFFER_USAGE IteratorWrapper operator++(int) {
+    IteratorWrapper operator++(int) {
       IteratorWrapper tmp = *this;
-      // SAFETY: required from caller, enforced by UNSAFE_BUFFER_USAGE
-      UNSAFE_BUFFERS(++it_);
+      ++it_;
       return tmp;
     }
     std::ptrdiff_t operator-(const IteratorWrapper& other) const {
       return it_ - other.it_;
     }
-    UNSAFE_BUFFER_USAGE IteratorWrapper& operator++() {
-      // SAFETY: required from caller, enforced by UNSAFE_BUFFER_USAGE.
-      UNSAFE_BUFFERS(++it_);
+    IteratorWrapper& operator++() {
+      ++it_;
       return *this;
     }
 
@@ -115,27 +109,20 @@ class PLATFORM_EXPORT DisplayItemList {
   const_iterator begin() const { return const_iterator(items_.begin()); }
   const_iterator end() const { return const_iterator(items_.end()); }
 
-  UNSAFE_BUFFER_USAGE DisplayItem& front() { return *begin(); }
-  UNSAFE_BUFFER_USAGE const DisplayItem& front() const { return *begin(); }
-  UNSAFE_BUFFER_USAGE DisplayItem& back() {
+  DisplayItem& front() { return *begin(); }
+  const DisplayItem& front() const { return *begin(); }
+  DisplayItem& back() {
     DCHECK(size());
-    // SAFETY: required from caller, enforced by UNSAFE_BUFFER_USAGE
-    return UNSAFE_BUFFERS((*this)[size() - 1]);
+    return (*this)[size() - 1];
   }
-  UNSAFE_BUFFER_USAGE const DisplayItem& back() const {
+  const DisplayItem& back() const {
     DCHECK(size());
-    // SAFETY: required from caller, enforced by UNSAFE_BUFFER_USAGE
-    return UNSAFE_BUFFERS((*this)[size() - 1]);
+    return (*this)[size() - 1];
   }
 
-  UNSAFE_BUFFER_USAGE DisplayItem& operator[](wtf_size_t index) {
-    // SAFETY: required from caller, enforced by UNSAFE_BUFFER_USAGE.
-    return UNSAFE_BUFFERS(*(begin() + index));
-  }
-
-  UNSAFE_BUFFER_USAGE const DisplayItem& operator[](wtf_size_t index) const {
-    // SAFETY: required from caller, enforced by UNSAFE_BUFFER_USAGE.
-    UNSAFE_BUFFERS(return *(begin() + index));
+  DisplayItem& operator[](wtf_size_t index) { return *(begin() + index); }
+  const DisplayItem& operator[](wtf_size_t index) const {
+    return *(begin() + index);
   }
 
   wtf_size_t size() const { return items_.size(); }
@@ -170,18 +157,12 @@ class PLATFORM_EXPORT DisplayItemList {
 
   // In most cases, we should use PaintChunkSubset::Iterator::DisplayItems()
   // instead of these.
-  UNSAFE_BUFFER_USAGE Range<iterator> ItemsInRange(wtf_size_t begin_index,
-                                                   wtf_size_t end_index) {
-    // SAFETY: required from caller, enforced by UNSAFE_BUFFER_USAGE,
-    return UNSAFE_BUFFERS(
-        Range<iterator>(begin() + begin_index, begin() + end_index));
+  Range<iterator> ItemsInRange(wtf_size_t begin_index, wtf_size_t end_index) {
+    return Range<iterator>(begin() + begin_index, begin() + end_index);
   }
-  UNSAFE_BUFFER_USAGE Range<const_iterator> ItemsInRange(
-      wtf_size_t begin_index,
-      wtf_size_t end_index) const {
-    // SAFETY: required from caller, enforced by UNSAFE_BUFFER_USAGE,
-    return UNSAFE_BUFFERS(
-        Range<const_iterator>(begin() + begin_index, begin() + end_index));
+  Range<const_iterator> ItemsInRange(wtf_size_t begin_index,
+                                     wtf_size_t end_index) const {
+    return Range<const_iterator>(begin() + begin_index, begin() + end_index);
   }
 
   template <class DerivedItemType, typename... Args>
@@ -204,7 +185,7 @@ class PLATFORM_EXPORT DisplayItemList {
 
   DisplayItem& ReplaceLastByMoving(DisplayItem& item) {
     DCHECK(!item.IsTombstone());
-    DisplayItem& last = UNSAFE_TODO(back());
+    DisplayItem& last = back();
     last.Destruct();
     return MoveItem(item, reinterpret_cast<ItemSlot*>(&last));
   }
@@ -220,37 +201,35 @@ class PLATFORM_EXPORT DisplayItemList {
 
     wtf_size_t count = end_index - begin_index;
     ItemSlot* new_start_slot = AllocateItemSlots(count);
-    size_t bytes_to_move =
-        UNSAFE_TODO(reinterpret_cast<uint8_t*>(new_start_slot + count) -
-                    reinterpret_cast<uint8_t*>(new_start_slot));
-    UNSAFE_TODO(memcpy(static_cast<void*>(new_start_slot),
-                       static_cast<void*>(&from[begin_index]), bytes_to_move));
+    size_t bytes_to_move = reinterpret_cast<uint8_t*>(new_start_slot + count) -
+                           reinterpret_cast<uint8_t*>(new_start_slot);
+    memcpy(static_cast<void*>(new_start_slot),
+           static_cast<void*>(&from[begin_index]), bytes_to_move);
     // This creates tombstones in the original items. Unlike AppendByMoving()
     // for individual items, we won't use the moved items in a subsequence
     // for raster invalidation, so we don't need to keep the other fields of
     // the display items. DisplayItemTest.AllZeroIsTombstone ensures that the
     // cleared items are tombstones.
-    UNSAFE_TODO(
-        memset(static_cast<void*>(&from[begin_index]), 0, bytes_to_move));
+    memset(static_cast<void*>(&from[begin_index]), 0, bytes_to_move);
   }
 
 #if DCHECK_IS_ON()
-  enum JsonOption {
-    kDefault,
+  enum JsonOptions {
+    kDefault = 0,
+    kClientKnownToBeAlive = 1,
     // Only show a compact representation of the display item list. This flag
     // cannot be used with kShowPaintRecords.
-    kCompact,
-    kShowPaintRecords,
+    kCompact = 1 << 1,
+    kShowPaintRecords = 1 << 2,
   };
+  typedef unsigned JsonFlags;
 
   static std::unique_ptr<JSONArray> DisplayItemsAsJSON(
       const PaintArtifact&,
       wtf_size_t first_item_index,
       const Range<const_iterator>& display_items,
-      JsonOption);
-#else  // DCHECK_IS_ON()
-  enum JsonOption { kDefault };
-#endif
+      JsonFlags);
+#endif  // DCHECK_IS_ON()
 
  private:
   static_assert(std::is_trivially_copyable<value_type>::value,
@@ -261,12 +240,12 @@ class PLATFORM_EXPORT DisplayItemList {
 
   ItemSlot* AllocateItemSlots(wtf_size_t count) {
     items_.Grow(size() + count);
-    return UNSAFE_TODO(&items_.back() - (count - 1));
+    return &items_.back() - (count - 1);
   }
 
   DisplayItem& MoveItem(DisplayItem& item, ItemSlot* new_item_slot) {
-    UNSAFE_TODO(memcpy(static_cast<void*>(new_item_slot),
-                       static_cast<void*>(&item), kMaxItemSize));
+    memcpy(static_cast<void*>(new_item_slot), static_cast<void*>(&item),
+           kMaxItemSize);
 
     // Created a tombstone/"dead display item" that can be safely destructed but
     // should never be used except for debugging and raster invalidation.

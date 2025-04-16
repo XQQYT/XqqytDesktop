@@ -11,6 +11,7 @@
 #include "third_party/blink/renderer/platform/graphics/lcd_text_preference.h"
 #include "third_party/blink/renderer/platform/graphics/paint/paint_chunk_subset.h"
 #include "third_party/blink/renderer/platform/graphics/paint/property_tree_state.h"
+#include "third_party/blink/renderer/platform/graphics/paint/ref_counted_property_tree_state.h"
 #include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/geometry/vector2d_f.h"
 
@@ -20,14 +21,9 @@ class LayerTreeHost;
 
 namespace blink {
 
-class PendingLayer;
-using PendingLayers = HeapVector<PendingLayer>;
-
 // A pending layer is a collection of paint chunks that will end up in the same
 // cc::Layer.
 class PLATFORM_EXPORT PendingLayer {
-  DISALLOW_NEW();
-
  public:
   enum CompositingType {
     kScrollHitTestLayer,
@@ -37,14 +33,12 @@ class PLATFORM_EXPORT PendingLayer {
     kOther,
   };
 
-  PendingLayer(const PaintArtifact&,
-               const PaintChunk& first_chunk,
-               CompositingType = kOther);
-
-  void Trace(Visitor*) const;
+  PendingLayer(scoped_refptr<const PaintArtifact>,
+               const PaintChunk& first_chunk);
 
   // Returns the offset/bounds for the final cc::Layer, rounded if needed.
-  std::pair<gfx::Vector2dF, gfx::Size> Bounds() const;
+  gfx::Vector2dF LayerOffset() const;
+  gfx::Size LayerBounds() const;
 
   const gfx::RectF& BoundsForTesting() const { return bounds_; }
 
@@ -55,8 +49,8 @@ class PLATFORM_EXPORT PendingLayer {
     return text_known_to_be_on_opaque_background_;
   }
   const PaintChunkSubset& Chunks() const { return chunks_; }
-  PropertyTreeState GetPropertyTreeState() const {
-    return PropertyTreeState(property_tree_state_);
+  const PropertyTreeState GetPropertyTreeState() const {
+    return property_tree_state_.GetPropertyTreeState();
   }
   const gfx::Vector2dF& OffsetOfDecompositedTransforms() const {
     return offset_of_decomposited_transforms_;
@@ -68,15 +62,13 @@ class PLATFORM_EXPORT PendingLayer {
   cc::HitTestOpaqueness GetHitTestOpaqueness() const {
     return hit_test_opaqueness_;
   }
-  bool HasText() const { return has_text_; }
 
-  void SetCompositingTypeToOverlap() {
-    DCHECK_EQ(compositing_type_, kOther);
-    compositing_type_ = kOverlap;
+  void SetCompositingType(CompositingType new_type) {
+    compositing_type_ = new_type;
   }
 
-  void SetPaintArtifact(const PaintArtifact& paint_artifact) {
-    chunks_.SetPaintArtifact(paint_artifact);
+  void SetPaintArtifact(scoped_refptr<const PaintArtifact> paint_artifact) {
+    chunks_.SetPaintArtifact(std::move(paint_artifact));
   }
 
   using IsCompositedScrollFunction =
@@ -88,7 +80,6 @@ class PLATFORM_EXPORT PendingLayer {
   // Returns whether the merge is successful.
   bool Merge(const PendingLayer& guest,
              LCDTextPreference lcd_text_preference,
-             float device_pixel_ratio,
              IsCompositedScrollFunction);
 
   // Returns true if `guest` that could be upcasted with decomposited blend
@@ -119,12 +110,8 @@ class PLATFORM_EXPORT PendingLayer {
   void ForceDrawsContent() { draws_content_ = true; }
   bool DrawsContent() const { return draws_content_; }
 
-  static bool RequiresOwnLayer(CompositingType type) {
-    return type != kOverlap && type != kOther;
-  }
-
   bool ChunkRequiresOwnLayer() const {
-    bool result = RequiresOwnLayer(compositing_type_);
+    bool result = compositing_type_ != kOverlap && compositing_type_ != kOther;
 #if DCHECK_IS_ON()
     if (result) {
       DCHECK(!content_layer_client_);
@@ -139,7 +126,7 @@ class PLATFORM_EXPORT PendingLayer {
 
   bool MightOverlap(const PendingLayer& other) const;
 
-  static void DecompositeTransforms(PendingLayers& pending_layers);
+  static void DecompositeTransforms(Vector<PendingLayer>& pending_layers);
 
   // This is valid only when SetCclayer() or SetContentLayerClient() has been
   // called.
@@ -151,8 +138,10 @@ class PLATFORM_EXPORT PendingLayer {
   }
 
   ContentLayerClientImpl* GetContentLayerClient() const {
-    return content_layer_client_.Get();
+    return content_layer_client_.get();
   }
+
+  void UpdateCcLayerHitTestOpaqueness() const;
 
   // For this PendingLayer, creates a composited layer or uses the existing
   // one in |old_pending_layer|, and updates the layer according to the current
@@ -163,14 +152,10 @@ class PLATFORM_EXPORT PendingLayer {
                              cc::LayerTreeHost*);
 
   // A lighter version of UpdateCompositedLayer(). Called when the existing
-  // composited layer has only repainted since the last update
-  void UpdateCompositedLayerForRepaint(const PaintArtifact& repainted_artifact,
-                                       cc::LayerSelection&);
-
-  // Another lighter version of UpdateCompositedLayers(). Called after
-  // raster-inducing scrolls that don't need repaint or PaintArtifactCompositor
-  // update.
-  void UpdateForRasterInducingScroll();
+  // composited layer has only repainted since the last update.
+  void UpdateCompositedLayerForRepaint(
+      scoped_refptr<const PaintArtifact> repainted_artifact,
+      cc::LayerSelection&);
 
   SkColor4f ComputeBackgroundColor() const;
 
@@ -181,14 +166,13 @@ class PLATFORM_EXPORT PendingLayer {
  private:
   // Checks basic merge-ability with `guest` and calls
   // PropertyTreeState::CanUpcastWith().
-  std::optional<PropertyTreeState> CanUpcastWith(
+  absl::optional<PropertyTreeState> CanUpcastWith(
       const PendingLayer& guest,
       const PropertyTreeState& guest_state,
       IsCompositedScrollFunction is_comosited_scroll) const;
 
   bool CanMerge(const PendingLayer& guest,
                 LCDTextPreference lcd_text_preference,
-                float device_pixel_ratio,
                 IsCompositedScrollFunction,
                 gfx::RectF& merged_bounds,
                 PropertyTreeState& merged_state,
@@ -229,7 +213,7 @@ class PLATFORM_EXPORT PendingLayer {
   // must draw a solid color that fully covers this pending layer.
   wtf_size_t solid_color_chunk_index_ = kNotFound;
   PaintChunkSubset chunks_;
-  TraceablePropertyTreeState property_tree_state_;
+  RefCountedPropertyTreeState property_tree_state_;
   gfx::Vector2dF offset_of_decomposited_transforms_;
   PaintPropertyChangeType change_of_decomposited_transforms_ =
       PaintPropertyChangeType::kUnchanged;
@@ -237,24 +221,16 @@ class PLATFORM_EXPORT PendingLayer {
   cc::HitTestOpaqueness hit_test_opaqueness_ =
       cc::HitTestOpaqueness::kTransparent;
 
-  // Contains non-composited hit_test_data.scroll_translation of PaintChunks.
-  // This is a vector instead of a set because the size is small vs the cost of
-  // hashing.
-  HeapVector<Member<const TransformPaintPropertyNode>>
-      non_composited_scroll_translations_;
-
   // This is set to non-null after layerization if ChunkRequiresOwnLayer() or
   // UsesSolidColorLayer() is true.
   scoped_refptr<cc::Layer> cc_layer_;
-  // This is set to non-null after layerization if ChunkRequiresOwnLayer() and
-  // UsesSolidColorLayer() are false.
-  Member<ContentLayerClientImpl> content_layer_client_;
+  // This is set to non-null after layerization if !ChunkRequiresOwnLayer() and
+  // UsesSolidColorLayer() is false.
+  std::unique_ptr<ContentLayerClientImpl> content_layer_client_;
 };
 
 PLATFORM_EXPORT std::ostream& operator<<(std::ostream&, const PendingLayer&);
 
 }  // namespace blink
-
-WTF_ALLOW_CLEAR_UNUSED_SLOTS_WITH_MEM_FUNCTIONS(blink::PendingLayer)
 
 #endif  // THIRD_PARTY_BLINK_RENDERER_PLATFORM_GRAPHICS_COMPOSITING_PENDING_LAYER_H_

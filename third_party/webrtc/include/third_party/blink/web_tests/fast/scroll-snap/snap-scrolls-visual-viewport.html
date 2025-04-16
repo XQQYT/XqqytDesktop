@@ -47,23 +47,25 @@ async function set_and_scroll_and_snap(
     visual_viewport_y) {
   const scale_factor = 2;
   internals.setPageScaleFactor(scale_factor);
-  await waitForWindowScrollTo({top: initial_position, left: 0});
+  window.scrollTo(0, initial_position);
   internals.setVisualViewportOffset(0, 0);
-  await waitForCompositorCommit();
   assert_equals(window.visualViewport.scale, 2);
   assert_equals(window.scrollY, initial_position);
   assert_equals(window.visualViewport.offsetTop, 0);
 
   const x = 200;
   const y = 200;
-  const scrollEndPromise = waitForScrollendEvent(document);
+  const scrollPromise = waitForScrollEvent(document);
   await smoothScroll(scale_factor * scroll_delta,
                      x,
                      y,
                      SOURCE_TYPE,
                      scroll_direction,
                      SPEED_INSTANT);
-  await scrollEndPromise;
+  await scrollPromise;
+  await waitForAnimationEndTimeBased(() => {
+    return window.scrollY + window.visualViewport.offsetTop;
+  });
 
   assert_approx_equals(window.scrollY, layout_viewport_y, 1);
   assert_approx_equals(window.visualViewport.offsetTop, visual_viewport_y, 1);

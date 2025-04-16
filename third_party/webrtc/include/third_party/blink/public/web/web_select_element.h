@@ -31,9 +31,8 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_SELECT_ELEMENT_H_
 #define THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_SELECT_ELEMENT_H_
 
-#include <vector>
-
 #include "third_party/blink/public/platform/web_common.h"
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/blink/public/web/web_form_control_element.h"
 #include "third_party/blink/public/web/web_option_element.h"
 
@@ -55,7 +54,7 @@ class BLINK_EXPORT WebSelectElement final : public WebFormControlElement {
     WebFormControlElement::Assign(element);
   }
 
-  std::vector<WebElement> GetListItems() const;
+  WebVector<WebElement> GetListItems() const;
 
 #if INSIDE_BLINK
   WebSelectElement(HTMLSelectElement*);

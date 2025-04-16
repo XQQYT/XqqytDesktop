@@ -8,10 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <compare>
-#include <iosfwd>
 #include <map>
-#include <optional>
 #include <string>
 #include <string_view>
 
@@ -21,6 +18,7 @@
 #include "base/metrics/field_trial_params.h"
 #include "base/time/time.h"
 #include "build/build_config.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 #if BUILDFLAG(IS_MAC)
 #include "base/feature_list.h"
@@ -35,7 +33,7 @@ namespace base {
 BASE_EXPORT BASE_DECLARE_FEATURE(kNumberOfCoresWithCpuSecurityMitigation);
 #endif
 
-#if BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(IS_CHROMEOS_ASH)
 // Strings for environment variables.
 BASE_EXPORT extern const char kLsbReleaseKey[];
 BASE_EXPORT extern const char kLsbReleaseTimeKey[];
@@ -125,16 +123,7 @@ class BASE_EXPORT SysInfo {
   // For macOS, a useful reference of the resulting strings returned by this
   // function and their corresponding hardware can be found at
   // https://everymac.com/systems/by_capability/mac-specs-by-machine-model-machine-id.html
-  //
-  // For iOS, corresponding hardware can be found at
-  // https://deviceatlas.com/resources/clientside/ios-hardware-identification
   static std::string HardwareModelName();
-
-  // Returns the SOC manufacturer's name or an empty string if the manufacturer
-  // is unknown or an error occurred.
-  // e.g. "Google" on Pixel 8 Pro. Only implemented on Android, returns an
-  // empty string on other platforms.
-  static std::string SocManufacturer();
 
 #if BUILDFLAG(IS_MAC)
   struct HardwareModelNameSplit {
@@ -165,7 +154,7 @@ class BASE_EXPORT SysInfo {
   // Do not add any further callers! When the aforementioned 2022-era hardware
   // is the minimum requirement for Chromium, remove this function and adjust
   // all callers appropriately.
-  static std::optional<HardwareModelNameSplit> SplitHardwareModelNameDoNotUse(
+  static absl::optional<HardwareModelNameSplit> SplitHardwareModelNameDoNotUse(
       std::string_view name);
 #endif
 
@@ -195,27 +184,6 @@ class BASE_EXPORT SysInfo {
   static void OperatingSystemVersionNumbers(int32_t* major_version,
                                             int32_t* minor_version,
                                             int32_t* bugfix_version);
-
-#if BUILDFLAG(IS_POSIX)
-  // Struct containing the the kernel version number of the host operating
-  // system.
-  struct BASE_EXPORT KernelVersionNumber {
-    // Queries the current kernel version number using uname and parses the
-    // release string to construct the KernelVersionNumber struct. This does not
-    // cache the result.
-    static KernelVersionNumber Current();
-
-    friend bool operator==(const KernelVersionNumber& v1,
-                           const KernelVersionNumber& v2) = default;
-
-    friend auto operator<=>(const KernelVersionNumber& v1,
-                            const KernelVersionNumber& v2) = default;
-
-    int32_t major = 0;
-    int32_t minor = 0;
-    int32_t bugfix = 0;
-  };
-#endif  // BUILDFLAG(IS_POSIX)
 
   // Returns the architecture of the running operating system.
   // Exact return value may differ across platforms.
@@ -291,12 +259,11 @@ class BASE_EXPORT SysInfo {
   // Returns the Android build ID.
   static std::string GetAndroidBuildID();
 
-  // Returns the Android hardware system property, equivalent to Java's
-  // Build.HARDWARE.
-  static std::string GetAndroidHardware();
-
   // Returns the Android hardware EGL system property.
   static std::string GetAndroidHardwareEGL();
+
+  static int DalvikHeapSizeMB();
+  static int DalvikHeapGrowthLimitMB();
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_IOS)
@@ -306,18 +273,17 @@ class BASE_EXPORT SysInfo {
   // For example, iOS beta releases have the same version number but different
   // build number strings.
   static std::string GetIOSBuildNumber();
-
-  // Overrides the hardware model name. The overridden value is used instead of
-  // `StringSysctl({CTL_HW, HW_MACHINE})`. `name` should not be empty.
-  static void OverrideHardwareModelName(std::string name);
 #endif  // BUILDFLAG(IS_IOS)
 
   // Returns true for low-end devices that may require extreme tradeoffs,
   // including user-visible changes, for acceptable performance.
   // For general memory optimizations, consider |AmountOfPhysicalMemoryMB|.
   //
-  // On Android this returns true when memory <= 1GB on Android O and later.
-  // This is not the same as "low-memory".
+  // On Android this returns:
+  //   true when memory <= 1GB on Android O and later.
+  //   true when memory <= 512MB on Android N and earlier.
+  // This is not the same as "low-memory" and will be false on a large number of
+  // <=1GB pre-O Android devices. See: |detectLowEndDevice| in SysUtils.java.
   // On Desktop this returns true when memory <= 2GB.
   static bool IsLowEndDevice();
 
@@ -374,17 +340,10 @@ class BASE_EXPORT SysInfo {
 
   // Sets the amount of physical memory in MB for testing, thus allowing tests
   // to run irrespective of the host machine's configuration.
-  static std::optional<uint64_t> SetAmountOfPhysicalMemoryMbForTesting(
+  static absl::optional<uint64_t> SetAmountOfPhysicalMemoryMbForTesting(
       uint64_t amount_of_memory_mb);
   static void ClearAmountOfPhysicalMemoryMbForTesting();
 };
-
-#if BUILDFLAG(IS_POSIX)
-// Stream operator so that SysInfo::KernelVersionNumber can be logged with a
-// consistent format.
-BASE_EXPORT std::ostream& operator<<(std::ostream& out,
-                                     const SysInfo::KernelVersionNumber& v);
-#endif  // BUILDFLAG(IS_POSIX)
 
 }  // namespace base
 

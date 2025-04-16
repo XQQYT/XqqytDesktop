@@ -29,15 +29,12 @@ class CORE_EXPORT FragmentItems final {
   wtf_size_t Size() const { return items_.size(); }
 
   using Span = base::span<const FragmentItem>;
-  Span Items() const { return base::span(items_); }
+  Span Items() const { return base::make_span(ItemsData(), items_.size()); }
   bool Equals(const Span& span) const {
     return ItemsData() == span.data() && Size() == span.size();
   }
   bool IsSubSpan(const Span& span) const;
 
-  const FragmentItem& operator[](wtf_size_t index) const {
-    return items_[index];
-  }
   const FragmentItem& front() const {
     CHECK_GE(items_.size(), 1u);
     return items_[0];
@@ -51,10 +48,9 @@ class CORE_EXPORT FragmentItems final {
   // Returns |FirstLineText()| if it is available and |first_line| is |true|.
   // Otherwise returns |NormalText()|.
   const String& Text(bool first_line) const {
-    if (first_line && first_line_text_content_) [[unlikely]] {
-      return first_line_text_content_;
-    }
-    return text_content_;
+    return UNLIKELY(first_line && first_line_text_content_)
+               ? first_line_text_content_
+               : text_content_;
   }
 
   // When block-fragmented, returns the number of |FragmentItem| in earlier
@@ -72,7 +68,7 @@ class CORE_EXPORT FragmentItems final {
   // Associate |FragmentItem|s with |LayoutObject|s and finalize the items
   // (set which ones are the first / last for the LayoutObject).
   static void FinalizeAfterLayout(
-      const HeapVector<Member<const LayoutResult>, 1>& results,
+      const HeapVector<Member<const NGLayoutResult>, 1>& results,
       LayoutBlockFlow& container);
 
   // Disassociate |FragmentItem|s with |LayoutObject|s. And more.
@@ -85,7 +81,7 @@ class CORE_EXPORT FragmentItems final {
   // Returns the end (next of the last) item that are reusable. If no items are
   // reusable, it is the first item.
   const FragmentItem* EndOfReusableItems(
-      const PhysicalBoxFragment& container) const;
+      const NGPhysicalBoxFragment& container) const;
 
   // Return true if any items inside the culled inline occur here. In that case,
   // |is_first_container| and |is_last_container| will also be set to indicate
@@ -109,9 +105,9 @@ class CORE_EXPORT FragmentItems final {
   // |containing_fragment|, and replace it with |new_fragment| if found. Return
   // true if found and replaced, otherwise false.
   static bool ReplaceBoxFragment(
-      const PhysicalBoxFragment& old_fragment,
-      const PhysicalBoxFragment& new_fragment,
-      const PhysicalBoxFragment& containing_fragment);
+      const NGPhysicalBoxFragment& old_fragment,
+      const NGPhysicalBoxFragment& new_fragment,
+      const NGPhysicalBoxFragment& containing_fragment);
 
 #if DCHECK_IS_ON()
   void CheckAllItemsAreValid() const;

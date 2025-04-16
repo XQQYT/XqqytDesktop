@@ -31,13 +31,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_SVG_PROPERTIES_SVG_LIST_PROPERTY_HELPER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_SVG_PROPERTIES_SVG_LIST_PROPERTY_HELPER_H_
 
-#include "base/compiler_specific.h"
 #include "third_party/blink/renderer/core/svg/properties/svg_list_property.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
-
-namespace WTF {
-class String;
-}  // namespace WTF
 
 namespace blink {
 
@@ -56,7 +51,7 @@ class SVGListPropertyHelper : public SVGListPropertyBase {
         : wrapped_(wrapped) {}
 
     const_iterator& operator++() {
-      UNSAFE_TODO(++wrapped_);
+      ++wrapped_;
       return *this;
     }
     bool operator==(const const_iterator& other) const {
@@ -111,7 +106,7 @@ class SVGListPropertyHelper : public SVGListPropertyBase {
     return svg_list;
   }
 
-  SVGPropertyBase* CloneForAnimation(const WTF::String& value) const override {
+  SVGPropertyBase* CloneForAnimation(const String& value) const override {
     auto* property = MakeGarbageCollected<Derived>();
     property->SetValueAsString(value);
     return property;

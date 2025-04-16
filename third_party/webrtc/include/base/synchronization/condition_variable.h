@@ -92,7 +92,8 @@ class BASE_EXPORT ConditionVariable {
   ~ConditionVariable();
 
 #if BUILDFLAG(IS_APPLE)
-  // Initializes features for this class. See `base::features::Init()`.
+  // Must be called early in process startup, but after FeatureList
+  // initialization.
   static void InitializeFeatures();
 #endif
 

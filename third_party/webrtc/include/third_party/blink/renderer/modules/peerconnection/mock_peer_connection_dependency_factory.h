@@ -11,7 +11,6 @@
 #include "third_party/blink/renderer/modules/peerconnection/peer_connection_dependency_factory.h"
 #include "third_party/blink/renderer/platform/wtf/hash_set.h"
 #include "third_party/webrtc/api/media_stream_interface.h"
-#include "third_party/webrtc/api/metronome/metronome.h"
 #include "third_party/webrtc/rtc_base/ref_counted_object.h"
 
 namespace base {
@@ -80,7 +79,7 @@ class MockWebRtcVideoTrackSource
                        const rtc::VideoSinkWants& wants) override;
   void RemoveSink(rtc::VideoSinkInterface<webrtc::VideoFrame>* sink) override;
   bool is_screencast() const override;
-  std::optional<bool> needs_denoising() const override;
+  absl::optional<bool> needs_denoising() const override;
   bool GetStats(Stats* stats) override;
   bool SupportsEncodedOutput() const override;
   void GenerateKeyFrame() override;
@@ -126,7 +125,8 @@ class MockWebRtcVideoTrack
   bool enabled_;
   TrackState state_;
   ObserverSet observers_;
-  raw_ptr<rtc::VideoSinkInterface<webrtc::VideoFrame>> sink_;
+  raw_ptr<rtc::VideoSinkInterface<webrtc::VideoFrame>, ExperimentalRenderer>
+      sink_;
 };
 
 class MockMediaStream : public webrtc::MediaStreamInterface {
@@ -180,8 +180,7 @@ class MockPeerConnectionDependencyFactory
       const webrtc::PeerConnectionInterface::RTCConfiguration& config,
       blink::WebLocalFrame* frame,
       webrtc::PeerConnectionObserver* observer,
-      ExceptionState& exception_state,
-      RTCRtpTransport* rtp_transport) override;
+      ExceptionState& exception_state) override;
   scoped_refptr<webrtc::VideoTrackSourceInterface> CreateVideoTrackSourceProxy(
       webrtc::VideoTrackSourceInterface* source) override;
   scoped_refptr<webrtc::MediaStreamInterface> CreateLocalMediaStream(
@@ -197,8 +196,6 @@ class MockPeerConnectionDependencyFactory
       override;
   scoped_refptr<base::SingleThreadTaskRunner> GetWebRtcSignalingTaskRunner()
       override;
-
-  std::unique_ptr<webrtc::Metronome> CreateDecodeMetronome() override;
 
   // If |fail| is true, subsequent calls to CreateSessionDescription will
   // return nullptr. This can be used to fake a blob of SDP that fails to be

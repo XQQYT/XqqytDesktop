@@ -15,7 +15,7 @@
 
 #include <limits>
 
-#include "gtest/gtest.h"
+#include "third_party/googletest/src/include/gtest/gtest.h"
 
 #include "vpx/vpx_integer.h"
 

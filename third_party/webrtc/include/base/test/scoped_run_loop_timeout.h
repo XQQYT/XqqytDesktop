@@ -5,7 +5,6 @@
 #ifndef BASE_TEST_SCOPED_RUN_LOOP_TIMEOUT_H_
 #define BASE_TEST_SCOPED_RUN_LOOP_TIMEOUT_H_
 
-#include <optional>
 #include <string>
 
 #include "base/functional/callback.h"
@@ -14,6 +13,7 @@
 #include "base/memory/raw_ptr.h"
 #include "base/run_loop.h"
 #include "base/time/time.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace content {
 FORWARD_DECLARE_TEST(ContentBrowserTest, RunTimeoutInstalled);
@@ -81,7 +81,7 @@ class ScopedRunLoopTimeout {
   // logged error message. If `timeout` is not specified the current timeout is
   // used and only the log message is overridden.
   ScopedRunLoopTimeout(const Location& timeout_enabled_from_here,
-                       std::optional<TimeDelta> timeout,
+                       absl::optional<TimeDelta> timeout,
                        RepeatingCallback<std::string()> on_timeout_log);
 
   ScopedRunLoopTimeout(const ScopedRunLoopTimeout&) = delete;

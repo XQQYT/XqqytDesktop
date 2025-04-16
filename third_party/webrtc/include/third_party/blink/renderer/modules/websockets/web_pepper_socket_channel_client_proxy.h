@@ -40,7 +40,7 @@ class WebPepperSocketChannelClientProxy final
     std::unique_ptr<Vector<char>> data_to_pass =
         std::make_unique<Vector<char>>();
     for (const auto& span : data) {
-      data_to_pass->AppendSpan(span);
+      data_to_pass->Append(span.data(), static_cast<wtf_size_t>(span.size()));
     }
     impl_->DidReceiveBinaryMessage(std::move(data_to_pass));
   }
@@ -64,7 +64,7 @@ class WebPepperSocketChannelClientProxy final
   }
 
  private:
-  raw_ptr<WebPepperSocketImpl, DanglingUntriaged> impl_;
+  raw_ptr<WebPepperSocketImpl, ExperimentalRenderer> impl_;
 };
 
 }  // namespace blink

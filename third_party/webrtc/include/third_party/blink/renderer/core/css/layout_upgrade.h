@@ -9,8 +9,8 @@
 
 namespace blink {
 
+class Node;
 class Document;
-class Element;
 class HTMLFrameOwnerElement;
 
 // Various APIs require that style information is updated immediately, e.g.
@@ -62,16 +62,16 @@ class ParentLayoutUpgrade : public LayoutUpgrade {
 
 // Upgrades whenever the (inclusive) ancestor chain contains an interleaving
 // root. Suitable when the style of a specific node will be accessed.
-class ElementLayoutUpgrade : public LayoutUpgrade {
+class NodeLayoutUpgrade : public LayoutUpgrade {
   STACK_ALLOCATED();
 
  public:
-  explicit ElementLayoutUpgrade(const Element& element) : element_(element) {}
+  explicit NodeLayoutUpgrade(const Node& node) : node_(node) {}
 
   bool ShouldUpgrade() override;
 
  private:
-  const Element& element_;
+  const Node& node_;
 };
 
 }  // namespace blink

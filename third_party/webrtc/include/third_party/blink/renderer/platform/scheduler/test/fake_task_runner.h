@@ -42,8 +42,6 @@ class FakeTaskRunner : public base::SingleThreadTaskRunner {
   Deque<PendingTask> TakePendingTasksForTesting();
 
  protected:
-  ~FakeTaskRunner() override;
-
   bool PostDelayedTask(const base::Location& location,
                        base::OnceClosure task,
                        base::TimeDelta delay) override;
@@ -57,6 +55,8 @@ class FakeTaskRunner : public base::SingleThreadTaskRunner {
                                   base::TimeDelta delay) override;
 
  private:
+  ~FakeTaskRunner() override;
+
   class Data;
   class BaseTaskRunner;
   scoped_refptr<Data> data_;

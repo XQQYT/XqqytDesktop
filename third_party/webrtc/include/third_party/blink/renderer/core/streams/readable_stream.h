@@ -8,10 +8,7 @@
 #include <stdint.h>
 #include <memory>
 
-#include "third_party/blink/renderer/bindings/core/v8/async_iterable.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_value.h"
-#include "third_party/blink/renderer/bindings/core/v8/v8_async_iterator_readable_stream.h"
-#include "third_party/blink/renderer/bindings/core/v8/v8_readable_stream_iterator_options.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_typedefs.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/streams/readable_stream_default_reader.h"
@@ -36,6 +33,7 @@ class ReadableStreamTransferringOptimizer;
 class ReadableWritablePair;
 class ReadIntoRequest;
 class ReadRequest;
+class ScriptPromise;
 class ScriptState;
 class StrategySizeAlgorithm;
 class StreamAlgorithm;
@@ -47,10 +45,7 @@ class WritableStream;
 
 // C++ implementation of ReadableStream.
 // See https://streams.spec.whatwg.org/#rs-model for background.
-class CORE_EXPORT ReadableStream
-    : public ScriptWrappable,
-      public ValueAsyncIterable<ReadableStream,
-                                ReadableStreamIteratorOptions*> {
+class CORE_EXPORT ReadableStream : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
@@ -138,12 +133,10 @@ class CORE_EXPORT ReadableStream
   // https://streams.spec.whatwg.org/#rs-constructor
   bool locked() const;
 
-  ScriptPromise<IDLUndefined> cancel(ScriptState*, ExceptionState&);
+  ScriptPromise cancel(ScriptState*, ExceptionState&);
 
   // https://streams.spec.whatwg.org/#rs-cancel
-  ScriptPromise<IDLUndefined> cancel(ScriptState*,
-                                     ScriptValue reason,
-                                     ExceptionState&);
+  ScriptPromise cancel(ScriptState*, ScriptValue reason, ExceptionState&);
 
   V8ReadableStreamReader* getReader(ScriptState* script_state,
                                     ExceptionState& exception_state);
@@ -170,15 +163,15 @@ class CORE_EXPORT ReadableStream
                               const StreamPipeOptions* options,
                               ExceptionState&);
 
-  ScriptPromise<IDLUndefined> pipeTo(ScriptState*,
-                                     WritableStream* destination,
-                                     ExceptionState&);
+  ScriptPromise pipeTo(ScriptState*,
+                       WritableStream* destination,
+                       ExceptionState&);
 
   // https://streams.spec.whatwg.org/#rs-pipe-to
-  ScriptPromise<IDLUndefined> pipeTo(ScriptState*,
-                                     WritableStream* destination,
-                                     const StreamPipeOptions* options,
-                                     ExceptionState&);
+  ScriptPromise pipeTo(ScriptState*,
+                       WritableStream* destination,
+                       const StreamPipeOptions* options,
+                       ExceptionState&);
 
   // https://streams.spec.whatwg.org/#rs-tee
   HeapVector<Member<ReadableStream>> tee(ScriptState*, ExceptionState&);
@@ -232,11 +225,11 @@ class CORE_EXPORT ReadableStream
   }
 
   // https://streams.spec.whatwg.org/#readable-stream-pipe-to
-  static ScriptPromise<IDLUndefined> PipeTo(ScriptState*,
-                                            ReadableStream*,
-                                            WritableStream*,
-                                            PipeOptions*,
-                                            ExceptionState&);
+  static ScriptPromise PipeTo(ScriptState*,
+                              ReadableStream*,
+                              WritableStream*,
+                              PipeOptions*,
+                              ExceptionState&);
 
   // https://streams.spec.whatwg.org/#acquire-readable-stream-reader
   static ReadableStreamDefaultReader* AcquireDefaultReader(ScriptState*,
@@ -247,11 +240,6 @@ class CORE_EXPORT ReadableStream
   static ReadableStreamBYOBReader* AcquireBYOBReader(ScriptState*,
                                                      ReadableStream*,
                                                      ExceptionState&);
-
-  // https://streams.spec.whatwg.org/#readable-stream-cancel
-  static ScriptPromise<IDLUndefined> Cancel(ScriptState*,
-                                            ReadableStream*,
-                                            v8::Local<v8::Value> reason);
 
   //
   // Functions exported for use by TransformStream. Not part of the standard.
@@ -297,8 +285,6 @@ class CORE_EXPORT ReadableStream
   class PullAlgorithm;
   class CancelAlgorithm;
   class ReadHandleImpl;
-  class IterationSource;
-  class IterationReadRequest;
 
   // https://streams.spec.whatwg.org/#rs-constructor
   void InitInternal(ScriptState*,
@@ -317,6 +303,11 @@ class CORE_EXPORT ReadableStream
   // https://streams.spec.whatwg.org/#readable-stream-add-read-request
   static void AddReadRequest(ScriptState*, ReadableStream*, ReadRequest*);
 
+  // https://streams.spec.whatwg.org/#readable-stream-cancel
+  static v8::Local<v8::Promise> Cancel(ScriptState*,
+                                       ReadableStream*,
+                                       v8::Local<v8::Value> reason);
+
   // https://streams.spec.whatwg.org/#readable-stream-close
   static void Close(ScriptState*, ReadableStream*);
 
@@ -327,15 +318,13 @@ class CORE_EXPORT ReadableStream
   static void FulfillReadIntoRequest(ScriptState*,
                                      ReadableStream*,
                                      DOMArrayBufferView* chunk,
-                                     bool done,
-                                     ExceptionState&);
+                                     bool done);
 
   // https://streams.spec.whatwg.org/#readable-stream-fulfill-read-request
   static void FulfillReadRequest(ScriptState*,
                                  ReadableStream*,
                                  v8::Local<v8::Value> chunk,
-                                 bool done,
-                                 ExceptionState&);
+                                 bool done);
 
   // https://streams.spec.whatwg.org/#readable-stream-get-num-read-into-requests
   static int GetNumReadIntoRequests(const ReadableStream*);
@@ -366,16 +355,6 @@ class CORE_EXPORT ReadableStream
   Member<ReadableStreamGenericReader> reader_;
   TraceWrapperV8Reference<v8::Value> stored_error_;
   std::unique_ptr<ReadableStreamTransferringOptimizer> transferring_optimizer_;
-
-  // ValueAsyncIterable<ReadableStream> overrides:
-  using IterationSourceBase =
-      ValueAsyncIterable<ReadableStream,
-                         ReadableStreamIteratorOptions*>::IterationSource;
-  IterationSourceBase* CreateIterationSource(
-      ScriptState* script_state,
-      IterationSourceBase::Kind kind,
-      ReadableStreamIteratorOptions* options,
-      ExceptionState& exception_state) override;
 };
 
 }  // namespace blink

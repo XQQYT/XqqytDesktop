@@ -20,12 +20,13 @@
 #define GRPC_SRC_CORE_LIB_TRANSPORT_TIMEOUT_ENCODING_H
 
 #include <grpc/support/port_platform.h>
+
 #include <stdint.h>
 
-#include <optional>
+#include "absl/types/optional.h"
 
+#include "src/core/lib/gprpp/time.h"
 #include "src/core/lib/slice/slice.h"
-#include "src/core/util/time.h"
 
 namespace grpc_core {
 
@@ -60,11 +61,11 @@ class Timeout {
   static Timeout FromMinutes(int64_t minutes);
   static Timeout FromHours(int64_t hours);
 
-  uint16_t value_ = 0;
-  Unit unit_ = Unit::kNanoseconds;
+  uint16_t value_;
+  Unit unit_;
 };
 
-std::optional<Duration> ParseTimeout(const Slice& text);
+absl::optional<Duration> ParseTimeout(const Slice& text);
 
 }  // namespace grpc_core
 

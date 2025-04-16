@@ -34,7 +34,6 @@
 namespace blink {
 
 class SecurityPolicyViolationEventInit;
-class V8SecurityPolicyViolationEventDisposition;
 
 class SecurityPolicyViolationEvent final : public Event {
   DEFINE_WRAPPERTYPEINFO();
@@ -62,7 +61,7 @@ class SecurityPolicyViolationEvent final : public Event {
   const String& violatedDirective() const { return violated_directive_; }
   const String& effectiveDirective() const { return effective_directive_; }
   const String& originalPolicy() const { return original_policy_; }
-  V8SecurityPolicyViolationEventDisposition disposition() const;
+  const String& disposition() const;
   const String& sourceFile() const { return source_file_; }
   const String& sample() const { return sample_; }
   int lineNumber() const { return line_number_; }

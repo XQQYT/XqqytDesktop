@@ -14,8 +14,6 @@
 #include <memory>
 #include <vector>
 
-#include "api/environment/environment.h"
-#include "api/environment/environment_factory.h"
 #include "api/test/frame_generator_interface.h"
 #include "api/video_codecs/video_decoder.h"
 #include "api/video_codecs/video_encoder.h"
@@ -32,8 +30,7 @@ namespace webrtc {
 class VideoCodecUnitTest : public ::testing::Test {
  public:
   VideoCodecUnitTest()
-      : env_(CreateEnvironment()),
-        encode_complete_callback_(this),
+      : encode_complete_callback_(this),
         decode_complete_callback_(this),
         wait_for_encoded_frames_threshold_(1),
         last_input_frame_timestamp_(0) {}
@@ -56,18 +53,17 @@ class VideoCodecUnitTest : public ::testing::Test {
     explicit FakeDecodeCompleteCallback(VideoCodecUnitTest* test)
         : test_(test) {}
 
-    int32_t Decoded(VideoFrame& /* frame */) override {
+    int32_t Decoded(VideoFrame& frame) override {
       RTC_DCHECK_NOTREACHED();
       return -1;
     }
-    int32_t Decoded(VideoFrame& /* frame */,
-                    int64_t /* decode_time_ms */) override {
+    int32_t Decoded(VideoFrame& frame, int64_t decode_time_ms) override {
       RTC_DCHECK_NOTREACHED();
       return -1;
     }
     void Decoded(VideoFrame& frame,
-                 std::optional<int32_t> decode_time_ms,
-                 std::optional<uint8_t> qp) override;
+                 absl::optional<int32_t> decode_time_ms,
+                 absl::optional<uint8_t> qp) override;
 
    private:
     VideoCodecUnitTest* const test_;
@@ -96,11 +92,10 @@ class VideoCodecUnitTest : public ::testing::Test {
 
   // Helper method for waiting a single decoded frame.
   bool WaitForDecodedFrame(std::unique_ptr<VideoFrame>* frame,
-                           std::optional<uint8_t>* qp);
+                           absl::optional<uint8_t>* qp);
 
   size_t GetNumEncodedFrames();
 
-  const Environment env_;
   VideoCodec codec_settings_;
 
   std::unique_ptr<VideoEncoder> encoder_;
@@ -111,7 +106,7 @@ class VideoCodecUnitTest : public ::testing::Test {
   FakeEncodeCompleteCallback encode_complete_callback_;
   FakeDecodeCompleteCallback decode_complete_callback_;
 
-  Event encoded_frame_event_;
+  rtc::Event encoded_frame_event_;
   Mutex encoded_frame_section_;
   size_t wait_for_encoded_frames_threshold_;
   std::vector<EncodedImage> encoded_frames_
@@ -119,11 +114,11 @@ class VideoCodecUnitTest : public ::testing::Test {
   std::vector<CodecSpecificInfo> codec_specific_infos_
       RTC_GUARDED_BY(encoded_frame_section_);
 
-  Event decoded_frame_event_;
+  rtc::Event decoded_frame_event_;
   Mutex decoded_frame_section_;
-  std::optional<VideoFrame> decoded_frame_
+  absl::optional<VideoFrame> decoded_frame_
       RTC_GUARDED_BY(decoded_frame_section_);
-  std::optional<uint8_t> decoded_qp_ RTC_GUARDED_BY(decoded_frame_section_);
+  absl::optional<uint8_t> decoded_qp_ RTC_GUARDED_BY(decoded_frame_section_);
 
   uint32_t last_input_frame_timestamp_;
 };

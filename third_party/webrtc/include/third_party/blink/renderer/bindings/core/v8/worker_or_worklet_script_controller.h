@@ -45,16 +45,14 @@ class WorkerOrWorkletGlobalScope;
 class CORE_EXPORT WorkerOrWorkletScriptController final
     : public GarbageCollected<WorkerOrWorkletScriptController> {
  public:
-  WorkerOrWorkletScriptController(WorkerOrWorkletGlobalScope*,
-                                  v8::Isolate*,
-                                  bool is_default_world_of_isolate);
+  WorkerOrWorkletScriptController(WorkerOrWorkletGlobalScope*, v8::Isolate*);
 
   WorkerOrWorkletScriptController(const WorkerOrWorkletScriptController&) =
       delete;
   WorkerOrWorkletScriptController& operator=(
       const WorkerOrWorkletScriptController&) = delete;
 
-  ~WorkerOrWorkletScriptController();
+  virtual ~WorkerOrWorkletScriptController();
   void Dispose();
 
   bool IsExecutionForbidden() const;
@@ -114,7 +112,7 @@ class CORE_EXPORT WorkerOrWorkletScriptController final
   v8::Isolate* isolate_;
 
   Member<ScriptState> script_state_;
-  Member<DOMWrapperWorld> world_;
+  scoped_refptr<DOMWrapperWorld> world_;
 
   // Keeps the error message for `eval()` on JavaScript until Initialize().
   String disable_eval_pending_;

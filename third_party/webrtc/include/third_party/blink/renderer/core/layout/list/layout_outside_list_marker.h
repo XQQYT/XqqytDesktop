@@ -6,13 +6,13 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_LIST_LAYOUT_OUTSIDE_LIST_MARKER_H_
 
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/layout/layout_block_flow.h"
 #include "third_party/blink/renderer/core/layout/list/list_marker.h"
+#include "third_party/blink/renderer/core/layout/ng/layout_ng_block_flow.h"
 
 namespace blink {
 
 // A LayoutObject subclass for outside-positioned list markers in LayoutNG.
-class CORE_EXPORT LayoutOutsideListMarker final : public LayoutBlockFlow {
+class CORE_EXPORT LayoutOutsideListMarker final : public LayoutNGBlockFlow {
  public:
   explicit LayoutOutsideListMarker(Element*);
 
@@ -37,10 +37,7 @@ class CORE_EXPORT LayoutOutsideListMarker final : public LayoutBlockFlow {
   bool IsMonolithic() const final;
 
  private:
-  bool IsLayoutOutsideListMarker() const final {
-    NOT_DESTROYED();
-    return true;
-  }
+  bool IsOfType(LayoutObjectType) const override;
   PositionWithAffinity PositionForPoint(const PhysicalOffset&) const override;
 
   ListMarker list_marker_;

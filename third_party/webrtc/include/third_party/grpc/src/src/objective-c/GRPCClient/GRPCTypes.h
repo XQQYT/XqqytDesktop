@@ -154,6 +154,8 @@ typedef NS_ENUM(NSUInteger, GRPCTransportType) {
   GRPCTransportTypeDefault = 0,
   /** gRPC internal HTTP/2 stack with BoringSSL */
   GRPCTransportTypeChttp2BoringSSL = 0,
+  /** Cronet stack */
+  GRPCTransportTypeCronet,
   /** Insecure channel. FOR TEST ONLY! */
   GRPCTransportTypeInsecure,
 };
@@ -169,7 +171,7 @@ extern NSString* _Nonnull const kGRPCHeadersKey;
 extern NSString* _Nonnull const kGRPCTrailersKey;
 
 /** The id of a transport implementation. */
-typedef const char* _Nonnull GRPCTransportID;
+typedef char* _Nonnull GRPCTransportID;
 
 /**
  * Implement this protocol to provide a token to gRPC when a call is initiated.

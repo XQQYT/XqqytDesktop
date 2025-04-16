@@ -60,7 +60,8 @@ class MIDIInput final : public MIDIPort {
   }
 
   void DidReceiveMIDIData(unsigned port_index,
-                          base::span<const uint8_t> data,
+                          const unsigned char* data,
+                          size_t length,
                           base::TimeTicks time_stamp);
 
   void Trace(Visitor*) const override;

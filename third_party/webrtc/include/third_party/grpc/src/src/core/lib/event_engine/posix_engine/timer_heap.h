@@ -24,7 +24,8 @@
 #include <cstddef>
 #include <vector>
 
-namespace grpc_event_engine::experimental {
+namespace grpc_event_engine {
+namespace experimental {
 
 struct Timer;
 
@@ -49,6 +50,7 @@ class TimerHeap {
   std::vector<Timer*> timers_;
 };
 
-}  // namespace grpc_event_engine::experimental
+}  // namespace experimental
+}  // namespace grpc_event_engine
 
 #endif  // GRPC_SRC_CORE_LIB_EVENT_ENGINE_POSIX_ENGINE_TIMER_HEAP_H

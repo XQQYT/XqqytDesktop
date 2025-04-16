@@ -1,21 +1,63 @@
-// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
+ * All rights reserved.
+ *
+ * This package is an SSL implementation written
+ * by Eric Young (eay@cryptsoft.com).
+ * The implementation was written so as to conform with Netscapes SSL.
+ *
+ * This library is free for commercial and non-commercial use as long as
+ * the following conditions are aheared to.  The following conditions
+ * apply to all code found in this distribution, be it the RC4, RSA,
+ * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
+ * included with this distribution is covered by the same copyright terms
+ * except that the holder is Tim Hudson (tjh@cryptsoft.com).
+ *
+ * Copyright remains Eric Young's, and as such any Copyright notices in
+ * the code are not to be removed.
+ * If this package is used in a product, Eric Young should be given attribution
+ * as the author of the parts of the library used.
+ * This can be in the form of a textual message at program startup or
+ * in documentation (online or textual) provided with the package.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    "This product includes cryptographic software written by
+ *     Eric Young (eay@cryptsoft.com)"
+ *    The word 'cryptographic' can be left out if the rouines from the library
+ *    being used are not cryptographic related :-).
+ * 4. If you include any Windows specific code (or a derivative thereof) from
+ *    the apps directory (application code) you must include an acknowledgement:
+ *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * The licence and distribution terms for any publically available version or
+ * derivative of this code cannot be changed.  i.e. this code cannot simply be
+ * copied and put under another distribution licence
+ * [including the GNU Public Licence.] */
 
 #ifndef OPENSSL_HEADER_BIO_H
 #define OPENSSL_HEADER_BIO_H
 
-#include <openssl/base.h>   // IWYU pragma: export
+#include <openssl/base.h>
 
 #include <stdio.h>  // For FILE
 
@@ -227,11 +269,11 @@ OPENSSL_EXPORT int BIO_set_close(BIO *bio, int close_flag);
 
 // BIO_number_read returns the number of bytes that have been read from
 // |bio|.
-OPENSSL_EXPORT uint64_t BIO_number_read(const BIO *bio);
+OPENSSL_EXPORT size_t BIO_number_read(const BIO *bio);
 
 // BIO_number_written returns the number of bytes that have been written to
 // |bio|.
-OPENSSL_EXPORT uint64_t BIO_number_written(const BIO *bio);
+OPENSSL_EXPORT size_t BIO_number_written(const BIO *bio);
 
 
 // Managing chains of BIOs.
@@ -431,82 +473,41 @@ OPENSSL_EXPORT int BIO_get_fd(BIO *bio, int *out_fd);
 OPENSSL_EXPORT const BIO_METHOD *BIO_s_file(void);
 
 // BIO_new_file creates a file BIO by opening |filename| with the given mode.
-// See the |fopen| manual page for details of the mode argument. On Windows,
-// files may be opened in either binary or text mode so, as in |fopen|, callers
-// must specify the desired option in |mode|.
+// See the |fopen| manual page for details of the mode argument.
 OPENSSL_EXPORT BIO *BIO_new_file(const char *filename, const char *mode);
 
-// BIO_FP_TEXT indicates the |FILE| should be switched to text mode on Windows.
-// It has no effect on non-Windows platforms.
-#define BIO_FP_TEXT 0x10
-
-// BIO_new_fp creates a new file BIO that wraps |file|. If |flags| contains
-// |BIO_CLOSE|, then |fclose| will be called on |file| when the BIO is closed.
-//
-// On Windows, if |flags| contains |BIO_FP_TEXT|, this function will
-// additionally switch |file| to text mode. This is not recommended, but may be
-// required for OpenSSL compatibility. If |file| was not already in text mode,
-// mode changes can cause unflushed data in |file| to be written in unexpected
-// ways. See |_setmode| in Windows documentation for details.
-//
-// Unlike OpenSSL, if |flags| does not contain |BIO_FP_TEXT|, the translation
-// mode of |file| is left as-is. In OpenSSL, |file| will be set to binary, with
-// the same pitfalls as above. BoringSSL does not do this so that wrapping a
-// |FILE| in a |BIO| will not inadvertently change its state.
-//
-// To avoid these pitfalls, callers should set the desired translation mode when
-// opening the file. If targeting just BoringSSL, this is sufficient. If
-// targeting both OpenSSL and BoringSSL, callers should set |BIO_FP_TEXT| to
-// match the desired state of the file.
-OPENSSL_EXPORT BIO *BIO_new_fp(FILE *file, int flags);
+// BIO_new_fp creates a new file BIO that wraps the given |FILE|. If
+// |close_flag| is |BIO_CLOSE|, then |fclose| will be called on |stream| when
+// the BIO is closed.
+OPENSSL_EXPORT BIO *BIO_new_fp(FILE *stream, int close_flag);
 
 // BIO_get_fp sets |*out_file| to the current |FILE| for |bio|. It returns one
 // on success and zero otherwise.
 OPENSSL_EXPORT int BIO_get_fp(BIO *bio, FILE **out_file);
 
-// BIO_set_fp sets the |FILE| for |bio|. If |flags| contains |BIO_CLOSE| then
+// BIO_set_fp sets the |FILE| for |bio|. If |close_flag| is |BIO_CLOSE| then
 // |fclose| will be called on |file| when |bio| is closed. It returns one on
 // success and zero otherwise.
-//
-// On Windows, if |flags| contains |BIO_FP_TEXT|, this function will
-// additionally switch |file| to text mode. This is not recommended, but may be
-// required for OpenSSL compatibility. If |file| was not already in text mode,
-// mode changes can cause unflushed data in |file| to be written in unexpected
-// ways. See |_setmode| in Windows documentation for details.
-//
-// Unlike OpenSSL, if |flags| does not contain |BIO_FP_TEXT|, the translation
-// mode of |file| is left as-is. In OpenSSL, |file| will be set to binary, with
-// the same pitfalls as above. BoringSSL does not do this so that wrapping a
-// |FILE| in a |BIO| will not inadvertently change its state.
-//
-// To avoid these pitfalls, callers should set the desired translation mode when
-// opening the file. If targeting just BoringSSL, this is sufficient. If
-// targeting both OpenSSL and BoringSSL, callers should set |BIO_FP_TEXT| to
-// match the desired state of the file.
-OPENSSL_EXPORT int BIO_set_fp(BIO *bio, FILE *file, int flags);
+OPENSSL_EXPORT int BIO_set_fp(BIO *bio, FILE *file, int close_flag);
 
 // BIO_read_filename opens |filename| for reading and sets the result as the
 // |FILE| for |bio|. It returns one on success and zero otherwise. The |FILE|
-// will be closed when |bio| is freed. On Windows, the file is opened in binary
-// mode.
+// will be closed when |bio| is freed.
 OPENSSL_EXPORT int BIO_read_filename(BIO *bio, const char *filename);
 
 // BIO_write_filename opens |filename| for writing and sets the result as the
 // |FILE| for |bio|. It returns one on success and zero otherwise. The |FILE|
-// will be closed when |bio| is freed. On Windows, the file is opened in binary
-// mode.
+// will be closed when |bio| is freed.
 OPENSSL_EXPORT int BIO_write_filename(BIO *bio, const char *filename);
 
 // BIO_append_filename opens |filename| for appending and sets the result as
 // the |FILE| for |bio|. It returns one on success and zero otherwise. The
-// |FILE| will be closed when |bio| is freed. On Windows, the file is opened in
-// binary mode.
+// |FILE| will be closed when |bio| is freed.
 OPENSSL_EXPORT int BIO_append_filename(BIO *bio, const char *filename);
 
 // BIO_rw_filename opens |filename| for reading and writing and sets the result
 // as the |FILE| for |bio|. It returns one on success and zero otherwise. The
-// |FILE| will be closed when |bio| is freed. On Windows, the file is opened in
-// binary mode.
+// |FILE| will be closed when |bio| is freed.
 OPENSSL_EXPORT int BIO_rw_filename(BIO *bio, const char *filename);
 
 // BIO_tell returns the file offset of |bio|, or a negative number on error or
@@ -672,49 +673,39 @@ OPENSSL_EXPORT void BIO_meth_free(BIO_METHOD *method);
 // and returns one. The function should return one on success and zero on
 // error.
 OPENSSL_EXPORT int BIO_meth_set_create(BIO_METHOD *method,
-                                       int (*create_func)(BIO *));
+                                       int (*create)(BIO *));
 
 // BIO_meth_set_destroy sets a function to release data associated with a |BIO|
 // and returns one. The function's return value is ignored.
 OPENSSL_EXPORT int BIO_meth_set_destroy(BIO_METHOD *method,
-                                        int (*destroy_func)(BIO *));
+                                        int (*destroy)(BIO *));
 
 // BIO_meth_set_write sets the implementation of |BIO_write| for |method| and
 // returns one. |BIO_METHOD|s which implement |BIO_write| should also implement
 // |BIO_CTRL_FLUSH|. (See |BIO_meth_set_ctrl|.)
 OPENSSL_EXPORT int BIO_meth_set_write(BIO_METHOD *method,
-                                      int (*write_func)(BIO *, const char *,
-                                                        int));
+                                      int (*write)(BIO *, const char *, int));
 
 // BIO_meth_set_read sets the implementation of |BIO_read| for |method| and
 // returns one.
 OPENSSL_EXPORT int BIO_meth_set_read(BIO_METHOD *method,
-                                     int (*read_func)(BIO *, char *, int));
+                                     int (*read)(BIO *, char *, int));
 
 // BIO_meth_set_gets sets the implementation of |BIO_gets| for |method| and
 // returns one.
 OPENSSL_EXPORT int BIO_meth_set_gets(BIO_METHOD *method,
-                                     int (*gets_func)(BIO *, char *, int));
+                                     int (*gets)(BIO *, char *, int));
 
 // BIO_meth_set_ctrl sets the implementation of |BIO_ctrl| for |method| and
 // returns one.
 OPENSSL_EXPORT int BIO_meth_set_ctrl(BIO_METHOD *method,
-                                     long (*ctrl_func)(BIO *, int, long,
-                                                       void *));
+                                     long (*ctrl)(BIO *, int, long, void *));
 
 // BIO_set_data sets custom data on |bio|. It may be retried with
 // |BIO_get_data|.
-//
-// This function should only be called by the implementation of a custom |BIO|.
-// In particular, the data pointer of a built-in |BIO| is private to the
-// library. For other uses, see |BIO_set_ex_data| and |BIO_set_app_data|.
 OPENSSL_EXPORT void BIO_set_data(BIO *bio, void *ptr);
 
 // BIO_get_data returns custom data on |bio| set by |BIO_get_data|.
-//
-// This function should only be called by the implementation of a custom |BIO|.
-// In particular, the data pointer of a built-in |BIO| is private to the
-// library. For other uses, see |BIO_get_ex_data| and |BIO_get_app_data|.
 OPENSSL_EXPORT void *BIO_get_data(BIO *bio);
 
 // BIO_set_init sets whether |bio| has been fully initialized. Until fully
@@ -770,21 +761,6 @@ OPENSSL_EXPORT int BIO_get_init(BIO *bio);
 #define BIO_CTRL_SET_FILENAME 30
 
 
-// ex_data functions.
-//
-// See |ex_data.h| for details.
-
-OPENSSL_EXPORT int BIO_get_ex_new_index(long argl, void *argp,
-                                        CRYPTO_EX_unused *unused,
-                                        CRYPTO_EX_dup *dup_unused,
-                                        CRYPTO_EX_free *free_func);
-OPENSSL_EXPORT int BIO_set_ex_data(BIO *bio, int idx, void *arg);
-OPENSSL_EXPORT void *BIO_get_ex_data(const BIO *bio, int idx);
-
-#define BIO_set_app_data(bio, arg) (BIO_set_ex_data(bio, 0, (char *)(arg)))
-#define BIO_get_app_data(bio) (BIO_get_ex_data(bio, 0))
-
-
 // Deprecated functions.
 
 // BIO_f_base64 returns a filter |BIO| that base64-encodes data written into
@@ -825,36 +801,36 @@ OPENSSL_EXPORT int BIO_meth_set_puts(BIO_METHOD *method,
 // or change the data in any way.
 #define BIO_FLAGS_MEM_RDONLY 0x200
 
+// These are the 'types' of BIOs
+#define BIO_TYPE_NONE 0
+#define BIO_TYPE_MEM (1 | 0x0400)
+#define BIO_TYPE_FILE (2 | 0x0400)
+#define BIO_TYPE_FD (4 | 0x0400 | 0x0100)
+#define BIO_TYPE_SOCKET (5 | 0x0400 | 0x0100)
+#define BIO_TYPE_NULL (6 | 0x0400)
+#define BIO_TYPE_SSL (7 | 0x0200)
+#define BIO_TYPE_MD (8 | 0x0200)                 // passive filter
+#define BIO_TYPE_BUFFER (9 | 0x0200)             // filter
+#define BIO_TYPE_CIPHER (10 | 0x0200)            // filter
+#define BIO_TYPE_BASE64 (11 | 0x0200)            // filter
+#define BIO_TYPE_CONNECT (12 | 0x0400 | 0x0100)  // socket - connect
+#define BIO_TYPE_ACCEPT (13 | 0x0400 | 0x0100)   // socket for accept
+#define BIO_TYPE_PROXY_CLIENT (14 | 0x0200)      // client proxy BIO
+#define BIO_TYPE_PROXY_SERVER (15 | 0x0200)      // server proxy BIO
+#define BIO_TYPE_NBIO_TEST (16 | 0x0200)         // server proxy BIO
+#define BIO_TYPE_NULL_FILTER (17 | 0x0200)
+#define BIO_TYPE_BER (18 | 0x0200)         // BER -> bin filter
+#define BIO_TYPE_BIO (19 | 0x0400)         // (half a) BIO pair
+#define BIO_TYPE_LINEBUFFER (20 | 0x0200)  // filter
+#define BIO_TYPE_DGRAM (21 | 0x0400 | 0x0100)
+#define BIO_TYPE_ASN1 (22 | 0x0200)  // filter
+#define BIO_TYPE_COMP (23 | 0x0200)  // filter
+
 // BIO_TYPE_DESCRIPTOR denotes that the |BIO| responds to the |BIO_C_SET_FD|
 // (|BIO_set_fd|) and |BIO_C_GET_FD| (|BIO_get_fd|) control hooks.
 #define BIO_TYPE_DESCRIPTOR 0x0100  // socket, fd, connect or accept
 #define BIO_TYPE_FILTER 0x0200
 #define BIO_TYPE_SOURCE_SINK 0x0400
-
-// These are the 'types' of BIOs
-#define BIO_TYPE_NONE 0
-#define BIO_TYPE_MEM (1 | BIO_TYPE_SOURCE_SINK)
-#define BIO_TYPE_FILE (2 | BIO_TYPE_SOURCE_SINK)
-#define BIO_TYPE_FD (4 | BIO_TYPE_SOURCE_SINK | BIO_TYPE_DESCRIPTOR)
-#define BIO_TYPE_SOCKET (5 | BIO_TYPE_SOURCE_SINK | BIO_TYPE_DESCRIPTOR)
-#define BIO_TYPE_NULL (6 | BIO_TYPE_SOURCE_SINK)
-#define BIO_TYPE_SSL (7 | BIO_TYPE_FILTER)
-#define BIO_TYPE_MD (8 | BIO_TYPE_FILTER)
-#define BIO_TYPE_BUFFER (9 | BIO_TYPE_FILTER)
-#define BIO_TYPE_CIPHER (10 | BIO_TYPE_FILTER)
-#define BIO_TYPE_BASE64 (11 | BIO_TYPE_FILTER)
-#define BIO_TYPE_CONNECT (12 | BIO_TYPE_SOURCE_SINK | BIO_TYPE_DESCRIPTOR)
-#define BIO_TYPE_ACCEPT (13 | BIO_TYPE_SOURCE_SINK | BIO_TYPE_DESCRIPTOR)
-#define BIO_TYPE_PROXY_CLIENT (14 | BIO_TYPE_FILTER)
-#define BIO_TYPE_PROXY_SERVER (15 | BIO_TYPE_FILTER)
-#define BIO_TYPE_NBIO_TEST (16 | BIO_TYPE_FILTER)
-#define BIO_TYPE_NULL_FILTER (17 | BIO_TYPE_FILTER)
-#define BIO_TYPE_BER (18 | BIO_TYPE_FILTER)       // BER -> bin filter
-#define BIO_TYPE_BIO (19 | BIO_TYPE_SOURCE_SINK)  // (half a) BIO pair
-#define BIO_TYPE_LINEBUFFER (20 | BIO_TYPE_FILTER)
-#define BIO_TYPE_DGRAM (21 | BIO_TYPE_SOURCE_SINK | BIO_TYPE_DESCRIPTOR)
-#define BIO_TYPE_ASN1 (22 | BIO_TYPE_FILTER)
-#define BIO_TYPE_COMP (23 | BIO_TYPE_FILTER)
 
 // BIO_TYPE_START is the first user-allocated |BIO| type. No pre-defined type,
 // flag bits aside, may exceed this value.
@@ -876,7 +852,6 @@ struct bio_method_st {
 
 struct bio_st {
   const BIO_METHOD *method;
-  CRYPTO_EX_DATA ex_data;
 
   // init is non-zero if this |BIO| has been initialised.
   int init;
@@ -895,7 +870,7 @@ struct bio_st {
   // next_bio points to the next |BIO| in a chain. This |BIO| owns a reference
   // to |next_bio|.
   BIO *next_bio;  // used by filter BIOs
-  uint64_t num_read, num_write;
+  size_t num_read, num_write;
 };
 
 #define BIO_C_SET_CONNECT 100

@@ -35,7 +35,6 @@
 namespace blink {
 
 class LayoutObject;
-struct NaturalSizingInfo;
 
 class CORE_EXPORT LayoutImageResource
     : public GarbageCollected<LayoutImageResource> {
@@ -67,7 +66,12 @@ class CORE_EXPORT LayoutImageResource
   // the "broken image".
   void UseBrokenImage();
 
-  virtual NaturalSizingInfo GetNaturalDimensions(float multiplier) const;
+  virtual bool HasIntrinsicSize() const;
+
+  virtual gfx::SizeF ImageSize(float multiplier) const;
+  // Default size is effective when this is LayoutImageResourceStyleImage.
+  virtual gfx::SizeF ImageSizeWithDefaultSize(float multiplier,
+                                              const gfx::SizeF&) const;
   virtual RespectImageOrientationEnum ImageOrientation() const;
   virtual WrappedImagePtr ImagePtr() const { return cached_image_.Get(); }
 

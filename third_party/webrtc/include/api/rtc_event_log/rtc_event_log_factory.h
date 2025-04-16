@@ -13,8 +13,6 @@
 
 #include <memory>
 
-#include "absl/base/nullability.h"
-#include "api/environment/environment.h"
 #include "api/rtc_event_log/rtc_event_log.h"
 #include "api/rtc_event_log/rtc_event_log_factory_interface.h"
 #include "api/task_queue/task_queue_factory.h"
@@ -24,15 +22,16 @@ namespace webrtc {
 
 class RTC_EXPORT RtcEventLogFactory : public RtcEventLogFactoryInterface {
  public:
-  RtcEventLogFactory() = default;
+  explicit RtcEventLogFactory(TaskQueueFactory* task_queue_factory);
+  ~RtcEventLogFactory() override {}
 
-  [[deprecated("Use default constructor")]]  //
-  explicit RtcEventLogFactory(TaskQueueFactory* /* task_queue_factory */) {}
+  std::unique_ptr<RtcEventLog> Create(
+      RtcEventLog::EncodingType encoding_type) const override;
+  std::unique_ptr<RtcEventLog> CreateRtcEventLog(
+      RtcEventLog::EncodingType encoding_type) override;
 
-  ~RtcEventLogFactory() override = default;
-
-  absl::Nonnull<std::unique_ptr<RtcEventLog>> Create(
-      const Environment& env) const override;
+ private:
+  TaskQueueFactory* const task_queue_factory_;
 };
 
 }  // namespace webrtc

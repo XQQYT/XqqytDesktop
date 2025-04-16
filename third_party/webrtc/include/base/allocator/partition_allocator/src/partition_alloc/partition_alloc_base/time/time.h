@@ -59,45 +59,47 @@
 // `TimeTicks` and `ThreadTicks` do not have a stable origin; serialization for
 // the purpose of persistence is not supported.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_H_
 
-#include <cstdint>
-#include <ctime>
+#include <stdint.h>
+#include <time.h>
+
 #include <iosfwd>
 #include <limits>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_base/check.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_base/numerics/clamped_math.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/chromeos_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/check.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/numerics/clamped_math.h"
+#include "build/build_config.h"
 
-#if PA_BUILDFLAG(IS_APPLE)
-#include "partition_alloc/buildflags.h"
-#endif  // PA_BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_APPLE)
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_buildflags.h"
+#endif  // BUILDFLAG(IS_APPLE)
 
-#if PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_FUCHSIA)
 #include <zircon/types.h>
 #endif
 
-#if PA_BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_APPLE)
 #include <CoreFoundation/CoreFoundation.h>
 #include <mach/mach_time.h>
 // Avoid Mac system header macro leak.
 #undef TYPE_BOOL
 #endif
 
-#if PA_BUILDFLAG(IS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
 #include <jni.h>
 #endif
 
-#if PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
 #include <sys/time.h>
 #include <unistd.h>
 #endif
 
-#if PA_BUILDFLAG(IS_WIN)
-#include "partition_alloc/partition_alloc_base/win/windows_types.h"
+#if BUILDFLAG(IS_WIN)
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/windows_types.h"
 
 namespace ABI {
 namespace Windows {
@@ -115,31 +117,31 @@ class TimeDelta;
 template <typename T>
 constexpr TimeDelta Microseconds(T n);
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 class PlatformThreadHandle;
 #endif
 
 // TimeDelta ------------------------------------------------------------------
 
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) TimeDelta {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) TimeDelta {
  public:
   constexpr TimeDelta() = default;
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   static TimeDelta FromQPCValue(LONGLONG qpc_value);
-  // TODO(crbug.com/40638442): Avoid base::TimeDelta factory functions
+  // TODO(crbug.com/989694): Avoid base::TimeDelta factory functions
   // based on absolute time
   static TimeDelta FromFileTime(FILETIME ft);
   static TimeDelta FromWinrtDateTime(ABI::Windows::Foundation::DateTime dt);
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
   static TimeDelta FromTimeSpec(const timespec& ts);
 #endif
-#if PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_FUCHSIA)
   static TimeDelta FromZxDuration(zx_duration_t nanos);
 #endif
-#if PA_BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_APPLE)
   static TimeDelta FromMachTime(uint64_t mach_time);
-#endif  // PA_BUILDFLAG(IS_APPLE)
+#endif  // BUILDFLAG(IS_APPLE)
 
   // Converts an integer value representing TimeDelta to a class. This is used
   // when deserializing a |TimeDelta| structure, using a value known to be
@@ -157,7 +159,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) TimeDelta {
   // large number that doesn't do this. TimeDelta math saturates at the end
   // points so adding to TimeDelta::Max() leaves the value unchanged.
   // Subtracting should leave the value unchanged but currently changes it
-  // TODO(crbug.com/41405098).
+  // TODO(https://crbug.com/869387).
   static constexpr TimeDelta Max();
 
   // Returns the minimum time delta, which should be less than than any
@@ -194,13 +196,13 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) TimeDelta {
   constexpr bool is_min() const { return *this == Min(); }
   constexpr bool is_inf() const { return is_min() || is_max(); }
 
-#if PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
   struct timespec ToTimeSpec() const;
 #endif
-#if PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_FUCHSIA)
   zx_duration_t ToZxDuration() const;
 #endif
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   ABI::Windows::Foundation::DateTime ToWinrtDateTime() const;
 #endif
 
@@ -489,22 +491,20 @@ class TimeBase {
   int64_t us_;
 };
 
-#if PA_BUILDFLAG(IS_WIN)
-#if PA_BUILDFLAG(PA_ARCH_CPU_ARM64)
+#if BUILDFLAG(IS_WIN)
+#if defined(ARCH_CPU_ARM64)
 // TSCTicksPerSecond is not supported on Windows on Arm systems because the
 // cycle-counting methods use the actual CPU cycle count, and not a consistent
 // incrementing counter.
 #else
 // Returns true if the CPU support constant rate TSC.
-[[nodiscard]] PA_COMPONENT_EXPORT(
-    PARTITION_ALLOC_BASE) bool HasConstantRateTSC();
+[[nodiscard]] PA_COMPONENT_EXPORT(PARTITION_ALLOC) bool HasConstantRateTSC();
 
 // Returns the frequency of the TSC in ticks per second, or 0 if it hasn't
 // been measured yet. Needs to be guarded with a call to HasConstantRateTSC().
-[[nodiscard]] PA_COMPONENT_EXPORT(
-    PARTITION_ALLOC_BASE) double TSCTicksPerSecond();
+[[nodiscard]] PA_COMPONENT_EXPORT(PARTITION_ALLOC) double TSCTicksPerSecond();
 #endif
-#endif  // PA_BUILDFLAG(IS_WIN)
+#endif  // BUILDFLAG(IS_WIN)
 
 }  // namespace time_internal
 
@@ -518,7 +518,7 @@ inline constexpr TimeClass operator+(TimeDelta delta, TimeClass t) {
 // Represents a wall clock time in UTC. Values are not guaranteed to be
 // monotonically non-decreasing and are subject to large amounts of skew.
 // Time is stored internally as microseconds since the Windows epoch (1601).
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Time
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) Time
     : public time_internal::TimeBase<Time> {
  public:
   // Offset of UNIX epoch (1970-01-01 00:00:00 UTC) from Windows FILETIME epoch
@@ -529,7 +529,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Time
   static constexpr int64_t kTimeTToMicrosecondsOffset =
       INT64_C(11644473600000000);
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   // To avoid overflow in QPC to Microseconds calculations, since we multiply
   // by kMicrosecondsPerSecond, then the QPC value should not exceed
   // (2^63 - 1) / 1E6. If it exceeds that threshold, we divide then multiply.
@@ -589,7 +589,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Time
   static Time FromSecondsSinceUnixEpoch(double dt);
   double InSecondsFSinceUnixEpoch() const;
 
-#if PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
   // Converts the timespec structure to time. MacOS X 10.8.3 (and tentatively,
   // earlier versions) will have the |ts|'s tv_nsec component zeroed out,
   // having a 1 second resolution, which agrees with
@@ -616,17 +616,17 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Time
   static Time FromMillisecondsSinceUnixEpoch(int64_t ms_since_epoch);
   int64_t InMillisecondsSinceUnixEpoch() const;
 
-#if PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
   static Time FromTimeVal(struct timeval t);
   struct timeval ToTimeVal() const;
 #endif
 
-#if PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_FUCHSIA)
   static Time FromZxTime(zx_time_t time);
   zx_time_t ToZxTime() const;
 #endif
 
-#if PA_BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_APPLE)
   static Time FromCFAbsoluteTime(CFAbsoluteTime t);
   CFAbsoluteTime ToCFAbsoluteTime() const;
 #if defined(__OBJC__)
@@ -635,10 +635,10 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Time
 #endif
 #endif
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   static Time FromFileTime(FILETIME ft);
   FILETIME ToFileTime() const;
-#endif  // PA_BUILDFLAG(IS_WIN)
+#endif  // BUILDFLAG(IS_WIN)
 
   // For legacy deserialization only. Converts an integer value representing
   // Time to a class. This may be used when deserializing a |Time| structure,
@@ -809,7 +809,7 @@ constexpr Time Time::FromTimeT(time_t tt) {
 // TimeTicks ------------------------------------------------------------------
 
 // Represents monotonically non-decreasing clock time.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) TimeTicks
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) TimeTicks
     : public time_internal::TimeBase<TimeTicks> {
  public:
   // The underlying clock used to generate new TimeTicks.
@@ -843,27 +843,58 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) TimeTicks
   // considered to have an ambiguous ordering.)
   [[nodiscard]] static bool IsConsistentAcrossProcesses();
 
-#if PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_FUCHSIA)
   // Converts between TimeTicks and an ZX_CLOCK_MONOTONIC zx_time_t value.
   static TimeTicks FromZxTime(zx_time_t nanos_since_boot);
   zx_time_t ToZxTime() const;
 #endif
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   // Translates an absolute QPC timestamp into a TimeTicks value. The returned
   // value has the same origin as Now(). Do NOT attempt to use this if
   // IsHighResolution() returns false.
   static TimeTicks FromQPCValue(LONGLONG qpc_value);
 #endif
 
-#if PA_BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_APPLE)
   static TimeTicks FromMachAbsoluteTime(uint64_t mach_absolute_time);
 
   // Sets the current Mach timebase to `timebase`. Returns the old timebase.
   static mach_timebase_info_data_t SetMachTimebaseInfoForTesting(
       mach_timebase_info_data_t timebase);
 
-#endif  // PA_BUILDFLAG(IS_APPLE)
+#endif  // BUILDFLAG(IS_APPLE)
+
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(PA_IS_CHROMEOS_ASH)
+  // Converts to TimeTicks the value obtained from SystemClock.uptimeMillis().
+  // Note: this conversion may be non-monotonic in relation to previously
+  // obtained TimeTicks::Now() values because of the truncation (to
+  // milliseconds) performed by uptimeMillis().
+  static TimeTicks FromUptimeMillis(int64_t uptime_millis_value);
+
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(PA_IS_CHROMEOS_ASH)
+
+#if BUILDFLAG(IS_ANDROID)
+  // Converts to TimeTicks the value obtained from System.nanoTime(). This
+  // conversion will be monotonic in relation to previously obtained
+  // TimeTicks::Now() values as the clocks are based on the same posix monotonic
+  // clock, with nanoTime() potentially providing higher resolution.
+  static TimeTicks FromJavaNanoTime(int64_t nano_time_value);
+
+  // Truncates the TimeTicks value to the precision of SystemClock#uptimeMillis.
+  // Note that the clocks already share the same monotonic clock source.
+  jlong ToUptimeMillis() const;
+
+  // Returns the TimeTicks value as microseconds in the timebase of
+  // SystemClock#uptimeMillis.
+  // Note that the clocks already share the same monotonic clock source.
+  //
+  // System.nanoTime() may be used to get sub-millisecond precision in Java code
+  // and may be compared against this value as the two share the same clock
+  // source (though be sure to convert nanos to micros).
+  jlong ToUptimeMicros() const;
+
+#endif  // BUILDFLAG(IS_ANDROID)
 
   // Get an estimate of the TimeTick value at the time of the UnixEpoch. Because
   // Time and TimeTicks respond differently to user-set time and NTP
@@ -873,14 +904,6 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) TimeTicks
   // realtime clock to establish a reference point.  This function will return
   // the same value for the duration of the application, but will be different
   // in future application runs.
-  // DEPRECATED:
-  // Because TimeTicks increments can get suspended on some platforms (e.g. Mac)
-  // and because this function returns a static value, this value will not get
-  // suspension time into account on those platforms.
-  // As TimeTicks is intended to be used to track a process duration and not an
-  // absolute time, if you plan to use this function, please consider using a
-  // Time instead.
-  // TODO(crbug.com/355423207): Remove function.
   static TimeTicks UnixEpoch();
 
   // Returns |this| snapped to the next tick, given a |tick_phase| and
@@ -908,7 +931,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) TimeTicks
   }
 
  protected:
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   typedef DWORD (*TickFunctionType)(void);
   static TickFunctionType SetMockTickFunction(TickFunctionType ticker);
 #endif
@@ -925,7 +948,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) TimeTicks
 
 // Represents a clock, specific to a particular thread, than runs only while the
 // thread is running.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ThreadTicks
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) ThreadTicks
     : public time_internal::TimeBase<ThreadTicks> {
  public:
   constexpr ThreadTicks() : TimeBase(0) {}
@@ -933,10 +956,9 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ThreadTicks
   // Returns true if ThreadTicks::Now() is supported on this system.
   [[nodiscard]] static bool IsSupported() {
 #if (defined(_POSIX_THREAD_CPUTIME) && (_POSIX_THREAD_CPUTIME >= 0)) || \
-    PA_BUILDFLAG(IS_APPLE) || PA_BUILDFLAG(IS_ANDROID) ||               \
-    PA_BUILDFLAG(IS_FUCHSIA)
+    BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_FUCHSIA)
     return true;
-#elif PA_BUILDFLAG(IS_WIN)
+#elif BUILDFLAG(IS_WIN)
     return IsSupportedWin();
 #else
     return false;
@@ -946,7 +968,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ThreadTicks
   // Waits until the initialization is completed. Needs to be guarded with a
   // call to IsSupported().
   static void WaitUntilInitialized() {
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
     WaitUntilInitializedWin();
 #endif
   }
@@ -960,7 +982,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ThreadTicks
   // absolutely needed, call WaitUntilInitialized() before this method.
   static ThreadTicks Now();
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   // Similar to Now() above except this returns thread-specific CPU time for an
   // arbitrary thread. All comments for Now() method above apply apply to this
   // method as well.
@@ -987,7 +1009,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ThreadTicks
   // internal use and testing.
   constexpr explicit ThreadTicks(int64_t us) : TimeBase(us) {}
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   [[nodiscard]] static bool IsSupportedWin();
   static void WaitUntilInitializedWin();
 #endif
@@ -995,4 +1017,4 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ThreadTicks
 
 }  // namespace partition_alloc::internal::base
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_TIME_TIME_H_

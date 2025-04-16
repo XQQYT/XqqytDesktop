@@ -17,20 +17,24 @@
 
 #include <grpc/support/port_platform.h>
 
-#include "absl/log/log.h"
 #include "absl/status/status.h"
+
+#include <grpc/support/log.h>
+
+#include "src/core/lib/debug/trace.h"
 #include "src/core/lib/promise/detail/promise_factory.h"
 #include "src/core/lib/promise/for_each.h"
 #include "src/core/lib/promise/map.h"
 #include "src/core/lib/promise/pipe.h"
 #include "src/core/lib/promise/poll.h"
+#include "src/core/lib/promise/trace.h"
 #include "src/core/lib/promise/try_seq.h"
 
 namespace grpc_core {
 
 // Apply a (possibly async) mapping function to src, and output into dst.
 //
-// In pseudo-code:
+// In psuedo-code:
 // for each element in wait_for src.Next:
 //   x = wait_for filter_factory(element)
 //   wait_for dst.Push(x)
@@ -43,12 +47,16 @@ auto MapPipe(PipeReceiver<T> src, PipeSender<T> dst, Filter filter_factory) {
        dst = std::move(dst)](T t) mutable {
         return TrySeq(
             [] {
-              GRPC_TRACE_VLOG(promise_primitives, 2) << "MapPipe: start map";
+              if (grpc_trace_promise_primitives.enabled()) {
+                gpr_log(GPR_DEBUG, "MapPipe: start map");
+              }
               return Empty{};
             },
             filter_factory.Make(std::move(t)),
             [&dst](T t) {
-              GRPC_TRACE_VLOG(promise_primitives, 2) << "MapPipe: start push";
+              if (grpc_trace_promise_primitives.enabled()) {
+                gpr_log(GPR_DEBUG, "MapPipe: start push");
+              }
               return Map(dst.Push(std::move(t)), [](bool successful_push) {
                 if (successful_push) {
                   return absl::OkStatus();

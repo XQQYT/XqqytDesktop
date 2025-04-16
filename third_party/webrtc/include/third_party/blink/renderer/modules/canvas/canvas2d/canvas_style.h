@@ -27,30 +27,23 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_CANVAS_CANVAS2D_CANVAS_STYLE_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_CANVAS_CANVAS2D_CANVAS_STYLE_H_
 
-#include "base/check.h"
 #include "base/check_op.h"
-#include "base/compiler_specific.h"
+#include "base/types/pass_key.h"
 #include "cc/paint/paint_flags.h"
 #include "third_party/blink/public/mojom/frame/color_scheme.mojom-blink.h"
+#include "third_party/blink/renderer/modules/canvas/canvas2d/canvas_gradient.h"
+#include "third_party/blink/renderer/modules/canvas/canvas2d/canvas_pattern.h"
 #include "third_party/blink/renderer/platform/graphics/color.h"
-#include "third_party/blink/renderer/platform/heap/forward.h"  // IWYU pragma: keep (blink::Visitor)
+#include "third_party/blink/renderer/platform/graphics/graphics_context.h"
+#include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
-#include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
-
-// https://github.com/include-what-you-use/include-what-you-use/issues/1546
-// IWYU pragma: no_forward_declare WTF::internal::__thisIsHereToForceASemicolonAfterThisMacro
-
-// IWYU pragma: no_include "third_party/blink/renderer/platform/heap/visitor.h"
-
-namespace ui {
-class ColorProvider;
-}  // namespace ui
 
 namespace blink {
 
 class CanvasGradient;
 class CanvasPattern;
+class HTMLCanvasElement;
 
 class CanvasStyle final {
   DISALLOW_NEW();
@@ -85,7 +78,7 @@ class CanvasStyle final {
   }
 
   bool SetColor(Color color) {
-    if (type_ == kColor) [[likely]] {
+    if (LIKELY(type_ == kColor)) {
       if (color == color_) {
         return false;
       }
@@ -135,7 +128,7 @@ ALWAYS_INLINE void CanvasStyle::ApplyColorToFlags(cc::PaintFlags& flags,
 
 ALWAYS_INLINE void CanvasStyle::SyncFlags(cc::PaintFlags& flags,
                                           float global_alpha) const {
-  if (type_ == kColor) [[likely]] {
+  if (LIKELY(type_ == kColor)) {
     // Color values are immutable so they never need to be sync'ed at draw time.
     return;
   }
@@ -149,9 +142,8 @@ enum class ColorParseResult {
   // The string identified the current color.
   kCurrentColor,
 
-  // The string contains a color-mix or relative color function, which may
-  // contain currentcolor.
-  kColorFunction,
+  // The string contains a color-mix function, which may contain current color.
+  kColorMix,
 
   // Parsing failed.
   kParseFailed
@@ -161,9 +153,7 @@ enum class ColorParseResult {
 // `kParsedColor`, `parsed_color` is set appropriately.
 ColorParseResult ParseCanvasColorString(const String& color_string,
                                         mojom::blink::ColorScheme color_scheme,
-                                        Color& parsed_color,
-                                        const ui::ColorProvider* color_provider,
-                                        bool is_in_web_app_scope);
+                                        Color& parsed_color);
 
 // Parses the canvas color string, returning true on success. If `color_string`
 // indicates the current color should be used, `parsed_color` is set to black.

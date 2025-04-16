@@ -31,6 +31,7 @@
 #include "libavutil/opt.h"
 #include "libavutil/timestamp.h"
 #include "avfilter.h"
+#include "internal.h"
 
 #define ELEMENT_COUNT 10
 #define SIGELEM_SIZE 380

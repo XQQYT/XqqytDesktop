@@ -18,7 +18,7 @@ const autocomplete = (function() {
   };
 
   Autocomplete.prototype.search = function(target) {
-    if (target == null || target == undefined || target == '') {
+    if (target == null || target == undefined) {
       return this.sourceList_;
     }
     const selector = new FuzzySelect(

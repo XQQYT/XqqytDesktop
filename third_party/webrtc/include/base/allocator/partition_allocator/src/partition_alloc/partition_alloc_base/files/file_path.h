@@ -99,48 +99,48 @@
 //    paths (sometimes)?", available at:
 //    http://blogs.msdn.com/oldnewthing/archive/2005/11/22/495740.aspx
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_FILES_FILE_PATH_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_FILES_FILE_PATH_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_FILES_FILE_PATH_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_FILES_FILE_PATH_H_
 
 #include <cstddef>
 #include <iosfwd>
 #include <string>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "build/build_config.h"
 
 // Windows-style drive letter support and pathname separator characters can be
 // enabled and disabled independently, to aid testing.  These #defines are
 // here so that the same setting can be used in both the implementation and
 // in the unit test.
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 #define PA_FILE_PATH_USES_DRIVE_LETTERS
 #define PA_FILE_PATH_USES_WIN_SEPARATORS
-#endif  // PA_BUILDFLAG(IS_WIN)
+#endif  // BUILDFLAG(IS_WIN)
 
 // Macros for string literal initialization of FilePath::CharType[].
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 #define PA_FILE_PATH_LITERAL(x) L##x
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
 #define PA_FILE_PATH_LITERAL(x) x
-#endif  // PA_BUILDFLAG(IS_WIN)
+#endif  // BUILDFLAG(IS_WIN)
 
 namespace partition_alloc::internal::base {
 
 // An abstraction to isolate users from the differences between native
 // pathnames on different platforms.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) FilePath {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) FilePath {
  public:
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   // On Windows, for Unicode-aware applications, native pathnames are wchar_t
   // arrays encoded in UTF-16.
   typedef std::wstring StringType;
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
   // On most platforms, native pathnames are char arrays, and the encoding
   // may or may not be specified.  On Mac OS X, native pathnames are encoded
   // in UTF-8.
   typedef std::string StringType;
-#endif  // PA_BUILDFLAG(IS_WIN)
+#endif  // BUILDFLAG(IS_WIN)
 
   typedef StringType::value_type CharType;
 
@@ -228,4 +228,4 @@ struct hash<::partition_alloc::internal::base::FilePath> {
 
 }  // namespace std
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_FILES_FILE_PATH_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_FILES_FILE_PATH_H_

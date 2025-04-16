@@ -56,15 +56,14 @@ class CORE_EXPORT DateTimeChooserImpl final : public DateTimeChooser,
   // DateTimeChooser functions:
   void EndChooser() override;
   AXObject* RootAXObject(Element* popup_owner) override;
-  bool IsPickerVisible() const override;
 
   void Trace(Visitor*) const override;
 
  private:
   // PagePopupClient functions:
-  void WriteDocument(SegmentedBuffer&) override;
+  void WriteDocument(SharedBuffer*) override;
   Locale& GetLocale() override;
-  void SetValueAndClosePopup(int, const String&, bool) override;
+  void SetValueAndClosePopup(int, const String&) override;
   void SetValue(const String&) override;
   void CancelPopup() override;
   Element& OwnerElement() override;

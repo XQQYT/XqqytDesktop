@@ -7,10 +7,8 @@
 
 #include <stdint.h>
 
-#include <optional>
-
 #include "base/types/pass_key.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_web_transport_error_source.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/dom/dom_exception.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
@@ -28,32 +26,36 @@ class MODULES_EXPORT WebTransportError : public DOMException {
  public:
   using PassKey = base::PassKey<WebTransportError>;
 
+  enum class Source { kStream, kSession };
+
   // Constructor exposed to script. Called by the V8 bindings.
   static WebTransportError* Create(const WebTransportErrorInit*);
 
   // For creating a WebTransportError from C++. Typically this will be
-  // immediately passed to ScriptPromiseResolverBase::Reject.
+  // immediately passed to ScriptPromiseResolver::Reject.
   static v8::Local<v8::Value> Create(v8::Isolate*,
-                                     std::optional<uint32_t> stream_error_code,
+                                     absl::optional<uint32_t> stream_error_code,
                                      String message,
-                                     V8WebTransportErrorSource::Enum);
+                                     Source);
 
   // Use one of the Create() methods instead. This constructor has to be public
   // so that it can be used with MakeGarbageCollected<> inside the Create
   // methods.
   WebTransportError(PassKey,
-                    std::optional<uint32_t> stream_error_code,
+                    absl::optional<uint32_t> stream_error_code,
                     String message,
-                    V8WebTransportErrorSource::Enum);
+                    Source);
   ~WebTransportError() override;
 
-  std::optional<uint32_t> streamErrorCode() const { return stream_error_code_; }
+  absl::optional<uint32_t> streamErrorCode() const {
+    return stream_error_code_;
+  }
 
-  V8WebTransportErrorSource source() const;
+  String source() const;
 
  private:
-  const std::optional<uint32_t> stream_error_code_;
-  const V8WebTransportErrorSource::Enum source_;
+  const absl::optional<uint32_t> stream_error_code_;
+  const Source source_;
 };
 
 }  // namespace blink

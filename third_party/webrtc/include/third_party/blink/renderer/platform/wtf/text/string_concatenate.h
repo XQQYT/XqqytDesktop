@@ -26,12 +26,12 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TEXT_STRING_CONCATENATE_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TEXT_STRING_CONCATENATE_H_
 
-#include <string_view>
-
-#include "base/containers/span.h"
-#include "base/notreached.h"
+#include <string.h>
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
+
+#ifndef WTFString_h
 #include "third_party/blink/renderer/platform/wtf/text/atomic_string.h"
+#endif
 
 namespace WTF {
 
@@ -47,25 +47,31 @@ class StringTypeAdapter<char> {
  public:
   explicit StringTypeAdapter<char>(char buffer) : buffer_(buffer) {}
 
-  size_t length() const { return 1; }
+  unsigned length() const { return 1; }
   bool Is8Bit() const { return true; }
 
-  void WriteTo(base::span<LChar> destination) const {
-    destination[0] = buffer_;
-  }
-  void WriteTo(base::span<UChar> destination) const {
-    destination[0] = buffer_;
-  }
+  void WriteTo(LChar* destination) const { *destination = buffer_; }
+  void WriteTo(UChar* destination) const { *destination = buffer_; }
 
  private:
-  const LChar buffer_;
+  const unsigned char buffer_;
 };
 
 template <>
-class StringTypeAdapter<LChar> : public StringTypeAdapter<char> {
+class StringTypeAdapter<LChar> {
+  DISALLOW_NEW();
+
  public:
-  explicit StringTypeAdapter<LChar>(LChar buffer)
-      : StringTypeAdapter<char>(buffer) {}
+  explicit StringTypeAdapter<LChar>(LChar buffer) : buffer_(buffer) {}
+
+  unsigned length() const { return 1; }
+  bool Is8Bit() const { return true; }
+
+  void WriteTo(LChar* destination) const { *destination = buffer_; }
+  void WriteTo(UChar* destination) const { *destination = buffer_; }
+
+ private:
+  const LChar buffer_;
 };
 
 template <>
@@ -75,62 +81,57 @@ class StringTypeAdapter<UChar> {
  public:
   explicit StringTypeAdapter<UChar>(UChar buffer) : buffer_(buffer) {}
 
-  size_t length() const { return 1; }
+  unsigned length() const { return 1; }
   bool Is8Bit() const { return buffer_ <= 0xff; }
 
-  void WriteTo(base::span<LChar> destination) const {
+  void WriteTo(LChar* destination) const {
     DCHECK(Is8Bit());
-    destination[0] = static_cast<LChar>(buffer_);
+    *destination = static_cast<LChar>(buffer_);
   }
 
-  void WriteTo(base::span<UChar> destination) const {
-    destination[0] = buffer_;
-  }
+  void WriteTo(UChar* destination) const { *destination = buffer_; }
 
  private:
   const UChar buffer_;
 };
 
 template <>
-class WTF_EXPORT StringTypeAdapter<const char*> {
+class WTF_EXPORT StringTypeAdapter<char*> {
   DISALLOW_NEW();
 
  public:
-  explicit StringTypeAdapter<const char*>(const char* buffer)
-      : buffer_(base::as_byte_span(std::string_view(buffer))) {}
+  explicit StringTypeAdapter<char*>(char* buffer)
+      : StringTypeAdapter(buffer, strlen(buffer)) {}
 
-  size_t length() const { return buffer_.size(); }
+  unsigned length() const { return length_; }
   bool Is8Bit() const { return true; }
 
-  void WriteTo(base::span<LChar> destination) const;
-  void WriteTo(base::span<UChar> destination) const;
+  void WriteTo(LChar* destination) const;
+  void WriteTo(UChar* destination) const;
 
  private:
-  const base::span<const LChar> buffer_;
+  StringTypeAdapter(char* buffer, size_t length);
+
+  const char* buffer_;
+  unsigned length_;
 };
 
 template <>
-class WTF_EXPORT StringTypeAdapter<const LChar*>
-    : StringTypeAdapter<const char*> {
- public:
-  explicit StringTypeAdapter<const LChar*>(const LChar* buffer)
-      : StringTypeAdapter<const char*>(reinterpret_cast<const char*>(buffer)) {}
-};
+class WTF_EXPORT StringTypeAdapter<LChar*> {
+  DISALLOW_NEW();
 
-template <>
-class WTF_EXPORT StringTypeAdapter<char*>
-    : public StringTypeAdapter<const char*> {
  public:
-  explicit StringTypeAdapter<char*>(char* buffer)
-      : StringTypeAdapter<const char*>(buffer) {}
-};
+  explicit StringTypeAdapter<LChar*>(LChar* buffer);
 
-template <>
-class WTF_EXPORT StringTypeAdapter<LChar*>
-    : public StringTypeAdapter<const LChar*> {
- public:
-  explicit StringTypeAdapter<LChar*>(LChar* buffer)
-      : StringTypeAdapter<const LChar*>(buffer) {}
+  unsigned length() const { return length_; }
+  bool Is8Bit() const { return true; }
+
+  void WriteTo(LChar* destination) const;
+  void WriteTo(UChar* destination) const;
+
+ private:
+  const LChar* buffer_;
+  const unsigned length_;
 };
 
 template <>
@@ -140,14 +141,51 @@ class WTF_EXPORT StringTypeAdapter<const UChar*> {
  public:
   explicit StringTypeAdapter(const UChar* buffer);
 
-  size_t length() const { return buffer_.size(); }
+  unsigned length() const { return length_; }
   bool Is8Bit() const { return false; }
 
-  void WriteTo(base::span<LChar> destination) const { NOTREACHED(); }
-  void WriteTo(base::span<UChar> destination) const;
+  void WriteTo(LChar*) const { CHECK(false); }
+  void WriteTo(UChar* destination) const;
 
  private:
-  const base::span<const UChar> buffer_;
+  const UChar* buffer_;
+  const unsigned length_;
+};
+
+template <>
+class WTF_EXPORT StringTypeAdapter<const char*> {
+  DISALLOW_NEW();
+
+ public:
+  explicit StringTypeAdapter<const char*>(const char* buffer);
+
+  unsigned length() const { return length_; }
+  bool Is8Bit() const { return true; }
+
+  void WriteTo(LChar* destination) const;
+  void WriteTo(UChar* destination) const;
+
+ private:
+  const char* buffer_;
+  const unsigned length_;
+};
+
+template <>
+class WTF_EXPORT StringTypeAdapter<const LChar*> {
+  DISALLOW_NEW();
+
+ public:
+  explicit StringTypeAdapter<const LChar*>(const LChar* buffer);
+
+  unsigned length() const { return length_; }
+  bool Is8Bit() const { return true; }
+
+  void WriteTo(LChar* destination) const;
+  void WriteTo(UChar* destination) const;
+
+ private:
+  const LChar* buffer_;
+  const unsigned length_;
 };
 
 template <>
@@ -157,11 +195,11 @@ class WTF_EXPORT StringTypeAdapter<StringView> {
  public:
   explicit StringTypeAdapter(const StringView& view) : view_(view) {}
 
-  size_t length() const { return view_.length(); }
+  unsigned length() const { return view_.length(); }
   bool Is8Bit() const { return view_.Is8Bit(); }
 
-  void WriteTo(base::span<LChar> destination) const;
-  void WriteTo(base::span<UChar> destination) const;
+  void WriteTo(LChar* destination) const;
+  void WriteTo(UChar* destination) const;
 
  private:
   const StringView view_;

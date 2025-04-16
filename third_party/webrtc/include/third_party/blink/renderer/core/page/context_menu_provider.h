@@ -31,8 +31,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_PAGE_CONTEXT_MENU_PROVIDER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_PAGE_CONTEXT_MENU_PROVIDER_H_
 
-#include <vector>
-
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 
 namespace blink {
@@ -44,7 +43,7 @@ class ContextMenuProvider : public GarbageCollected<ContextMenuProvider> {
   virtual ~ContextMenuProvider() = default;
   virtual void Trace(Visitor* visitor) const {}
 
-  virtual std::vector<MenuItemInfo> PopulateContextMenu() = 0;
+  virtual WebVector<MenuItemInfo> PopulateContextMenu() = 0;
   virtual void ContextMenuItemSelected(unsigned action) = 0;
   virtual void ContextMenuCleared() = 0;
 };

@@ -25,7 +25,9 @@ class ExceptionState;
 class MessagePort;
 class ScriptState;
 
-class AudioWorkletHandler final : public AudioHandler {
+class AudioWorkletHandler final
+    : public AudioHandler,
+      public base::SupportsWeakPtr<AudioWorkletHandler> {
  public:
   static scoped_refptr<AudioWorkletHandler> Create(
       AudioNode&,
@@ -68,10 +70,6 @@ class AudioWorkletHandler final : public AudioHandler {
       HashMap<String, scoped_refptr<AudioParamHandler>> param_handler_map,
       const AudioWorkletNodeOptions*);
 
-  // Used to avoid code duplication when using scoped objects that affect
-  // `Process`.
-  void ProcessInternal(uint32_t frames_to_process);
-
   String name_;
 
   double tail_time_ = std::numeric_limits<double>::infinity();
@@ -83,10 +81,6 @@ class AudioWorkletHandler final : public AudioHandler {
   // AudioNodeOutput in order to pass them to AudioWorkletProcessor.
   Vector<scoped_refptr<AudioBus>> inputs_;
   Vector<scoped_refptr<AudioBus>> outputs_;
-
-  // For unconnected outputs, the handler needs to provide an AudioBus object
-  // to the AudioWorkletProcessor.
-  Vector<scoped_refptr<AudioBus>> unconnected_outputs_;
 
   HashMap<String, scoped_refptr<AudioParamHandler>> param_handler_map_;
   HashMap<String, std::unique_ptr<AudioFloatArray>> param_value_map_;
@@ -105,11 +99,6 @@ class AudioWorkletHandler final : public AudioHandler {
   // lifecycle of an AudioWorkletNode and its handler. This flag becomes false
   // when a processor stops invoking the user-defined `process()` callback.
   bool is_processor_active_ = true;
-
-  // Cached feature flag value
-  const bool allow_denormal_in_processing_;
-
-  base::WeakPtrFactory<AudioWorkletHandler> weak_ptr_factory_{this};
 };
 
 }  // namespace blink

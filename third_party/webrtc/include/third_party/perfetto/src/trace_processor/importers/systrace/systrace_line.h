@@ -17,10 +17,11 @@
 #ifndef SRC_TRACE_PROCESSOR_IMPORTERS_SYSTRACE_SYSTRACE_LINE_H_
 #define SRC_TRACE_PROCESSOR_IMPORTERS_SYSTRACE_SYSTRACE_LINE_H_
 
-#include <cstdint>
+#include <cinttypes>
 #include <string>
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 struct alignas(8) SystraceLine {
   int64_t ts;
@@ -34,6 +35,7 @@ struct alignas(8) SystraceLine {
   std::string args_str;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_IMPORTERS_SYSTRACE_SYSTRACE_LINE_H_

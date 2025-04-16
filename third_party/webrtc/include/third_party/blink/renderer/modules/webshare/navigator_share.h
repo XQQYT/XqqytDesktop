@@ -40,13 +40,11 @@ class MODULES_EXPORT NavigatorShare final
   // Navigator partial interface
   bool canShare(ScriptState*, const ShareData*);
   static bool canShare(ScriptState*, Navigator&, const ShareData*);
-  ScriptPromise<IDLUndefined> share(ScriptState*,
-                                    const ShareData*,
-                                    ExceptionState&);
-  static ScriptPromise<IDLUndefined> share(ScriptState*,
-                                           Navigator&,
-                                           const ShareData*,
-                                           ExceptionState&);
+  ScriptPromise share(ScriptState*, const ShareData*, ExceptionState&);
+  static ScriptPromise share(ScriptState*,
+                             Navigator&,
+                             const ShareData*,
+                             ExceptionState&);
 
   void Trace(Visitor*) const override;
 

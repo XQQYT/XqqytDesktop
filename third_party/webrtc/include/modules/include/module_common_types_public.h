@@ -12,7 +12,8 @@
 #define MODULES_INCLUDE_MODULE_COMMON_TYPES_PUBLIC_H_
 
 #include <limits>
-#include <optional>
+
+#include "absl/types/optional.h"
 
 namespace webrtc {
 

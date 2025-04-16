@@ -31,10 +31,8 @@
 
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
-#include "v8/include/v8-forward.h"
 
 namespace blink {
-class ScriptState;
 
 class SQLValue {
   DISALLOW_NEW();
@@ -50,8 +48,6 @@ class SQLValue {
 
   String GetString() const;
   double Number() const;
-
-  v8::Local<v8::Value> ToV8(ScriptState*) const;
 
  private:
   Type type_;

@@ -48,9 +48,6 @@ enum AutoscrollType {
   kAutoscrollForDragAndDrop,
   kAutoscrollForSelection,
   kAutoscrollForMiddleClick,
-#if BUILDFLAG(IS_IOS)
-  kAutoscrollForSelectionToPoint,
-#endif  // BUILDFLAG(IS_IOS)
 };
 
 enum MiddleClickMode {
@@ -86,11 +83,6 @@ class CORE_EXPORT AutoscrollController final
                          const gfx::PointF& event_position,
                          base::TimeTicks event_time);
 
-#if BUILDFLAG(IS_IOS)
-  void StartAutoscrollForSelectionToPoint(LayoutObject* layout_object,
-                                          const gfx::PointF& point_in_viewport);
-#endif  // BUILDFLAG(IS_IOS)
-
   // Middle-click autoscroll.
   void StartMiddleClickAutoscroll(LocalFrame*,
                                   LayoutBox* scrollable,
@@ -114,20 +106,11 @@ class CORE_EXPORT AutoscrollController final
 
   // Selection and drag-and-drop autoscroll.
   void ScheduleMainThreadAnimation();
-
-  // Notify browser process input event router that main frame started drag
-  // selection. Any mouse up event in OOF child frames should also dispatch
-  // mouse up event in the main frame when the state is active.
-  void UpdateCachedAutoscrollForSelectionState(bool autoscroll_selection);
   Member<LayoutBox> autoscroll_layout_object_ = nullptr;
   Member<LayoutBox> pressed_layout_object_ = nullptr;
 
   PhysicalOffset drag_and_drop_autoscroll_reference_position_;
   base::TimeTicks drag_and_drop_autoscroll_start_time_;
-
-#if BUILDFLAG(IS_IOS)
-  PhysicalOffset autoscroll_to_point_reference_position_;
-#endif  // BUILDFLAG(IS_IOS)
 
   // Middle-click autoscroll.
   Member<LayoutBox> horizontal_autoscroll_layout_box_ = nullptr;
@@ -144,10 +127,6 @@ class CORE_EXPORT AutoscrollController final
   FRIEND_TEST_ALL_PREFIXES(AutoscrollControllerTest, AutoscrollIsNotPropagated);
   FRIEND_TEST_ALL_PREFIXES(AutoscrollControllerTest,
                            AutoscrollIsPropagatedInYDirection);
-  FRIEND_TEST_ALL_PREFIXES(AutoscrollControllerTest, TextSelectionAutoScroll);
-  FRIEND_TEST_ALL_PREFIXES(AutoscrollControllerTest,
-                           PageVisibilityChangeCancelsAutoscroll);
-  FRIEND_TEST_ALL_PREFIXES(AutoscrollControllerTest, PageLoadCancelsAutoscroll);
 };
 
 }  // namespace blink

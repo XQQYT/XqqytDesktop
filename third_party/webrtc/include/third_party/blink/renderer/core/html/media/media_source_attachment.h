@@ -45,8 +45,10 @@ class CORE_EXPORT MediaSourceAttachment
   static scoped_refptr<MediaSourceAttachment> LookupMediaSource(
       const String& url);
 
+  MediaSourceAttachment();
   MediaSourceAttachment(const MediaSourceAttachment&) = delete;
   MediaSourceAttachment& operator=(const MediaSourceAttachment&) = delete;
+  ~MediaSourceAttachment() override;
 
   // This is called on the main thread when the URLRegistry unregisters the
   // objectURL for this attachment. Concrete implementation overrides should use
@@ -127,12 +129,9 @@ class CORE_EXPORT MediaSourceAttachment
   // should be used further.
   virtual void OnElementContextDestroyed() = 0;
 
- protected:
-  friend class WTF::ThreadSafeRefCounted<MediaSourceAttachment>;
-  MediaSourceAttachment();
-  ~MediaSourceAttachment() override;
-
  private:
+  friend class WTF::ThreadSafeRefCounted<MediaSourceAttachment>;
+
   static URLRegistry* registry_;
 };
 

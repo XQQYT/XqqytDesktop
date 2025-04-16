@@ -5,9 +5,9 @@
 #ifndef BASE_MEMORY_RAW_PTR_ASAN_HOOKS_H_
 #define BASE_MEMORY_RAW_PTR_ASAN_HOOKS_H_
 
-#include "partition_alloc/buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_buildflags.h"
 
-#if PA_BUILDFLAG(USE_ASAN_BACKUP_REF_PTR)
+#if BUILDFLAG(USE_ASAN_BACKUP_REF_PTR)
 
 #include "base/memory/raw_ptr.h"
 
@@ -17,6 +17,6 @@ const RawPtrHooks* GetRawPtrAsanHooks();
 
 }
 
-#endif  // PA_BUILDFLAG(USE_ASAN_BACKUP_REF_PTR)
+#endif  // BUILDFLAG(USE_ASAN_BACKUP_REF_PTR)
 
 #endif  // BASE_MEMORY_RAW_PTR_ASAN_HOOKS_H_

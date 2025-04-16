@@ -20,9 +20,10 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-namespace chrono {
+namespace chrono
+{
 
-#if _LIBCPP_HAS_MONOTONIC_CLOCK
+#ifndef _LIBCPP_HAS_NO_MONOTONIC_CLOCK
 typedef steady_clock high_resolution_clock;
 #else
 typedef system_clock high_resolution_clock;

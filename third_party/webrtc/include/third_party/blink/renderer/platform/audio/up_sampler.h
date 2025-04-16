@@ -42,7 +42,7 @@ namespace blink {
 
 // UpSampler up-samples the source stream by a factor of 2x.
 
-class PLATFORM_EXPORT UpSampler final {
+class PLATFORM_EXPORT UpSampler {
   USING_FAST_MALLOC(UpSampler);
 
  public:

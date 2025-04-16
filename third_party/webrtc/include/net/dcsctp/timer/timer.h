@@ -16,13 +16,12 @@
 #include <functional>
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
 #include <utility>
 
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "api/task_queue/task_queue_base.h"
-#include "api/units/time_delta.h"
 #include "net/dcsctp/public/timeout.h"
 #include "rtc_base/strong_alias.h"
 
@@ -41,31 +40,30 @@ enum class TimerBackoffAlgorithm {
 };
 
 struct TimerOptions {
-  explicit TimerOptions(webrtc::TimeDelta duration)
+  explicit TimerOptions(DurationMs duration)
       : TimerOptions(duration, TimerBackoffAlgorithm::kExponential) {}
-  TimerOptions(webrtc::TimeDelta duration,
-               TimerBackoffAlgorithm backoff_algorithm)
-      : TimerOptions(duration, backoff_algorithm, std::nullopt) {}
-  TimerOptions(webrtc::TimeDelta duration,
+  TimerOptions(DurationMs duration, TimerBackoffAlgorithm backoff_algorithm)
+      : TimerOptions(duration, backoff_algorithm, absl::nullopt) {}
+  TimerOptions(DurationMs duration,
                TimerBackoffAlgorithm backoff_algorithm,
-               std::optional<int> max_restarts)
+               absl::optional<int> max_restarts)
       : TimerOptions(duration,
                      backoff_algorithm,
                      max_restarts,
-                     webrtc::TimeDelta::PlusInfinity()) {}
-  TimerOptions(webrtc::TimeDelta duration,
+                     DurationMs::InfiniteDuration()) {}
+  TimerOptions(DurationMs duration,
                TimerBackoffAlgorithm backoff_algorithm,
-               std::optional<int> max_restarts,
-               webrtc::TimeDelta max_backoff_duration)
+               absl::optional<int> max_restarts,
+               DurationMs max_backoff_duration)
       : TimerOptions(duration,
                      backoff_algorithm,
                      max_restarts,
                      max_backoff_duration,
                      webrtc::TaskQueueBase::DelayPrecision::kLow) {}
-  TimerOptions(webrtc::TimeDelta duration,
+  TimerOptions(DurationMs duration,
                TimerBackoffAlgorithm backoff_algorithm,
-               std::optional<int> max_restarts,
-               webrtc::TimeDelta max_backoff_duration,
+               absl::optional<int> max_restarts,
+               DurationMs max_backoff_duration,
                webrtc::TaskQueueBase::DelayPrecision precision)
       : duration(duration),
         backoff_algorithm(backoff_algorithm),
@@ -74,15 +72,15 @@ struct TimerOptions {
         precision(precision) {}
 
   // The initial timer duration. Can be overridden with `set_duration`.
-  const webrtc::TimeDelta duration;
+  const DurationMs duration;
   // If the duration should be increased (using exponential backoff) when it is
   // restarted. If not set, the same duration will be used.
   const TimerBackoffAlgorithm backoff_algorithm;
   // The maximum number of times that the timer will be automatically restarted,
-  // or std::nullopt if there is no limit.
-  const std::optional<int> max_restarts;
+  // or absl::nullopt if there is no limit.
+  const absl::optional<int> max_restarts;
   // The maximum timeout value for exponential backoff.
-  const webrtc::TimeDelta max_backoff_duration;
+  const DurationMs max_backoff_duration;
   // The precision of the webrtc::TaskQueueBase used for scheduling.
   const webrtc::TaskQueueBase::DelayPrecision precision;
 };
@@ -102,14 +100,12 @@ struct TimerOptions {
 class Timer {
  public:
   // The maximum timer duration - one day.
-  static constexpr webrtc::TimeDelta kMaxTimerDuration =
-      webrtc::TimeDelta::Seconds(24 * 3600);
+  static constexpr DurationMs kMaxTimerDuration = DurationMs(24 * 3600 * 1000);
 
-  // When expired, the timer handler can optionally return a new non-zero
-  // duration which will be set as `duration` and used as base duration when the
-  // timer is restarted and as input to the backoff algorithm. If zero is
-  // returned, the current duration is used.
-  using OnExpired = std::function<webrtc::TimeDelta()>;
+  // When expired, the timer handler can optionally return a new duration which
+  // will be set as `duration` and used as base duration when the timer is
+  // restarted and as input to the backoff algorithm.
+  using OnExpired = std::function<absl::optional<DurationMs>()>;
 
   // TimerManager will have pointers to these instances, so they must not move.
   Timer(const Timer&) = delete;
@@ -127,13 +123,13 @@ class Timer {
 
   // Sets the base duration. The actual timer duration may be larger depending
   // on the backoff algorithm.
-  void set_duration(webrtc::TimeDelta duration) {
+  void set_duration(DurationMs duration) {
     duration_ = std::min(duration, kMaxTimerDuration);
   }
 
   // Retrieves the base duration. The actual timer duration may be larger
   // depending on the backoff algorithm.
-  webrtc::TimeDelta duration() const { return duration_; }
+  DurationMs duration() const { return duration_; }
 
   // Returns the number of times the timer has expired.
   int expiration_count() const { return expiration_count_; }
@@ -171,7 +167,7 @@ class Timer {
   const UnregisterHandler unregister_handler_;
   const std::unique_ptr<Timeout> timeout_;
 
-  webrtc::TimeDelta duration_;
+  DurationMs duration_;
 
   // Increased on each start, and is matched on Trigger, to avoid races. And by
   // race, meaning that a timeout - which may be evaluated/expired on a

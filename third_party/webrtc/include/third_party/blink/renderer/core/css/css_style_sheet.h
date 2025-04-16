@@ -23,14 +23,14 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSS_STYLE_SHEET_H_
 
 #include "base/gtest_prod_util.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/css/css_rule.h"
 #include "third_party/blink/renderer/core/css/media_query_evaluator.h"
 #include "third_party/blink/renderer/core/css/media_query_set_owner.h"
 #include "third_party/blink/renderer/core/css/resolver/media_query_result.h"
 #include "third_party/blink/renderer/core/css/style_sheet.h"
-#include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
+#include "third_party/blink/renderer/core/css/style_sheet_contents.h"
+#include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_set.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_vector.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
@@ -51,9 +51,8 @@ class Document;
 class Element;
 class ExceptionState;
 class MediaQuerySet;
-class QuietMutationScope;
+class ScriptPromise;
 class ScriptState;
-class StyleSheetContents;
 class TreeScope;
 
 enum class CSSImportRules {
@@ -120,20 +119,14 @@ class CORE_EXPORT CSSStyleSheet final : public StyleSheet,
     deleteRule(index, exception_state);
   }
 
-  ScriptPromise<CSSStyleSheet> replace(ScriptState* script_state,
-                                       const String& text,
-                                       ExceptionState&);
+  ScriptPromise replace(ScriptState* script_state,
+                        const String& text,
+                        ExceptionState&);
   void replaceSync(const String& text, ExceptionState&);
 
   // For CSSRuleList.
   unsigned length() const;
-  CSSRule* item(unsigned index, bool trigger_use_counters = true);
-
-  // Get an item, but signal that it's been requested internally from the
-  // engine, and not directly from a script.
-  CSSRule* ItemInternal(unsigned index) {
-    return item(index, /*trigger_use_counters=*/false);
-  }
+  CSSRule* item(unsigned index);
 
   void ClearOwnerNode() override;
 
@@ -177,9 +170,7 @@ class CORE_EXPORT CSSStyleSheet final : public StyleSheet,
   }
   bool HasViewportDependentMediaQueries() const;
   bool HasDynamicViewportDependentMediaQueries() const;
-  void SetTitle(const String& title) {
-    title_ = title.empty() ? String() : title;
-  }
+  void SetTitle(const String& title) { title_ = title; }
 
   void AddedAdoptedToTreeScope(TreeScope& tree_scope);
   void RemovedAdoptedFromTreeScope(TreeScope& tree_scope);
@@ -260,26 +251,15 @@ class CORE_EXPORT CSSStyleSheet final : public StyleSheet,
   void Trace(Visitor*) const override;
 
  private:
-  friend class QuietMutationScope;
-
   bool IsAlternate() const;
   bool IsCSSStyleSheet() const override { return true; }
   String type() const override { return "text/css"; }
 
-  // True if the StyleSheetContents is shared with another CSSStyleSheet.
-  // See StyleSheetContents::IsCacheableForStyleElement()/
-  // IsCacheableForStyleElement() and their call sites.
-  bool IsContentsShared() const;
-  void SetContents(StyleSheetContents*);
   void ReattachChildRuleCSSOMWrappers();
 
   bool CanAccessRules() const;
 
   void SetLoadCompleted(bool);
-
-  // See QuietMutationScope.
-  void BeginQuietMutation();
-  void EndQuietMutation(StyleSheetContents* original_contents);
 
   FRIEND_TEST_ALL_PREFIXES(
       CSSStyleSheetTest,
@@ -311,10 +291,7 @@ class CORE_EXPORT CSSStyleSheet final : public StyleSheet,
   Member<Node> owner_node_;
   WeakMember<Element> owner_parent_or_shadow_host_element_;
   Member<CSSRule> owner_rule_;
-  // Used for knowing which TreeScopes to invalidate when an adopted stylesheet
-  // is modified. The value is a count to keep track of the number of references
-  // to the same sheet in the adoptedStyleSheets array.
-  HeapHashMap<WeakMember<TreeScope>, size_t> adopted_tree_scopes_;
+  HeapHashSet<WeakMember<TreeScope>> adopted_tree_scopes_;
   // The Document this stylesheet was constructed for. Always non-null for
   // constructed stylesheets. Always null for other sheets.
   Member<Document> constructor_document_;

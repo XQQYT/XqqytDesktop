@@ -5,12 +5,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_ML_WEBNN_ML_GRAPH_TYPE_CONVERTER_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_ML_WEBNN_ML_GRAPH_TYPE_CONVERTER_H_
 
-#include <optional>
-
+#include "base/types/expected.h"
 #include "mojo/public/cpp/bindings/type_converter.h"
-#include "services/webnn/public/mojom/webnn_context_provider.mojom-blink.h"
 #include "services/webnn/public/mojom/webnn_graph.mojom-blink.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_ml_operand_data_type.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
 
 namespace blink {
@@ -18,15 +15,10 @@ namespace blink {
 class MLOperand;
 class MLOperator;
 
-// Returns the next operand ID to use when adding entries to graph_info's
-// id_to_operand_map.
-uint64_t NextOperandId(const webnn::mojom::blink::GraphInfo& graph_info);
-
-std::optional<String> SerializeMojoOperation(
+base::expected<webnn::mojom::blink::OperationPtr, String>
+ConvertToMojoOperation(
     const HeapHashMap<Member<const MLOperand>, uint64_t>& operand_to_id_map,
-    const webnn::ContextProperties& context_properties,
-    const MLOperator* op,
-    webnn::mojom::blink::GraphInfo* graph_info);
+    const MLOperator* op);
 
 }  // namespace blink
 

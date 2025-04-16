@@ -8,7 +8,6 @@
 #include <memory>
 
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_value.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
@@ -24,6 +23,7 @@ class MessagePort;
 class ScriptState;
 class StrategySizeAlgorithm;
 class StreamAlgorithm;
+class StreamPromiseResolver;
 class StreamStartAlgorithm;
 class UnderlyingSinkBase;
 class WritableStreamDefaultController;
@@ -96,13 +96,11 @@ class CORE_EXPORT WritableStream : public ScriptWrappable {
   }
 
   // https://streams.spec.whatwg.org/#ws-abort
-  ScriptPromise<IDLUndefined> abort(ScriptState*, ExceptionState&);
-  ScriptPromise<IDLUndefined> abort(ScriptState*,
-                                    ScriptValue reason,
-                                    ExceptionState&);
+  ScriptPromise abort(ScriptState*, ExceptionState&);
+  ScriptPromise abort(ScriptState*, ScriptValue reason, ExceptionState&);
 
   // https://streams.spec.whatwg.org/#ws-close
-  ScriptPromise<IDLUndefined> close(ScriptState*, ExceptionState&);
+  ScriptPromise close(ScriptState*, ExceptionState&);
 
   // https://streams.spec.whatwg.org/#ws-get-writer
   WritableStreamDefaultWriter* getWriter(ScriptState*, ExceptionState&);
@@ -135,15 +133,14 @@ class CORE_EXPORT WritableStream : public ScriptWrappable {
   //
 
   // https://streams.spec.whatwg.org/#writable-stream-abort
-  static ScriptPromise<IDLUndefined> Abort(ScriptState*,
-                                           WritableStream*,
-                                           v8::Local<v8::Value> reason);
+  static v8::Local<v8::Promise> Abort(ScriptState*,
+                                      WritableStream*,
+                                      v8::Local<v8::Value> reason);
 
   // https://streams.spec.whatwg.org/#writable-stream-add-write-request
-  static void AddWriteRequest(WritableStream*,
-                              ScriptPromiseResolver<IDLUndefined>*);
+  static v8::Local<v8::Promise> AddWriteRequest(ScriptState*, WritableStream*);
 
-  static ScriptPromise<IDLUndefined> Close(ScriptState*, WritableStream*);
+  static v8::Local<v8::Promise> Close(ScriptState*, WritableStream*);
 
   // https://streams.spec.whatwg.org/#writable-stream-close-queued-or-in-flight
   static bool CloseQueuedOrInFlight(const WritableStream*);
@@ -200,7 +197,9 @@ class CORE_EXPORT WritableStream : public ScriptWrappable {
 
   bool HasBackpressure() const { return has_backpressure_; }
 
-  bool HasInFlightWriteRequest() const { return in_flight_write_request_; }
+  const StreamPromiseResolver* InFlightWriteRequest() const {
+    return in_flight_write_request_.Get();
+  }
 
   bool IsClosingOrClosed() const {
     return CloseQueuedOrInFlight(this) || state_ == kClosed;
@@ -217,7 +216,7 @@ class CORE_EXPORT WritableStream : public ScriptWrappable {
 
   const WritableStreamDefaultWriter* Writer() const { return writer_.Get(); }
 
-  void SetCloseRequest(ScriptPromiseResolver<IDLUndefined>*);
+  void SetCloseRequest(StreamPromiseResolver*);
   void SetController(WritableStreamDefaultController*);
   void SetWriter(WritableStreamDefaultWriter*);
 
@@ -247,7 +246,7 @@ class CORE_EXPORT WritableStream : public ScriptWrappable {
                     ExceptionState&);
 
  private:
-  using PromiseQueue = HeapDeque<Member<ScriptPromiseResolver<IDLUndefined>>>;
+  using PromiseQueue = HeapDeque<Member<StreamPromiseResolver>>;
 
   class PendingAbortRequest;
 
@@ -275,9 +274,9 @@ class CORE_EXPORT WritableStream : public ScriptWrappable {
   // |state_| is here out of order so it doesn't require 7 bytes of padding.
   State state_ = kWritable;
 
-  Member<ScriptPromiseResolver<IDLUndefined>> close_request_;
-  Member<ScriptPromiseResolver<IDLUndefined>> in_flight_write_request_;
-  Member<ScriptPromiseResolver<IDLUndefined>> in_flight_close_request_;
+  Member<StreamPromiseResolver> close_request_;
+  Member<StreamPromiseResolver> in_flight_write_request_;
+  Member<StreamPromiseResolver> in_flight_close_request_;
   Member<PendingAbortRequest> pending_abort_request_;
   TraceWrapperV8Reference<v8::Value> stored_error_;
   Member<WritableStreamDefaultController> writable_stream_controller_;

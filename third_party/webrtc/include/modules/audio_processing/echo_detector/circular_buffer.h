@@ -13,8 +13,9 @@
 
 #include <stddef.h>
 
-#include <optional>
 #include <vector>
+
+#include "absl/types/optional.h"
 
 namespace webrtc {
 
@@ -25,7 +26,7 @@ struct CircularBuffer {
   ~CircularBuffer();
 
   void Push(float value);
-  std::optional<float> Pop();
+  absl::optional<float> Pop();
   size_t Size() const { return nr_elements_in_buffer_; }
   // This function fills the buffer with zeros, but does not change its size.
   void Clear();

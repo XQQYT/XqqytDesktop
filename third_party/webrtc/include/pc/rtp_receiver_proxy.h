@@ -11,19 +11,10 @@
 #ifndef PC_RTP_RECEIVER_PROXY_H_
 #define PC_RTP_RECEIVER_PROXY_H_
 
-#include <optional>
 #include <string>
 #include <vector>
 
-#include "api/crypto/frame_decryptor_interface.h"
-#include "api/dtls_transport_interface.h"
-#include "api/frame_transformer_interface.h"
-#include "api/media_stream_interface.h"
-#include "api/media_types.h"
-#include "api/rtp_parameters.h"
 #include "api/rtp_receiver_interface.h"
-#include "api/scoped_refptr.h"
-#include "api/transport/rtp/rtp_source.h"
 #include "pc/proxy.h"
 
 namespace webrtc {
@@ -38,13 +29,13 @@ PROXY_CONSTMETHOD0(rtc::scoped_refptr<DtlsTransportInterface>, dtls_transport)
 PROXY_CONSTMETHOD0(std::vector<std::string>, stream_ids)
 PROXY_CONSTMETHOD0(std::vector<rtc::scoped_refptr<MediaStreamInterface>>,
                    streams)
-BYPASS_PROXY_CONSTMETHOD0(webrtc::MediaType, media_type)
+BYPASS_PROXY_CONSTMETHOD0(cricket::MediaType, media_type)
 BYPASS_PROXY_CONSTMETHOD0(std::string, id)
 PROXY_SECONDARY_CONSTMETHOD0(RtpParameters, GetParameters)
 PROXY_METHOD1(void, SetObserver, RtpReceiverObserverInterface*)
 PROXY_SECONDARY_METHOD1(void,
                         SetJitterBufferMinimumDelay,
-                        std::optional<double>)
+                        absl::optional<double>)
 PROXY_SECONDARY_CONSTMETHOD0(std::vector<RtpSource>, GetSources)
 // TODO(bugs.webrtc.org/12772): Remove.
 PROXY_SECONDARY_METHOD1(void,
@@ -54,7 +45,7 @@ PROXY_SECONDARY_METHOD1(void,
 PROXY_SECONDARY_CONSTMETHOD0(rtc::scoped_refptr<FrameDecryptorInterface>,
                              GetFrameDecryptor)
 PROXY_SECONDARY_METHOD1(void,
-                        SetFrameTransformer,
+                        SetDepacketizerToDecoderFrameTransformer,
                         rtc::scoped_refptr<FrameTransformerInterface>)
 END_PROXY_MAP(RtpReceiver)
 

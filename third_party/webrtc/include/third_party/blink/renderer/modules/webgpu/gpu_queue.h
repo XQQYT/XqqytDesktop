@@ -5,16 +5,13 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_WEBGPU_GPU_QUEUE_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_WEBGPU_GPU_QUEUE_H_
 
-#include <optional>
-
-#include "base/containers/span.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_typedefs.h"
 #include "third_party/blink/renderer/core/typed_arrays/array_buffer_view_helpers.h"
 #include "third_party/blink/renderer/modules/webgpu/dawn_object.h"
 #include "third_party/blink/renderer/platform/bindings/exception_state.h"
-#include "third_party/blink/renderer/platform/graphics/predefined_color_space.h"
+#include "third_party/blink/renderer/platform/graphics/graphics_types.h"
 
 namespace blink {
 
@@ -22,18 +19,19 @@ class ExceptionState;
 class GPUBuffer;
 class GPUCommandBuffer;
 class GPUImageCopyExternalImage;
+class GPUImageCopyTexture;
 class GPUImageCopyTextureTagged;
-class GPUTexelCopyBufferLayout;
-class GPUTexelCopyTextureInfo;
+class GPUImageDataLayout;
+class ScriptPromiseResolver;
 class ScriptState;
 class StaticBitmapImage;
 struct ExternalTextureSource;
 
-class GPUQueue : public DawnObject<wgpu::Queue> {
+class GPUQueue : public DawnObject<WGPUQueue> {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
-  explicit GPUQueue(GPUDevice* device, wgpu::Queue queue, const String& label);
+  explicit GPUQueue(GPUDevice* device, WGPUQueue queue);
 
   GPUQueue(const GPUQueue&) = delete;
   GPUQueue& operator=(const GPUQueue&) = delete;
@@ -41,7 +39,7 @@ class GPUQueue : public DawnObject<wgpu::Queue> {
   // gpu_queue.idl
   void submit(ScriptState* script_state,
               const HeapVector<Member<GPUCommandBuffer>>& buffers);
-  ScriptPromise<IDLUndefined> onSubmittedWorkDone(ScriptState* script_state);
+  ScriptPromise onSubmittedWorkDone(ScriptState* script_state);
   void writeBuffer(ScriptState* script_state,
                    GPUBuffer* buffer,
                    uint64_t buffer_offset,
@@ -69,15 +67,15 @@ class GPUQueue : public DawnObject<wgpu::Queue> {
                    uint64_t byte_size,
                    ExceptionState& exception_state);
   void writeTexture(ScriptState* script_state,
-                    GPUTexelCopyTextureInfo* destination,
+                    GPUImageCopyTexture* destination,
                     const MaybeShared<DOMArrayBufferView>& data,
-                    GPUTexelCopyBufferLayout* data_layout,
+                    GPUImageDataLayout* data_layout,
                     const V8GPUExtent3D* write_size,
                     ExceptionState& exception_state);
   void writeTexture(ScriptState* script_state,
-                    GPUTexelCopyTextureInfo* destination,
+                    GPUImageCopyTexture* destination,
                     const DOMArrayBufferBase* data,
-                    GPUTexelCopyBufferLayout* data_layout,
+                    GPUImageDataLayout* data_layout,
                     const V8GPUExtent3D* write_size,
                     ExceptionState& exception_state);
   void copyExternalImageToTexture(GPUImageCopyExternalImage* copyImage,
@@ -86,39 +84,43 @@ class GPUQueue : public DawnObject<wgpu::Queue> {
                                   ExceptionState& exception_state);
 
  private:
+  void OnWorkDoneCallback(ScriptPromiseResolver* resolver,
+                          WGPUQueueWorkDoneStatus status);
   void CopyFromVideoElement(const ExternalTextureSource source,
-                            const wgpu::Extent2D& video_frame_natural_size,
-                            const wgpu::Origin2D& origin,
-                            const wgpu::Extent3D& copy_size,
-                            const wgpu::TexelCopyTextureInfo& destination,
+                            const WGPUExtent2D& video_frame_natural_size,
+                            const WGPUOrigin2D& origin,
+                            const WGPUExtent3D& copy_size,
+                            const WGPUImageCopyTexture& destination,
                             bool dst_premultiplied_alpha,
                             PredefinedColorSpace dst_color_space,
                             bool flipY);
   bool CopyFromCanvasSourceImage(StaticBitmapImage* image,
-                                 const wgpu::Origin2D& origin,
-                                 const wgpu::Extent3D& copy_size,
-                                 const wgpu::TexelCopyTextureInfo& destination,
+                                 const WGPUOrigin2D& origin,
+                                 const WGPUExtent3D& copy_size,
+                                 const WGPUImageCopyTexture& destination,
                                  bool dst_premultiplied_alpha,
                                  PredefinedColorSpace dst_color_space,
                                  bool flipY);
   void WriteBufferImpl(ScriptState* script_state,
                        GPUBuffer* buffer,
                        uint64_t buffer_offset,
-                       base::span<const uint8_t> data,
+                       uint64_t data_byte_length,
+                       const void* data_base_ptr,
                        unsigned data_bytes_per_element,
                        uint64_t data_byte_offset,
-                       std::optional<uint64_t> byte_size,
+                       absl::optional<uint64_t> byte_size,
                        ExceptionState& exception_state);
   void WriteTextureImpl(ScriptState* script_state,
-                        GPUTexelCopyTextureInfo* destination,
-                        base::span<const uint8_t> data,
-                        GPUTexelCopyBufferLayout* data_layout,
+                        GPUImageCopyTexture* destination,
+                        const void* data,
+                        size_t dataSize,
+                        GPUImageDataLayout* data_layout,
                         const V8GPUExtent3D* write_size,
                         ExceptionState& exception_state);
 
   void setLabelImpl(const String& value) override {
     std::string utf8_label = value.Utf8();
-    GetHandle().SetLabel(utf8_label.c_str());
+    GetProcs().queueSetLabel(GetHandle(), utf8_label.c_str());
   }
 };
 

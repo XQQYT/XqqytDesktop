@@ -29,19 +29,19 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_FRAME_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_FRAME_H_
 
-#include <optional>
-
 #include "base/check_op.h"
 #include "base/i18n/rtl.h"
 #include "base/unguessable_token.h"
 #include "mojo/public/cpp/bindings/pending_associated_receiver.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom-blink.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/common/fenced_frame/redacted_fenced_frame_config.h"
 #include "third_party/blink/public/common/frame/frame_ad_evidence.h"
 #include "third_party/blink/public/common/frame/user_activation_state.h"
 #include "third_party/blink/public/common/frame/user_activation_update_source.h"
 #include "third_party/blink/public/common/permissions_policy/document_policy_features.h"
+#include "third_party/blink/public/common/permissions_policy/permissions_policy_features.h"
 #include "third_party/blink/public/common/tokens/tokens.h"
 #include "third_party/blink/public/mojom/frame/frame_owner_properties.mojom-blink-forward.h"
 #include "third_party/blink/public/mojom/frame/frame_policy.mojom-blink-forward.h"
@@ -152,6 +152,7 @@ class CORE_EXPORT Frame : public GarbageCollected<Frame> {
   // the root Document in a WebContents). See content::Page for detailed
   // documentation.
   // This is false for main frames created for fenced-frames.
+  // TODO(khushalsagar) : Should also be the case for portals.
   bool IsOutermostMainFrame() const;
 
   // Returns true if and only if:
@@ -255,12 +256,6 @@ class CORE_EXPORT Frame : public GarbageCollected<Frame> {
     return user_activation_state_.LastActivationWasRestricted();
   }
 
-  // Sets the sticky user activation state of this frame. This does not change
-  // the transient user activation state.
-  void SetStickyUserActivationState() {
-    user_activation_state_.SetHasBeenActive();
-  }
-
   // Resets the user activation state of this frame.
   void ClearUserActivation() { user_activation_state_.Clear(); }
 
@@ -304,10 +299,10 @@ class CORE_EXPORT Frame : public GarbageCollected<Frame> {
   const base::UnguessableToken& GetDevToolsFrameToken() const {
     return devtools_frame_token_;
   }
-  const String& GetFrameIdForTracing();
+  const std::string& GetFrameIdForTracing();
 
   void SetEmbeddingToken(const base::UnguessableToken& embedding_token);
-  const std::optional<base::UnguessableToken>& GetEmbeddingToken() const {
+  const absl::optional<base::UnguessableToken>& GetEmbeddingToken() const {
     return embedding_token_;
   }
 
@@ -417,8 +412,7 @@ class CORE_EXPORT Frame : public GarbageCollected<Frame> {
             mojo::PendingAssociatedRemote<mojom::blink::RemoteFrameHost>
                 remote_frame_host,
             mojo::PendingAssociatedReceiver<mojom::blink::RemoteFrame>
-                remote_frame_receiver,
-            const std::optional<base::UnguessableToken>& devtools_frame_token);
+                remote_frame_receiver);
 
   // Removes the given child from this frame.
   void RemoveChild(Frame* child);
@@ -434,24 +428,25 @@ class CORE_EXPORT Frame : public GarbageCollected<Frame> {
 
   // Returns false if fenced frames are disabled. Returns true if the
   // feature is enabled and if `this` or any of its ancestor nodes is a
-  // fenced frame. Returns the value of Page::IsMainFrameFencedFrameRoot.
+  // fenced frame. For MPArch based fenced frames returns the value of
+  // Page::IsMainFrameFencedFrameRoot and for shadowDOM based fenced frames
+  // returns true, if the FrameTree that this frame is in is not the outermost
+  // FrameTree.
   bool IsInFencedFrameTree() const;
 
   // Returns false if fenced frames are disabled. Otherwise, returns true if
-  // this frame is the main frame of a fenced frame tree.
+  // this frame is the main frame of a fenced frame tree. Works for both MPArch
+  // and ShadowDOM based fenced frames.
   bool IsFencedFrameRoot() const;
 
   // Returns the mode set on the fenced frame if the frame is inside a fenced
-  // frame tree. Otherwise returns `std::nullopt`. This should not be called
+  // frame tree. Otherwise returns `absl::nullopt`. This should not be called
   // on a detached frame.
-  std::optional<blink::FencedFrame::DeprecatedFencedFrameMode>
+  absl::optional<blink::FencedFrame::DeprecatedFencedFrameMode>
   GetDeprecatedFencedFrameMode() const;
 
   // Returns all the resources under the frame tree of this node.
   HeapVector<Member<Resource>> AllResourcesUnderFrame();
-
-  // Iterates through the frame owner's ancestor nodes and adjusts the offset.
-  void AdjustOffsetByAncestorFrames(gfx::Point* origin_point);
 
  protected:
   // |inheriting_agent_factory| should basically be set to the parent frame or
@@ -487,14 +482,16 @@ class CORE_EXPORT Frame : public GarbageCollected<Frame> {
   void ApplyFrameOwnerProperties(
       mojom::blink::FrameOwnerPropertiesPtr properties);
 
-  void NotifyUserActivationInFrameTreeStickyOnly();
   void NotifyUserActivationInFrameTree(
-      mojom::blink::UserActivationNotificationType notification_type,
-      bool sticky_only = false);
+      mojom::blink::UserActivationNotificationType notification_type);
   bool ConsumeTransientUserActivationInFrameTree();
   void ClearUserActivationInFrameTree();
 
   void RenderFallbackContent();
+
+  // Only implemented for LocalFrames.
+  virtual void ActivateHistoryUserActivationState() {}
+  virtual void ClearHistoryUserActivationState() {}
 
   mutable FrameTree tree_node_;
 
@@ -519,21 +516,11 @@ class CORE_EXPORT Frame : public GarbageCollected<Frame> {
 
   void CancelFormSubmissionWithVersion(uint64_t version);
 
-  bool SwapImpl(
-      WebFrame*,
-      mojo::PendingAssociatedRemote<mojom::blink::RemoteFrameHost>
-          remote_frame_host,
-      mojo::PendingAssociatedReceiver<mojom::blink::RemoteFrame>
-          remote_frame_receiver,
-      const std::optional<base::UnguessableToken>& devtools_frame_token);
-
-  // Notifies a specific frame that it now has user activation. Used to prevent
-  // duplicated logic in `NotifyUserActivationInFrameTree()`, which notifies
-  // various sets of Frames that they're now activated.
-  static void NotifyUserActivationInFrame(
-      Frame* node,
-      mojom::blink::UserActivationNotificationType notification_type,
-      bool sticky_only);
+  bool SwapImpl(WebFrame*,
+                mojo::PendingAssociatedRemote<mojom::blink::RemoteFrameHost>
+                    remote_frame_host,
+                mojo::PendingAssociatedReceiver<mojom::blink::RemoteFrame>
+                    remote_frame_receiver);
 
   Member<FrameClient> client_;
   const Member<WindowProxyManager> window_proxy_manager_;
@@ -567,13 +554,13 @@ class CORE_EXPORT Frame : public GarbageCollected<Frame> {
   bool is_loading_;
   // Contains token to be used as a frame id in the devtools protocol.
   base::UnguessableToken devtools_frame_token_;
-  std::optional<String> trace_value_;
+  absl::optional<std::string> trace_value_;
 
   // Embedding token, if existing, associated to this frame. For local frames
   // this will only be valid if the frame has committed a navigation and will
   // change when a new document is committed. For remote frames this will only
   // be valid when owned by an HTMLFrameOwnerElement.
-  std::optional<base::UnguessableToken> embedding_token_;
+  absl::optional<base::UnguessableToken> embedding_token_;
 
   // The user activation state of the current frame.  See |UserActivationState|
   // for details on how this state is maintained.
@@ -638,8 +625,8 @@ DEFINE_COMPARISON_OPERATORS_WITH_REFERENCES(Frame)
 //
 // TRACE_EVENT1("category", "event_name", "frame",
 // GetFrameIdForTracing(GetFrame()));
-static inline const String& GetFrameIdForTracing(Frame* frame) {
-  return frame ? frame->GetFrameIdForTracing() : g_empty_string;
+static inline std::string GetFrameIdForTracing(Frame* frame) {
+  return frame ? frame->GetFrameIdForTracing() : std::string();
 }
 
 }  // namespace blink

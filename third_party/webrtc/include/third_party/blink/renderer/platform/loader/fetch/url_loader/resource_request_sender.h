@@ -21,20 +21,18 @@
 #include "net/base/host_port_pair.h"
 #include "net/base/net_errors.h"
 #include "net/base/request_priority.h"
-#include "net/http/http_request_headers.h"
 #include "net/traffic_annotation/network_traffic_annotation.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 #include "services/network/public/mojom/fetch_api.mojom-forward.h"
 #include "services/network/public/mojom/url_response_head.mojom-forward.h"
 #include "third_party/blink/public/common/loader/url_loader_throttle.h"
 #include "third_party/blink/public/mojom/blob/blob_registry.mojom-blink.h"
-#include "third_party/blink/public/mojom/loader/code_cache.mojom-blink-forward.h"
 #include "third_party/blink/public/mojom/loader/resource_load_info.mojom-shared.h"
 #include "third_party/blink/public/mojom/loader/resource_load_info.mojom.h"
 #include "third_party/blink/public/mojom/navigation/renderer_eviction_reason.mojom-blink-forward.h"
 #include "third_party/blink/public/platform/web_common.h"
 #include "third_party/blink/public/platform/web_url_request.h"
-#include "third_party/blink/renderer/platform/allow_discouraged_type.h"
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/blink/renderer/platform/loader/fetch/loader_freeze_mode.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
@@ -53,7 +51,6 @@ struct URLLoaderCompletionStatus;
 }  // namespace network
 
 namespace blink {
-class CodeCacheFetcher;
 class CodeCacheHost;
 class ResourceLoadInfoNotifierWrapper;
 class ThrottlingURLLoader;
@@ -89,7 +86,7 @@ class BLINK_PLATFORM_EXPORT ResourceRequestSender {
       uint32_t loader_options,
       SyncLoadResponse* response,
       scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory,
-      std::vector<std::unique_ptr<URLLoaderThrottle>> throttles,
+      WebVector<std::unique_ptr<URLLoaderThrottle>> throttles,
       base::TimeDelta timeout,
       const Vector<String>& cors_exempt_header_list,
       base::WaitableEvent* terminate_sync_load_event,
@@ -112,7 +109,7 @@ class BLINK_PLATFORM_EXPORT ResourceRequestSender {
       const Vector<String>& cors_exempt_header_list,
       scoped_refptr<ResourceRequestClient> client,
       scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory,
-      std::vector<std::unique_ptr<URLLoaderThrottle>> throttles,
+      WebVector<std::unique_ptr<URLLoaderThrottle>> throttles,
       std::unique_ptr<ResourceLoadInfoNotifierWrapper>
           resource_load_info_notifier_wrapper,
       CodeCacheHost* code_cache_host,
@@ -146,24 +143,24 @@ class BLINK_PLATFORM_EXPORT ResourceRequestSender {
   virtual void OnReceivedResponse(
       network::mojom::URLResponseHeadPtr response_head,
       mojo::ScopedDataPipeConsumerHandle body,
-      std::optional<mojo_base::BigBuffer> cached_metadata,
-      base::TimeTicks response_ipc_arrival_time);
+      absl::optional<mojo_base::BigBuffer> cached_metadata,
+      base::TimeTicks response_arrival_timing_at_renderer);
 
   // Called when a redirect occurs.
   virtual void OnReceivedRedirect(
       const net::RedirectInfo& redirect_info,
       network::mojom::URLResponseHeadPtr response_head,
-      base::TimeTicks redirect_ipc_arrival_time);
+      scoped_refptr<base::SequencedTaskRunner> task_runner);
 
   // Called when the response is complete.
   virtual void OnRequestComplete(
-      const network::URLLoaderCompletionStatus& status,
-      base::TimeTicks complete_ipc_arrival_time);
+      const network::URLLoaderCompletionStatus& status);
 
  private:
   friend class URLLoaderClientImpl;
   friend class URLResponseBodyConsumer;
 
+  class CodeCacheFetcher;
   struct PendingRequestInfo {
     PendingRequestInfo(scoped_refptr<ResourceRequestClient> client,
                        network::mojom::RequestDestination request_destination,
@@ -196,34 +193,19 @@ class BLINK_PLATFORM_EXPORT ResourceRequestSender {
     std::unique_ptr<MojoURLLoaderClient> url_loader_client;
 
     // The Client Hints headers that need to be removed from a redirect.
-    //
-    // May also include the `Shared-Storage-Writable` header in the case that
-    // permission has been revoked on a redirect.
-    std::vector<std::string> removed_headers
-        ALLOW_DISCOURAGED_TYPE("Matches Chrome net API");
-
-    // Headers that need to be added or updated, e.g. the
-    // `Shared-Storage-Writable` header in the case that permission has been
-    // restored on a redirect.
-    net::HttpRequestHeaders modified_headers;
+    WebVector<WebString> removed_headers;
 
     // Used to notify the loading stats.
     std::unique_ptr<ResourceLoadInfoNotifierWrapper>
         resource_load_info_notifier_wrapper;
-
-    // Set to true when the request was frozen. This is used not to record
-    // histograms for frozen requests. Note: Even if the request was unfreezed,
-    // we don't resume recording histograms because tasks are deferred in
-    // MojoURLLoaderClient.
-    bool ignore_for_histogram = false;
   };
 
   // Called as a callback for ResourceRequestClient::OnReceivedRedirect().
   void OnFollowRedirectCallback(
       const net::RedirectInfo& redirect_info,
       network::mojom::URLResponseHeadPtr response_head,
-      std::vector<std::string> removed_headers,
-      net::HttpRequestHeaders modified_headers);
+      scoped_refptr<base::SequencedTaskRunner> task_runner,
+      std::vector<std::string> removed_headers);
 
   // Follows redirect, if any, for the given request.
   void FollowPendingRedirect(PendingRequestInfo* request_info);
@@ -236,18 +218,13 @@ class BLINK_PLATFORM_EXPORT ResourceRequestSender {
 
   void DidReceiveCachedCode();
 
-  bool ShouldDeferTask() const;
+  bool ShouldDeferTask();
 
   void MaybeRunPendingTasks();
 
   // The instance is created on StartAsync() or StartSync(), and it's deleted
   // when the response has finished, or when the request is canceled.
   std::unique_ptr<PendingRequestInfo> request_info_;
-
-  // Set to true when an operation integral to resource loading latency is
-  // delayed waiting on a response from the code cache.
-  bool latency_critical_operation_deferred_ = false;
-  bool used_code_cache_fetcher_ = false;
 
   scoped_refptr<base::SequencedTaskRunner> loading_task_runner_;
 

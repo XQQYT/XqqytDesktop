@@ -52,69 +52,64 @@ namespace blink {
 #endif
 
 #if defined(HAVE_DENORMAL)
-class DenormalModifier {
+class DenormalDisabler {
+  DISALLOW_NEW();
+
  public:
-  virtual ~DenormalModifier() = default;
+  DenormalDisabler() { DisableDenormals(); }
+
+  ~DenormalDisabler() { RestoreState(); }
+
+  // This is a nop if we can flush denormals to zero in hardware.
+  static inline float FlushDenormalFloatToZero(float f) { return f; }
+
+ private:
+  unsigned saved_csr_ = 0;
 
 #if defined(COMPILER_GCC) && defined(ARCH_CPU_X86_FAMILY)
- public:
-  static void DisableDenormals() {
-    unsigned old_csr = GetCsr();
-    SetCsr(old_csr | 0x8040);
+  inline void DisableDenormals() {
+    saved_csr_ = GetCSR();
+    SetCSR(saved_csr_ | 0x8040);
   }
 
-  static void EnableDenormals() {
-    unsigned old_csr = GetCsr();
-    SetCsr(old_csr & (~0x8040));
-  }
+  inline void RestoreState() { SetCSR(saved_csr_); }
 
- protected:
-  static inline unsigned GetCsr() {
+  inline int GetCSR() {
     int result;
     asm volatile("stmxcsr %0" : "=m"(result));
     return result;
   }
 
-  static inline void SetCsr(int a) {
+  inline void SetCSR(int a) {
     int temp = a;
     asm volatile("ldmxcsr %0" : : "m"(temp));
   }
 
 #elif BUILDFLAG(IS_WIN) && defined(COMPILER_MSVC)
- public:
-  static void DisableDenormals() { SetCsr(_DN_FLUSH); }
-
-  static void EnableDenormals() { SetCsr(_DN_SAVE); }
-
- protected:
-  static inline unsigned GetCsr() {
-    unsigned result;
-    _controlfp_s(&result, 0, 0);
-    return result;
-  }
-
-  static inline void SetCsr(unsigned a) {
+  inline void DisableDenormals() {
+    // Save the current state, and set mode to flush denormals.
+    //
     // http://stackoverflow.com/questions/637175/possible-bug-in-controlfp-s-may-not-restore-control-word-correctly
+    _controlfp_s(&saved_csr_, 0, 0);
     unsigned unused;
-    _controlfp_s(&unused, a, _MCW_DN);
+    _controlfp_s(&unused, _DN_FLUSH, _MCW_DN);
   }
 
+  inline void RestoreState() {
+    unsigned unused;
+    _controlfp_s(&unused, saved_csr_, _MCW_DN);
+  }
 #elif defined(ARCH_CPU_ARM_FAMILY)
- public:
-  static void DisableDenormals() {
-    unsigned old_csr = GetCsr();
+  inline void DisableDenormals() {
+    saved_csr_ = GetStatusWord();
     // Bit 24 is the flush-to-zero mode control bit. Setting it to 1 flushes
     // denormals to 0.
-    SetCsr(old_csr | (1 << 24));
+    SetStatusWord(saved_csr_ | (1 << 24));
   }
 
-  static void EnableDenormals() {
-    unsigned old_csr = GetCsr();
-    SetCsr(old_csr & (~(1 << 24)));
-  }
+  inline void RestoreState() { SetStatusWord(saved_csr_); }
 
- protected:
-  static inline unsigned GetCsr() {
+  inline int GetStatusWord() {
     int result;
 #if defined(ARCH_CPU_ARM64)
     asm volatile("mrs %x[result], FPCR" : [result] "=r"(result));
@@ -124,7 +119,7 @@ class DenormalModifier {
     return result;
   }
 
-  static inline void SetCsr(int a) {
+  inline void SetStatusWord(int a) {
 #if defined(ARCH_CPU_ARM64)
     asm volatile("msr FPCR, %x[src]" : : [src] "r"(a));
 #else
@@ -135,67 +130,19 @@ class DenormalModifier {
 #endif
 };
 
-class DenormalDisabler final : public DenormalModifier {
-  DISALLOW_NEW();
-
- public:
-  DenormalDisabler() {
-    // Save the current state, and set mode to flush denormals.
-    saved_csr_ = GetCsr();
-    DisableDenormals();
-  }
-  ~DenormalDisabler() final { SetCsr(saved_csr_); }
-
-  // This is a nop if we can flush denormals to zero in hardware.
-  static inline float FlushDenormalFloatToZero(float f) { return f; }
-
- private:
-  unsigned saved_csr_ = 0;
-};
-
-class DenormalEnabler final : public DenormalModifier {
-  DISALLOW_NEW();
-
- public:
-  DenormalEnabler() {
-    saved_csr_ = GetCsr();
-    EnableDenormals();
-  }
-  ~DenormalEnabler() final { SetCsr(saved_csr_); }
-
- private:
-  unsigned saved_csr_ = 0;
-};
-
 #else
 // FIXME: add implementations for other architectures and compilers
-class DenormalModifier final {
- public:
-  virtual ~DenormalModifier() = default;
-  static void DisableDenormals() {}
-  static void EnableDenormals() {}
-};
-
-class DenormalDisabler final {
+class DenormalDisabler {
   STACK_ALLOCATED();
 
  public:
-  DenormalDisabler() = default;
-  ~DenormalDisabler() = default;
+  DenormalDisabler() {}
 
   // Assume the worst case that other architectures and compilers
   // need to flush denormals to zero manually.
   static inline float FlushDenormalFloatToZero(float f) {
     return (fabs(f) < FLT_MIN) ? 0.0f : f;
   }
-};
-
-class DenormalEnabler final {
-  STACK_ALLOCATED();
-
- public:
-  DenormalEnabler() = default;
-  ~DenormalEnabler() = default;
 };
 
 #endif

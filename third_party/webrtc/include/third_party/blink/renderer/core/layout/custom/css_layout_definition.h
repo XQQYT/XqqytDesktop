@@ -10,17 +10,17 @@
 #include "third_party/blink/renderer/platform/bindings/name_client.h"
 #include "third_party/blink/renderer/platform/bindings/scoped_persistent.h"
 #include "third_party/blink/renderer/platform/bindings/trace_wrapper_v8_reference.h"
-#include "third_party/blink/renderer/platform/geometry/layout_unit.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "v8/include/v8.h"
 
 namespace blink {
 
-class BlockNode;
-class ConstraintSpace;
 class CustomLayoutScope;
 class FragmentResultOptions;
 class IntrinsicSizesResultOptions;
+class LayoutUnit;
+class NGBlockNode;
+class NGConstraintSpace;
 class ScriptState;
 class SerializedScriptValue;
 class V8IntrinsicSizesCallback;
@@ -55,9 +55,9 @@ class CSSLayoutDefinition final : public GarbageCollected<CSSLayoutDefinition>,
     // Runs the web developer defined layout, returns true if everything
     // succeeded. It populates the FragmentResultOptions dictionary, and
     // fragment_result_data.
-    bool Layout(const ConstraintSpace&,
+    bool Layout(const NGConstraintSpace&,
                 const Document&,
-                const BlockNode&,
+                const NGBlockNode&,
                 const LogicalSize& border_box_size,
                 const BoxStrut& border_scrollbar_padding,
                 CustomLayoutScope*,
@@ -66,9 +66,9 @@ class CSSLayoutDefinition final : public GarbageCollected<CSSLayoutDefinition>,
 
     // Runs the web developer defined intrinsicSizes, returns true if everything
     // succeeded. It populates the IntrinsicSizesResultOptions dictionary.
-    bool IntrinsicSizes(const ConstraintSpace&,
+    bool IntrinsicSizes(const NGConstraintSpace&,
                         const Document&,
-                        const BlockNode&,
+                        const NGBlockNode&,
                         const LogicalSize& border_box_size,
                         const BoxStrut& border_scrollbar_padding,
                         const LayoutUnit child_available_block_size,
@@ -79,6 +79,8 @@ class CSSLayoutDefinition final : public GarbageCollected<CSSLayoutDefinition>,
     void Trace(Visitor*) const;
 
    private:
+    void ReportException(ExceptionState*);
+
     Member<CSSLayoutDefinition> definition_;
     TraceWrapperV8Reference<v8::Value> instance_;
   };

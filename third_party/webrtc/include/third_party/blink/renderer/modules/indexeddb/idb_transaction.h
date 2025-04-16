@@ -30,9 +30,7 @@
 
 #include "base/dcheck_is_on.h"
 #include "third_party/blink/public/mojom/indexeddb/indexeddb.mojom-blink-forward.h"
-#include "third_party/blink/public/mojom/indexeddb/indexeddb.mojom-blink.h"
 #include "third_party/blink/renderer/bindings/core/v8/active_script_wrappable.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_idb_transaction_mode.h"
 #include "third_party/blink/renderer/core/dom/dom_string_list.h"
 #include "third_party/blink/renderer/core/dom/events/event_listener.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
@@ -40,6 +38,7 @@
 #include "third_party/blink/renderer/modules/event_target_modules.h"
 #include "third_party/blink/renderer/modules/indexeddb/idb_metadata.h"
 #include "third_party/blink/renderer/modules/indexeddb/indexed_db.h"
+#include "third_party/blink/renderer/modules/indexeddb/web_idb_database.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_linked_hash_set.h"
@@ -62,7 +61,6 @@ class IDBOpenDBRequest;
 class IDBRequest;
 class IDBRequestQueueItem;
 class ScriptState;
-class V8IDBTransactionDurability;
 
 class MODULES_EXPORT IDBTransaction final
     : public EventTarget,
@@ -112,8 +110,10 @@ class MODULES_EXPORT IDBTransaction final
 
   void Trace(Visitor*) const override;
 
-  static mojom::blink::IDBTransactionMode EnumToMode(
-      V8IDBTransactionMode::Enum);
+  static mojom::blink::IDBTransactionMode StringToMode(const String&);
+
+  // When the connection is closed backend will be 0.
+  WebIDBDatabase* BackendDB() const;
 
   int64_t Id() const { return id_; }
   bool IsActive() const { return state_ == kActive; }
@@ -131,10 +131,10 @@ class MODULES_EXPORT IDBTransaction final
   void IncrementNumErrorsHandled() { ++num_errors_handled_; }
 
   // Implement the IDBTransaction IDL
-  V8IDBTransactionMode mode() const;
-  V8IDBTransactionDurability durability() const;
+  const String& mode() const;
+  const String& durability() const;
   DOMStringList* objectStoreNames() const;
-  IDBDatabase& db() { return *database_; }
+  IDBDatabase* db() const { return database_.Get(); }
   DOMException* error() const { return error_.Get(); }
   IDBObjectStore* objectStore(const String& name, ExceptionState&);
   void abort(ExceptionState&);
@@ -237,7 +237,7 @@ class MODULES_EXPORT IDBTransaction final
   // requests larger than this size will be rejected.
   // Used by unit tests to exercise behavior without allocating huge chunks
   // of memory.
-  std::optional<size_t> max_put_value_size_override_;
+  absl::optional<size_t> max_put_value_size_override_;
 
   // Called when a transaction is aborted.
   void AbortOutstandingRequests(bool queue_tasks);

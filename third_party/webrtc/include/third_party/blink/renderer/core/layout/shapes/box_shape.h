@@ -35,11 +35,8 @@
 
 namespace blink {
 
-class WritingModeConverter;
-
 class BoxShape final : public Shape {
  public:
-  // `bounds` is a logical rounded rectangle.
   BoxShape(const FloatRoundedRect& bounds) : Shape(), bounds_(bounds) {}
 
   LogicalRect ShapeMarginLogicalBoundingBox() const override;
@@ -47,10 +44,6 @@ class BoxShape final : public Shape {
   LineSegment GetExcludedInterval(LayoutUnit logical_top,
                                   LayoutUnit logical_height) const override;
   void BuildDisplayPaths(DisplayPaths&) const override;
-
-  [[nodiscard]] static FloatRoundedRect ToLogical(
-      const FloatRoundedRect& rect,
-      const WritingModeConverter& converter);
 
  private:
   FloatRoundedRect ShapeMarginBounds() const;

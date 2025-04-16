@@ -18,8 +18,7 @@
 
 @class RTC_OBJC_TYPE(RTCPeerConnectionFactory);
 
-@interface ARDAppClient () <ARDSignalingChannelDelegate,
-                            RTC_OBJC_TYPE (RTCPeerConnectionDelegate)>
+@interface ARDAppClient () <ARDSignalingChannelDelegate, RTC_OBJC_TYPE (RTCPeerConnectionDelegate)>
 
 // All properties should only be mutated from the main queue.
 @property(nonatomic, strong) id<ARDRoomServerClient> roomServerClient;
@@ -43,8 +42,7 @@
 @property(nonatomic, strong) NSURL *webSocketRestURL;
 @property(nonatomic, readonly) BOOL isLoopback;
 
-@property(nonatomic, strong) RTC_OBJC_TYPE(RTCMediaConstraints) *
-    defaultPeerConnectionConstraints;
+@property(nonatomic, strong) RTC_OBJC_TYPE(RTCMediaConstraints) * defaultPeerConnectionConstraints;
 
 - (instancetype)initWithRoomServerClient:(id<ARDRoomServerClient>)rsClient
                         signalingChannel:(id<ARDSignalingChannel>)channel

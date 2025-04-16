@@ -28,7 +28,7 @@ class PaymentAppServiceWorkerRegistration final
   PaymentAppServiceWorkerRegistration& operator=(
       const PaymentAppServiceWorkerRegistration&) = delete;
 
-  ~PaymentAppServiceWorkerRegistration();
+  virtual ~PaymentAppServiceWorkerRegistration();
 
   static PaymentAppServiceWorkerRegistration& From(ServiceWorkerRegistration&);
 

@@ -10,6 +10,7 @@
 #ifndef _LIBCPP___FILESYSTEM_SPACE_INFO_H
 #define _LIBCPP___FILESYSTEM_SPACE_INFO_H
 
+#include <__availability>
 #include <__config>
 #include <cstdint>
 
@@ -17,7 +18,7 @@
 #  pragma GCC system_header
 #endif
 
-#if _LIBCPP_STD_VER >= 17
+#ifndef _LIBCPP_CXX03_LANG
 
 _LIBCPP_BEGIN_NAMESPACE_FILESYSTEM
 
@@ -33,6 +34,6 @@ struct _LIBCPP_EXPORTED_FROM_ABI space_info {
 
 _LIBCPP_END_NAMESPACE_FILESYSTEM
 
-#endif // _LIBCPP_STD_VER >= 17
+#endif // _LIBCPP_CXX03_LANG
 
 #endif // _LIBCPP___FILESYSTEM_SPACE_INFO_H

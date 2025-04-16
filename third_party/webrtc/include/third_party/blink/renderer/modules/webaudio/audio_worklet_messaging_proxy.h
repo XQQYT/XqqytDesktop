@@ -6,9 +6,7 @@
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_WEBAUDIO_AUDIO_WORKLET_MESSAGING_PROXY_H_
 
 #include <memory>
-#include <optional>
 
-#include "base/time/time.h"
 #include "third_party/blink/renderer/core/workers/threaded_worklet_messaging_proxy.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 
@@ -58,21 +56,20 @@ class MODULES_EXPORT AudioWorkletMessagingProxy final
   // AudioWorkletGlobalScope.
   bool IsProcessorRegistered(const String& name) const;
 
-  Vector<CrossThreadAudioParamInfo> GetParamInfoListForProcessor(
+  const Vector<CrossThreadAudioParamInfo> GetParamInfoListForProcessor(
       const String& name) const;
 
   // Returns a WorkerThread object backs the AudioWorkletThread instance.
   WorkerThread* GetBackingWorkerThread();
 
   // Create a Worklet backing thread based on constraints:
-  // If realtime_buffer_duration is not provided:
-  // 1. OfflineAudioContext: BACKGROUND priority thread.
-  // Otherwise:
-  // 2. AudioContext && outermost main frame: RT priority thread;
-  // 3. AudioContext && sub frame: DISPLAY priority thread.
+  // 1. AudioContext && outermost main frame (or RT thread flag): RT priority
+  // thread
+  // 2. AudioContext && sub frame: DISPLAY priority thread
+  // 3. OfflineAudioContext: BACKGROUND priority thread
   static std::unique_ptr<WorkerThread> CreateWorkletThreadWithConstraints(
       WorkerReportingProxy&,
-      std::optional<base::TimeDelta> realtime_buffer_duration,
+      const bool has_realtime_constraint,
       const bool is_outermost_main_frame);
 
   void Trace(Visitor*) const override;

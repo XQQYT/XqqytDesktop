@@ -27,8 +27,8 @@ function reformatHtml(html) {
 // Writes a payload with custom content and checks to ensure the correct data
 // was written successfully.
 promise_test(async t => {
-  await tryGrantReadPermission();
-  await tryGrantWritePermission();
+  await test_driver.set_permission({name: 'clipboard-read'}, 'granted');
+  await test_driver.set_permission({name: 'clipboard-write'}, 'granted');
 
   // Create and write unsanitized version of standard HTML and custom formats.
   const format1 = 'text/html';

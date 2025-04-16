@@ -26,10 +26,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_WEBAUDIO_ASYNC_AUDIO_DECODER_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_WEBAUDIO_ASYNC_AUDIO_DECODER_H_
 
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_decode_error_callback.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_decode_success_callback.h"
-#include "third_party/blink/renderer/core/typed_arrays/array_buffer/array_buffer_contents.h"
 #include "third_party/blink/renderer/platform/heap/cross_thread_handle.h"
 
 namespace base {
@@ -42,6 +40,7 @@ class AudioBuffer;
 class AudioBus;
 class BaseAudioContext;
 class DOMArrayBuffer;
+class ScriptPromiseResolver;
 class ExceptionContext;
 class ExceptionState;
 
@@ -69,26 +68,26 @@ class AsyncAudioDecoder {
                    float sample_rate,
                    V8DecodeSuccessCallback*,
                    V8DecodeErrorCallback*,
-                   ScriptPromiseResolver<AudioBuffer>*,
+                   ScriptPromiseResolver*,
                    BaseAudioContext*,
                    ExceptionState&);
 
  private:
   AudioBuffer* CreateAudioBufferFromAudioBus(AudioBus*);
   static void DecodeOnBackgroundThread(
-      ArrayBufferContents audio_data_contents,
+      DOMArrayBuffer* audio_data,
       float sample_rate,
       CrossThreadHandle<V8DecodeSuccessCallback>,
       CrossThreadHandle<V8DecodeErrorCallback>,
-      CrossThreadHandle<ScriptPromiseResolver<AudioBuffer>>,
+      CrossThreadHandle<ScriptPromiseResolver>,
       CrossThreadHandle<BaseAudioContext>,
       scoped_refptr<base::SingleThreadTaskRunner>,
       const ExceptionContext&);
-  static void NotifyComplete(ArrayBufferContents audio_data_contents,
+  static void NotifyComplete(DOMArrayBuffer* audio_data,
                              V8DecodeSuccessCallback*,
                              V8DecodeErrorCallback*,
                              AudioBus*,
-                             ScriptPromiseResolver<AudioBuffer>*,
+                             ScriptPromiseResolver*,
                              BaseAudioContext*,
                              const ExceptionContext&);
 };

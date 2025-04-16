@@ -14,8 +14,8 @@ class DOMMatrixInit;
 class DOMPoint;
 class DOMPointInit;
 class ExceptionState;
-class ScriptObject;
 class ScriptState;
+class ScriptValue;
 
 class CORE_EXPORT DOMPointReadOnly : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
@@ -31,7 +31,7 @@ class CORE_EXPORT DOMPointReadOnly : public ScriptWrappable {
   double z() const { return z_; }
   double w() const { return w_; }
 
-  ScriptObject toJSONForBinding(ScriptState*) const;
+  ScriptValue toJSONForBinding(ScriptState*) const;
   DOMPoint* matrixTransform(DOMMatrixInit*, ExceptionState&);
 
  protected:

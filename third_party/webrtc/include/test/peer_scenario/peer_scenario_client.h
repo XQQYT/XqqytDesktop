@@ -56,7 +56,7 @@ class PeerScenarioClient {
                                    int,
                                    const std::string&)>>
         on_ice_candidate_error;
-    std::vector<std::function<void(const std::vector<webrtc::Candidate>&)>>
+    std::vector<std::function<void(const std::vector<cricket::Candidate>&)>>
         on_ice_candidates_removed;
     std::vector<std::function<void(
         rtc::scoped_refptr<RtpReceiverInterface>,
@@ -79,7 +79,7 @@ class PeerScenarioClient {
       struct PulsedNoise {
         double amplitude = 0.1;
       };
-      std::optional<PulsedNoise> pulsed_noise = PulsedNoise();
+      absl::optional<PulsedNoise> pulsed_noise = PulsedNoise();
     } audio;
     struct Video {
       bool use_fake_codecs = false;
@@ -114,7 +114,7 @@ class PeerScenarioClient {
 
   PeerScenarioClient(
       NetworkEmulationManager* net,
-      Thread* signaling_thread,
+      rtc::Thread* signaling_thread,
       std::unique_ptr<LogWriterFactoryInterface> log_writer_factory,
       Config config);
 
@@ -123,7 +123,7 @@ class PeerScenarioClient {
     RTC_DCHECK_RUN_ON(signaling_thread_);
     return peer_connection_.get();
   }
-  Thread* thread() { return signaling_thread_; }
+  rtc::Thread* thread() { return signaling_thread_; }
   Clock* clock() { return Clock::GetRealTimeClock(); }
 
   // Returns the endpoint created from the EmulatedEndpointConfig with the same
@@ -147,7 +147,6 @@ class PeerScenarioClient {
       std::function<void(SessionDescriptionInterface*)> munge_offer,
       std::function<void(std::string)> offer_handler);
   void SetSdpOfferAndGetAnswer(std::string remote_offer,
-                               std::function<void()> remote_description_set,
                                std::function<void(std::string)> answer_handler);
   void SetSdpAnswer(
       std::string remote_answer,
@@ -160,9 +159,9 @@ class PeerScenarioClient {
  private:
   const std::map<int, EmulatedEndpoint*> endpoints_;
   TaskQueueFactory* const task_queue_factory_;
-  Thread* const signaling_thread_;
+  rtc::Thread* const signaling_thread_;
   const std::unique_ptr<LogWriterFactoryInterface> log_writer_factory_;
-  const std::unique_ptr<Thread> worker_thread_;
+  const std::unique_ptr<rtc::Thread> worker_thread_;
   CallbackHandlers handlers_ RTC_GUARDED_BY(signaling_thread_);
   const std::unique_ptr<PeerConnectionObserver> observer_;
   std::map<std::string, std::vector<rtc::VideoSinkInterface<VideoFrame>*>>

@@ -1,22 +1,74 @@
-// Copyright 2000-2016 The OpenSSL Project Authors. All Rights Reserved.
-// Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/* Originally written by Bodo Moeller for the OpenSSL project.
+ * ====================================================================
+ * Copyright (c) 1998-2005 The OpenSSL Project.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 3. All advertising materials mentioning features or use of this
+ *    software must display the following acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
+ *
+ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
+ *    endorse or promote products derived from this software without
+ *    prior written permission. For written permission, please contact
+ *    openssl-core@openssl.org.
+ *
+ * 5. Products derived from this software may not be called "OpenSSL"
+ *    nor may "OpenSSL" appear in their names without prior written
+ *    permission of the OpenSSL Project.
+ *
+ * 6. Redistributions of any form whatsoever must retain the following
+ *    acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
+ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * ====================================================================
+ *
+ * This product includes cryptographic software written by Eric Young
+ * (eay@cryptsoft.com).  This product includes software written by Tim
+ * Hudson (tjh@cryptsoft.com).
+ *
+ */
+/* ====================================================================
+ * Copyright 2002 Sun Microsystems, Inc. ALL RIGHTS RESERVED.
+ *
+ * Portions of the attached software ("Contribution") are developed by
+ * SUN MICROSYSTEMS, INC., and are contributed to the OpenSSL project.
+ *
+ * The Contribution is licensed pursuant to the OpenSSL open source
+ * license provided above.
+ *
+ * The elliptic curve binary polynomial software is originally written by
+ * Sheueling Chang Shantz and Douglas Stebila of Sun Microsystems
+ * Laboratories. */
 
 #ifndef OPENSSL_HEADER_EC_H
 #define OPENSSL_HEADER_EC_H
 
-#include <openssl/base.h>   // IWYU pragma: export
+#include <openssl/base.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -48,16 +100,6 @@ typedef enum {
 
 
 // Elliptic curve groups.
-//
-// Elliptic curve groups are represented by |EC_GROUP| objects. Unlike OpenSSL,
-// if limited to the APIs in this section, callers may treat |EC_GROUP|s as
-// static, immutable objects which do not need to be copied or released. In
-// BoringSSL, only custom |EC_GROUP|s created by |EC_GROUP_new_curve_GFp|
-// (deprecated) are dynamic.
-//
-// Callers may cast away |const| and use |EC_GROUP_dup| and |EC_GROUP_free| with
-// static groups, for compatibility with OpenSSL or dynamic groups, but it is
-// otherwise unnecessary.
 
 // EC_group_p224 returns an |EC_GROUP| for P-224, also known as secp224r1.
 OPENSSL_EXPORT const EC_GROUP *EC_group_p224(void);
@@ -79,10 +121,10 @@ OPENSSL_EXPORT const EC_GROUP *EC_group_p521(void);
 // calling |EC_GROUP_free| is optional.
 //
 // The supported NIDs are:
-// - |NID_secp224r1| (P-224)
-// - |NID_X9_62_prime256v1| (P-256)
-// - |NID_secp384r1| (P-384)
-// - |NID_secp521r1| (P-521)
+//   NID_secp224r1 (P-224),
+//   NID_X9_62_prime256v1 (P-256),
+//   NID_secp384r1 (P-384),
+//   NID_secp521r1 (P-521)
 //
 // Calling this function causes all four curves to be linked into the binary.
 // Prefer calling |EC_group_*| to allow the static linker to drop unused curves.
@@ -90,6 +132,12 @@ OPENSSL_EXPORT const EC_GROUP *EC_group_p521(void);
 // If in doubt, use |NID_X9_62_prime256v1|, or see the curve25519.h header for
 // more modern primitives.
 OPENSSL_EXPORT EC_GROUP *EC_GROUP_new_by_curve_name(int nid);
+
+// EC_GROUP_free releases a reference to |group|.
+OPENSSL_EXPORT void EC_GROUP_free(EC_GROUP *group);
+
+// EC_GROUP_dup takes a reference to |a| and returns it.
+OPENSSL_EXPORT EC_GROUP *EC_GROUP_dup(const EC_GROUP *a);
 
 // EC_GROUP_cmp returns zero if |a| and |b| are the same group and non-zero
 // otherwise.
@@ -315,27 +363,9 @@ OPENSSL_EXPORT int EC_hash_to_curve_p384_xmd_sha384_sswu(
 
 // Deprecated functions.
 
-// EC_GROUP_free releases a reference to |group|, if |group| was created by
-// |EC_GROUP_new_curve_GFp|. If |group| is static, it does nothing.
-//
-// This function exists for OpenSSL compatibilty, and to manage dynamic
-// |EC_GROUP|s constructed by |EC_GROUP_new_curve_GFp|. Callers that do not need
-// either may ignore this function.
-OPENSSL_EXPORT void EC_GROUP_free(EC_GROUP *group);
-
-// EC_GROUP_dup increments |group|'s reference count and returns it, if |group|
-// was created by |EC_GROUP_new_curve_GFp|. If |group| is static, it simply
-// returns |group|.
-//
-// This function exists for OpenSSL compatibilty, and to manage dynamic
-// |EC_GROUP|s constructed by |EC_GROUP_new_curve_GFp|. Callers that do not need
-// either may ignore this function.
-OPENSSL_EXPORT EC_GROUP *EC_GROUP_dup(const EC_GROUP *group);
-
 // EC_GROUP_new_curve_GFp creates a new, arbitrary elliptic curve group based
 // on the equation y² = x³ + a·x + b. It returns the new group or NULL on
-// error. The lifetime of the resulting object must be managed with
-// |EC_GROUP_dup| and |EC_GROUP_free|.
+// error.
 //
 // This new group has no generator. It is an error to use a generator-less group
 // with any functions except for |EC_GROUP_free|, |EC_POINT_new|,

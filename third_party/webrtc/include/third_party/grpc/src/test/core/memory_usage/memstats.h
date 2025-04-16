@@ -15,13 +15,13 @@
 #ifndef GRPC_TEST_CORE_MEMORY_USAGE_MEMSTATS_H
 #define GRPC_TEST_CORE_MEMORY_USAGE_MEMSTATS_H
 
-#include <optional>
+#include "absl/types/optional.h"
 
 // IWYU pragma: no_include <bits/types/struct_rusage.h>
 
 // Get the memory usage of either the calling process or another process using
 // the pid
-long GetMemUsage(std::optional<int> pid = std::nullopt);
+long GetMemUsage(absl::optional<int> pid = absl::nullopt);
 
 struct MemStats {
   long rss;  // Resident set size, in kb

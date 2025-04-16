@@ -7,8 +7,6 @@
 
 #include <stdint.h>
 
-#include <string_view>
-
 #include "base/metrics/field_trial.h"
 
 namespace base {
@@ -24,7 +22,7 @@ class MockEntropyProvider : public base::FieldTrial::EntropyProvider {
   ~MockEntropyProvider() override;
 
   // base::FieldTrial::EntropyProvider:
-  double GetEntropyForTrial(std::string_view trial_name,
+  double GetEntropyForTrial(StringPiece trial_name,
                             uint32_t randomization_seed) const override;
 
  private:

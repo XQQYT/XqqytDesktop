@@ -1,13 +1,3 @@
-/*
- *  Copyright (c) 2025 The WebM project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree. An additional intellectual property rights grant can be found
- *  in the file PATENTS.  All contributing project authors may
- *  be found in the AUTHORS file in the root of the source tree.
- */
-
 // This file is generated. Do not edit.
 #ifndef VPX_DSP_RTCD_H_
 #define VPX_DSP_RTCD_H_
@@ -2878,14 +2868,6 @@ void vpx_highbd_sad_skip_8x8x4d_c(const uint8_t* src_ptr,
 int vpx_highbd_satd_c(const tran_low_t* coeff, int length);
 #define vpx_highbd_satd vpx_highbd_satd_c
 
-int64_t vpx_highbd_sse_c(const uint8_t* a8,
-                         int a_stride,
-                         const uint8_t* b8,
-                         int b_stride,
-                         int width,
-                         int height);
-#define vpx_highbd_sse vpx_highbd_sse_c
-
 void vpx_highbd_subtract_block_c(int rows,
                                  int cols,
                                  int16_t* diff_ptr,
@@ -3707,14 +3689,6 @@ void vpx_scaled_vert_c(const uint8_t* src,
                        int h);
 #define vpx_scaled_vert vpx_scaled_vert_c
 
-int64_t vpx_sse_c(const uint8_t* src,
-                  int src_stride,
-                  const uint8_t* ref,
-                  int ref_stride,
-                  int width,
-                  int height);
-#define vpx_sse vpx_sse_c
-
 uint32_t vpx_sub_pixel_avg_variance16x16_c(const uint8_t* src_ptr,
                                            int src_stride,
                                            int x_offset,
@@ -4135,4 +4109,4 @@ static void setup_rtcd_internal(void) {}
 }  // extern "C"
 #endif
 
-#endif  // VPX_DSP_RTCD_H_
+#endif

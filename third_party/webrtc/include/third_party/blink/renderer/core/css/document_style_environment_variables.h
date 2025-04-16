@@ -21,15 +21,14 @@ class FeatureContext;
 class CORE_EXPORT DocumentStyleEnvironmentVariables
     : public StyleEnvironmentVariables {
  public:
+  // Generate a hash from the provided name.
+  static unsigned GenerateHashFromName(const AtomicString&);
+
   // Create an instance bound to |parent| that will invalidate |document|'s
   // style when a variable is changed.
-  DocumentStyleEnvironmentVariables(StyleEnvironmentVariables& parent,
-                                    Document& document);
-
-  void Trace(Visitor* visitor) const override {
-    visitor->Trace(document_);
-    StyleEnvironmentVariables::Trace(visitor);
-  }
+  static scoped_refptr<DocumentStyleEnvironmentVariables> Create(
+      StyleEnvironmentVariables& parent,
+      Document& document);
 
   // Resolve the variable |name| and return the data. This will also cause
   // future changes to this variable to invalidate the associated document's
@@ -53,11 +52,13 @@ class CORE_EXPORT DocumentStyleEnvironmentVariables
   void InvalidateVariable(const AtomicString& name) override;
 
  private:
-  // Record variable usage using |UseCounter|.
-  void RecordVariableUsage(const AtomicString& name);
+  DocumentStyleEnvironmentVariables(Document& document);
 
-  HashSet<AtomicString> seen_variables_;
-  Member<Document> document_;
+  // Record variable usage using |UseCounter|.
+  void RecordVariableUsage(unsigned id);
+
+  HashSet<unsigned> seen_variables_;
+  Persistent<Document> document_;
 };
 
 }  // namespace blink

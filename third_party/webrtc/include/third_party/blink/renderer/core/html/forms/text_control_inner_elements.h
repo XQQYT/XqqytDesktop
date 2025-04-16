@@ -41,9 +41,7 @@ class EditingViewPortElement final : public HTMLDivElement {
       const StyleRecalcContext&) override;
 
  private:
-  FocusableState SupportsFocus(UpdateBehavior) const override {
-    return FocusableState::kNotFocusable;
-  }
+  bool SupportsFocus() const override { return false; }
 };
 
 class TextControlInnerEditorElement final : public HTMLDivElement {
@@ -59,9 +57,7 @@ class TextControlInnerEditorElement final : public HTMLDivElement {
   LayoutObject* CreateLayoutObject(const ComputedStyle&) override;
   const ComputedStyle* CustomStyleForLayoutObject(
       const StyleRecalcContext&) override;
-  FocusableState SupportsFocus(UpdateBehavior) const override {
-    return FocusableState::kNotFocusable;
-  }
+  bool SupportsFocus() const override { return false; }
   bool is_visible_ = true;
 };
 
@@ -73,9 +69,7 @@ class SearchFieldCancelButtonElement final : public HTMLDivElement {
   bool WillRespondToMouseClickEvents() override;
 
  private:
-  FocusableState SupportsFocus(UpdateBehavior) const override {
-    return FocusableState::kNotFocusable;
-  }
+  bool SupportsFocus() const override { return false; }
 };
 
 class PasswordRevealButtonElement final : public HTMLDivElement {
@@ -86,9 +80,15 @@ class PasswordRevealButtonElement final : public HTMLDivElement {
   bool WillRespondToMouseClickEvents() override;
 
  private:
-  FocusableState SupportsFocus(UpdateBehavior) const override {
-    return FocusableState::kNotFocusable;
-  }
+  bool SupportsFocus() const override { return false; }
+};
+
+class PasswordStrongLabelElement final : public HTMLDivElement {
+ public:
+  explicit PasswordStrongLabelElement(Document&);
+
+ private:
+  bool SupportsFocus() const override { return false; }
 };
 
 }  // namespace blink

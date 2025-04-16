@@ -11,18 +11,11 @@
 #ifndef API_TEST_MOCK_RTPRECEIVER_H_
 #define API_TEST_MOCK_RTPRECEIVER_H_
 
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "api/crypto/frame_decryptor_interface.h"
-#include "api/media_stream_interface.h"
-#include "api/media_types.h"
-#include "api/rtp_parameters.h"
 #include "api/rtp_receiver_interface.h"
-#include "api/scoped_refptr.h"
-#include "api/transport/rtp/rtp_source.h"
-#include "rtc_base/ref_counted_object.h"
 #include "test/gmock.h"
 
 namespace webrtc {
@@ -37,7 +30,7 @@ class MockRtpReceiver : public rtc::RefCountedObject<RtpReceiverInterface> {
               streams,
               (),
               (const, override));
-  MOCK_METHOD(webrtc::MediaType, media_type, (), (const, override));
+  MOCK_METHOD(cricket::MediaType, media_type, (), (const, override));
   MOCK_METHOD(std::string, id, (), (const, override));
   MOCK_METHOD(RtpParameters, GetParameters, (), (const, override));
   MOCK_METHOD(bool,
@@ -47,7 +40,7 @@ class MockRtpReceiver : public rtc::RefCountedObject<RtpReceiverInterface> {
   MOCK_METHOD(void, SetObserver, (RtpReceiverObserverInterface*), (override));
   MOCK_METHOD(void,
               SetJitterBufferMinimumDelay,
-              (std::optional<double>),
+              (absl::optional<double>),
               (override));
   MOCK_METHOD(std::vector<RtpSource>, GetSources, (), (const, override));
   MOCK_METHOD(void,

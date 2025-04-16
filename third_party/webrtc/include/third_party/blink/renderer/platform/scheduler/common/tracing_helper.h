@@ -25,22 +25,37 @@
 namespace blink {
 namespace scheduler {
 
-PLATFORM_EXPORT perfetto::StaticString YesNoStateToString(bool is_yes);
+// Available scheduler tracing categories for use with `StateTracer` and
+// friends.
+enum class TracingCategory { kTopLevel, kDefault, kInfo, kDebug };
+
+namespace internal {
+
+constexpr const char* TracingCategoryToString(TracingCategory category) {
+  switch (category) {
+    case TracingCategory::kTopLevel:
+      return "toplevel";
+    case TracingCategory::kDefault:
+      return "renderer.scheduler";
+    case TracingCategory::kInfo:
+      return TRACE_DISABLED_BY_DEFAULT("renderer.scheduler");
+    case TracingCategory::kDebug:
+      return TRACE_DISABLED_BY_DEFAULT("renderer.scheduler.debug");
+  }
+  return nullptr;
+}
+
+}  // namespace internal
+
+PLATFORM_EXPORT double TimeDeltaToMilliseconds(const base::TimeDelta& value);
+
+PLATFORM_EXPORT const char* YesNoStateToString(bool is_yes);
 
 PLATFORM_EXPORT
 perfetto::protos::pbzero::RendererMainThreadTaskExecution::TaskType
 TaskTypeToProto(TaskType task_type);
 
 class TraceableVariable;
-
-PLATFORM_EXPORT perfetto::NamedTrack MakeNamedTrack(
-    perfetto::StaticString name,
-    const void* ptr,
-    perfetto::Track parent = perfetto::ThreadTrack::Current());
-PLATFORM_EXPORT perfetto::CounterTrack MakeCounterTrack(
-    perfetto::StaticString name,
-    const void* ptr,
-    perfetto::Track parent = perfetto::ThreadTrack::Current());
 
 // Unfortunately, using |base::trace_event::TraceLog::EnabledStateObserver|
 // wouldn't be helpful in our case because removing one takes linear time
@@ -62,17 +77,6 @@ class PLATFORM_EXPORT TraceableVariableController {
   HashSet<TraceableVariable*> traceable_variables_;
 };
 
-// A wrapper for string literal used in template arguments.
-template <size_t N>
-class TracingCategory {
- public:
-  constexpr TracingCategory(const char (&str)[N]) {
-    std::copy_n(str, N, value);
-  }
-
-  char value[N];
-};
-
 class TraceableVariable {
  public:
   TraceableVariable(TraceableVariableController* controller)
@@ -87,36 +91,102 @@ class TraceableVariable {
   virtual void OnTraceLogEnabled() = 0;
 
  private:
-  const raw_ptr<TraceableVariableController> controller_;  // Not owned.
+  const raw_ptr<TraceableVariableController, ExperimentalRenderer>
+      controller_;  // Not owned.
+};
+
+// TRACE_EVENT macros define static variable to cache a pointer to the state
+// of category. Hence, we need distinct version for each category in order to
+// prevent unintended leak of state.
+
+template <TracingCategory category>
+class StateTracer {
+  DISALLOW_NEW();
+
+ public:
+  explicit StateTracer(const char* name) : name_(name), slice_is_open_(false) {}
+
+  StateTracer(const StateTracer&) = delete;
+  StateTracer& operator=(const StateTracer&) = delete;
+
+  ~StateTracer() {
+    if (slice_is_open_) {
+      TRACE_EVENT_NESTABLE_ASYNC_END0(
+          internal::TracingCategoryToString(category), name_,
+          TRACE_ID_LOCAL(this));
+    }
+  }
+
+  // String will be copied before leaving this function.
+  void TraceString(const String& state) {
+    TraceImpl(state.Utf8().c_str(), true);
+  }
+
+  // Trace compile-time defined const string, so no copy needed.
+  // Null may be passed to indicate the absence of state.
+  void TraceCompileTimeString(const char* state) { TraceImpl(state, false); }
+
+ protected:
+  bool is_enabled() const {
+    bool result = false;
+    TRACE_EVENT_CATEGORY_GROUP_ENABLED(
+        internal::TracingCategoryToString(category), &result);  // Cached.
+    return result;
+  }
+
+ private:
+  void TraceImpl(const char* state, bool need_copy) {
+    if (slice_is_open_) {
+      TRACE_EVENT_NESTABLE_ASYNC_END0(
+          internal::TracingCategoryToString(category), name_,
+          TRACE_ID_LOCAL(this));
+      slice_is_open_ = false;
+    }
+    if (!state || !is_enabled())
+      return;
+
+    if (need_copy) {
+      TRACE_EVENT_NESTABLE_ASYNC_BEGIN1(
+          internal::TracingCategoryToString(category), name_,
+          TRACE_ID_LOCAL(this), "state", TRACE_STR_COPY(state));
+    } else {
+      TRACE_EVENT_NESTABLE_ASYNC_BEGIN1(
+          internal::TracingCategoryToString(category), name_,
+          TRACE_ID_LOCAL(this), "state", state);
+    }
+    slice_is_open_ = true;
+  }
+
+  const char* const name_;    // Not owned.
+
+  // We have to track whether slice is open to avoid confusion since assignment,
+  // "absent" state and OnTraceLogEnabled can happen anytime.
+  bool slice_is_open_;
 };
 
 // TODO(kraynov): Rename to something less generic and reflecting
 // the enum nature of such variables.
 template <typename T, TracingCategory category>
-class TraceableState : public TraceableVariable {
+class TraceableState : public TraceableVariable, private StateTracer<category> {
  public:
   // Converter must return compile-time defined const strings because tracing
   // will not make a copy of them.
-  using ConverterFuncPtr = perfetto::StaticString (*)(T);
+  using ConverterFuncPtr = const char* (*)(T);
 
   TraceableState(T initial_state,
-                 perfetto::NamedTrack track,
+                 const char* name,
                  TraceableVariableController* controller,
                  ConverterFuncPtr converter)
       : TraceableVariable(controller),
+        StateTracer<category>(name),
         converter_(converter),
-        state_(initial_state),
-        track_(track) {
+        state_(initial_state) {
     Trace();
   }
 
   TraceableState(const TraceableState&) = delete;
 
-  ~TraceableState() override {
-    if (slice_is_open_) {
-      TRACE_EVENT_END(category.value, track_);
-    }
-  }
+  ~TraceableState() override = default;
 
   TraceableState& operator=(const T& value) {
     Assign(value);
@@ -147,29 +217,149 @@ class TraceableState : public TraceableVariable {
     }
   }
 
+  void (*mock_trace_for_test_)(const char*) = nullptr;
+
  private:
   void Trace() {
-    if (!TRACE_EVENT_CATEGORY_ENABLED(category.value)) {
+    if (UNLIKELY(mock_trace_for_test_)) {
+      mock_trace_for_test_(converter_(state_));
       return;
     }
-    perfetto::StaticString state_str = converter_(state_);
-    if (slice_is_open_) {
-      TRACE_EVENT_END(category.value, track_);
+
+    // Null state string means the absence of state.
+    const char* state_str = nullptr;
+    if (StateTracer<category>::is_enabled()) {
+      state_str = converter_(state_);
     }
-    slice_is_open_ = !!state_str;
-    if (state_str) {
-      TRACE_EVENT_BEGIN(category.value, state_str, track_);
-    }
+
+    // We have to be explicit to deal with two-phase name lookup in templates:
+    // http://blog.llvm.org/2009/12/dreaded-two-phase-name-lookup.html
+    StateTracer<category>::TraceCompileTimeString(state_str);
   }
 
   const ConverterFuncPtr converter_;
-
   T state_;
-  perfetto::NamedTrack track_;
+};
+
+template <TracingCategory category, typename TypedValue>
+class ProtoStateTracer {
+  DISALLOW_NEW();
+
+ public:
+  explicit ProtoStateTracer(const char* name)
+      : name_(name), slice_is_open_(false) {}
+
+  ProtoStateTracer(const ProtoStateTracer&) = delete;
+  ProtoStateTracer& operator=(const ProtoStateTracer&) = delete;
+
+  ~ProtoStateTracer() {
+    if (slice_is_open_) {
+      TRACE_EVENT_END(internal::TracingCategoryToString(category), track());
+    }
+  }
+
+  void TraceProto(TypedValue* value) {
+    const auto trace_track = track();
+    if (slice_is_open_) {
+      TRACE_EVENT_END(internal::TracingCategoryToString(category), trace_track);
+      slice_is_open_ = false;
+    }
+    if (!is_enabled())
+      return;
+
+    TRACE_EVENT_BEGIN(internal::TracingCategoryToString(category),
+                      perfetto::StaticString{name_}, trace_track,
+                      [value](perfetto::EventContext ctx) {
+                        value->AsProtozeroInto(ctx.event());
+                      });
+
+    slice_is_open_ = true;
+  }
+
+ protected:
+  bool is_enabled() const {
+    bool result = false;
+    TRACE_EVENT_CATEGORY_GROUP_ENABLED(
+        internal::TracingCategoryToString(category), &result);  // Cached.
+    return result;
+  }
+
+ private:
+  perfetto::Track track() const {
+    return perfetto::Track(reinterpret_cast<uint64_t>(this));
+  }
+
+  const char* const name_;  // Not owned.
 
   // We have to track whether slice is open to avoid confusion since assignment,
   // "absent" state and OnTraceLogEnabled can happen anytime.
-  bool slice_is_open_ = false;
+  bool slice_is_open_;
+};
+
+template <typename T>
+using InitializeProtoFuncPtr =
+    void (*)(perfetto::protos::pbzero::TrackEvent* event, T e);
+
+template <typename T, TracingCategory category>
+class TraceableObjectState
+    : public TraceableVariable,
+      public ProtoStateTracer<category, TraceableObjectState<T, category>> {
+ public:
+  TraceableObjectState(T initial_state,
+                       const char* name,
+                       TraceableVariableController* controller,
+                       InitializeProtoFuncPtr<T> proto_init_func)
+      : TraceableVariable(controller),
+        ProtoStateTracer<category, TraceableObjectState<T, category>>(name),
+        state_(initial_state),
+        proto_init_func_(proto_init_func) {
+    Trace();
+  }
+
+  TraceableObjectState(const TraceableObjectState&) = delete;
+
+  ~TraceableObjectState() override = default;
+
+  TraceableObjectState& operator=(const T& value) {
+    Assign(value);
+    return *this;
+  }
+  TraceableObjectState& operator=(const TraceableObjectState& another) {
+    Assign(another.state_);
+    return *this;
+  }
+
+  const T& get() const { return state_; }
+
+  void OnTraceLogEnabled() final { Trace(); }
+
+  void AsProtozeroInto(perfetto::protos::pbzero::TrackEvent* event) {
+    proto_init_func_(event, state_);
+  }
+
+ protected:
+  void Assign(T new_state) {
+    if (state_ != new_state) {
+      state_ = new_state;
+      Trace();
+    }
+  }
+
+ private:
+  void Trace() {
+    ProtoStateTracer<category, TraceableObjectState<T, category>>::TraceProto(
+        this);
+  }
+
+  bool is_enabled() const {
+    bool result = false;
+    TRACE_EVENT_CATEGORY_GROUP_ENABLED(
+        internal::TracingCategoryToString(category), &result);  // Cached.
+    return result;
+  }
+
+  T state_;
+  InitializeProtoFuncPtr<T> proto_init_func_;
 };
 
 template <typename T, TracingCategory category>
@@ -178,20 +368,20 @@ class TraceableCounter : public TraceableVariable {
   using ConverterFuncPtr = double (*)(const T&);
 
   TraceableCounter(T initial_value,
-                   perfetto::CounterTrack track,
+                   const char* name,
                    TraceableVariableController* controller,
                    ConverterFuncPtr converter)
       : TraceableVariable(controller),
+        name_(name),
         converter_(converter),
-        value_(initial_value),
-        track_(track) {
+        value_(initial_value) {
     Trace();
   }
 
   TraceableCounter(T initial_value,
-                   perfetto::CounterTrack track,
+                   const char* name,
                    TraceableVariableController* controller)
-      : TraceableCounter(initial_value, track, controller, [](const T& value) {
+      : TraceableCounter(initial_value, name, controller, [](const T& value) {
           return static_cast<double>(value);
         }) {}
 
@@ -226,14 +416,15 @@ class TraceableCounter : public TraceableVariable {
   void OnTraceLogEnabled() final { Trace(); }
 
   void Trace() const {
-    TRACE_COUNTER(category.value, track_, converter_(value_));
+    TRACE_COUNTER_ID1(internal::TracingCategoryToString(category), name_, this,
+                      converter_(value_));
   }
 
  private:
+  const char* const name_;    // Not owned.
   const ConverterFuncPtr converter_;
 
   T value_;
-  perfetto::CounterTrack track_;
 };
 
 // Add operators when it's needed.

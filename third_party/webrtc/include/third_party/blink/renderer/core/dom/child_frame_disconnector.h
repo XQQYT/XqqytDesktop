@@ -19,11 +19,8 @@ class ChildFrameDisconnector {
 
  public:
   enum DisconnectPolicy { kRootAndDescendants, kDescendantsOnly };
-  enum DisconnectReason { kDisconnectParent, kDisconnectSelf };
 
-  explicit ChildFrameDisconnector(Node& root,
-                                  DisconnectReason disconnect_reason)
-      : root_(&root), disconnect_reason_(disconnect_reason) {}
+  explicit ChildFrameDisconnector(Node& root) : root_(&root) {}
 
   void Disconnect(DisconnectPolicy = kRootAndDescendants);
 
@@ -34,7 +31,6 @@ class ChildFrameDisconnector {
 
   HeapVector<Member<HTMLFrameOwnerElement>, 10> frame_owners_;
   Node* root_;
-  DisconnectReason disconnect_reason_;
 };
 
 }  // namespace blink

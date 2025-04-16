@@ -17,7 +17,6 @@
 #ifndef INCLUDE_PERFETTO_EXT_TRACE_PROCESSOR_RPC_QUERY_RESULT_SERIALIZER_H_
 #define INCLUDE_PERFETTO_EXT_TRACE_PROCESSOR_RPC_QUERY_RESULT_SERIALIZER_H_
 
-#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -27,9 +26,11 @@
 
 namespace perfetto {
 
-namespace protos::pbzero {
+namespace protos {
+namespace pbzero {
 class QueryResult;
-}  // namespace protos::pbzero
+}  // namespace pbzero
+}  // namespace protos
 
 namespace trace_processor {
 

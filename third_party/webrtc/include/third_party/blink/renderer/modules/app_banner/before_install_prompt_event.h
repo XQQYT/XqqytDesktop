@@ -23,8 +23,8 @@ class BeforeInstallPromptEvent;
 class BeforeInstallPromptEventInit;
 class ExceptionState;
 
-using UserChoiceProperty =
-    ScriptPromiseProperty<AppBannerPromptResult, IDLUndefined>;
+using UserChoiceProperty = ScriptPromiseProperty<Member<AppBannerPromptResult>,
+                                                 ToV8UndefinedGenerator>;
 
 class BeforeInstallPromptEvent final
     : public Event,
@@ -64,9 +64,8 @@ class BeforeInstallPromptEvent final
   }
 
   Vector<String> platforms() const;
-  ScriptPromise<AppBannerPromptResult> userChoice(ScriptState*,
-                                                  ExceptionState&);
-  ScriptPromise<AppBannerPromptResult> prompt(ScriptState*, ExceptionState&);
+  ScriptPromise userChoice(ScriptState*, ExceptionState&);
+  ScriptPromise prompt(ScriptState*, ExceptionState&);
 
   const AtomicString& InterfaceName() const override;
   void preventDefault() override;

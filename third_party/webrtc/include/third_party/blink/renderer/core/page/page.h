@@ -24,24 +24,20 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_PAGE_PAGE_H_
 
 #include <memory>
-#include <optional>
 
 #include "base/check_op.h"
 #include "base/dcheck_is_on.h"
 #include "base/types/pass_key.h"
-#include "net/cookies/site_for_cookies.h"
-#include "services/network/public/mojom/attribution.mojom-shared.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
+#include "third_party/blink/public/common/features.h"
 #include "third_party/blink/public/common/fenced_frame/redacted_fenced_frame_config.h"
 #include "third_party/blink/public/common/metrics/document_update_reason.h"
 #include "third_party/blink/public/common/page/browsing_context_group_info.h"
-#include "third_party/blink/public/common/page/color_provider_color_maps.h"
 #include "third_party/blink/public/mojom/devtools/inspector_issue.mojom-blink-forward.h"
 #include "third_party/blink/public/mojom/fenced_frame/fenced_frame.mojom-blink.h"
-#include "third_party/blink/public/mojom/frame/color_scheme.mojom-blink-forward.h"
 #include "third_party/blink/public/mojom/frame/text_autosizer_page_info.mojom-blink.h"
-#include "third_party/blink/public/mojom/page/page.mojom-blink-forward.h"
+#include "third_party/blink/public/mojom/page/page.mojom-blink.h"
 #include "third_party/blink/public/mojom/page/page_visibility_state.mojom-blink.h"
-#include "third_party/blink/public/mojom/partitioned_popins/partitioned_popin_params.mojom-forward.h"
 #include "third_party/blink/public/platform/scheduler/web_agent_group_scheduler.h"
 #include "third_party/blink/public/platform/scheduler/web_scoped_virtual_time_pauser.h"
 #include "third_party/blink/public/web/web_lifecycle_update.h"
@@ -65,15 +61,10 @@
 #include "third_party/blink/renderer/platform/supplementable.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
-#include "ui/gfx/geometry/insets.h"
 
 namespace cc {
 class AnimationHost;
-}  // namespace cc
-
-namespace ui {
-class ColorProvider;
-}  // namespace ui
+}
 
 namespace blink {
 class AutoscrollController;
@@ -102,21 +93,11 @@ class ScrollingCoordinator;
 class ScrollbarTheme;
 class Settings;
 class SpatialNavigationController;
-class SVGResourceDocumentCache;
 class TopDocumentRootScrollerController;
 class ValidationMessageClient;
 class VisualViewport;
 
 typedef uint64_t LinkHash;
-
-// When calculating storage access for a partitioned popin the
-// `top_frame_origin` is needed to calculate the storage key and the
-// `site_for_cookies` is needed to properly filter cookie access.
-// https://explainers-by-googlers.github.io/partitioned-popins/
-struct PartitionedPopinOpenerProperties {
-  scoped_refptr<SecurityOrigin> top_frame_origin;
-  net::SiteForCookies site_for_cookies;
-};
 
 // A Page roughly corresponds to a tab or popup window in a browser. It owns a
 // tree of frames (a blink::FrameTree). The root frame is called the main frame.
@@ -130,26 +111,20 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
 
  public:
   // Any pages not owned by a web view should be created using this method.
-  static Page* CreateNonOrdinary(
-      ChromeClient& chrome_client,
-      AgentGroupScheduler& agent_group_scheduler,
-      const ColorProviderColorMaps* color_provider_colors);
+  static Page* CreateNonOrdinary(ChromeClient& chrome_client,
+                                 AgentGroupScheduler& agent_group_scheduler);
 
   // An "ordinary" page is a fully-featured page owned by a web view.
   static Page* CreateOrdinary(
       ChromeClient& chrome_client,
       Page* opener,
       AgentGroupScheduler& agent_group_scheduler,
-      const BrowsingContextGroupInfo& browsing_context_group_info,
-      const ColorProviderColorMaps* color_provider_colors,
-      blink::mojom::PartitionedPopinParamsPtr partitioned_popin_params);
+      const BrowsingContextGroupInfo& browsing_context_group_info);
 
   Page(base::PassKey<Page>,
        ChromeClient& chrome_client,
        AgentGroupScheduler& agent_group_scheduler,
        const BrowsingContextGroupInfo& browsing_context_group_info,
-       const ColorProviderColorMaps* color_provider_colors,
-       blink::mojom::PartitionedPopinParamsPtr partitioned_popin_params,
        bool is_ordinary);
   Page(const Page&) = delete;
   Page& operator=(const Page&) = delete;
@@ -176,29 +151,9 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
   // Should be called when |GetScrollbarTheme().UsesOverlayScrollbars()|
   // changes.
   static void UsesOverlayScrollbarsChanged();
-  static void ForcedColorsChanged();
   static void PlatformColorsChanged();
   static void ColorSchemeChanged();
-
-  void EmulateForcedColors(bool is_dark_theme);
-  void DisableEmulatedForcedColors();
-  bool UpdateColorProviders(
-      const ColorProviderColorMaps& color_provider_colors);
-  void UpdateColorProvidersForTest();
-  const ui::ColorProvider* GetColorProviderForPainting(
-      mojom::blink::ColorScheme color_scheme,
-      bool in_forced_colors) const;
-
-  // Returns the color provider colors for this page. Used to support the
-  // creation of Non-ordiany pages from a main page.
-  const ColorProviderColorMaps& GetColorProviderColorMaps() {
-    return color_provider_colors_;
-  }
-
-  void SetColorProviderColorMaps(
-      const ColorProviderColorMaps& color_provider_colors) {
-    color_provider_colors_ = color_provider_colors;
-  }
+  static void ColorProvidersChanged();
 
   void InitialStyleChanged();
   void UpdateAcceleratedCompositingSettings();
@@ -252,9 +207,6 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
     DCHECK(chrome_client_) << "No chrome client";
     return *chrome_client_;
   }
-  void SetChromeClientForTesting(ChromeClient* chrome_client) {
-    chrome_client_ = chrome_client;
-  }
   AutoscrollController& GetAutoscrollController() const {
     return *autoscroll_controller_;
   }
@@ -262,7 +214,6 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
   DragController& GetDragController() const { return *drag_controller_; }
   FocusController& GetFocusController() const { return *focus_controller_; }
   SpatialNavigationController& GetSpatialNavigationController();
-  SVGResourceDocumentCache& GetSVGResourceDocumentCache();
   ContextMenuController& GetContextMenuController() const {
     return *context_menu_controller_;
   }
@@ -327,9 +278,6 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
   // https://wicg.github.io/page-lifecycle/#sec-lifecycle-states
   bool Frozen() const { return frozen_; }
 
-  bool ShowPausedHudOverlay() const { return show_paused_hud_overlay_; }
-  void SetShowPausedHudOverlay(bool show_overlay);
-
   void SetPageScaleFactor(float);
   float PageScaleFactor() const;
 
@@ -362,23 +310,6 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
   }
   int SubframeCount() const;
 
-  // Update the CSS safe-area-inset* environment variables in the main frame's
-  // document based on the stored |max_safe_area_insets| in the Page and the
-  // given |browser_controls|'s visible height.
-  //
-  // The new safe-area-inset* will not be applied to the CSS
-  // environment if a fullscreen element exists, unless |force_update|
-  // is true.
-  void UpdateSafeAreaInsetWithBrowserControls(
-      const BrowserControls& browser_controls,
-      bool force_update = false);
-
-  // Set the max safe-area-inset* from the browser and update the CSS
-  // environment variables for the main frame. If the setter is not a main
-  // frame, applies the same safe-area-inset* to the given |setter|'s document
-  // as well. The input |insets| is unscaled and in the size of dips.
-  void SetMaxSafeAreaInsets(LocalFrame* setter, gfx::Insets insets);
-
   void SetDefaultPageScaleLimits(float min_scale, float max_scale);
   void SetUserAgentPageScaleConstraints(
       const PageScaleConstraints& new_constraints);
@@ -408,6 +339,7 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
 
   // PageScheduler::Delegate implementation.
   bool IsOrdinary() const override;
+  void ReportIntervention(const String& message) override;
   bool RequestBeginMainFrameNotExpected(bool new_state) override;
   void OnSetPageFrozen(bool is_frozen) override;
 
@@ -416,32 +348,13 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
 
   int32_t AutoplayFlags() const;
 
+  void SetInsidePortal(bool inside_portal);
+  bool InsidePortal() const;
+
   void SetIsPrerendering(bool is_prerendering) {
     is_prerendering_ = is_prerendering;
   }
-  void SetPrerenderMetricSuffix(const String& suffix) {
-    prerender_metric_suffix_ = suffix;
-  }
-  void SetShouldWarmUpCompositorOnPrerender(
-      bool should_warm_up_compositor_on_prerender) {
-    should_warm_up_compositor_on_prerender_ =
-        should_warm_up_compositor_on_prerender;
-  }
-  void SetShouldPreparePaintTreeOnPrerender(
-      bool should_prepare_paint_tree_on_prerender) {
-    should_prepare_paint_tree_on_prerender_ =
-        should_prepare_paint_tree_on_prerender;
-  }
   bool IsPrerendering() const { return is_prerendering_; }
-  const String& PrerenderMetricSuffix() const {
-    return prerender_metric_suffix_;
-  }
-  bool ShouldWarmUpCompositorOnPrerender() const {
-    return should_warm_up_compositor_on_prerender_;
-  }
-  bool ShouldPreparePaintTreeOnPrerender() const {
-    return should_prepare_paint_tree_on_prerender_;
-  }
 
   void SetTextAutosizerPageInfo(
       const mojom::blink::TextAutosizerPageInfo& page_info) {
@@ -477,7 +390,11 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
     return page_visibility_observer_set_;
   }
 
-  void SetPageLifecycleState(mojom::blink::PageLifecycleStatePtr);
+  void SetPageLifecycleState(
+      mojom::blink::PageLifecycleStatePtr lifecycle_state) {
+    lifecycle_state_ = std::move(lifecycle_state);
+  }
+
   const mojom::blink::PageLifecycleStatePtr& GetPageLifecycleState() {
     return lifecycle_state_;
   }
@@ -532,36 +449,10 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
   // place.
   void UpdateBrowsingContextGroup(const blink::BrowsingContextGroupInfo&);
 
-  // Attribution Reporting API ------------------------------------
-  // Sets whether web or OS-level Attribution Reporting is supported
-  void SetAttributionSupport(
-      network::mojom::AttributionSupport attribution_support);
-
-  // Returns whether web or OS-level Attribution Reporting is supported. See
-  // https://github.com/WICG/attribution-reporting-api/blob/main/app_to_web.md.
-  network::mojom::AttributionSupport GetAttributionSupport() {
-    return attribution_support_;
-  }
-
-  // Called on a new Page, passing an old Page as the parameter, when doing a
-  // LocalFrame <-> LocalFrame swap when committing a navigation, to ensure that
-  // e.g. the close task will still be processed after the swap, the list of
-  // related pages will include the new page instead of the old page, etc.
-  void TakePropertiesForLocalMainFrameSwap(Page* old_page);
-
-  // This is true if this page is a partitioned popin.
-  // See https://explainers-by-googlers.github.io/partitioned-popins/
-  bool IsPartitionedPopin() const;
-
-  // If this Page is a partitioned popin then this returns the properties
-  // struct, otherwise this function CHECKs. See
-  // https://explainers-by-googlers.github.io/partitioned-popins/
-  const PartitionedPopinOpenerProperties& GetPartitionedPopinOpenerProperties()
-      const;
-
  private:
   friend class ScopedPagePauser;
-  class CloseTaskHandler;
+
+  void InitGroup();
 
   // SettingsDelegate overrides.
   void SettingsChanged(SettingsDelegate::ChangeType) override;
@@ -570,9 +461,6 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
   void NotifyPluginsChanged() const;
 
   void InvalidateColorScheme();
-
-  // Connect the Page to the `opener_`'s related pages, if those exist.
-  void LinkRelatedPagesIfNeeded();
 
   // Typically, the main frame and Page should both be owned by the embedder,
   // which must call Page::willBeDestroyed() prior to destroying Page. This
@@ -624,7 +512,6 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
   const Member<VisualViewport> visual_viewport_;
   const Member<LinkHighlight> link_highlight_;
   Member<SpatialNavigationController> spatial_navigation_controller_;
-  Member<SVGResourceDocumentCache> svg_resource_document_cache_;
 
   Member<PluginData> plugin_data_;
 
@@ -660,33 +547,12 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
   // controlled from the renderer.
   bool paused_ = false;
   bool frozen_ = false;
-  bool show_paused_hud_overlay_ = false;
 
 #if DCHECK_IS_ON()
   bool is_painting_ = false;
 #endif
 
   int subframe_count_;
-
-  // |max_safe_area_insets_| is coming from the display cutout client.
-  // |scaled_max_safe_area_insets_| has been scaled to the size of physical
-  // pixles.
-  gfx::InsetsF scaled_max_safe_area_insets_;
-  gfx::InsetsF applied_safe_area_insets_;
-
-  // The light, dark and forced_colors mode ColorProviders corresponding to the
-  // top-level web container this Page is associated with.
-  std::unique_ptr<ui::ColorProvider> light_color_provider_;
-  std::unique_ptr<ui::ColorProvider> dark_color_provider_;
-  std::unique_ptr<ui::ColorProvider> forced_colors_color_provider_;
-
-  // Caching the color provider colors for easy creation of non ordinary pages
-  // who may depend on the main Page for colors.
-  ColorProviderColorMaps color_provider_colors_;
-
-  // This provider is used when forced color emulation is enabled via DevTools,
-  // overriding the light, dark or forced colors color providers.
-  std::unique_ptr<ui::ColorProvider> emulated_forced_colors_provider_;
 
   HeapHashSet<WeakMember<PluginsChangedObserver>> plugins_changed_observers_;
 
@@ -695,8 +561,9 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
   Member<Page> next_related_page_;
   Member<Page> prev_related_page_;
 
-  // The Page that opened this Page.
-  WeakMember<Page> opener_;
+  // A handle to notify the scheduler whether this page has other related
+  // pages or not.
+  FrameScheduler::SchedulingAffectingFeatureHandle has_related_pages_;
 
   std::unique_ptr<PageScheduler> page_scheduler_;
 
@@ -711,6 +578,9 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
 
   int32_t autoplay_flags_;
 
+  // Accessed by frames to determine whether to expose the PortalHost object.
+  bool inside_portal_ = false;
+
   // Whether the page is being prerendered by the Prerender2
   // feature. See content/browser/preloading/prerender/README.md.
   //
@@ -718,17 +588,6 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
   // this Page. Once initialized, it can only transition from true to false on
   // prerender activation; it does not go from false to true.
   bool is_prerendering_ = false;
-  String prerender_metric_suffix_;
-
-  // If true, warms up compositor on a certain loading event if the page is
-  // under prerendering. Only valid when the cc feature `kWarmUpCompositor`
-  // (controls the independent cc internal feature) and blink feature
-  // `kPrerender2WarmUpCompositor` (manages the trigger point of that cc
-  // feature for prerender case) are enabled. Please see crbug.com/41496019 for
-  // more details.
-  bool should_warm_up_compositor_on_prerender_ = false;
-  // If true, prepares the paint tree if the page is under prerendering.
-  bool should_prepare_paint_tree_on_prerender_ = false;
 
   // Whether the the Page's main document is a Fenced Frame document. This is
   // only set for the MPArch implementation and is true when the corresponding
@@ -751,19 +610,6 @@ class CORE_EXPORT Page final : public GarbageCollected<Page>,
 
   // The information determining the browsing context group this page lives in.
   BrowsingContextGroupInfo browsing_context_group_info_;
-
-  network::mojom::AttributionSupport attribution_support_ =
-      network::mojom::AttributionSupport::kUnset;
-
-  Member<CloseTaskHandler> close_task_handler_;
-
-  // When the renderer opens a view representing a Partitioned Popin, the
-  // entire frame tree is partitioned as though it was an iframe in the opener.
-  // These properties are used in document.cc to calculate parameters critical
-  // for access to storage.
-  // See https://explainers-by-googlers.github.io/partitioned-popins/
-  std::optional<PartitionedPopinOpenerProperties>
-      partitioned_popin_opener_properties_;
 };
 
 extern template class CORE_EXTERN_TEMPLATE_EXPORT Supplement<Page>;

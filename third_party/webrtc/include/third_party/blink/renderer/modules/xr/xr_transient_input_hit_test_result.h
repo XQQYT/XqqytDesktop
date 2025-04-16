@@ -5,17 +5,15 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_XR_XR_TRANSIENT_INPUT_HIT_TEST_RESULT_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_XR_XR_TRANSIENT_INPUT_HIT_TEST_RESULT_H_
 
-#include "device/vr/public/mojom/vr_service.mojom-blink-forward.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_vector.h"
+
+#include "device/vr/public/mojom/vr_service.mojom-blink-forward.h"
 
 namespace blink {
 
 class XRInputSource;
 class XRHitTestResult;
-
-template <typename IDLType>
-class FrozenArray;
 
 class XRTransientInputHitTestResult : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
@@ -27,13 +25,13 @@ class XRTransientInputHitTestResult : public ScriptWrappable {
 
   XRInputSource* inputSource();
 
-  const FrozenArray<XRHitTestResult>& results() const;
+  HeapVector<Member<XRHitTestResult>> results();
 
   void Trace(Visitor* visitor) const override;
 
  private:
   Member<XRInputSource> input_source_;
-  Member<FrozenArray<XRHitTestResult>> results_;
+  HeapVector<Member<XRHitTestResult>> results_;
 };
 
 }  // namespace blink

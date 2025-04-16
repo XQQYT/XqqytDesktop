@@ -1,4 +1,3 @@
-// META: timeout=long
 // META: global=window,dedicatedworker
 // META: script=/webcodecs/video-encoder-utils.js
 // META: variant=?av1

@@ -7,8 +7,6 @@
 
 #include <stdint.h>
 
-#include <optional>
-
 #include "base/functional/callback.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/memory/weak_ptr.h"
@@ -17,6 +15,7 @@
 #include "base/task/single_thread_task_runner.h"
 #include "base/time/time.h"
 #include "media/base/video_frame.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/platform/modules/mediastream/media_stream_types.h"
 #include "third_party/blink/public/web/modules/mediastream/encoded_video_frame.h"
 #include "third_party/blink/renderer/modules/mediastream/media_stream_video_track.h"
@@ -119,7 +118,7 @@ class MODULES_EXPORT VideoTrackAdapter
                                    const VideoTrackAdapterSettings& settings,
                                    gfx::Size* desired_size);
 
-  std::optional<gfx::Size> source_frame_size() const {
+  absl::optional<gfx::Size> source_frame_size() const {
     return source_frame_size_;
   }
 
@@ -141,11 +140,8 @@ class MODULES_EXPORT VideoTrackAdapter
           base::TimeTicks estimated_capture_time)>;
   using VideoCaptureSubCaptureTargetVersionInternalCallback =
       WTF::CrossThreadFunction<void(uint32_t)>;
-  using VideoTrackSettingsInternalCallback = WTF::CrossThreadFunction<void(
-      gfx::Size frame_size,
-      double frame_rate,
-      std::optional<gfx::Size> metadata_source_size,
-      std::optional<float> device_scale_factor)>;
+  using VideoTrackSettingsInternalCallback =
+      WTF::CrossThreadFunction<void(gfx::Size frame_size, double frame_rate)>;
   using VideoTrackFormatInternalCallback =
       WTF::CrossThreadFunction<void(const media::VideoCaptureFormat&)>;
   void AddTrackOnVideoTaskRunner(
@@ -214,7 +210,7 @@ class MODULES_EXPORT VideoTrackAdapter
 
   // Resolution configured on the video source, accessed on the video task
   // runner.
-  std::optional<gfx::Size> source_frame_size_;
+  absl::optional<gfx::Size> source_frame_size_;
 };
 
 }  // namespace blink

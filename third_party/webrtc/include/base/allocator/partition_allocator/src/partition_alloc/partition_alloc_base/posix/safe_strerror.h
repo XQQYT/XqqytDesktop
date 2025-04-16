@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_POSIX_SAFE_STRERROR_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_POSIX_SAFE_STRERROR_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_POSIX_SAFE_STRERROR_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_POSIX_SAFE_STRERROR_H_
 
-#include <cstddef>
+#include <stddef.h>
+
 #include <string>
 
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
 
 namespace partition_alloc::internal::base {
 
@@ -28,7 +29,7 @@ namespace partition_alloc::internal::base {
 // result is always null-terminated. The value of errno is never changed.
 //
 // Use this instead of strerror_r().
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void safe_strerror_r(int err, char* buf, size_t len);
 
 // Calls safe_strerror_r with a buffer of suitable size and returns the result
@@ -37,8 +38,8 @@ void safe_strerror_r(int err, char* buf, size_t len);
 // Use this instead of strerror(). Note though that safe_strerror_r will be
 // more robust in the case of heap corruption errors, since it doesn't need to
 // allocate a string.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) std::string safe_strerror(int err);
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) std::string safe_strerror(int err);
 
 }  // namespace partition_alloc::internal::base
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_POSIX_SAFE_STRERROR_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_POSIX_SAFE_STRERROR_H_

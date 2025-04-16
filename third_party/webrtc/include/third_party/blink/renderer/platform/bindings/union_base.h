@@ -12,6 +12,7 @@
 namespace blink {
 
 class ExceptionState;
+class ScriptState;
 
 namespace bindings {
 
@@ -23,6 +24,9 @@ namespace bindings {
 class PLATFORM_EXPORT UnionBase : public GarbageCollected<UnionBase> {
  public:
   virtual ~UnionBase() = default;
+
+  virtual v8::MaybeLocal<v8::Value> ToV8Value(
+      ScriptState* script_state) const = 0;
 
   virtual void Trace(Visitor*) const {}
 

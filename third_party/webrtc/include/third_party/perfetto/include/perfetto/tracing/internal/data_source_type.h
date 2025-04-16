@@ -53,7 +53,6 @@ class PERFETTO_EXPORT_COMPONENT DataSourceType {
                 TracingMuxer::DataSourceFactory factory,
                 internal::DataSourceParams params,
                 BufferExhaustedPolicy buffer_exhausted_policy,
-                bool no_flush,
                 CreateCustomTlsFn create_custom_tls_fn,
                 CreateIncrementalStateFn create_incremental_state_fn,
                 void* user_arg) {
@@ -63,7 +62,7 @@ class PERFETTO_EXPORT_COMPONENT DataSourceType {
     user_arg_ = user_arg;
     auto* tracing_impl = TracingMuxer::Get();
     return tracing_impl->RegisterDataSource(descriptor, factory, params,
-                                            no_flush, &state_);
+                                            &state_);
   }
 
   // Updates the data source type descriptor.
@@ -197,7 +196,7 @@ class PERFETTO_EXPORT_COMPONENT DataSourceType {
       uint32_t instance_index) {
     // Recreate incremental state data if it has been reset by the service.
     if (tls_inst->incremental_state_generation !=
-        static_state()->GetUnsafe(instance_index)->incremental_state_generation.load(
+        static_state()->incremental_state_generation.load(
             std::memory_order_relaxed)) {
       tls_inst->incremental_state.reset();
       CreateIncrementalState(tls_inst, instance_index);
@@ -217,7 +216,7 @@ class PERFETTO_EXPORT_COMPONENT DataSourceType {
     tls_inst->incremental_state =
         create_incremental_state_fn_(tls_inst, instance_index, user_arg_);
     tls_inst->incremental_state_generation =
-        static_state()->GetUnsafe(instance_index)->incremental_state_generation.load(
+        static_state()->incremental_state_generation.load(
             std::memory_order_relaxed);
   }
 

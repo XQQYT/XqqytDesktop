@@ -47,7 +47,7 @@ class OESVertexArrayObject final : public WebGLExtension {
 
   WebGLVertexArrayObjectOES* createVertexArrayOES();
   void deleteVertexArrayOES(WebGLVertexArrayObjectOES*);
-  bool isVertexArrayOES(WebGLVertexArrayObjectOES*);
+  GLboolean isVertexArrayOES(WebGLVertexArrayObjectOES*);
   void bindVertexArrayOES(WebGLVertexArrayObjectOES*);
 };
 

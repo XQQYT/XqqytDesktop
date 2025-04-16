@@ -5,7 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_BINDINGS_CORE_V8_NATIVE_VALUE_TRAITS_H_
 #define THIRD_PARTY_BLINK_RENDERER_BINDINGS_CORE_V8_NATIVE_VALUE_TRAITS_H_
 
-#include <concepts>
 #include <type_traits>
 
 #include "third_party/blink/renderer/bindings/core/v8/idl_types_base.h"
@@ -31,7 +30,7 @@ class ExceptionState;
 //     return toInt32(isolate, value, exceptionState, NormalConversion);
 //   }
 // }
-template <typename T>
+template <typename T, typename SFINAEHelper = void>
 struct NativeValueTraits;
 
 // This declaration serves only as a blueprint for specializations: the
@@ -46,15 +45,22 @@ struct NativeValueTraits;
 
 namespace bindings {
 
-template <typename T>
-struct ImplTypeFor {
-  using type = T;
-};
+template <typename T, typename = void>
+struct NativeValueTraitsHasIsNull : std::false_type {};
 
 template <typename T>
-  requires std::derived_from<T, IDLBase>
-struct ImplTypeFor<T> {
-  using type = typename T::ImplType;
+struct NativeValueTraitsHasIsNull<
+    T,
+    std::void_t<decltype(std::declval<T>().IsNull())>> : std::true_type {};
+
+template <typename T>
+struct NativeValueTraitsHasNullValue {
+  // true if |T| supports IDL null value.
+  static constexpr bool value =
+      // ScriptValue, String, and union types have IsNull member function.
+      bindings::NativeValueTraitsHasIsNull<T>::value ||
+      // Pointer types have nullptr as IDL null value.
+      std::is_pointer<T>::value;
 };
 
 }  // namespace bindings
@@ -72,23 +78,14 @@ struct ImplTypeFor<T> {
 // If present, |NullValue()| will be used when converting from the nullable type
 // T?, and should be used if the impl type has an existing "null" state. If not
 // present, WTF::Optional will be used to wrap the type.
-template <typename T>
+template <typename T, typename SFINAEHelper = void>
 struct NativeValueTraitsBase {
   STATIC_ONLY(NativeValueTraitsBase);
 
-  using ImplType = bindings::ImplTypeFor<T>::type;
+  using ImplType = T;
 
-  // Pointer types have nullptr as IDL null value.
-  // ScriptValue, String, and union types have IsNull member function.
   static constexpr bool has_null_value =
-      std::is_pointer_v<ImplType> ||
-      requires(ImplType value) { value.IsNull(); };
-
-  // This should only be true for certain subclasses of ScriptWrappable
-  // that satisfy the assumptions of CreateIDLSequenceFromV8ArraySlow() with
-  // regards to how NativeValue() is implemented for the underlying type.
-  static constexpr bool supports_scriptwrappable_specific_fast_array_iteration =
-      false;
+      bindings::NativeValueTraitsHasNullValue<ImplType>::value;
 
   template <typename... ExtraArgs>
   static decltype(auto) ArgumentValue(v8::Isolate* isolate,
@@ -102,9 +99,28 @@ struct NativeValueTraitsBase {
   }
 };
 
-template <class T>
-concept TypeHasAnyNamedPropertiesMethod =
-    requires(T a) { a.HasAnyNamedProperties(); };
+template <typename T>
+struct NativeValueTraitsBase<
+    T,
+    std::enable_if_t<std::is_base_of<IDLBase, T>::value>> {
+  STATIC_ONLY(NativeValueTraitsBase);
+
+  using ImplType = typename T::ImplType;
+
+  static constexpr bool has_null_value =
+      bindings::NativeValueTraitsHasNullValue<ImplType>::value;
+
+  template <typename... ExtraArgs>
+  static decltype(auto) ArgumentValue(v8::Isolate* isolate,
+                                      int argument_index,
+                                      v8::Local<v8::Value> value,
+                                      ExceptionState& exception_state,
+                                      ExtraArgs... extra_args) {
+    return NativeValueTraits<std::remove_pointer_t<T>>::NativeValue(
+        isolate, value, exception_state,
+        std::forward<ExtraArgs>(extra_args)...);
+  }
+};
 
 }  // namespace blink
 

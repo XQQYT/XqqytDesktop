@@ -12,12 +12,10 @@
 #define API_VIDEO_CODECS_VP8_FRAME_BUFFER_CONTROLLER_H_
 
 #include <array>
-#include <cstddef>
-#include <cstdint>
 #include <memory>
-#include <optional>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/fec_controller_override.h"
 #include "api/video_codecs/video_codec.h"
 #include "api/video_codecs/video_encoder.h"
@@ -82,16 +80,16 @@ struct Vp8EncoderConfig {
     std::array<uint32_t, kMaxPeriodicity> ts_layer_id;
   };
 
-  std::optional<TemporalLayerConfig> temporal_layer_config;
+  absl::optional<TemporalLayerConfig> temporal_layer_config;
 
   // Target bitrate, in bps.
-  std::optional<uint32_t> rc_target_bitrate;
+  absl::optional<uint32_t> rc_target_bitrate;
 
   // Clamp QP to max. Use 0 to disable clamping.
-  std::optional<uint32_t> rc_max_quantizer;
+  absl::optional<uint32_t> rc_max_quantizer;
 
   // Error resilience mode.
-  std::optional<uint32_t> g_error_resilient;
+  absl::optional<uint32_t> g_error_resilient;
 
   // If set to true, all previous configuration overrides should be reset.
   bool reset_previous_configuration_overrides = false;

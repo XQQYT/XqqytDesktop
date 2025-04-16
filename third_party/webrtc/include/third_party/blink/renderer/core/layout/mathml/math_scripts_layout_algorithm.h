@@ -6,31 +6,33 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_MATHML_MATH_SCRIPTS_LAYOUT_ALGORITHM_H_
 
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/layout/box_fragment_builder.h"
-#include "third_party/blink/renderer/core/layout/layout_algorithm.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_box_fragment_builder.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_layout_algorithm.h"
 #include "third_party/blink/renderer/core/mathml/mathml_scripts_element.h"
 
 namespace blink {
 
-class BlockNode;
+class NGBlockNode;
 
 // This algorithm handles msub, msup and msubsup elements.
 class CORE_EXPORT MathScriptsLayoutAlgorithm
-    : public LayoutAlgorithm<BlockNode, BoxFragmentBuilder, BlockBreakToken> {
+    : public NGLayoutAlgorithm<NGBlockNode,
+                               NGBoxFragmentBuilder,
+                               NGBlockBreakToken> {
  public:
-  explicit MathScriptsLayoutAlgorithm(const LayoutAlgorithmParams& params);
+  explicit MathScriptsLayoutAlgorithm(const NGLayoutAlgorithmParams& params);
 
   struct ChildAndMetrics {
     DISALLOW_NEW();
 
    public:
-    Member<const LayoutResult> result;
+    Member<const NGLayoutResult> result;
     LayoutUnit ascent;
     LayoutUnit descent;
     LayoutUnit inline_size;
     LayoutUnit base_italic_correction;
     BoxStrut margins;
-    BlockNode node = nullptr;
+    NGBlockNode node = nullptr;
 
     void Trace(Visitor* visitor) const {
       visitor->Trace(result);
@@ -47,23 +49,22 @@ class CORE_EXPORT MathScriptsLayoutAlgorithm
       visitor->Trace(sup);
     }
 
-    BlockNode sub = nullptr;
-    BlockNode sup = nullptr;
+    NGBlockNode sub = nullptr;
+    NGBlockNode sup = nullptr;
   };
 
-  MinMaxSizesResult ComputeMinMaxSizes(const MinMaxSizesFloatInput&);
-  const LayoutResult* Layout();
-
  private:
-  void GatherChildren(BlockNode* base,
+  void GatherChildren(NGBlockNode* base,
                       HeapVector<SubSupPair>*,
-                      BlockNode* prescripts,
+                      NGBlockNode* prescripts,
                       unsigned* first_prescript_index,
-                      BoxFragmentBuilder* = nullptr) const;
+                      NGBoxFragmentBuilder* = nullptr) const;
+
+  MinMaxSizesResult ComputeMinMaxSizes(const MinMaxSizesFloatInput&) final;
 
   typedef HeapVector<ChildAndMetrics, 4> ChildrenAndMetrics;
 
-  ChildAndMetrics LayoutAndGetMetrics(BlockNode child) const;
+  ChildAndMetrics LayoutAndGetMetrics(NGBlockNode child) const;
 
   struct VerticalMetrics {
     STACK_ALLOCATED();
@@ -79,6 +80,8 @@ class CORE_EXPORT MathScriptsLayoutAlgorithm
       const ChildAndMetrics& base_metrics,
       const ChildrenAndMetrics& sub_metrics,
       const ChildrenAndMetrics& sup_metrics) const;
+
+  const NGLayoutResult* Layout() final;
 };
 
 }  // namespace blink

@@ -76,7 +76,6 @@ struct Lookup : public OT::Lookup
   {
     int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < OT::Lookup::min_size) return false;
-    hb_barrier ();
     return vertex_len >= this->get_size ();
   }
 
@@ -352,7 +351,6 @@ struct LookupList : public OT::LookupList<T>
   {
     int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
     if (vertex_len < OT::LookupList<T>::min_size) return false;
-    hb_barrier ();
     return vertex_len >= OT::LookupList<T>::item_size * this->len;
   }
 };
@@ -366,7 +364,6 @@ struct GSTAR : public OT::GSUBGPOS
     GSTAR* gstar = (GSTAR*) r.obj.head;
     if (!gstar || !gstar->sanitize (r))
       return nullptr;
-    hb_barrier ();
 
     return gstar;
   }
@@ -386,7 +383,6 @@ struct GSTAR : public OT::GSUBGPOS
   {
     int64_t len = vertex.obj.tail - vertex.obj.head;
     if (len < OT::GSUBGPOS::min_size) return false;
-    hb_barrier ();
     return len >= get_size ();
   }
 

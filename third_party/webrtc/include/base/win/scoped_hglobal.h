@@ -2,11 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/40284755): Remove this and spanify to fix the errors.
-#pragma allow_unsafe_buffers
-#endif
-
 #ifndef BASE_WIN_SCOPED_HGLOBAL_H_
 #define BASE_WIN_SCOPED_HGLOBAL_H_
 
@@ -40,9 +35,6 @@ class ScopedHGlobal {
   }
 
   Ptr release() { return std::exchange(data_, nullptr); }
-
-  Ptr begin() { return data(); }
-  Ptr end() { return data() + size(); }
 
  private:
   HGLOBAL glob_;

@@ -1,18 +1,17 @@
 <!DOCTYPE html>
-<html class="reftest-wait">
+<html>
 
 <head>
 <meta charset="utf-8">
-<title>CSS Test: Masonry grid container size changes when item sizes change</title>
 <link rel="author" title="Brandon Stewart" href="mailto:brandonstewart@apple.com">
 <link rel="help" href="https://drafts.csswg.org/css-grid-3">
 <link rel="match" href="masonry-track-sizing-check-grid-height-on-resize-ref.html">
-<meta name="assert" content="Test passes if when the size of an item in the masonry grid changes, the grid container is properly resized">
+<meta name="assert" content="When the height of an element in the grid changes, ensure the grid is properly resized">
 </head>
 
 <style>
   grid {
-    display: inline-grid;
+    display: grid;
     grid-template-rows: masonry;
     grid-template-columns: auto;
     grid-gap: 10px;
@@ -33,11 +32,8 @@
   </grid>
 </body>
 <script>
-    document.body.offsetHeight; // Force a relayout
-    var gridItem = document.querySelector('item');
-    gridItem.style.height = '125px';
-    gridItem.style.width = '300px';
-    document
-    document.documentElement.className = '';
+    /* Force a relayout */
+    document.body.offsetHeight;
+    document.querySelector("item").style["height"] = "125px";
 </script>
 </html>

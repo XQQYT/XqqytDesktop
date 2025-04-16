@@ -7,18 +7,18 @@
 
 #include "third_party/blink/renderer/bindings/core/v8/v8_custom_layout_constraints_options.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
-#include "third_party/blink/renderer/platform/geometry/layout_unit.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 
 namespace blink {
 
 class ComputedStyle;
-class ConstraintSpace;
 class CustomLayoutChild;
 class CustomLayoutToken;
-class LayoutInputNode;
+class LayoutUnit;
+class NGConstraintSpace;
+class NGLayoutInputNode;
 class SerializedScriptValue;
-class ScriptPromiseResolverBase;
+class ScriptPromiseResolver;
 
 // Contains all the information needed to resolve a promise with a fragment or
 // intrinsic-sizes.
@@ -33,13 +33,13 @@ class CustomLayoutWorkTask final
   // Used when resolving a promise with intrinsic-sizes.
   CustomLayoutWorkTask(CustomLayoutChild*,
                        CustomLayoutToken*,
-                       ScriptPromiseResolverBase*,
+                       ScriptPromiseResolver*,
                        const TaskType type);
 
   // Used when resolving a promise with a fragment.
   CustomLayoutWorkTask(CustomLayoutChild*,
                        CustomLayoutToken*,
-                       ScriptPromiseResolverBase*,
+                       ScriptPromiseResolver*,
                        const CustomLayoutConstraintsOptions*,
                        scoped_refptr<SerializedScriptValue> constraint_data,
                        const TaskType type);
@@ -47,7 +47,7 @@ class CustomLayoutWorkTask final
   void Trace(Visitor*) const;
 
   // Runs this work task.
-  void Run(const ConstraintSpace& parent_space,
+  void Run(const NGConstraintSpace& parent_space,
            const ComputedStyle& parent_style,
            const LayoutUnit child_available_block_size,
            bool* child_depends_on_block_constraints = nullptr);
@@ -55,18 +55,18 @@ class CustomLayoutWorkTask final
  private:
   Member<CustomLayoutChild> child_;
   Member<CustomLayoutToken> token_;
-  Member<ScriptPromiseResolverBase> resolver_;
+  Member<ScriptPromiseResolver> resolver_;
   Member<const CustomLayoutConstraintsOptions> options_;
   scoped_refptr<SerializedScriptValue> constraint_data_;
   TaskType type_;
 
-  void RunLayoutFragmentTask(const ConstraintSpace& parent_space,
+  void RunLayoutFragmentTask(const NGConstraintSpace& parent_space,
                              const ComputedStyle& parent_style,
-                             LayoutInputNode child);
-  void RunIntrinsicSizesTask(const ConstraintSpace& parent_space,
+                             NGLayoutInputNode child);
+  void RunIntrinsicSizesTask(const NGConstraintSpace& parent_space,
                              const ComputedStyle& parent_style,
                              const LayoutUnit child_available_block_size,
-                             LayoutInputNode child,
+                             NGLayoutInputNode child,
                              bool* child_depends_on_block_constraints);
 };
 

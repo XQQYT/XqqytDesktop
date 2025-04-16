@@ -26,7 +26,6 @@
 
 #include "config.h"
 #include "libavutil/macros.h"
-#include "libavutil/mem.h"
 #include "libavutil/wchar_filename.h"
 
 static inline wchar_t *get_module_filename(HMODULE module)

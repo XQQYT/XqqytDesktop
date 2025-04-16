@@ -14,9 +14,8 @@
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
-#include "services/network/public/mojom/url_loader_factory.mojom.h"
+#include "services/network/public/mojom/url_loader_factory.mojom-forward.h"
 #include "third_party/blink/public/common/common_export.h"
-#include "third_party/blink/public/mojom/loader/local_resource_loader_config.mojom.h"
 #include "url/origin.h"
 
 namespace network {
@@ -50,7 +49,6 @@ class BLINK_COMMON_EXPORT PendingURLLoaderFactoryBundle
           pending_default_factory,
       SchemeMap scheme_specific_pending_factories,
       OriginMap isolated_world_pending_factories,
-      mojom::LocalResourceLoaderConfigPtr local_resource_loader_config,
       bool bypass_redirect_checks);
   PendingURLLoaderFactoryBundle(const PendingURLLoaderFactoryBundle&) = delete;
   PendingURLLoaderFactoryBundle& operator=(
@@ -67,14 +65,6 @@ class BLINK_COMMON_EXPORT PendingURLLoaderFactoryBundle
   }
   OriginMap& pending_isolated_world_factories() {
     return pending_isolated_world_factories_;
-  }
-
-  mojom::LocalResourceLoaderConfigPtr& local_resource_loader_config() {
-    return local_resource_loader_config_;
-  }
-  void set_local_resource_loader_config(
-      mojom::LocalResourceLoaderConfigPtr local_resource_loader_config) {
-    local_resource_loader_config_ = std::move(local_resource_loader_config);
   }
 
   bool bypass_redirect_checks() const { return bypass_redirect_checks_; }
@@ -96,8 +86,6 @@ class BLINK_COMMON_EXPORT PendingURLLoaderFactoryBundle
   // `pending_isolated_world_factories_` field once Chrome Platform Apps are
   // gone.
   OriginMap pending_isolated_world_factories_;
-
-  mojom::LocalResourceLoaderConfigPtr local_resource_loader_config_;
 
   bool bypass_redirect_checks_ = false;
 };
@@ -178,8 +166,6 @@ class BLINK_COMMON_EXPORT URLLoaderFactoryBundle
   using OriginMap =
       std::map<url::Origin, mojo::Remote<network::mojom::URLLoaderFactory>>;
   OriginMap isolated_world_factories_;
-
-  mojom::LocalResourceLoaderConfigPtr local_resource_loader_config_;
 
   bool bypass_redirect_checks_ = false;
 };

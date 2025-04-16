@@ -19,9 +19,9 @@
 #ifndef GRPC_TEST_CPP_UTIL_GRPC_TOOL_H
 #define GRPC_TEST_CPP_UTIL_GRPC_TOOL_H
 
-#include <grpcpp/support/config.h>
-
 #include <functional>
+
+#include <grpcpp/support/config.h>
 
 #include "test/cpp/util/cli_credentials.h"
 

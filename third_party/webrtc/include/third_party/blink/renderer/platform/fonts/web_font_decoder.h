@@ -31,7 +31,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_WEB_FONT_DECODER_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_WEB_FONT_DECODER_H_
 
-#include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/skia/include/core/SkRefCnt.h"
@@ -40,13 +39,13 @@ class SkTypeface;
 
 namespace blink {
 
-class PLATFORM_EXPORT WebFontDecoder final {
+class WebFontDecoder final {
   STACK_ALLOCATED();
 
  public:
   WebFontDecoder() = default;
 
-  sk_sp<SkTypeface> Decode(SegmentedBuffer*);
+  sk_sp<SkTypeface> Decode(SharedBuffer*);
   size_t DecodedSize() const { return decoded_size_; }
 
   String GetErrorString() const { return ots_error_string_; }

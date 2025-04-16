@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_INLINE_SCORE_LINE_BREAKER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_INLINE_SCORE_LINE_BREAKER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/inline/inline_node.h"
 #include "third_party/blink/renderer/core/layout/inline/line_break_candidate.h"
@@ -16,11 +15,11 @@
 
 namespace blink {
 
-class ConstraintSpace;
 class InlineBreakToken;
 class InlineNode;
 class LineInfoList;
 class LineWidths;
+class NGConstraintSpace;
 struct LeadingFloats;
 
 //
@@ -45,7 +44,7 @@ class CORE_EXPORT ScoreLineBreaker {
 
  public:
   ScoreLineBreaker(const InlineNode& node,
-                   const ConstraintSpace& space,
+                   const NGConstraintSpace& space,
                    const LineWidths& line_widths,
                    const InlineBreakToken* break_token,
                    ExclusionSpace* exclusion_space)
@@ -61,7 +60,7 @@ class CORE_EXPORT ScoreLineBreaker {
     return is_balanced_ ? kMaxLinesForBalance : kMaxLinesForOptimal;
   }
 
-  const ConstraintSpace& GetConstraintSpace() const { return space_; }
+  const NGConstraintSpace& ConstraintSpace() const { return space_; }
   const InlineBreakToken* BreakToken() const { return break_token_; }
 
   // The primary entry point of doing all the work described in the class
@@ -110,7 +109,7 @@ class CORE_EXPORT ScoreLineBreaker {
   static constexpr float kLastLinePenaltyMultiplier = 4.0f;
 
   const InlineNode node_;
-  const ConstraintSpace& space_;
+  const NGConstraintSpace& space_;
   const LineWidths& line_widths_;
   ExclusionSpace* exclusion_space_;
   const InlineBreakToken* break_token_;

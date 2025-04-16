@@ -12,10 +12,7 @@
 #ifndef API_TRANSPORT_DATA_CHANNEL_TRANSPORT_INTERFACE_H_
 #define API_TRANSPORT_DATA_CHANNEL_TRANSPORT_INTERFACE_H_
 
-#include <cstddef>
-#include <optional>
-
-#include "api/priority.h"
+#include "absl/types/optional.h"
 #include "api/rtc_error.h"
 #include "rtc_base/copy_on_write_buffer.h"
 
@@ -49,14 +46,14 @@ struct SendDataParams {
   // Setting this value to zero disables retransmission.
   // Valid values are in the range [0-UINT16_MAX].
   // `max_rtx_count` and `max_rtx_ms` may not be set simultaneously.
-  std::optional<int> max_rtx_count;
+  absl::optional<int> max_rtx_count;
 
   // If set, the maximum number of milliseconds for which the transport
   // may retransmit this message before it is dropped.
   // Setting this value to zero disables retransmission.
   // Valid values are in the range [0-UINT16_MAX].
   // `max_rtx_count` and `max_rtx_ms` may not be set simultaneously.
-  std::optional<int> max_rtx_ms;
+  absl::optional<int> max_rtx_ms;
 };
 
 // Sink for callbacks related to a data channel.
@@ -88,11 +85,7 @@ class DataChannelSink {
   // Callback issued when the data channel becomes unusable (closed).
   // TODO(https://crbug.com/webrtc/10360): Make pure virtual when all
   // consumers updated.
-  virtual void OnTransportClosed(RTCError /* error */) {}
-
-  // The data channel's buffered_amount has fallen to or below the threshold
-  // set when calling `SetBufferedAmountLowThreshold`
-  virtual void OnBufferedAmountLow(int channel_id) = 0;
+  virtual void OnTransportClosed(RTCError error) {}
 };
 
 // Transport for data channels.
@@ -102,7 +95,7 @@ class DataChannelTransportInterface {
 
   // Opens a data `channel_id` for sending.  May return an error if the
   // specified `channel_id` is unusable.  Must be called before `SendData`.
-  virtual RTCError OpenChannel(int channel_id, PriorityValue priority) = 0;
+  virtual RTCError OpenChannel(int channel_id) = 0;
 
   // Sends a data buffer to the remote endpoint using the given send parameters.
   // `buffer` may not be larger than 256 KiB. Returns an error if the send
@@ -125,10 +118,6 @@ class DataChannelTransportInterface {
   // Note: the default implementation always returns false (as it assumes no one
   // has implemented the interface).  This default implementation is temporary.
   virtual bool IsReadyToSend() const = 0;
-
-  virtual size_t buffered_amount(int channel_id) const = 0;
-  virtual size_t buffered_amount_low_threshold(int channel_id) const = 0;
-  virtual void SetBufferedAmountLowThreshold(int channel_id, size_t bytes) = 0;
 };
 
 }  // namespace webrtc

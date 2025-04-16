@@ -17,17 +17,10 @@
 #ifndef SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_FLAMEGRAPH_CONSTRUCTION_ALGORITHMS_H_
 #define SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_FLAMEGRAPH_CONSTRUCTION_ALGORITHMS_H_
 
-#include <cstdint>
-#include <memory>
-#include <optional>
-#include <string>
-#include <vector>
-
-#include "src/trace_processor/db/column/types.h"
 #include "src/trace_processor/storage/trace_storage.h"
-#include "src/trace_processor/tables/profiler_tables_py.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 // Represents a time boundary for a column.
 struct TimeConstraints {
@@ -35,18 +28,18 @@ struct TimeConstraints {
   int64_t value;
 };
 
-std::unique_ptr<tables::ExperimentalFlamegraphTable> BuildHeapProfileFlamegraph(
-    TraceStorage* storage,
-    UniquePid upid,
-    int64_t timestamp);
+std::unique_ptr<tables::ExperimentalFlamegraphNodesTable>
+BuildHeapProfileFlamegraph(TraceStorage* storage,
+                           UniquePid upid,
+                           int64_t timestamp);
 
-std::unique_ptr<tables::ExperimentalFlamegraphTable>
+std::unique_ptr<tables::ExperimentalFlamegraphNodesTable>
 BuildNativeCallStackSamplingFlamegraph(
     TraceStorage* storage,
     std::optional<UniquePid> upid,
     std::optional<std::string> upid_group,
     const std::vector<TimeConstraints>& time_constraints);
-
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_FLAMEGRAPH_CONSTRUCTION_ALGORITHMS_H_

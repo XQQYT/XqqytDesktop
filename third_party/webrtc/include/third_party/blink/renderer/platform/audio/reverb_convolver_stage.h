@@ -46,7 +46,7 @@ class DirectConvolver;
 // sub-section of a large impulse response.  It incorporates a delay line to
 // account for the offset of the sub-section within the larger impulse
 // response.
-class ReverbConvolverStage final {
+class ReverbConvolverStage {
   USING_FAST_MALLOC(ReverbConvolverStage);
 
  public:
@@ -85,7 +85,7 @@ class ReverbConvolverStage final {
 
   AudioFloatArray pre_delay_buffer_;
 
-  raw_ptr<ReverbAccumulationBuffer> accumulation_buffer_;
+  raw_ptr<ReverbAccumulationBuffer, ExperimentalRenderer> accumulation_buffer_;
   uint32_t accumulation_read_index_;
   size_t input_read_index_;
 

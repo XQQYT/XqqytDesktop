@@ -52,8 +52,7 @@ class ExecutionContext;
 class LocalDOMWindow;
 class MessagePort;
 class Node;
-class Observable;
-class ObservableEventListenerOptions;
+class PortalHost;
 class ScriptState;
 class ServiceWorker;
 class V8EventListener;
@@ -144,18 +143,9 @@ class CORE_EXPORT EventTarget : public ScriptWrappable {
   virtual LocalDOMWindow* ToLocalDOMWindow();
   virtual MessagePort* ToMessagePort();
   virtual ServiceWorker* ToServiceWorker();
-
-  // This method is called when the enqueued event is dispatched.
-  // The input is the event type of the current dispatched event.
-  virtual void ResetEventQueueStatus(const AtomicString& event_type);
+  virtual PortalHost* ToPortalHost();
 
   static EventTarget* Create(ScriptState*);
-
-  // Returns an Observable whose native subscription algorithm adds an event
-  // listener of type `event_type` to `this`. See
-  // https://wicg.github.io/observable/.
-  Observable* when(const AtomicString& event_type,
-                   const ObservableEventListenerOptions*);
 
   bool addEventListener(const AtomicString& event_type, V8EventListener*);
   bool addEventListener(
@@ -240,7 +230,6 @@ class CORE_EXPORT EventTarget : public ScriptWrappable {
   DEFINE_ATTRIBUTE_EVENT_LISTENER(change, kChange)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(click, kClick)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(close, kClose)
-  DEFINE_ATTRIBUTE_EVENT_LISTENER(command, kCommand)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(contentvisibilityautostatechange,
                                   kContentvisibilityautostatechange)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(contextmenu, kContextmenu)
@@ -259,7 +248,6 @@ class CORE_EXPORT EventTarget : public ScriptWrappable {
   DEFINE_ATTRIBUTE_EVENT_LISTENER(emptied, kEmptied)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(ended, kEnded)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(error, kError)
-  DEFINE_ATTRIBUTE_EVENT_LISTENER(fencedtreeclick, kFencedtreeclick)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(focus, kFocus)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(formdata, kFormdata)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(gotpointercapture, kGotpointercapture)
@@ -310,8 +298,7 @@ class CORE_EXPORT EventTarget : public ScriptWrappable {
   DEFINE_ATTRIBUTE_EVENT_LISTENER(selectionchange, kSelectionchange)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(selectstart, kSelectstart)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(slotchange, kSlotchange)
-  DEFINE_ATTRIBUTE_EVENT_LISTENER(scrollsnapchange, kScrollsnapchange)
-  DEFINE_ATTRIBUTE_EVENT_LISTENER(scrollsnapchanging, kScrollsnapchanging)
+  DEFINE_ATTRIBUTE_EVENT_LISTENER(snapchanged, kSnapchanged)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(stalled, kStalled)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(submit, kSubmit)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(suspend, kSuspend)
@@ -373,11 +360,7 @@ class CORE_EXPORT EventTarget : public ScriptWrappable {
   // The spec snapshots the array at the beginning of a dispatch so that
   // listeners adding or removing other event listeners during dispatch is
   // done in a consistent way.
-  using EventListenerVectorSnapshot =
-      HeapVector<Member<RegisteredEventListener>, 1>;
-  bool FireEventListeners(Event&,
-                          EventTargetData*,
-                          EventListenerVectorSnapshot);
+  bool FireEventListeners(Event&, EventTargetData*, EventListenerVector);
   void CountLegacyEvents(const AtomicString& legacy_type_name,
                          EventListenerVector*,
                          EventListenerVector*);

@@ -34,8 +34,8 @@ VideoDecoderFactory* CreateVideoDecoderFactory(
     const JavaRef<jobject>& j_decoder_factory);
 
 void* CreateVideoSource(JNIEnv* env,
-                        Thread* signaling_thread,
-                        Thread* worker_thread,
+                        rtc::Thread* signaling_thread,
+                        rtc::Thread* worker_thread,
                         jboolean is_screencast,
                         jboolean align_timestamps);
 

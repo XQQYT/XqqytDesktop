@@ -17,14 +17,10 @@
 #ifndef SRC_TRACE_PROCESSOR_TYPES_VARIADIC_H_
 #define SRC_TRACE_PROCESSOR_TYPES_VARIADIC_H_
 
-#include <cstddef>
-#include <cstdint>
-#include <functional>
-#include <type_traits>
-
 #include "src/trace_processor/containers/string_pool.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 // Variadic type representing value of different possible types.
 struct Variadic {
@@ -39,12 +35,13 @@ struct Variadic {
     kNull,
     kMaxType = kNull,
   };
-  static constexpr const char* const kTypeNames[] = {
-      "int", "uint", "string", "real", "pointer", "bool", "json", "null",
-  };
 
-  static constexpr Variadic Integer(int64_t int_value) {
-    Variadic variadic(Type::kInt);
+  static constexpr const char* const kTypeNames[] = {
+      "int", "uint", "string", "real", "pointer", "bool", "json", "null"};
+
+  static Variadic Integer(int64_t int_value) {
+    Variadic variadic;
+    variadic.type = Type::kInt;
     variadic.int_value = int_value;
     return variadic;
   }
@@ -53,47 +50,57 @@ struct Variadic {
   // SQLite for built-in SQL operators. This variadic type is used to
   // distinguish between int64 and uint64 for correct JSON export of TrackEvent
   // arguments.
-  static constexpr Variadic UnsignedInteger(uint64_t uint_value) {
-    Variadic variadic(Type::kUint);
+  static Variadic UnsignedInteger(uint64_t uint_value) {
+    Variadic variadic;
+    variadic.type = Type::kUint;
     variadic.uint_value = uint_value;
     return variadic;
   }
 
-  static constexpr Variadic String(StringPool::Id string_id) {
-    Variadic variadic(Type::kString);
+  static Variadic String(StringPool::Id string_id) {
+    Variadic variadic;
+    variadic.type = Type::kString;
     variadic.string_value = string_id;
     return variadic;
   }
 
-  static constexpr Variadic Real(double real_value) {
-    Variadic variadic(Type::kReal);
+  static Variadic Real(double real_value) {
+    Variadic variadic;
+    variadic.type = Type::kReal;
     variadic.real_value = real_value;
     return variadic;
   }
 
   // This variadic type is used to distinguish between integers and pointer
   // values for correct JSON export of TrackEvent arguments.
-  static constexpr Variadic Pointer(uint64_t pointer_value) {
-    Variadic variadic(Type::kPointer);
+  static Variadic Pointer(uint64_t pointer_value) {
+    Variadic variadic;
+    variadic.type = Type::kPointer;
     variadic.pointer_value = pointer_value;
     return variadic;
   }
 
-  static constexpr Variadic Boolean(bool bool_value) {
-    Variadic variadic(Type::kBool);
+  static Variadic Boolean(bool bool_value) {
+    Variadic variadic;
+    variadic.type = Type::kBool;
     variadic.bool_value = bool_value;
     return variadic;
   }
 
   // This variadic type is used to distinguish between regular string and JSON
   // string values for correct JSON export of TrackEvent arguments.
-  static constexpr Variadic Json(StringPool::Id json_value) {
-    Variadic variadic(Type::kJson);
+  static Variadic Json(StringPool::Id json_value) {
+    Variadic variadic;
+    variadic.type = Type::kJson;
     variadic.json_value = json_value;
     return variadic;
   }
 
-  static constexpr Variadic Null() { return Variadic(Type::kNull); }
+  static Variadic Null() {
+    Variadic variadic;
+    variadic.type = Type::kNull;
+    return variadic;
+  }
 
   // Used in tests.
   bool operator==(const Variadic& other) const {
@@ -130,11 +137,9 @@ struct Variadic {
     bool bool_value;
     StringPool::Id json_value;
   };
-
- private:
-  constexpr explicit Variadic(Type t) : type(t), int_value(0) {}
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_TYPES_VARIADIC_H_

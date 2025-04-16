@@ -11,13 +11,17 @@
 #ifndef API_VIDEO_CODECS_AV1_PROFILE_H_
 #define API_VIDEO_CODECS_AV1_PROFILE_H_
 
-#include <optional>
+#include <string>
 
 #include "absl/strings/string_view.h"
-#include "api/rtp_parameters.h"
+#include "absl/types/optional.h"
+#include "api/video_codecs/sdp_video_format.h"
 #include "rtc_base/system/rtc_export.h"
 
 namespace webrtc {
+
+// Profile information for AV1 video.
+extern RTC_EXPORT const char kAV1FmtpProfile[];
 
 // Profiles can be found at:
 // https://aomedia.org/av1/specification/annex-a/#profiles
@@ -34,19 +38,19 @@ RTC_EXPORT absl::string_view AV1ProfileToString(AV1Profile profile);
 
 // Helper function which converts a std::string to AV1Profile. Returns null if
 // |profile| is not a valid profile string.
-std::optional<AV1Profile> StringToAV1Profile(absl::string_view profile);
+absl::optional<AV1Profile> StringToAV1Profile(absl::string_view profile);
 
 // Parses an SDP key-value map of format parameters to retrive an AV1 profile.
 // Returns an AV1Profile if one has been specified, `kProfile0` if no profile is
 // specified and an empty value if the profile key is present but contains an
 // invalid value.
-RTC_EXPORT std::optional<AV1Profile> ParseSdpForAV1Profile(
-    const CodecParameterMap& params);
+RTC_EXPORT absl::optional<AV1Profile> ParseSdpForAV1Profile(
+    const SdpVideoFormat::Parameters& params);
 
 // Returns true if the parameters have the same AV1 profile or neither contains
 // an AV1 profile, otherwise false.
-bool AV1IsSameProfile(const CodecParameterMap& params1,
-                      const CodecParameterMap& params2);
+bool AV1IsSameProfile(const SdpVideoFormat::Parameters& params1,
+                      const SdpVideoFormat::Parameters& params2);
 
 }  // namespace webrtc
 

@@ -1,34 +1,24 @@
 // Copyright 2015 The Chromium Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef BSSL_PKI_PARSE_CERTIFICATE_H_
 #define BSSL_PKI_PARSE_CERTIFICATE_H_
 
+#include "fillins/openssl_util.h"
 #include <stdint.h>
 
 #include <map>
 #include <memory>
-#include <optional>
 #include <vector>
 
-#include <openssl/base.h>
 
 #include "general_names.h"
 #include "input.h"
 #include "parse_values.h"
+#include <optional>
 
-BSSL_NAMESPACE_BEGIN
+namespace bssl {
 
 namespace der {
 class Parser;
@@ -66,9 +56,9 @@ struct ParsedTbsCertificate;
 // |errors| must be a non-null destination for any errors/warnings. If
 // |warnings_only| is set to true, then what would ordinarily be errors are
 // instead added as warnings.
-[[nodiscard]] OPENSSL_EXPORT bool VerifySerialNumber(der::Input value,
-                                                     bool warnings_only,
-                                                     CertErrors *errors);
+[[nodiscard]] OPENSSL_EXPORT bool VerifySerialNumber(const der::Input& value,
+                                                 bool warnings_only,
+                                                 CertErrors* errors);
 
 // Consumes a "Time" value (as defined by RFC 5280) from |parser|. On success
 // writes the result to |*out| and returns true. On failure no guarantees are
@@ -80,7 +70,8 @@ struct ParsedTbsCertificate;
 //          utcTime        UTCTime,
 //          generalTime    GeneralizedTime }
 [[nodiscard]] OPENSSL_EXPORT bool ReadUTCOrGeneralizedTime(
-    der::Parser *parser, der::GeneralizedTime *out);
+    der::Parser* parser,
+    der::GeneralizedTime* out);
 
 // Parses a DER-encoded "Validity" as specified by RFC 5280. Returns true on
 // success and sets the results in |not_before| and |not_after|:
@@ -90,9 +81,9 @@ struct ParsedTbsCertificate;
 //            notAfter       Time }
 //
 // Note that upon success it is NOT guaranteed that |*not_before <= *not_after|.
-[[nodiscard]] OPENSSL_EXPORT bool ParseValidity(
-    der::Input validity_tlv, der::GeneralizedTime *not_before,
-    der::GeneralizedTime *not_after);
+[[nodiscard]] OPENSSL_EXPORT bool ParseValidity(const der::Input& validity_tlv,
+                                            der::GeneralizedTime* not_before,
+                                            der::GeneralizedTime* not_after);
 
 struct OPENSSL_EXPORT ParseCertificateOptions {
   // If set to true, then parsing will skip checks on the certificate's serial
@@ -140,9 +131,11 @@ struct OPENSSL_EXPORT ParseCertificateOptions {
 //
 // Parsing guarantees that this is a valid BIT STRING.
 [[nodiscard]] OPENSSL_EXPORT bool ParseCertificate(
-    der::Input certificate_tlv, der::Input *out_tbs_certificate_tlv,
-    der::Input *out_signature_algorithm_tlv,
-    der::BitString *out_signature_value, CertErrors *out_errors);
+    const der::Input& certificate_tlv,
+    der::Input* out_tbs_certificate_tlv,
+    der::Input* out_signature_algorithm_tlv,
+    der::BitString* out_signature_value,
+    CertErrors* out_errors);
 
 // Parses a DER-encoded "TBSCertificate" as specified by RFC 5280. Returns true
 // on success and sets the results in |out|. Certain invalid inputs may
@@ -177,8 +170,10 @@ struct OPENSSL_EXPORT ParseCertificateOptions {
 //                                 -- If present, version MUST be v3
 //            }
 [[nodiscard]] OPENSSL_EXPORT bool ParseTbsCertificate(
-    der::Input tbs_tlv, const ParseCertificateOptions &options,
-    ParsedTbsCertificate *out, CertErrors *errors);
+    const der::Input& tbs_tlv,
+    const ParseCertificateOptions& options,
+    ParsedTbsCertificate* out,
+    CertErrors* errors);
 
 // Represents a "Version" from RFC 5280:
 //         Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
@@ -196,8 +191,8 @@ enum class CertificateVersion {
 // sets.
 struct OPENSSL_EXPORT ParsedTbsCertificate {
   ParsedTbsCertificate();
-  ParsedTbsCertificate(ParsedTbsCertificate &&other);
-  ParsedTbsCertificate &operator=(ParsedTbsCertificate &&other) = default;
+  ParsedTbsCertificate(ParsedTbsCertificate&& other);
+  ParsedTbsCertificate& operator=(ParsedTbsCertificate&& other) = default;
   ~ParsedTbsCertificate();
 
   // Corresponds with "version" from RFC 5280:
@@ -328,8 +323,8 @@ struct OPENSSL_EXPORT ParsedExtension {
 //
 // On failure |out| has an undefined state. Some of its fields may have been
 // updated during parsing, whereas others may not have been changed.
-[[nodiscard]] OPENSSL_EXPORT bool ParseExtension(der::Input extension_tlv,
-                                                 ParsedExtension *out);
+[[nodiscard]] OPENSSL_EXPORT bool ParseExtension(const der::Input& extension_tlv,
+                                             ParsedExtension* out);
 
 // From RFC 5280:
 //
@@ -425,46 +420,12 @@ inline constexpr uint8_t kAdOcspOid[] = {0x2B, 0x06, 0x01, 0x05,
 // In dotted notation: 2.5.29.31
 inline constexpr uint8_t kCrlDistributionPointsOid[] = {0x55, 0x1d, 0x1f};
 
-// From RFC 6962:
-//
-// critical poison extension.
-//
-// In dotted notation 1.3.6.1.4.1.11129.2.4.3
-inline constexpr uint8_t kCtPoisonOid[] = {0x2B, 0x06, 0x01, 0x04, 0x01,
-                                           0xD6, 0x79, 0x02, 0x04, 0x03};
-
 // From
 // https://learn.microsoft.com/en-us/windows/win32/seccertenroll/supported-extensions#msapplicationpolicies
 //
 // OID: XCN_OID_APPLICATION_CERT_POLICIES (1.3.6.1.4.1.311.21.10)
 inline constexpr uint8_t kMSApplicationPoliciesOid[] = {
     0x2b, 0x06, 0x01, 0x04, 0x01, 0x82, 0x37, 0x15, 0x0a};
-
-// From GSMA RCC.16 v1.0 End-to-End Encryption Specification.
-// id-gsmaRCSE2EE OBJECT IDENTIFIER ::=  { joint-iso-itu-t(2)
-// international-organizations(23) gsma(146) rcs(2) rcsE2EE (1)}
-// (Note this spec incorrectly says id-appleDraftRCSE2EE in place of
-// id-gmsaRCSE2EE in several places)
-//
-// From GSMA RCC.16 v1.0 End-to-End Encryption Specification section A.2.8.8,
-// and A.3.8.9.
-// id-participantInformation OBJECT IDENTIFIER ::= { id-gmsaRCS2EE 4 }
-// In dotted notation: 2.23.146.2.1.4
-inline constexpr uint8_t kRcsMlsParticipantInformation[] = {0x67, 0x81, 0x12,
-                                                            0x02, 0x01, 0x04};
-
-// From GSMA RCC.16 v1.0 End-to-End Encryption Specification.
-// id-gsmaRCSE2EE OBJECT IDENTIFIER ::=  { joint-iso-itu-t(2)
-// international-organizations(23) gsma(146) rcs(2) rcsE2EE (1)}
-// (Note this spec incorrectly says id-appleDraftRCSE2EE in place of
-// id-gmsaRCSE2EE in several places)
-//
-// From GSMA RCC.16 v1.0 End-to-End Encryption Specification section A.2.8.8,
-// and A.3.8.10.
-// id-acsParticipantInformation OBJECT IDENTIFIER ::= { id-gmsaRCS2EE 5 }
-// In dotted notation: 2.23.146.2.1.5
-inline constexpr uint8_t kRcsMlsAcsParticipantInformation[] = {
-    0x67, 0x81, 0x12, 0x02, 0x01, 0x05};
 
 // Parses the Extensions sequence as defined by RFC 5280. Extensions are added
 // to the map |extensions| keyed by the OID. Parsing guarantees that each OID
@@ -475,16 +436,16 @@ inline constexpr uint8_t kRcsMlsAcsParticipantInformation[] = {
 // bytes in |extensions_tlv|, so that data must be kept alive.
 // On failure |extensions| may be partially written to and should not be used.
 [[nodiscard]] OPENSSL_EXPORT bool ParseExtensions(
-    der::Input extensions_tlv,
-    std::map<der::Input, ParsedExtension> *extensions);
+    const der::Input& extensions_tlv,
+    std::map<der::Input, ParsedExtension>* extensions);
 
 // Removes the extension with OID |oid| from |unconsumed_extensions| and fills
 // |extension| with the matching extension value. If there was no extension
 // matching |oid| then returns |false|.
 [[nodiscard]] OPENSSL_EXPORT bool ConsumeExtension(
-    der::Input oid,
-    std::map<der::Input, ParsedExtension> *unconsumed_extensions,
-    ParsedExtension *extension);
+    const der::Input& oid,
+    std::map<der::Input, ParsedExtension>* unconsumed_extensions,
+    ParsedExtension* extension);
 
 struct ParsedBasicConstraints {
   bool is_ca = false;
@@ -501,7 +462,8 @@ struct ParsedBasicConstraints {
 // The maximum allowed value of pathLenConstraints will be whatever can fit
 // into a uint8_t.
 [[nodiscard]] OPENSSL_EXPORT bool ParseBasicConstraints(
-    der::Input basic_constraints_tlv, ParsedBasicConstraints *out);
+    const der::Input& basic_constraints_tlv,
+    ParsedBasicConstraints* out);
 
 // KeyUsageBit contains the index for a particular key usage. The index is
 // measured from the most significant bit of a bit string.
@@ -541,8 +503,8 @@ enum KeyUsageBit {
 //
 // To test if a particular key usage is set, call, e.g.:
 //     key_usage->AssertsBit(KEY_USAGE_BIT_DIGITAL_SIGNATURE);
-[[nodiscard]] OPENSSL_EXPORT bool ParseKeyUsage(der::Input key_usage_tlv,
-                                                der::BitString *key_usage);
+[[nodiscard]] OPENSSL_EXPORT bool ParseKeyUsage(const der::Input& key_usage_tlv,
+                                            der::BitString* key_usage);
 
 struct AuthorityInfoAccessDescription {
   // The accessMethod DER OID value.
@@ -558,8 +520,8 @@ struct AuthorityInfoAccessDescription {
 // No validation is performed on the contents of the
 // AuthorityInfoAccessDescription fields.
 [[nodiscard]] OPENSSL_EXPORT bool ParseAuthorityInfoAccess(
-    der::Input authority_info_access_tlv,
-    std::vector<AuthorityInfoAccessDescription> *out_access_descriptions);
+    const der::Input& authority_info_access_tlv,
+    std::vector<AuthorityInfoAccessDescription>* out_access_descriptions);
 
 // Parses the Authority Information Access extension defined by RFC 5280,
 // extracting the caIssuers URIs and OCSP URIs.
@@ -580,9 +542,9 @@ struct AuthorityInfoAccessDescription {
 // accessLocation types other than uniformResourceIdentifier are silently
 // ignored.
 [[nodiscard]] OPENSSL_EXPORT bool ParseAuthorityInfoAccessURIs(
-    der::Input authority_info_access_tlv,
-    std::vector<std::string_view> *out_ca_issuers_uris,
-    std::vector<std::string_view> *out_ocsp_uris);
+    const der::Input& authority_info_access_tlv,
+    std::vector<std::string_view>* out_ca_issuers_uris,
+    std::vector<std::string_view>* out_ocsp_uris);
 
 // ParsedDistributionPoint represents a parsed DistributionPoint from RFC 5280.
 //
@@ -592,7 +554,7 @@ struct AuthorityInfoAccessDescription {
 //    cRLIssuer               [2]     GeneralNames OPTIONAL }
 struct OPENSSL_EXPORT ParsedDistributionPoint {
   ParsedDistributionPoint();
-  ParsedDistributionPoint(ParsedDistributionPoint &&other);
+  ParsedDistributionPoint(ParsedDistributionPoint&& other);
   ~ParsedDistributionPoint();
 
   // The parsed fullName, if distributionPoint was present and was a fullName.
@@ -616,8 +578,8 @@ struct OPENSSL_EXPORT ParsedDistributionPoint {
 // DistributionPoint). Return true on success, and fills |distribution_points|
 // with values that reference data in |distribution_points_tlv|.
 [[nodiscard]] OPENSSL_EXPORT bool ParseCrlDistributionPoints(
-    der::Input distribution_points_tlv,
-    std::vector<ParsedDistributionPoint> *distribution_points);
+    const der::Input& distribution_points_tlv,
+    std::vector<ParsedDistributionPoint>* distribution_points);
 
 // Represents the AuthorityKeyIdentifier extension defined by RFC 5280 section
 // 4.2.1.1.
@@ -631,8 +593,8 @@ struct OPENSSL_EXPORT ParsedDistributionPoint {
 struct OPENSSL_EXPORT ParsedAuthorityKeyIdentifier {
   ParsedAuthorityKeyIdentifier();
   ~ParsedAuthorityKeyIdentifier();
-  ParsedAuthorityKeyIdentifier(ParsedAuthorityKeyIdentifier &&other);
-  ParsedAuthorityKeyIdentifier &operator=(ParsedAuthorityKeyIdentifier &&other);
+  ParsedAuthorityKeyIdentifier(ParsedAuthorityKeyIdentifier&& other);
+  ParsedAuthorityKeyIdentifier& operator=(ParsedAuthorityKeyIdentifier&& other);
 
   // The keyIdentifier, which is an OCTET STRING.
   std::optional<der::Input> key_identifier;
@@ -652,15 +614,16 @@ struct OPENSSL_EXPORT ParsedAuthorityKeyIdentifier {
 // in |extension_value|. On failure the state of |authority_key_identifier| is
 // not guaranteed.
 [[nodiscard]] OPENSSL_EXPORT bool ParseAuthorityKeyIdentifier(
-    der::Input extension_value,
-    ParsedAuthorityKeyIdentifier *authority_key_identifier);
+    const der::Input& extension_value,
+    ParsedAuthorityKeyIdentifier* authority_key_identifier);
 
 // Parses the value of a subjectKeyIdentifier extension. Returns true on
 // success and |subject_key_identifier| references data in |extension_value|.
 // On failure the state of |subject_key_identifier| is not guaranteed.
 [[nodiscard]] OPENSSL_EXPORT bool ParseSubjectKeyIdentifier(
-    der::Input extension_value, der::Input *subject_key_identifier);
+    const der::Input& extension_value,
+    der::Input* subject_key_identifier);
 
-BSSL_NAMESPACE_END
+}  // namespace net
 
 #endif  // BSSL_PKI_PARSE_CERTIFICATE_H_

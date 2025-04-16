@@ -32,8 +32,10 @@ class RemoteDOMWindow final : public DOMWindow {
   void SchedulePostMessage(PostedMessage*) override;
 
  private:
-  // Intentionally private to prevent redundant checks.
+  // Intentionally private to prevent redundant checks when the type is
+  // already RemoteDOMWindow.
   bool IsLocalDOMWindow() const override { return false; }
+  bool IsRemoteDOMWindow() const override { return true; }
 
   void ForwardPostMessage(PostedMessage*);
 };
@@ -41,7 +43,7 @@ class RemoteDOMWindow final : public DOMWindow {
 template <>
 struct DowncastTraits<RemoteDOMWindow> {
   static bool AllowFrom(const DOMWindow& window) {
-    return !window.IsLocalDOMWindow();
+    return window.IsRemoteDOMWindow();
   }
 };
 

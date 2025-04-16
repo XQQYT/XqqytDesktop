@@ -11,9 +11,9 @@
 
 namespace blink {
 
-class BlockBreakToken;
-struct FlexItemData;
-struct FlexLine;
+class NGBlockBreakToken;
+struct NGFlexItem;
+struct NGFlexLine;
 
 // A utility class for flexbox layout which given a list of flex lines and a
 // break token will iterate through unfinished flex items.
@@ -31,8 +31,8 @@ class CORE_EXPORT FlexItemIterator {
   STACK_ALLOCATED();
 
  public:
-  FlexItemIterator(const HeapVector<FlexLine>& flex_lines,
-                   const BlockBreakToken* break_token,
+  FlexItemIterator(const HeapVector<NGFlexLine>& flex_lines,
+                   const NGBlockBreakToken* break_token,
                    bool is_column);
 
   // Returns the next flex item which should be laid out, along with its
@@ -49,12 +49,12 @@ class CORE_EXPORT FlexItemIterator {
   void NextLine();
 
  private:
-  FlexItemData* FindNextItem(const BlockBreakToken* item_break_token = nullptr);
+  NGFlexItem* FindNextItem(const NGBlockBreakToken* item_break_token = nullptr);
   void AdjustItemIndexForNewLine();
 
-  FlexItemData* next_unstarted_item_ = nullptr;
-  const HeapVector<FlexLine>& flex_lines_;
-  const BlockBreakToken* break_token_;
+  NGFlexItem* next_unstarted_item_ = nullptr;
+  const HeapVector<NGFlexLine>& flex_lines_;
+  const NGBlockBreakToken* break_token_;
   bool is_column_ = false;
 
   // An index into break_token_'s ChildBreakTokens() vector. Used for keeping
@@ -74,19 +74,19 @@ struct FlexItemIterator::Entry {
   STACK_ALLOCATED();
 
  public:
-  Entry(FlexItemData* flex_item,
+  Entry(NGFlexItem* flex_item,
         wtf_size_t flex_item_idx,
         wtf_size_t flex_line_idx,
-        const BlockBreakToken* token)
+        const NGBlockBreakToken* token)
       : flex_item(flex_item),
         flex_item_idx(flex_item_idx),
         flex_line_idx(flex_line_idx),
         token(token) {}
 
-  FlexItemData* flex_item;
+  NGFlexItem* flex_item;
   wtf_size_t flex_item_idx;
   wtf_size_t flex_line_idx;
-  const BlockBreakToken* token;
+  const NGBlockBreakToken* token;
 
   bool operator==(const FlexItemIterator::Entry& other) const {
     return flex_item == other.flex_item &&

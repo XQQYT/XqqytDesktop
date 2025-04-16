@@ -45,7 +45,7 @@ class CORE_EXPORT ResourceLoadObserverForFrame final
                           const Resource* resource,
                           ResponseSource) override;
   void DidReceiveData(uint64_t identifier,
-                      base::SpanOrSize<const char> chunk) override;
+                      base::span<const char> chunk) override;
   void DidReceiveTransferSizeUpdate(uint64_t identifier,
                                     int transfer_size_diff) override;
   void DidDownloadToBlob(uint64_t identifier, BlobDataHandle*) override;
@@ -60,7 +60,6 @@ class CORE_EXPORT ResourceLoadObserverForFrame final
                       IsInternalRequest) override;
   void DidChangeRenderBlockingBehavior(Resource* resource,
                                        const FetchParameters& params) override;
-  bool InterestedInAllRequests() override;
   void Trace(Visitor*) const override;
 
  private:

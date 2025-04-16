@@ -26,8 +26,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_HTML_MEDIA_MEDIA_FRAGMENT_URI_PARSER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_HTML_MEDIA_MEDIA_FRAGMENT_URI_PARSER_H_
 
-#include <string_view>
-
 #include "base/gtest_prod_util.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
@@ -46,28 +44,34 @@ class CORE_EXPORT MediaFragmentURIParser final {
 
   double StartTime();
   double EndTime();
-  Vector<String> DefaultTracks();
 
  private:
   void ParseFragments();
-  void ParseTrackFragment();
+
+  enum TimeFormat {
+    kNone,
+    kInvalid,
+    kNormalPlayTime,
+    kSMPTETimeCode,
+    kWallClockTimeCode
+  };
   void ParseTimeFragment();
-  bool ParseNPTFragment(std::string_view, double& start_time, double& end_time);
+  bool ParseNPTFragment(const char*,
+                        unsigned length,
+                        double& start_time,
+                        double& end_time);
 
   FRIEND_TEST_ALL_PREFIXES(ParseNPTTimeTest, TestParseNPTTime);
-  bool ParseNPTTime(std::string_view, size_t& offset, double& time);
+  bool ParseNPTTime(const char*,
+                    unsigned length,
+                    unsigned& offset,
+                    double& time);
 
   KURL url_;
-
+  TimeFormat time_format_;
   double start_time_;
   double end_time_;
-  Vector<String> default_tracks_;
-
   Vector<std::pair<std::string, std::string>> fragments_;
-
-  bool has_parsed_fragments_ = false;
-  bool has_parsed_time_ = false;
-  bool has_parsed_track_ = false;
 };
 
 }  // namespace blink

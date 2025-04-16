@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LOADER_PRELOAD_HELPER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LOADER_PRELOAD_HELPER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/loader/fetch/resource.h"
 
 namespace blink {
@@ -42,8 +41,7 @@ class PreloadHelper final {
       LoadLinksFromHeaderMode,
       const ViewportDescription*,  // can be nullptr
       std::unique_ptr<AlternateSignedExchangeResourceInfo>,
-      const base::UnguessableToken*
-          recursive_prefetch_token /* can be nullptr */);
+      const base::UnguessableToken* /* can be nullptr */);
   static Resource* StartPreload(ResourceType, FetchParameters&, Document&);
 
   // Currently only used for UseCounter.
@@ -74,11 +72,11 @@ class PreloadHelper final {
                                     Document&,
                                     const ViewportDescription*,
                                     PendingLinkPreload*);
-  static void FetchCompressionDictionaryIfNeeded(const LinkLoadParameters&,
-                                                 Document&,
-                                                 PendingLinkPreload*);
+  static void FetchDictionaryIfNeeded(const LinkLoadParameters&,
+                                      Document&,
+                                      PendingLinkPreload*);
 
-  static std::optional<ResourceType> GetResourceTypeFromAsAttribute(
+  static absl::optional<ResourceType> GetResourceTypeFromAsAttribute(
       const String& as);
 };
 

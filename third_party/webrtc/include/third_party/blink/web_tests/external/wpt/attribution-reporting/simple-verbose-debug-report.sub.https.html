@@ -11,6 +11,7 @@ attribution_reporting_promise_test(async t => {
 
   registerAttributionSrcByImg(createRedirectChain([
     {
+      cookie: attributionDebugCookie,
       trigger: {
         debug_reporting: true,
         debug_key: expectedTriggerDebugKey,

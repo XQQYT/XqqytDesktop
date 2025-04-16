@@ -9,7 +9,7 @@
 #include <cstdint>
 
 #include "base/base_export.h"
-#include "base/memory/stack_allocated.h"
+#include "base/memory/raw_ptr_exclusion.h"
 #include "base/synchronization/waitable_event.h"
 
 namespace base {
@@ -62,13 +62,10 @@ class BASE_EXPORT OperationsController {
   //
   // This class is thread-safe
   class OperationToken {
-    STACK_ALLOCATED();
-
    public:
     ~OperationToken() {
-      if (outer_) {
+      if (outer_)
         outer_->DecrementBy(1);
-      }
     }
     OperationToken(const OperationToken&) = delete;
     OperationToken(OperationToken&& other) {
@@ -82,7 +79,9 @@ class BASE_EXPORT OperationsController {
     friend class OperationsController;
     explicit OperationToken(OperationsController* outer) : outer_(outer) {}
 
-    OperationsController* outer_;
+    // `outer_` is not a raw_ptr<...> for performance reasons (based on analysis
+    // of sampling profiler data and tab_search:top100:2020).
+    RAW_PTR_EXCLUSION OperationsController* outer_;
   };
 
   OperationsController();

@@ -11,10 +11,6 @@
 #include "third_party/blink/renderer/core/css/css_value.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 
-namespace WTF {
-class String;
-}  // namespace WTF
-
 namespace blink {
 
 class CSSValuePool;
@@ -27,7 +23,7 @@ class CORE_EXPORT CSSUnsetValue : public CSSValue {
 
   explicit CSSUnsetValue(base::PassKey<CSSValuePool>) : CSSValue(kUnsetClass) {}
 
-  WTF::String CustomCSSText() const;
+  String CustomCSSText() const;
 
   bool Equals(const CSSUnsetValue&) const { return true; }
 

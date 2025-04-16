@@ -87,16 +87,9 @@
 
 #include <cassert>
 #include <cstddef>
-#include <deque>
 #include <functional>
-#include <list>
-#include <map>
 #include <new>
-#include <set>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
-#include <vector>
 
 #include "test_macros.h"
 
@@ -349,7 +342,7 @@ typedef std::allocator_traits<A2> A2T;
 
 static_assert(std::is_same<A1T::rebind_traits<float>, A2T>::value, "");
 static_assert(std::is_same<A2T::rebind_traits<int>, A1T>::value, "");
-} // namespace test_detail
+} // end namespace test_detail
 
 //===----------------------------------------------------------------------===//
 //  'CopyInsertable', 'MoveInsertable' and 'EmplaceConstructible' test types
@@ -427,7 +420,12 @@ bool operator <(CopyInsertable<ID> const& L, CopyInsertable<ID> const& R) {
   return L.data < R.data;
 }
 
+
+#ifdef _LIBCPP_BEGIN_NAMESPACE_STD
+_LIBCPP_BEGIN_NAMESPACE_STD
+#else
 namespace std {
+#endif
   template <int ID>
   struct hash< ::CopyInsertable<ID> > {
     typedef ::CopyInsertable<ID> argument_type;
@@ -437,7 +435,34 @@ namespace std {
       return arg.data;
     }
   };
-}
+  template <class T, class Alloc>
+  class vector;
+  template <class T, class Alloc>
+  class deque;
+  template <class T, class Alloc>
+  class list;
+  template <class _Key, class _Value, class _Less, class _Alloc>
+  class map;
+  template <class _Key, class _Value, class _Less, class _Alloc>
+  class multimap;
+  template <class _Value, class _Less, class _Alloc>
+  class set;
+  template <class _Value, class _Less, class _Alloc>
+  class multiset;
+  template <class _Key, class _Value, class _Hash, class _Equals, class _Alloc>
+  class unordered_map;
+  template <class _Key, class _Value, class _Hash, class _Equals, class _Alloc>
+  class unordered_multimap;
+  template <class _Value, class _Hash, class _Equals, class _Alloc>
+  class unordered_set;
+  template <class _Value, class _Hash, class _Equals, class _Alloc>
+  class unordered_multiset;
+
+#ifdef _LIBCPP_END_NAMESPACE_STD
+_LIBCPP_END_NAMESPACE_STD
+#else
+} // end namespace std
+#endif
 
 // TCT - Test container type
 namespace TCT {
@@ -491,6 +516,6 @@ template <class Value = CopyInsertable<1> >
 using multiset =
     std::multiset<Value, std::less<Value>, ContainerTestAllocator<Value, Value> >;
 
-} // namespace TCT
+} // end namespace TCT
 
 #endif // SUPPORT_CONTAINER_TEST_TYPES_H

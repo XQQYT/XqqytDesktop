@@ -41,7 +41,7 @@ class CORE_EXPORT ThreadedWorkletMessagingProxy
   void Initialize(
       WorkerClients*,
       WorkletModuleResponsesMap*,
-      const std::optional<WorkerBackingThreadStartupData>& = std::nullopt,
+      const absl::optional<WorkerBackingThreadStartupData>& = absl::nullopt,
       mojom::blink::WorkletGlobalScopeCreationParamsPtr
           client_provided_global_scope_creation_params = {});
 

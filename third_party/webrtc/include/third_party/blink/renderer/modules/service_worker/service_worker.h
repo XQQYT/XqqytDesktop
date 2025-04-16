@@ -47,9 +47,7 @@
 namespace blink {
 
 class PostMessageOptions;
-class ScriptObject;
 class ScriptState;
-class V8ServiceWorkerState;
 
 class MODULES_EXPORT ServiceWorker final
     : public AbstractWorker,
@@ -78,7 +76,7 @@ class MODULES_EXPORT ServiceWorker final
 
   void postMessage(ScriptState*,
                    const ScriptValue& message,
-                   HeapVector<ScriptObject> transfer,
+                   HeapVector<ScriptValue>& transfer,
                    ExceptionState&);
   void postMessage(ScriptState*,
                    const ScriptValue& message,
@@ -86,7 +84,7 @@ class MODULES_EXPORT ServiceWorker final
                    ExceptionState&);
 
   String scriptURL() const;
-  V8ServiceWorkerState state() const;
+  String state() const;
   DEFINE_ATTRIBUTE_EVENT_LISTENER(statechange, kStatechange)
 
   ServiceWorker* ToServiceWorker() override { return this; }
@@ -100,7 +98,7 @@ class MODULES_EXPORT ServiceWorker final
   // Implements mojom::blink::ServiceWorkerObject.
   void StateChanged(mojom::blink::ServiceWorkerState new_state) override;
 
-  ScriptPromise<IDLUndefined> InternalsTerminate(ScriptState*);
+  ScriptPromise InternalsTerminate(ScriptState*);
 
  private:
   // ExecutionContextLifecycleStateObserver overrides.

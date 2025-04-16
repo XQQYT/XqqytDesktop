@@ -1,5 +1,4 @@
 // META: script=/resources/testdriver.js
-// META: script=/resources/testdriver-vendor.js
 // META: script=/common/utils.js
 // META: script=resources/fledge-util.sub.js
 // META: script=/common/subset-tests.js
@@ -9,7 +8,7 @@
 // META: variant=?9-12
 // META: variant=?13-last
 
-"use strict";
+"use strict;"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Basic tests with no interest groups joined.

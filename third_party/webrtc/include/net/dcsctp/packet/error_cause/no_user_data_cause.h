@@ -36,7 +36,7 @@ class NoUserDataCause : public Parameter,
 
   explicit NoUserDataCause(TSN tsn) : tsn_(tsn) {}
 
-  static std::optional<NoUserDataCause> Parse(
+  static absl::optional<NoUserDataCause> Parse(
       rtc::ArrayView<const uint8_t> data);
 
   void SerializeTo(std::vector<uint8_t>& out) const override;

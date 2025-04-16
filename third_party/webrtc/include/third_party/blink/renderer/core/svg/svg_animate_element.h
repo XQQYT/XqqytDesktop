@@ -64,12 +64,11 @@ class CORE_EXPORT SVGAnimateElement : public SVGAnimationElement {
   SMILAnimationValue CreateAnimationValue() const final;
   void ClearAnimationValue() final;
 
-  AnimationMode CalculateAnimationMode() override;
   bool CalculateToAtEndOfDurationValue(
       const String& to_at_end_of_duration_string) final;
-  void CalculateFromAndToValues(const String& from_string,
+  bool CalculateFromAndToValues(const String& from_string,
                                 const String& to_string) final;
-  void CalculateFromAndByValues(const String& from_string,
+  bool CalculateFromAndByValues(const String& from_string,
                                 const String& by_string) final;
   void CalculateAnimationValue(SMILAnimationValue&,
                                float percentage,

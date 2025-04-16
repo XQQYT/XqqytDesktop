@@ -23,7 +23,6 @@ enum class RTCAPIName {
   kGetCurrentBrowsingContextMedia,  // Deprecated.
   kGetDisplayMediaSet,              // Deprecated.
   kGetAllScreensMedia,
-  kSetPreferredSinkId,
   kInvalidName
 };
 

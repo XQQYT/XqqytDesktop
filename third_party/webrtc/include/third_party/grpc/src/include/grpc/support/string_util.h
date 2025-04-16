@@ -20,6 +20,7 @@
 #define GRPC_SUPPORT_STRING_UTIL_H
 
 #include <grpc/support/port_platform.h>
+
 #include <grpc/support/time.h>
 
 #ifdef __cplusplus

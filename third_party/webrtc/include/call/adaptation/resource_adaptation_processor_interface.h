@@ -14,9 +14,16 @@
 #include <map>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/adaptation/resource.h"
+#include "api/rtp_parameters.h"
 #include "api/scoped_refptr.h"
+#include "api/task_queue/task_queue_base.h"
 #include "api/video/video_adaptation_counters.h"
+#include "api/video/video_frame.h"
+#include "call/adaptation/adaptation_constraint.h"
+#include "call/adaptation/encoder_settings.h"
+#include "call/adaptation/video_source_restrictions.h"
 
 namespace webrtc {
 

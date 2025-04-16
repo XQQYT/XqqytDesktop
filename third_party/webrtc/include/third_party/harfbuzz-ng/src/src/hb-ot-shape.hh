@@ -51,8 +51,7 @@ struct hb_ot_shape_plan_key_t
 
   bool equal (const hb_ot_shape_plan_key_t *other)
   {
-    return variations_index[0] == other->variations_index[0] &&
-	   variations_index[1] == other->variations_index[1];
+    return 0 == hb_memcmp (this, other, sizeof (*this));
   }
 };
 

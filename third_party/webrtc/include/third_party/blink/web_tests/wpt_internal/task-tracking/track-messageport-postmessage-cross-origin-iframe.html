@@ -6,12 +6,11 @@
 <script src="/resources/testharness.js"></script>
 <script src="/resources/testharnessreport.js"></script>
 <script src="/common/get-host-info.sub.js"></script>
-<script src="resources/task-ids.js"></script>
 </head>
 <body>
 <script>
 promise_test(t => {
-  const scriptId = initializeTaskId();
+  const scriptId = scheduler.taskId;
   const channel = new MessageChannel();
   const {REMOTE_ORIGIN} = get_host_info();
 
@@ -25,7 +24,7 @@ promise_test(t => {
   return new Promise((resolve, reject) => {
     channel.port1.onmessage = e => {
       try {
-        assert_not_equals(scheduler.taskId, e.data);
+        assert_equals(scheduler.isAncestor(e.data), "not ancestor");
         resolve();
       } catch(e) {
         reject(e);

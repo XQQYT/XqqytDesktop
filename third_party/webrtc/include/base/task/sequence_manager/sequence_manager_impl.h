@@ -5,25 +5,21 @@
 #ifndef BASE_TASK_SEQUENCE_MANAGER_SEQUENCE_MANAGER_IMPL_H_
 #define BASE_TASK_SEQUENCE_MANAGER_SEQUENCE_MANAGER_IMPL_H_
 
-#include <atomic>
 #include <deque>
 #include <map>
 #include <memory>
-#include <optional>
 #include <set>
 #include <string>
 #include <utility>
 
 #include "base/atomic_sequence_num.h"
 #include "base/base_export.h"
-#include "base/callback_list.h"
-#include "base/compiler_specific.h"
+#include "base/cancelable_callback.h"
 #include "base/containers/circular_deque.h"
 #include "base/debug/crash_logging.h"
 #include "base/feature_list.h"
 #include "base/functional/callback_forward.h"
 #include "base/memory/raw_ptr.h"
-#include "base/memory/raw_ptr_exclusion.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/message_loop/message_pump_type.h"
@@ -41,7 +37,6 @@
 #include "base/task/sequence_manager/task_queue_impl.h"
 #include "base/task/sequence_manager/task_queue_selector.h"
 #include "base/task/sequence_manager/thread_controller.h"
-#include "base/task/sequence_manager/work_tracker.h"
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/threading/thread_checker.h"
@@ -49,6 +44,7 @@
 #include "base/types/pass_key.h"
 #include "base/values.h"
 #include "build/build_config.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base {
 
@@ -105,8 +101,18 @@ class BASE_EXPORT SequenceManagerImpl
   SequenceManagerImpl& operator=(const SequenceManagerImpl&) = delete;
   ~SequenceManagerImpl() override;
 
-  // Initializes features for this class. See `base::features::Init()`.
+  // Initializes the state of all the sequence manager features. Must be invoked
+  // after FeatureList initialization.
   static void InitializeFeatures();
+
+  // Sets the global cached state of the NoWakeUpsForCanceledTasks feature
+  // according to its enabled state. Must be invoked after FeatureList
+  // initialization.
+  static void ApplyNoWakeUpsForCanceledTasks();
+
+  // Resets the global cached state of the NoWakeUpsForCanceledTasks feature
+  // according to its default state.
+  static void ResetNoWakeUpsForCanceledTasksForTesting();
 
   // SequenceManager implementation:
   void BindToCurrentThread() override;
@@ -125,27 +131,27 @@ class BASE_EXPORT SequenceManagerImpl
   bool GetAndClearSystemIsQuiescentBit() override;
   void SetWorkBatchSize(int work_batch_size) override;
   void EnableCrashKeys(const char* async_stack_crash_key) override;
+  const MetricRecordingSettings& GetMetricRecordingSettings() const override;
   size_t GetPendingTaskCountForTesting() const override;
   TaskQueue::Handle CreateTaskQueue(const TaskQueue::Spec& spec) override;
   std::string DescribeAllPendingTasks() const override;
+  void PrioritizeYieldingToNative(base::TimeTicks prioritize_until) override;
   void AddTaskObserver(TaskObserver* task_observer) override;
   void RemoveTaskObserver(TaskObserver* task_observer) override;
-  std::optional<WakeUp> GetNextDelayedWakeUp() const override;
+  absl::optional<WakeUp> GetNextDelayedWakeUp() const override;
   TaskQueue::QueuePriority GetPriorityCount() const override;
 
   // SequencedTaskSource implementation:
-  void SetRunTaskSynchronouslyAllowed(
-      bool can_run_tasks_synchronously) override;
-  using internal::SequencedTaskSource::SelectNextTask;
-  std::optional<SelectedTask> SelectNextTask(LazyNow& lazy_now,
-                                             SelectTaskOption option) override;
+  absl::optional<SelectedTask> SelectNextTask(
+      LazyNow& lazy_now,
+      SelectTaskOption option = SelectTaskOption::kDefault) override;
   void DidRunTask(LazyNow& lazy_now) override;
-  using internal::SequencedTaskSource::GetPendingWakeUp;
-  std::optional<WakeUp> GetPendingWakeUp(LazyNow* lazy_now,
-                                         SelectTaskOption option) override;
+  void RemoveAllCanceledDelayedTasksFromFront(LazyNow* lazy_now) override;
+  absl::optional<WakeUp> GetPendingWakeUp(
+      LazyNow* lazy_now,
+      SelectTaskOption option = SelectTaskOption::kDefault) const override;
   bool HasPendingHighResolutionTasks() override;
-  void OnBeginWork() override;
-  bool OnIdle() override;
+  bool OnSystemIdle() override;
   void MaybeEmitTaskDetails(
       perfetto::EventContext& ctx,
       const SequencedTaskSource::SelectedTask& selected_task) const override;
@@ -154,26 +160,22 @@ class BASE_EXPORT SequenceManagerImpl
       CurrentThread::DestructionObserver* destruction_observer);
   void RemoveDestructionObserver(
       CurrentThread::DestructionObserver* destruction_observer);
-  [[nodiscard]] CallbackListSubscription RegisterOnNextIdleCallback(
-      OnceClosure on_next_idle_callback);
-
-  // Sets / returns the default TaskRunner. Thread-safe.
+  void RegisterOnNextIdleCallback(OnceClosure on_next_idle_callback);
+  // TODO(alexclarke): Remove this as part of https://crbug.com/825327.
   void SetTaskRunner(scoped_refptr<SingleThreadTaskRunner> task_runner);
+  // TODO(alexclarke): Remove this as part of https://crbug.com/825327.
   scoped_refptr<SingleThreadTaskRunner> GetTaskRunner();
-
   bool IsBoundToCurrentThread() const;
   MessagePump* GetMessagePump() const;
   bool IsType(MessagePumpType type) const;
   void SetAddQueueTimeToTasks(bool enable);
-  void SetTaskExecutionAllowedInNativeNestedLoop(bool allowed);
-  bool IsTaskExecutionAllowedInNativeNestedLoop() const;
+  void SetTaskExecutionAllowed(bool allowed);
+  bool IsTaskExecutionAllowed() const;
 #if BUILDFLAG(IS_IOS)
   void AttachToMessagePump();
 #endif
   bool IsIdleForTesting() override;
-  void EnableMessagePumpTimeKeeperMetrics(
-      const char* thread_name,
-      bool wall_time_based_metrics_enabled_for_testing = false);
+  void EnableMessagePumpTimeKeeperMetrics(const char* thread_name);
 
   // Requests that a task to process work is scheduled.
   void ScheduleWork();
@@ -187,11 +189,11 @@ class BASE_EXPORT SequenceManagerImpl
   void UnregisterTaskQueueImpl(
       std::unique_ptr<internal::TaskQueueImpl> task_queue);
 
-  scoped_refptr<AssociatedThreadId> associated_thread() const {
+  scoped_refptr<const AssociatedThreadId> associated_thread() const {
     return associated_thread_;
   }
 
-  const Settings& settings() const LIFETIME_BOUND { return settings_; }
+  const Settings& settings() const { return settings_; }
 
   WeakPtr<SequenceManagerImpl> GetWeakPtr();
 
@@ -306,11 +308,11 @@ class BASE_EXPORT SequenceManagerImpl
     std::array<char, static_cast<size_t>(debug::CrashKeySize::Size64)>
         async_stack_buffer = {};
 
+    absl::optional<base::MetricsSubSampler> metrics_subsampler;
+
     internal::TaskQueueSelector selector;
-    // RAW_PTR_EXCLUSION: Performance reasons(based on analysis of
-    // speedometer3).
-    ObserverList<TaskObserver>::UncheckedAndRawPtrExcluded task_observers;
-    ObserverList<TaskTimeObserver> task_time_observers;
+    ObserverList<TaskObserver>::Unchecked task_observers;
+    ObserverList<TaskTimeObserver>::Unchecked task_time_observers;
     const raw_ptr<const base::TickClock> default_clock;
     raw_ptr<TimeDomain> time_domain = nullptr;
 
@@ -330,9 +332,7 @@ class BASE_EXPORT SequenceManagerImpl
     //   internal scheduling code does not expect queues to be pulled
     //   from underneath.
 
-    // RAW_PTR_EXCLUSION: Performance reasons (based on analysis of
-    // speedometer3).
-    RAW_PTR_EXCLUSION std::set<internal::TaskQueueImpl*> active_queues;
+    std::set<internal::TaskQueueImpl*> active_queues;
 
     std::map<internal::TaskQueueImpl*, std::unique_ptr<internal::TaskQueueImpl>>
         queues_to_delete;
@@ -349,39 +349,31 @@ class BASE_EXPORT SequenceManagerImpl
 
     raw_ptr<Observer> observer = nullptr;  // NOT OWNED
 
-    ObserverList<CurrentThread::DestructionObserver>::
-        UncheckedAndDanglingUntriaged destruction_observers;
+    ObserverList<CurrentThread::DestructionObserver>::Unchecked
+        destruction_observers;
 
-    // Notified the next time `OnIdle()` completes without scheduling additional
-    // work.
-    OnceClosureList on_next_idle_callbacks;
+    // If non-null, invoked the next time OnSystemIdle() completes without
+    // scheduling additional work.
+    OnceClosure on_next_idle_callback;
   };
 
   void CompleteInitializationOnBoundThread();
 
   // TaskQueueSelector::Observer:
   void OnTaskQueueEnabled(internal::TaskQueueImpl* queue) override;
-  void OnWorkAvailable() override;
 
   // RunLoop::NestingObserver:
   void OnBeginNestedRunLoop() override;
   void OnExitNestedRunLoop() override;
 
   // Schedules next wake-up at the given time, canceling any previous requests.
-  // Use std::nullopt to cancel a wake-up. Must be called on the thread this
+  // Use absl::nullopt to cancel a wake-up. Must be called on the thread this
   // class was created on.
-  void SetNextWakeUp(LazyNow* lazy_now, std::optional<WakeUp> wake_up);
+  void SetNextWakeUp(LazyNow* lazy_now, absl::optional<WakeUp> wake_up);
 
-  // Called before TaskQueue requests to reload its empty immediate work queue.
-  void WillRequestReloadImmediateWorkQueue();
-
-  // Returns a valid `SyncWorkAuthorization` if a call to `RunOrPostTask` on a
-  // `SequencedTaskRunner` bound to this `SequenceManager` may run its task
-  // synchronously.
-  SyncWorkAuthorization TryAcquireSyncWorkAuthorization();
-
-  // Called when a task is about to be queued. May add metadata to the task and
-  // emit trace events.
+  // Called by the task queue to inform this SequenceManager of a task that's
+  // about to be queued. This SequenceManager may use this opportunity to add
+  // metadata to |pending_task| before it is moved into the queue.
   void WillQueueTask(Task* pending_task);
 
   // Enqueues onto delayed WorkQueues all delayed tasks which must run now
@@ -414,7 +406,7 @@ class BASE_EXPORT SequenceManagerImpl
 
   // Calls |TakeImmediateIncomingQueueTasks| on all queues with their reload
   // flag set in |empty_queues_to_reload_|.
-  void ReloadEmptyWorkQueues();
+  void ReloadEmptyWorkQueues() const;
 
   std::unique_ptr<internal::TaskQueueImpl> CreateTaskQueueImpl(
       const TaskQueue::Spec& spec);
@@ -426,11 +418,11 @@ class BASE_EXPORT SequenceManagerImpl
   // Deletes queues marked for deletion and empty queues marked for shutdown.
   void CleanUpQueues();
 
-  // Removes canceled delayed tasks from the front of wake up queue.
-  void RemoveAllCanceledDelayedTasksFromFront(LazyNow* lazy_now);
+  void RemoveAllCanceledTasksFromFrontOfWorkQueues();
 
   TaskQueue::TaskTiming::TimeRecordingPolicy ShouldRecordTaskTiming(
       const internal::TaskQueueImpl* task_queue);
+  bool ShouldRecordCPUTimeForTask();
 
   // Write the async stack trace onto a crash key as whitespace-delimited hex
   // addresses.
@@ -438,21 +430,21 @@ class BASE_EXPORT SequenceManagerImpl
 
   // Helper to terminate all scoped trace events to allow starting new ones
   // in SelectNextTask().
-  std::optional<SelectedTask> SelectNextTaskImpl(LazyNow& lazy_now,
-                                                 SelectTaskOption option);
+  absl::optional<SelectedTask> SelectNextTaskImpl(LazyNow& lazy_now,
+                                                  SelectTaskOption option);
 
   // Returns a wake-up for the next delayed task which is not ripe for
   // execution, or nullopt if `option` is `kSkipDelayedTask` or there
   // are no such tasks (immediate tasks don't count).
-  std::optional<WakeUp> GetNextDelayedWakeUpWithOption(
+  absl::optional<WakeUp> GetNextDelayedWakeUpWithOption(
       SelectTaskOption option) const;
 
   // Given a `wake_up` describing when the next delayed task should run, returns
   // a wake up that should be scheduled on the thread. `is_immediate()` if the
   // wake up should run immediately. `nullopt` if no wake up is required because
   // `wake_up` is `nullopt` or a `time_domain` is used.
-  std::optional<WakeUp> AdjustWakeUp(std::optional<WakeUp> wake_up,
-                                     LazyNow* lazy_now) const;
+  absl::optional<WakeUp> AdjustWakeUp(absl::optional<WakeUp> wake_up,
+                                      LazyNow* lazy_now) const;
 
   void MaybeAddLeewayToTask(Task& task) const;
 
@@ -472,10 +464,10 @@ class BASE_EXPORT SequenceManagerImpl
   const std::unique_ptr<internal::ThreadController> controller_;
   const Settings settings_;
 
-  WorkTracker work_tracker_;
+  const MetricRecordingSettings metric_recording_settings_;
 
   // Whether to add the queue time to tasks.
-  std::atomic<bool> add_queue_time_to_tasks_;
+  base::subtle::Atomic32 add_queue_time_to_tasks_;
 
   AtomicFlagSet empty_queues_to_reload_;
 
@@ -484,7 +476,7 @@ class BASE_EXPORT SequenceManagerImpl
     DCHECK_CALLED_ON_VALID_THREAD(associated_thread_->thread_checker);
     return main_thread_only_;
   }
-  const MainThreadOnly& main_thread_only() const LIFETIME_BOUND {
+  const MainThreadOnly& main_thread_only() const {
     DCHECK_CALLED_ON_VALID_THREAD(associated_thread_->thread_checker);
     return main_thread_only_;
   }

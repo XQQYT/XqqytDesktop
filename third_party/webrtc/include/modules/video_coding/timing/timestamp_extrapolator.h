@@ -13,8 +13,7 @@
 
 #include <stdint.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/units/timestamp.h"
 #include "rtc_base/numerics/sequence_number_unwrapper.h"
 
@@ -24,9 +23,8 @@ namespace webrtc {
 class TimestampExtrapolator {
  public:
   explicit TimestampExtrapolator(Timestamp start);
-  ~TimestampExtrapolator();
   void Update(Timestamp now, uint32_t ts90khz);
-  std::optional<Timestamp> ExtrapolateLocalTime(uint32_t timestamp90khz) const;
+  absl::optional<Timestamp> ExtrapolateLocalTime(uint32_t timestamp90khz) const;
   void Reset(Timestamp start);
 
  private:
@@ -37,10 +35,10 @@ class TimestampExtrapolator {
   double p_[2][2];
   Timestamp start_;
   Timestamp prev_;
-  std::optional<int64_t> first_unwrapped_timestamp_;
+  absl::optional<int64_t> first_unwrapped_timestamp_;
   RtpTimestampUnwrapper unwrapper_;
-  std::optional<int64_t> prev_unwrapped_timestamp_;
-  int packet_count_;
+  absl::optional<int64_t> prev_unwrapped_timestamp_;
+  uint32_t packet_count_;
   double detector_accumulator_pos_;
   double detector_accumulator_neg_;
 };

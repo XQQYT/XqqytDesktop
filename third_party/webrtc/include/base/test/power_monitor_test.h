@@ -37,19 +37,17 @@ class ScopedPowerMonitorTestSource {
       delete;
 
   // Retrieve current states.
-  PowerThermalObserver::DeviceThermalState GetCurrentThermalState() const;
-  PowerStateObserver::BatteryPowerStatus GetBatteryPowerStatus() const;
+  PowerThermalObserver::DeviceThermalState GetCurrentThermalState();
+  bool IsOnBatteryPower();
 
   // Sends asynchronous notifications to registered observers.
   void Suspend();
   void Resume();
-  void SetBatteryPowerStatus(
-      PowerStateObserver::BatteryPowerStatus battery_power_status);
+  void SetOnBatteryPower(bool on_battery_power);
 
   void GenerateSuspendEvent();
   void GenerateResumeEvent();
-  void GeneratePowerStateEvent(
-      PowerStateObserver::BatteryPowerStatus battery_power_status);
+  void GeneratePowerStateEvent(bool on_battery_power);
   void GenerateThermalThrottlingEvent(
       PowerThermalObserver::DeviceThermalState new_thermal_state);
   void GenerateSpeedLimitEvent(int speed_limit);
@@ -68,8 +66,7 @@ class PowerMonitorTestObserver : public PowerSuspendObserver,
   ~PowerMonitorTestObserver() override;
 
   // PowerStateObserver overrides.
-  void OnBatteryPowerStatusChange(
-      PowerStateObserver::BatteryPowerStatus battery_power_status) override;
+  void OnPowerStateChange(bool on_battery_power) override;
   // PowerSuspendObserver overrides.
   void OnSuspend() override;
   void OnResume() override;
@@ -85,9 +82,7 @@ class PowerMonitorTestObserver : public PowerSuspendObserver,
   int thermal_state_changes() const { return thermal_state_changes_; }
   int speed_limit_changes() const { return speed_limit_changes_; }
 
-  PowerStateObserver::BatteryPowerStatus last_power_status() const {
-    return last_power_status_;
-  }
+  bool last_power_state() const { return last_power_state_; }
   PowerThermalObserver::DeviceThermalState last_thermal_state() const {
     return last_thermal_state_;
   }
@@ -106,8 +101,7 @@ class PowerMonitorTestObserver : public PowerSuspendObserver,
   int speed_limit_changes_ = 0;
 
   // Last power state we were notified of.
-  PowerStateObserver::BatteryPowerStatus last_power_status_ =
-      PowerStateObserver::BatteryPowerStatus::kUnknown;
+  bool last_power_state_ = false;
   // Last power thermal we were notified of.
   PowerThermalObserver::DeviceThermalState last_thermal_state_ =
       PowerThermalObserver::DeviceThermalState::kUnknown;

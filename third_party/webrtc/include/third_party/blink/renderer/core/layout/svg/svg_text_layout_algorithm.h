@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_SVG_SVG_TEXT_LAYOUT_ALGORITHM_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_SVG_SVG_TEXT_LAYOUT_ALGORITHM_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/layout/inline/fragment_items_builder.h"
 
 namespace blink {
@@ -43,15 +42,6 @@ class SvgTextLayoutAlgorithm {
   PhysicalSize WriteBackToFragmentItems(
       FragmentItemsBuilder::ItemWithOffsetList& items);
 
-  bool IsHorizontal() const {
-    return inline_direction_ == PhysicalDirection::kRight;
-  }
-  bool IsVerticalDownward() const {
-    return inline_direction_ == PhysicalDirection::kDown;
-  }
-  bool IsVerticalUpward() const {
-    return inline_direction_ == PhysicalDirection::kUp;
-  }
   float ScalingFactorAt(const FragmentItemsBuilder::ItemWithOffsetList& items,
                         wtf_size_t addressable_index) const;
   bool IsFirstCharacterInTextPath(wtf_size_t index) const;
@@ -63,15 +53,12 @@ class SvgTextLayoutAlgorithm {
   wtf_size_t addressable_count_;
 
   // "horizontal" flag defined in the specification.
-  // This should be replaced with `inline_direction_`.
   bool horizontal_;
-  // A replacement of the "horizontal" flag above.
-  const PhysicalDirection inline_direction_;
 
   struct SvgPerCharacterInfo {
-    std::optional<float> x;
-    std::optional<float> y;
-    std::optional<float> rotate;
+    absl::optional<float> x;
+    absl::optional<float> y;
+    absl::optional<float> rotate;
     bool hidden = false;
     bool middle = false;
     bool anchored_chunk = false;

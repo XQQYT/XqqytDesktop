@@ -6,6 +6,7 @@
 <script src="/resources/testharness.js"></script>
 <script src="/resources/testharnessreport.js"></script>
 <script src="/web-animations/testcommon.js"></script>
+<script src="/resources/declarative-shadow-dom-polyfill.js"></script>
 
 <main id=main></main>
 <script>
@@ -14,6 +15,10 @@
     main.append(template.content.cloneNode(true));
     main.offsetTop;
   }
+
+  setup(() => {
+    polyfill_declarative_shadow_dom(document);
+  });
 </script>
 <style>
   @keyframes anim {
@@ -36,7 +41,7 @@
   <div class=scroller>
     <div>
       <div class=target>
-        <template shadowrootmode=open shadowrootclonable>
+        <template shadowrootmode=open>
           <style>
             :host {
               view-timeline: --timeline y;
@@ -73,7 +78,7 @@
   </style>
   <div class=scroller>
     <div class=host>
-      <template shadowrootmode=open shadowrootclonable>
+      <template shadowrootmode=open>
         <style>
           ::slotted(.target) {
             view-timeline: --timeline y;
@@ -109,7 +114,7 @@
     }
   </style>
   <div class=host>
-    <template shadowrootmode=open shadowrootclonable>
+    <template shadowrootmode=open>
       <style>
           /* Not using 'anim' at document scope, due to https://crbug.com/1334534 */
           @keyframes anim2 {
@@ -153,7 +158,7 @@
   </style>
   <div class=scroller>
     <div class=host>
-      <template shadowrootmode=open shadowrootclonable>
+      <template shadowrootmode=open>
         <style>
           div {
             view-timeline: --timeline y;

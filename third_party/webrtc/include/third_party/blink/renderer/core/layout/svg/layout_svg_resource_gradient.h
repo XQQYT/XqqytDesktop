@@ -26,7 +26,6 @@
 
 #include "third_party/blink/renderer/core/layout/svg/layout_svg_resource_paint_server.h"
 #include "third_party/blink/renderer/core/svg/svg_gradient_element.h"
-#include "third_party/blink/renderer/platform/graphics/gradient.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
 
 namespace blink {
@@ -59,7 +58,7 @@ class LayoutSVGResourceGradient : public LayoutSVGResourcePaintServer {
                            const SVGLength& x,
                            const SVGLength& y) const;
   float ResolveRadius(SVGUnitTypes::SVGUnitType type, const SVGLength& r) const;
-  static Gradient::SpreadMethod PlatformSpreadMethodFromSVGType(
+  static GradientSpreadMethod PlatformSpreadMethodFromSVGType(
       SVGSpreadMethodType);
 
   mutable bool should_collect_gradient_attributes_ = true;

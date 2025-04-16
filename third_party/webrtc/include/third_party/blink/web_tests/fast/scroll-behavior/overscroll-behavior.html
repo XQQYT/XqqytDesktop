@@ -2,6 +2,7 @@
 <script src="../../resources/testharness.js"></script>
 <script src="../../resources/testharnessreport.js"></script>
 <script src="../../resources/gesture-util.js"></script>
+<script src="../../virtual/percent-based-scrolling/resources/percent-based-util.js"></script>
 <script src="../../resources/testdriver.js"></script>
 <script src="../../resources/testdriver-actions.js"></script>
 <script src="../../resources/testdriver-vendor.js"></script>
@@ -84,11 +85,8 @@ function performGestureScroll(element, startPosition, deltaX, deltaY, gesture,
 
 function performWheelScroll(element, startPosition, scrollAmount,
                             scrollEventTarget = null) {
-  const scroll = (x, y, dx, dy) => {
-    return wheelScroll(x, y, dx, dy, scrollEventTarget);
-  };
   return performGestureScroll(element, startPosition, scrollAmount.dx,
-                              scrollAmount.dy, scroll, scrollEventTarget);
+                              scrollAmount.dy, wheelScroll, scrollEventTarget);
 }
 
 function performTouchDrag(element, startPosition, scrollAmount,

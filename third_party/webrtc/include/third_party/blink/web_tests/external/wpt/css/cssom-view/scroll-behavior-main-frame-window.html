@@ -7,7 +7,6 @@
 <link rel="help" href="https://drafts.csswg.org/cssom-view/#scrolling-box">
 <script src="/resources/testharness.js"></script>
 <script src="/resources/testharnessreport.js"></script>
-<script src="/dom/events/scrolling/scroll_support.js"></script>
 <script src="support/scroll-behavior.js"></script>
 <style>
   body {
@@ -41,8 +40,9 @@
     add_completion_callback(() => { resetScrollForWindow(window); });
 
     promise_test(async () => {
-      await waitForCompositorReady();
-    }, "Make sure the page is ready for animation.");
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    }, `Make sure the page content is stable`);
 
     ["scroll", "scrollTo", "scrollBy"].forEach((scrollFunction) => {
       promise_test(() => {

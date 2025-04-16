@@ -2,18 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_THREAD_ISOLATION_PKEY_H_
-#define PARTITION_ALLOC_THREAD_ISOLATION_PKEY_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_THREAD_ISOLATION_PKEY_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_THREAD_ISOLATION_PKEY_H_
 
-#include "partition_alloc/buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_buildflags.h"
 
-#if PA_BUILDFLAG(ENABLE_PKEYS)
+#if BUILDFLAG(ENABLE_PKEYS)
+
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/debugging_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/thread_isolation/alignment.h"
 
 #include <cstddef>
 #include <cstdint>
-
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/thread_isolation/alignment.h"
 
 namespace partition_alloc::internal {
 
@@ -38,8 +39,7 @@ uint32_t Rdpkru();
 // Write the pkru register (the current pkey state).
 void Wrpkru(uint32_t pkru);
 
-#if PA_BUILDFLAG(DCHECKS_ARE_ON) || \
-    PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
+#if BUILDFLAG(PA_DCHECK_IS_ON)
 
 class PA_COMPONENT_EXPORT(PARTITION_ALLOC) LiftPkeyRestrictionsScope {
  public:
@@ -53,11 +53,10 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC) LiftPkeyRestrictionsScope {
   uint32_t saved_pkey_value_;
 };
 
-#endif  // PA_BUILDFLAG(DCHECKS_ARE_ON) ||
-        // PA_BUILDFLAG(ENABLE_PARTITION_LOCK_REENTRANCY_CHECK)
+#endif  // BUILDFLAG(PA_DCHECK_IS_ON)
 
 }  // namespace partition_alloc::internal
 
-#endif  // PA_BUILDFLAG(ENABLE_PKEYS)
+#endif  // BUILDFLAG(ENABLE_PKEYS)
 
-#endif  // PARTITION_ALLOC_THREAD_ISOLATION_PKEY_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_THREAD_ISOLATION_PKEY_H_

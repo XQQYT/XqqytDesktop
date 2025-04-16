@@ -18,7 +18,6 @@
 #define INCLUDE_PERFETTO_EXT_BASE_SMALL_SET_H_
 
 #include <array>
-#include <cstdlib>
 
 namespace perfetto {
 
@@ -50,9 +49,7 @@ class SmallSet {
   }
 
   const_iterator begin() const { return arr_.cbegin(); }
-  const_iterator end() const {
-    return arr_.cbegin() + static_cast<ssize_t>(filled_);
-  }
+  const_iterator end() const { return arr_.cbegin() + filled_; }
   size_t size() const { return filled_; }
 
  private:

@@ -7,12 +7,12 @@
 
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/grid/grid_data.h"
+#include "third_party/blink/renderer/core/layout/grid/grid_item.h"
+#include "third_party/blink/renderer/core/layout/grid/grid_track_collection.h"
 #include "third_party/blink/renderer/platform/wtf/doubly_linked_list.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 
 namespace blink {
-
-class GridItems;
 
 // This class encapsulates the Grid Item Placement Algorithm described by
 // https://drafts.csswg.org/css-grid/#auto-placement-algo
@@ -23,17 +23,16 @@ class CORE_EXPORT GridPlacement {
   enum class PackingBehavior { kSparse, kDense };
 
   GridPlacement(const ComputedStyle& grid_style,
-                const GridLineResolver& line_resolver);
+                const GridPlacementData& placement_data);
 
   GridPlacementData RunAutoPlacementAlgorithm(const GridItems& grid_items);
 
   // Helper function to resolve start and end lines of out of flow items.
   static void ResolveOutOfFlowItemGridLines(
       const GridLayoutTrackCollection& track_collection,
-      const GridLineResolver& line_resolver,
+      const GridPlacementData& placement_data,
       const ComputedStyle& grid_style,
       const ComputedStyle& item_style,
-      wtf_size_t start_offset,
       wtf_size_t* start_line,
       wtf_size_t* end_line);
 
@@ -166,9 +165,10 @@ class CORE_EXPORT GridPlacement {
   wtf_size_t IntrinsicEndLine(GridTrackSizingDirection track_direction) const;
 
 #if DCHECK_IS_ON()
-  bool auto_placement_algorithm_called_{false};
+  bool auto_placement_algorithm_called_ : 1;
 #endif
 
+  // TODO(kschmi): Replace `GridPlacementData` with line resolver.
   GridPlacementData placement_data_;
   PackingBehavior packing_behavior_;
   GridTrackSizingDirection major_direction_;

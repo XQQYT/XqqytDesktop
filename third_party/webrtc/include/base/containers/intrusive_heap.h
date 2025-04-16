@@ -130,9 +130,7 @@
 // Most users should be using approach 2 or 3.
 
 #include <algorithm>
-#include <compare>
 #include <functional>
-#include <iterator>
 #include <limits>
 #include <memory>
 #include <type_traits>
@@ -142,9 +140,8 @@
 #include "base/base_export.h"
 #include "base/check.h"
 #include "base/check_op.h"
-#include "base/compiler_specific.h"
 #include "base/memory/ptr_util.h"
-#include "base/types/cxx23_from_range.h"
+#include "base/ranges/algorithm.h"
 #include "third_party/abseil-cpp/absl/container/inlined_vector.h"
 
 namespace base {
@@ -180,10 +177,24 @@ class BASE_EXPORT HeapHandle {
   bool IsValid() const { return index_ != kInvalidIndex; }
 
   // Comparison operators.
-  friend bool operator==(const HeapHandle& lhs,
-                         const HeapHandle& rhs) = default;
-  friend std::strong_ordering operator<=>(const HeapHandle& lhs,
-                                          const HeapHandle& rhs) = default;
+  friend bool operator==(const HeapHandle& lhs, const HeapHandle& rhs) {
+    return lhs.index_ == rhs.index_;
+  }
+  friend bool operator!=(const HeapHandle& lhs, const HeapHandle& rhs) {
+    return lhs.index_ != rhs.index_;
+  }
+  friend bool operator<(const HeapHandle& lhs, const HeapHandle& rhs) {
+    return lhs.index_ < rhs.index_;
+  }
+  friend bool operator>(const HeapHandle& lhs, const HeapHandle& rhs) {
+    return lhs.index_ > rhs.index_;
+  }
+  friend bool operator<=(const HeapHandle& lhs, const HeapHandle& rhs) {
+    return lhs.index_ <= rhs.index_;
+  }
+  friend bool operator>=(const HeapHandle& lhs, const HeapHandle& rhs) {
+    return lhs.index_ >= rhs.index_;
+  }
 
  private:
   template <typename T, typename Compare, typename HeapHandleAccessor>
@@ -246,39 +257,17 @@ class IntrusiveHeap {
   //////////////////////////////////////////////////////////////////////////////
   // Lifetime.
 
-  // Constructs an empty heap, with the default comparator and handle accessor.
   IntrusiveHeap() = default;
-  // Constructs an empty heap.
   IntrusiveHeap(const value_compare& comp, const heap_handle_accessor& access)
       : impl_(comp, access) {}
 
-  // Constructs a heap containing all elements in the `range`.
-  template <class Range>
-    requires(std::ranges::input_range<Range>)
-  IntrusiveHeap(base::from_range_t,
-                Range&& range,
+  template <class InputIterator>
+  IntrusiveHeap(InputIterator first,
+                InputIterator last,
                 const value_compare& comp = value_compare(),
                 const heap_handle_accessor& access = heap_handle_accessor())
       : impl_(comp, access) {
-    insert_range(std::forward<Range>(range));
-  }
-
-  // Construct a heap with elements from `[first, last)`. Prefer the
-  // `from_range_t` constructor as it avoid iterator pairs.
-  //
-  // # Safety
-  // The `first` and `last` must be a valid iterator pair for a container with
-  // `first <= last` or Undefined Behaviour results.
-  template <class InputIterator>
-    requires(std::input_iterator<InputIterator>)
-  UNSAFE_BUFFER_USAGE IntrusiveHeap(
-      InputIterator first,
-      InputIterator last,
-      const value_compare& comp = value_compare(),
-      const heap_handle_accessor& access = heap_handle_accessor())
-      : impl_(comp, access) {
-    // SAFETY: The caller must provide a valid iterator pair.
-    UNSAFE_BUFFERS(insert(first, last));
+    insert(first, last);
   }
 
   // Moves an intrusive heap. The outstanding handles remain valid and end up
@@ -294,7 +283,7 @@ class IntrusiveHeap {
                 const value_compare& comp = value_compare(),
                 const heap_handle_accessor& access = heap_handle_accessor())
       : impl_(comp, access) {
-    insert_range(ilist);
+    insert(std::begin(ilist), std::end(ilist));
   }
 
   ~IntrusiveHeap();
@@ -371,38 +360,14 @@ class IntrusiveHeap {
 
   const_iterator insert(const value_type& value) { return InsertImpl(value); }
   const_iterator insert(value_type&& value) {
-    return InsertImpl(std::move(value));
+    return InsertImpl(std::move_if_noexcept(value));
   }
 
-  // Inserts all elements in `range` into the heap.
-  template <class Range>
-    requires(std::ranges::input_range<Range>)
-  void insert_range(Range&& range) {
-    for (const auto& i : range) {
-      InsertImpl(value_type(i));
-    }
-  }
-
-  // Inserts all elements in `[first, last)` into the heap. Prefer to use
-  // `insert_range()` as it avoids iterator pairs.
-  //
-  // # Safety
-  // The `first` and `last` must be a valid iterator pair for a container with
-  // `first <= last` or Undefined Behaviour results.
   template <class InputIterator>
-    requires(std::input_iterator<InputIterator>)
-  UNSAFE_BUFFER_USAGE void insert(InputIterator first, InputIterator last) {
-    for (auto it = first; it != last;
-         // SAFETY: The caller must provide a valid iterator pair.
-         UNSAFE_BUFFERS(++it)) {
-      InsertImpl(value_type(*it));
-    }
-  }
+  void insert(InputIterator first, InputIterator last);
 
   template <typename... Args>
-  const_iterator emplace(Args&&... args) {
-    return InsertImpl(value_type(std::forward<Args>(args)...));
-  }
+  const_iterator emplace(Args&&... args);
 
   //////////////////////////////////////////////////////////////////////////////
   // Removing elements.
@@ -478,10 +443,9 @@ class IntrusiveHeap {
     }
 
     // Repair the heap and ensure handles are pointing to the right index.
-    std::ranges::make_heap(impl_.heap_, value_comp());
-    for (size_t i = 0; i < size(); ++i) {
+    ranges::make_heap(impl_.heap_, value_comp());
+    for (size_t i = 0; i < size(); ++i)
       SetHeapHandle(i);
-    }
 
     // Explicitly delete elements last.
     elements_to_delete.clear();
@@ -558,6 +522,9 @@ class IntrusiveHeap {
   // orders) won't compare as equal using these operators.
   friend bool operator==(const IntrusiveHeap& lhs, const IntrusiveHeap& rhs) {
     return lhs.impl_.heap_ == rhs.impl_.heap_;
+  }
+  friend bool operator!=(const IntrusiveHeap& lhs, const IntrusiveHeap& rhs) {
+    return lhs.impl_.heap_ != rhs.impl_.heap_;
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -683,19 +650,16 @@ class BASE_EXPORT InternalHeapHandleStorage {
   // as possible.
   void SetHeapHandle(HeapHandle handle) {
     DCHECK(handle.IsValid());
-    if (handle_) {
+    if (handle_)
       *handle_ = handle;
-    }
   }
   void ClearHeapHandle() {
-    if (handle_) {
+    if (handle_)
       handle_->reset();
-    }
   }
   HeapHandle GetHeapHandle() const {
-    if (handle_) {
+    if (handle_)
       return *handle_;
-    }
     return HeapHandle::Invalid();
   }
 
@@ -732,8 +696,8 @@ class WithHeapHandle : public InternalHeapHandleStorage {
   WithHeapHandle& operator=(const WithHeapHandle&) = delete;
   WithHeapHandle& operator=(WithHeapHandle&& other) = default;
 
-  T& value() LIFETIME_BOUND { return value_; }
-  const T& value() const LIFETIME_BOUND { return value_; }
+  T& value() { return value_; }
+  const T& value() const { return value_; }
 
   // Utility functions.
   void swap(WithHeapHandle& other) noexcept;
@@ -743,9 +707,20 @@ class WithHeapHandle : public InternalHeapHandleStorage {
   friend bool operator==(const WithHeapHandle& lhs, const WithHeapHandle& rhs) {
     return lhs.value_ == rhs.value_;
   }
-  friend auto operator<=>(const WithHeapHandle& lhs,
-                          const WithHeapHandle& rhs) {
-    return lhs.value_ <=> rhs.value_;
+  friend bool operator!=(const WithHeapHandle& lhs, const WithHeapHandle& rhs) {
+    return lhs.value_ != rhs.value_;
+  }
+  friend bool operator<=(const WithHeapHandle& lhs, const WithHeapHandle& rhs) {
+    return lhs.value_ <= rhs.value_;
+  }
+  friend bool operator<(const WithHeapHandle& lhs, const WithHeapHandle& rhs) {
+    return lhs.value_ < rhs.value_;
+  }
+  friend bool operator>=(const WithHeapHandle& lhs, const WithHeapHandle& rhs) {
+    return lhs.value_ >= rhs.value_;
+  }
+  friend bool operator>(const WithHeapHandle& lhs, const WithHeapHandle& rhs) {
+    return lhs.value_ > rhs.value_;
   }
 
  private:
@@ -772,9 +747,8 @@ bool IsInvalid(const HandleType& handle) {
 }
 
 BASE_EXPORT inline void CheckInvalidOrEqualTo(HeapHandle handle, size_t index) {
-  if (handle.IsValid()) {
+  if (handle.IsValid())
     DCHECK_EQ(index, handle.index());
-  }
 }
 
 }  // namespace intrusive_heap
@@ -822,7 +796,7 @@ IntrusiveHeap<T, Compare, HeapHandleAccessor>&
 IntrusiveHeap<T, Compare, HeapHandleAccessor>::operator=(
     std::initializer_list<value_type> ilist) {
   clear();
-  insert_range(ilist);
+  insert(std::begin(ilist), std::end(ilist));
 }
 
 template <typename T, typename Compare, typename HeapHandleAccessor>
@@ -834,6 +808,23 @@ void IntrusiveHeap<T, Compare, HeapHandleAccessor>::clear() {
 
   // Clear the heap.
   impl_.heap_.clear();
+}
+
+template <typename T, typename Compare, typename HeapHandleAccessor>
+template <class InputIterator>
+void IntrusiveHeap<T, Compare, HeapHandleAccessor>::insert(InputIterator first,
+                                                           InputIterator last) {
+  for (auto it = first; it != last; ++it) {
+    insert(value_type(*it));
+  }
+}
+
+template <typename T, typename Compare, typename HeapHandleAccessor>
+template <typename... Args>
+typename IntrusiveHeap<T, Compare, HeapHandleAccessor>::const_iterator
+IntrusiveHeap<T, Compare, HeapHandleAccessor>::emplace(Args&&... args) {
+  value_type value(std::forward<Args>(args)...);
+  return InsertImpl(std::move_if_noexcept(value));
 }
 
 template <typename T, typename Compare, typename HeapHandleAccessor>
@@ -918,9 +909,8 @@ typename IntrusiveHeap<T, Compare, HeapHandleAccessor>::size_type
 IntrusiveHeap<T, Compare, HeapHandleAccessor>::ToIndex(const_iterator pos) {
   DCHECK(cbegin() <= pos);
   DCHECK(pos <= cend());
-  if (pos == cend()) {
+  if (pos == cend())
     return HeapHandle::kInvalidIndex;
-  }
   return pos - cbegin();
 }
 
@@ -930,9 +920,8 @@ IntrusiveHeap<T, Compare, HeapHandleAccessor>::ToIndex(
     const_reverse_iterator pos) {
   DCHECK(crbegin() <= pos);
   DCHECK(pos <= crend());
-  if (pos == crend()) {
+  if (pos == crend())
     return HeapHandle::kInvalidIndex;
-  }
   return (pos.base() - cbegin()) - 1;
 }
 
@@ -1031,9 +1020,8 @@ IntrusiveHeap<T, Compare, HeapHandleAccessor>::MoveHoleUpAndFill(
   while (hole_pos != 0) {
     // If our parent is >= to us, we can stop.
     size_type parent = intrusive_heap::ParentIndex(hole_pos);
-    if (!Less(parent, element)) {
+    if (!Less(parent, element))
       break;
-    }
 
     MoveHole(parent, hole_pos);
     hole_pos = parent;
@@ -1061,22 +1049,19 @@ IntrusiveHeap<T, Compare, HeapHandleAccessor>::MoveHoleDownAndFill(
   while (true) {
     // If this spot has no children, then we've gone down as far as we can go.
     size_type left = intrusive_heap::LeftIndex(hole_pos);
-    if (left >= n) {
+    if (left >= n)
       break;
-    }
     size_type right = left + 1;
 
     // Get the larger of the potentially two child nodes.
     size_type largest = left;
-    if (right < n && Less(left, right)) {
+    if (right < n && Less(left, right))
       largest = right;
-    }
 
     // If we're not deterministically moving the element all the way down to
     // become a leaf, then stop when it is >= the largest of the children.
-    if (!FillElementType::kIsLeafElement && !Less(element, largest)) {
+    if (!FillElementType::kIsLeafElement && !Less(element, largest))
       break;
-    }
 
     MoveHole(largest, hole_pos);
     hole_pos = largest;

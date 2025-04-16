@@ -9,7 +9,6 @@
 #include "net/url_request/redirect_info.h"
 #include "services/network/public/mojom/url_loader_factory.mojom-forward.h"
 #include "services/network/public/mojom/url_response_head.mojom-forward.h"
-#include "services/network/public/mojom/url_response_head.mojom.h"
 #include "third_party/blink/public/common/common_export.h"
 
 namespace network {
@@ -22,12 +21,10 @@ namespace blink {
 // responses.
 class BLINK_COMMON_EXPORT ModuleScriptDownloader {
  public:
-  // Passes in nullptr for `response_body` on failure. Always invoked
-  // asynchronously.
+  // Passes in nullptr on failure. Always invoked asynchronously.
   using ModuleScriptDownloaderCallback =
       base::OnceCallback<void(std::unique_ptr<std::string> response_body,
-                              std::string error_message,
-                              network::mojom::URLResponseHeadPtr)>;
+                              std::string error_message)>;
 
   // Starts loading the worklet module script on construction. Callback will be
   // invoked asynchronously once the data has been fetched or an error has

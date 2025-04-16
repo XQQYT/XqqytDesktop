@@ -13,9 +13,9 @@ if (window.accessibilityController) {
     shouldBe("dlElement.role", "'AXRole: AXDescriptionList'");
 
     var dtElement = accessibilityController.accessibleElementById("dtElem");
-    shouldBe("dtElement.role", "'AXRole: AXTerm'");
+    shouldBe("dtElement.role", "'AXRole: AXDescriptionListTerm'");
 
     var ddElement = accessibilityController.accessibleElementById("ddElem");
-    shouldBe("ddElement.role", "'AXRole: AXDefinition'");
+    shouldBe("ddElement.role", "'AXRole: AXDescriptionListDetail'");
 }
 </script>

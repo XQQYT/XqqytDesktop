@@ -22,7 +22,7 @@ class RtpReceiverDelegateAdapter : public RtpReceiverObserverInterface {
  public:
   RtpReceiverDelegateAdapter(RTC_OBJC_TYPE(RTCRtpReceiver) * receiver);
 
-  void OnFirstPacketReceived(webrtc::MediaType media_type) override;
+  void OnFirstPacketReceived(cricket::MediaType media_type) override;
 
  private:
   __weak RTC_OBJC_TYPE(RTCRtpReceiver) * receiver_;
@@ -33,20 +33,17 @@ class RtpReceiverDelegateAdapter : public RtpReceiverObserverInterface {
 @interface RTC_OBJC_TYPE (RTCRtpReceiver)
 ()
 
-    @property(nonatomic, readonly)
-        rtc::scoped_refptr<webrtc::RtpReceiverInterface> nativeRtpReceiver;
+    @property(nonatomic,
+              readonly) rtc::scoped_refptr<webrtc::RtpReceiverInterface> nativeRtpReceiver;
 
 /** Initialize an RTCRtpReceiver with a native RtpReceiverInterface. */
-- (instancetype)
-      initWithFactory:(RTC_OBJC_TYPE(RTCPeerConnectionFactory) *)factory
-    nativeRtpReceiver:
-        (rtc::scoped_refptr<webrtc::RtpReceiverInterface>)nativeRtpReceiver
+- (instancetype)initWithFactory:(RTC_OBJC_TYPE(RTCPeerConnectionFactory) *)factory
+              nativeRtpReceiver:(rtc::scoped_refptr<webrtc::RtpReceiverInterface>)nativeRtpReceiver
     NS_DESIGNATED_INITIALIZER;
 
-+ (RTCRtpMediaType)mediaTypeForNativeMediaType:
-    (webrtc::MediaType)nativeMediaType;
++ (RTCRtpMediaType)mediaTypeForNativeMediaType:(cricket::MediaType)nativeMediaType;
 
-+ (webrtc::MediaType)nativeMediaTypeForMediaType:(RTCRtpMediaType)mediaType;
++ (cricket::MediaType)nativeMediaTypeForMediaType:(RTCRtpMediaType)mediaType;
 
 + (NSString *)stringForMediaType:(RTCRtpMediaType)mediaType;
 

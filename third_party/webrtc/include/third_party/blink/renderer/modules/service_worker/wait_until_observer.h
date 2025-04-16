@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_SERVICE_WORKER_WAIT_UNTIL_OBSERVER_H_
 
 #include "base/functional/callback.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/timer.h"
@@ -15,13 +14,18 @@
 namespace blink {
 
 class ExceptionState;
+class ScriptPromise;
 class ScriptState;
+class ScriptValue;
 
 // Created for each ExtendableEvent instance.
 class MODULES_EXPORT WaitUntilObserver final
     : public GarbageCollected<WaitUntilObserver>,
       public ExecutionContextClient {
  public:
+  using PromiseSettledCallback =
+      base::RepeatingCallback<void(const ScriptValue&)>;
+
   enum EventType {
     kAbortPayment,
     kActivate,
@@ -61,11 +65,19 @@ class MODULES_EXPORT WaitUntilObserver final
   // WaitUntil may be called multiple times. The event is extended until all
   // promises have settled.
   //
+  // If provided, |on_promise_fulfilled| or |on_promise_rejected| is invoked
+  // once |script_promise| fulfills or rejects. This enables the caller to do
+  // custom handling.
+  //
   // If the event is not active, throws a DOMException and returns false. In
-  // this case the promise is ignored.
-  bool WaitUntil(ScriptState*,
-                 const ScriptPromise<IDLUndefined>&,
-                 ExceptionState&);
+  // this case the promise is ignored, and |on_promise_fulfilled| and
+  // |on_promise_rejected| will not be called.
+  bool WaitUntil(
+      ScriptState*,
+      ScriptPromise /* script_promise */,
+      ExceptionState&,
+      PromiseSettledCallback on_promise_fulfilled = PromiseSettledCallback(),
+      PromiseSettledCallback on_promise_rejected = PromiseSettledCallback());
 
   // Whether the associated event is active.
   // https://w3c.github.io/ServiceWorker/#extendableevent-active.
@@ -81,8 +93,7 @@ class MODULES_EXPORT WaitUntilObserver final
 
  private:
   friend class InternalsServiceWorker;
-  class ThenFulfilled;
-  class ThenRejected;
+  class ThenFunction;
 
   enum class EventDispatchState {
     // Event dispatch has not yet started.

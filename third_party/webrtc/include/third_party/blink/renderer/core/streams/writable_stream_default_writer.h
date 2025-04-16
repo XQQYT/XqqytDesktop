@@ -5,10 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_STREAMS_WRITABLE_STREAM_DEFAULT_WRITER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_STREAMS_WRITABLE_STREAM_DEFAULT_WRITER_H_
 
-#include <optional>
-
-#include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
@@ -18,8 +15,10 @@
 namespace blink {
 
 class ExceptionState;
+class ScriptPromise;
 class ScriptState;
 class ScriptValue;
+class StreamPromiseResolver;
 class WritableStream;
 class WritableStream;
 
@@ -42,33 +41,29 @@ class CORE_EXPORT WritableStreamDefaultWriter final : public ScriptWrappable {
   // Getters
 
   // https://streams.spec.whatwg.org/#default-writer-closed
-  ScriptPromise<IDLUndefined> closed(ScriptState*) const;
+  ScriptPromise closed(ScriptState*) const;
 
   // https://streams.spec.whatwg.org/#default-writer-desired-size
   ScriptValue desiredSize(ScriptState*, ExceptionState&) const;
 
   // https://streams.spec.whatwg.org/#default-writer-ready
-  ScriptPromise<IDLUndefined> ready(ScriptState*) const;
+  ScriptPromise ready(ScriptState*) const;
 
   // Methods
 
   // https://streams.spec.whatwg.org/#default-writer-abort
-  ScriptPromise<IDLUndefined> abort(ScriptState*, ExceptionState&);
-  ScriptPromise<IDLUndefined> abort(ScriptState*,
-                                    ScriptValue reason,
-                                    ExceptionState&);
+  ScriptPromise abort(ScriptState*, ExceptionState&);
+  ScriptPromise abort(ScriptState*, ScriptValue reason, ExceptionState&);
 
   // https://streams.spec.whatwg.org/#default-writer-close
-  ScriptPromise<IDLUndefined> close(ScriptState*, ExceptionState&);
+  ScriptPromise close(ScriptState*, ExceptionState&);
 
   // https://streams.spec.whatwg.org/#default-writer-release-lock
   void releaseLock(ScriptState*);
 
   // https://streams.spec.whatwg.org/#default-writer-write
-  ScriptPromise<IDLUndefined> write(ScriptState*, ExceptionState&);
-  ScriptPromise<IDLUndefined> write(ScriptState*,
-                                    ScriptValue chunk,
-                                    ExceptionState&);
+  ScriptPromise write(ScriptState*, ExceptionState&);
+  ScriptPromise write(ScriptState*, ScriptValue chunk, ExceptionState&);
 
   //
   // Methods used by WritableStream
@@ -84,7 +79,7 @@ class CORE_EXPORT WritableStreamDefaultWriter final : public ScriptWrappable {
   //
 
   // https://streams.spec.whatwg.org/#writable-stream-default-writer-close-with-error-propagation
-  static ScriptPromise<IDLUndefined> CloseWithErrorPropagation(
+  static v8::Local<v8::Promise> CloseWithErrorPropagation(
       ScriptState*,
       WritableStreamDefaultWriter*);
 
@@ -92,41 +87,38 @@ class CORE_EXPORT WritableStreamDefaultWriter final : public ScriptWrappable {
   static void Release(ScriptState*, WritableStreamDefaultWriter*);
 
   // https://streams.spec.whatwg.org/#writable-stream-default-writer-write
-  static ScriptPromise<IDLUndefined> Write(ScriptState*,
-                                           WritableStreamDefaultWriter*,
-                                           v8::Local<v8::Value> chunk,
-                                           ExceptionState&);
+  static v8::Local<v8::Promise> Write(ScriptState*,
+                                      WritableStreamDefaultWriter*,
+                                      v8::Local<v8::Value> chunk,
+                                      ExceptionState&);
 
   //
   // Accessors used by ReadableStream and WritableStream. These do
   // not appear in the standard.
   //
-  ScriptPromiseResolver<IDLUndefined>* ClosedResolver() {
-    return closed_resolver_.Get();
-  }
-  ScriptPromiseResolver<IDLUndefined>* ReadyResolver() {
-    return ready_resolver_.Get();
-  }
+
+  StreamPromiseResolver* ClosedPromise() { return closed_promise_.Get(); }
+  StreamPromiseResolver* ReadyPromise() { return ready_promise_.Get(); }
   WritableStream* OwnerWritableStream() { return owner_writable_stream_.Get(); }
 
   // This is a variant of GetDesiredSize() that doesn't create an intermediate
-  // JavaScript object. Instead it returns std::nullopt where the JavaScript
+  // JavaScript object. Instead it returns absl::nullopt where the JavaScript
   // version would return null.
-  std::optional<double> GetDesiredSizeInternal() const;
+  absl::optional<double> GetDesiredSizeInternal() const;
 
-  void ResetReadyPromise(ScriptState*);
+  void SetReadyPromise(StreamPromiseResolver*);
 
   void Trace(Visitor*) const override;
 
  private:
   // https://streams.spec.whatwg.org/#writable-stream-default-writer-abort
-  static ScriptPromise<IDLUndefined> Abort(ScriptState*,
-                                           WritableStreamDefaultWriter*,
-                                           v8::Local<v8::Value> reason);
+  static v8::Local<v8::Promise> Abort(ScriptState*,
+                                      WritableStreamDefaultWriter*,
+                                      v8::Local<v8::Value> reason);
 
   // https://streams.spec.whatwg.org/#writable-stream-default-writer-close
-  static ScriptPromise<IDLUndefined> Close(ScriptState*,
-                                           WritableStreamDefaultWriter*);
+  static v8::Local<v8::Promise> Close(ScriptState*,
+                                      WritableStreamDefaultWriter*);
 
   // https://streams.spec.whatwg.org/#writable-stream-default-writer-ensure-closed-promise-rejected
   static void EnsureClosedPromiseRejected(ScriptState*,
@@ -138,13 +130,12 @@ class CORE_EXPORT WritableStreamDefaultWriter final : public ScriptWrappable {
       v8::Isolate* isolate,
       const WritableStreamDefaultWriter*);
 
-  Member<WritableStream> owner_writable_stream_;
-
   // |closed_promise_| and |ready_promise_| are implemented as resolvers. The
   // names come from the slots [[closedPromise]] and [[readyPromise]] in the
   // standard.
-  Member<ScriptPromiseResolver<IDLUndefined>> closed_resolver_;
-  Member<ScriptPromiseResolver<IDLUndefined>> ready_resolver_;
+  Member<StreamPromiseResolver> closed_promise_;
+  Member<WritableStream> owner_writable_stream_;
+  Member<StreamPromiseResolver> ready_promise_;
 };
 
 }  // namespace blink

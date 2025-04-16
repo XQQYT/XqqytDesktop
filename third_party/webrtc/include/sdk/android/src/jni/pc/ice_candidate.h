@@ -24,11 +24,12 @@
 namespace webrtc {
 namespace jni {
 
-Candidate JavaToNativeCandidate(JNIEnv* jni,
-                                const JavaRef<jobject>& j_candidate);
+cricket::Candidate JavaToNativeCandidate(JNIEnv* jni,
+                                         const JavaRef<jobject>& j_candidate);
 
-ScopedJavaLocalRef<jobject> NativeToJavaCandidate(JNIEnv* env,
-                                                  const Candidate& candidate);
+ScopedJavaLocalRef<jobject> NativeToJavaCandidate(
+    JNIEnv* env,
+    const cricket::Candidate& candidate);
 
 ScopedJavaLocalRef<jobject> NativeToJavaIceCandidate(
     JNIEnv* env,
@@ -36,7 +37,7 @@ ScopedJavaLocalRef<jobject> NativeToJavaIceCandidate(
 
 ScopedJavaLocalRef<jobjectArray> NativeToJavaCandidateArray(
     JNIEnv* jni,
-    const std::vector<Candidate>& candidates);
+    const std::vector<cricket::Candidate>& candidates);
 
 /*****************************************************
  * Below are all things that go into RTCConfiguration.
@@ -78,7 +79,7 @@ PeerConnectionInterface::TlsCertPolicy JavaToNativeTlsCertPolicy(
     JNIEnv* jni,
     const JavaRef<jobject>& j_ice_server_tls_cert_policy);
 
-std::optional<AdapterType> JavaToNativeNetworkPreference(
+absl::optional<rtc::AdapterType> JavaToNativeNetworkPreference(
     JNIEnv* jni,
     const JavaRef<jobject>& j_network_preference);
 

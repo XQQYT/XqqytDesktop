@@ -29,13 +29,12 @@ namespace trace_processor {
 
 class TraceProcessor;
 
-base::Status PERFETTO_EXPORT_COMPONENT ReadTrace(
+util::Status PERFETTO_EXPORT_COMPONENT ReadTrace(
     TraceProcessor* tp,
     const char* filename,
-    const std::function<void(uint64_t parsed_size)>& progress_callback =
-        [](uint64_t) {});
+    const std::function<void(uint64_t parsed_size)>& progress_callback = {});
 
-base::Status PERFETTO_EXPORT_COMPONENT
+util::Status PERFETTO_EXPORT_COMPONENT
 DecompressTrace(const uint8_t* data, size_t size, std::vector<uint8_t>* output);
 
 }  // namespace trace_processor

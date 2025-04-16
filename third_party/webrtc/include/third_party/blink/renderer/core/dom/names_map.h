@@ -5,15 +5,11 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_DOM_NAMES_MAP_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_DOM_NAMES_MAP_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/dom/element_rare_data_field.h"
 #include "third_party/blink/renderer/core/dom/space_split_string.h"
-#include "third_party/blink/renderer/core/dom/space_split_string_wrapper.h"
-#include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
-#include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
+#include "third_party/blink/renderer/platform/wtf/hash_map.h"
 #include "third_party/blink/renderer/platform/wtf/text/atomic_string.h"
 #include "third_party/blink/renderer/platform/wtf/text/atomic_string_hash.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
@@ -24,8 +20,9 @@ namespace blink {
 // http://drafts.csswg.org/css-shadow-parts/.
 // TODO(crbug/805271): Deduplicate identical maps as SpaceSplitString does so
 // that elements with identical exportparts attributes share instances.
-class CORE_EXPORT NamesMap : public GarbageCollected<NamesMap>,
-                             public ElementRareDataField {
+class CORE_EXPORT NamesMap {
+  USING_FAST_MALLOC(NamesMap);
+
  public:
   NamesMap() = default;
   NamesMap(const NamesMap&) = delete;
@@ -38,20 +35,15 @@ class CORE_EXPORT NamesMap : public GarbageCollected<NamesMap>,
   void Clear() { data_.clear(); }
   // Inserts value into the ordered set under key.
   void Add(const AtomicString& key, const AtomicString& value);
-  SpaceSplitString* Get(const AtomicString& key) const;
+  absl::optional<SpaceSplitString> Get(const AtomicString& key) const;
 
   size_t size() const { return data_.size(); }
 
-  void Trace(Visitor* visitor) const override {
-    visitor->Trace(data_);
-    ElementRareDataField::Trace(visitor);
-  }
-
  private:
   template <typename CharacterType>
-  void Set(base::span<const CharacterType>);
+  void Set(const AtomicString&, const CharacterType*);
 
-  HeapHashMap<AtomicString, Member<SpaceSplitStringWrapper>> data_;
+  HashMap<AtomicString, absl::optional<SpaceSplitString>> data_;
 };
 
 }  // namespace blink

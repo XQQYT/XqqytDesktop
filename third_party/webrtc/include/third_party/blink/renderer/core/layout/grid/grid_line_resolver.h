@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_GRID_GRID_LINE_RESOLVER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_GRID_GRID_LINE_RESOLVER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/style/computed_grid_track_list.h"
 #include "third_party/blink/renderer/core/style/grid_area.h"
 #include "third_party/blink/renderer/core/style/grid_enums.h"
@@ -24,27 +23,26 @@ class GridPosition;
 
 // This is a utility class with all the code related to grid items positions
 // resolution.
-class CORE_EXPORT GridLineResolver {
+class GridLineResolver {
   DISALLOW_NEW();
 
  public:
-  GridLineResolver(const ComputedStyle& grid_style,
-                   wtf_size_t column_auto_repetitions,
-                   wtf_size_t row_auto_repetitions)
+  GridLineResolver() = default;
+
+  explicit GridLineResolver(const ComputedStyle& grid_style,
+                            wtf_size_t column_auto_repetitions,
+                            wtf_size_t row_auto_repetitions)
       : style_(&grid_style),
         column_auto_repetitions_(column_auto_repetitions),
         row_auto_repetitions_(row_auto_repetitions) {}
 
-  GridLineResolver(const ComputedStyle& parent_style,
-                   wtf_size_t auto_repetitions);
-
   // Subgrids need to map named lines from every parent grid. This constructor
   // should be used exclusively by subgrids to differentiate such scenario.
-  GridLineResolver(const ComputedStyle& grid_style,
-                   const GridLineResolver& parent_line_resolver,
-                   GridArea subgrid_area,
-                   wtf_size_t column_auto_repetitions,
-                   wtf_size_t row_auto_repetitions);
+  explicit GridLineResolver(const ComputedStyle& grid_style,
+                            const GridLineResolver& parent_line_resolver,
+                            GridArea subgrid_area,
+                            wtf_size_t column_auto_repetitions,
+                            wtf_size_t row_auto_repetitions);
 
   bool operator==(const GridLineResolver& other) const;
 
@@ -64,19 +62,21 @@ class CORE_EXPORT GridLineResolver {
 
   bool HasStandaloneAxis(GridTrackSizingDirection track_direction) const;
 
-  GridSpan ResolveGridPositionsFromStyle(
-      const ComputedStyle& item_style,
+  wtf_size_t SpanSizeForAutoPlacedItem(
+      const ComputedStyle& grid_item_style,
       GridTrackSizingDirection track_direction) const;
 
+  GridSpan ResolveGridPositionsFromStyle(
+      const ComputedStyle& grid_item_style,
+      GridTrackSizingDirection track_direction) const;
+
+ private:
   const NamedGridLinesMap& ImplicitNamedLinesMap(
       GridTrackSizingDirection track_direction) const;
 
   const NamedGridLinesMap& ExplicitNamedLinesMap(
       GridTrackSizingDirection track_direction) const;
 
-  const NamedGridAreaMap* NamedAreasMap() const;
-
- private:
   const NamedGridLinesMap& AutoRepeatLineNamesMap(
       GridTrackSizingDirection track_direction) const;
 
@@ -130,26 +130,24 @@ class CORE_EXPORT GridLineResolver {
 
   bool IsSubgridded(GridTrackSizingDirection track_direction) const;
 
-  // This doesn't create a cycle as ComputedStyle doesn't have any references to
+  // This doesn't create a cycle as ComputeStyle doesn't have any references to
   // layout-time objects.
   Persistent<const ComputedStyle> style_;
 
   wtf_size_t column_auto_repetitions_{1};
   wtf_size_t row_auto_repetitions_{1};
-  wtf_size_t subgridded_columns_span_size_{kNotFound};
-  wtf_size_t subgridded_rows_span_size_{kNotFound};
+  wtf_size_t subgridded_column_span_size_{kNotFound};
+  wtf_size_t subgridded_row_span_size_{kNotFound};
 
-  std::optional<NamedGridLinesMap>
+  absl::optional<NamedGridLinesMap>
       subgridded_columns_merged_explicit_grid_line_names_;
-  std::optional<NamedGridLinesMap>
+  absl::optional<NamedGridLinesMap>
       subgridded_rows_merged_explicit_grid_line_names_;
 
-  std::optional<NamedGridLinesMap>
+  absl::optional<NamedGridLinesMap>
       subgridded_columns_merged_implicit_grid_line_names_;
-  std::optional<NamedGridLinesMap>
+  absl::optional<NamedGridLinesMap>
       subgridded_rows_merged_implicit_grid_line_names_;
-
-  std::optional<NamedGridAreaMap> subgrid_merged_named_areas_;
 };
 
 }  // namespace blink

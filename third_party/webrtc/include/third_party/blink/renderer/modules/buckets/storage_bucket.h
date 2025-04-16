@@ -22,12 +22,9 @@
 namespace blink {
 
 class CacheStorage;
-class FileSystemDirectoryHandle;
 class IDBFactory;
 class LockManager;
 class ScriptState;
-class StorageEstimate;
-class V8StorageBucketDurability;
 
 class StorageBucket final : public ScriptWrappable,
                             public ExecutionContextClient {
@@ -41,23 +38,19 @@ class StorageBucket final : public ScriptWrappable,
   ~StorageBucket() override = default;
 
   const String& name();
-  ScriptPromise<IDLBoolean> persist(ScriptState*);
-  ScriptPromise<IDLBoolean> persisted(ScriptState*);
-  ScriptPromise<StorageEstimate> estimate(ScriptState*);
-  ScriptPromise<V8StorageBucketDurability> durability(ScriptState*);
-  ScriptPromise<IDLUndefined> setExpires(ScriptState*,
-                                         const DOMHighResTimeStamp&);
-  ScriptPromise<IDLNullable<IDLDOMHighResTimeStamp>> expires(ScriptState*);
+  ScriptPromise persist(ScriptState*);
+  ScriptPromise persisted(ScriptState*);
+  ScriptPromise estimate(ScriptState*);
+  ScriptPromise durability(ScriptState*);
+  ScriptPromise setExpires(ScriptState*, const DOMHighResTimeStamp&);
+  ScriptPromise expires(ScriptState*);
   IDBFactory* indexedDB();
   LockManager* locks();
   CacheStorage* caches(ExceptionState&);
-  ScriptPromise<FileSystemDirectoryHandle> getDirectory(ScriptState*,
-                                                        ExceptionState&);
+  ScriptPromise getDirectory(ScriptState*, ExceptionState&);
 
-  // An empty `directory_path_components` array will retrieve the root.
   void GetDirectoryForDevTools(
       ExecutionContext* context,
-      Vector<String> directory_path_components,
       base::OnceCallback<void(mojom::blink::FileSystemAccessErrorPtr,
                               FileSystemDirectoryHandle*)> callback);
 
@@ -65,30 +58,26 @@ class StorageBucket final : public ScriptWrappable,
   void Trace(Visitor*) const override;
 
  private:
-  void DidRequestPersist(ScriptPromiseResolver<IDLBoolean>* resolver,
+  void DidRequestPersist(ScriptPromiseResolver* resolver,
                          bool persisted,
                          bool success);
-  void DidGetPersisted(ScriptPromiseResolver<IDLBoolean>* resolver,
+  void DidGetPersisted(ScriptPromiseResolver* resolver,
                        bool persisted,
                        bool success);
-  void DidGetEstimate(ScriptPromiseResolver<StorageEstimate>*,
+  void DidGetEstimate(ScriptPromiseResolver* resolver,
                       int64_t current_usage,
                       int64_t current_quota,
                       bool success);
-  void DidGetDurability(
-      ScriptPromiseResolver<V8StorageBucketDurability>* resolver,
-      mojom::blink::BucketDurability durability,
-      bool success);
-  void DidSetExpires(ScriptPromiseResolver<IDLUndefined>*, bool success);
-  void DidGetExpires(
-      ScriptPromiseResolver<IDLNullable<IDLDOMHighResTimeStamp>>* resolver,
-      const std::optional<base::Time> expires,
-      bool success);
-  void GetSandboxedFileSystem(
-      ScriptPromiseResolver<FileSystemDirectoryHandle>* resolver);
+  void DidGetDurability(ScriptPromiseResolver* resolver,
+                        mojom::blink::BucketDurability durability,
+                        bool success);
+  void DidSetExpires(ScriptPromiseResolver* resolver, bool success);
+  void DidGetExpires(ScriptPromiseResolver* resolver,
+                     const absl::optional<base::Time> expires,
+                     bool success);
+  void GetSandboxedFileSystem(ScriptPromiseResolver* resolver);
   void GetSandboxedFileSystemForDevtools(
       ExecutionContext* context,
-      const Vector<String>& directory_path_components,
       base::OnceCallback<void(mojom::blink::FileSystemAccessErrorPtr,
                               FileSystemDirectoryHandle*)> callback,
       mojom::blink::FileSystemAccessErrorPtr result);

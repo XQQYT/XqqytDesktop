@@ -5,10 +5,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_PAINT_TEXT_DECORATION_INFO_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_PAINT_TEXT_DECORATION_INFO_H_
 
-#include <optional>
-
 #include "base/types/strong_alias.h"
 #include "cc/paint/paint_record.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/geometry/physical_offset.h"
 #include "third_party/blink/renderer/core/paint/line_relative_rect.h"
@@ -17,21 +16,19 @@
 #include "third_party/blink/renderer/core/style/computed_style_constants.h"
 #include "third_party/blink/renderer/platform/fonts/font_baseline.h"
 #include "third_party/blink/renderer/platform/geometry/layout_unit.h"
-#include "third_party/blink/renderer/platform/geometry/path.h"
-#include "third_party/blink/renderer/platform/graphics/styled_stroke_data.h"
+#include "third_party/blink/renderer/platform/graphics/path.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "ui/gfx/geometry/point_f.h"
 #include "ui/gfx/geometry/rect_f.h"
-
 namespace blink {
 
 class ComputedStyle;
-class DecoratingBox;
 class Font;
-class InlinePaintContext;
+class NGDecoratingBox;
+class NGInlinePaintContext;
+class NGTextDecorationOffset;
 class SimpleFontData;
-class TextDecorationOffset;
 
 enum class ResolvedUnderlinePosition {
   kNearAlphabeticBaselineAuto,
@@ -53,9 +50,8 @@ class CORE_EXPORT TextDecorationInfo {
       LineRelativeOffset local_origin,
       LayoutUnit width,
       const ComputedStyle& target_style,
-      const InlinePaintContext* inline_context,
-      const TextDecorationLine selection_decoration_line,
-      const Color selection_decoration_color,
+      const NGInlinePaintContext* inline_context,
+      const absl::optional<AppliedTextDecoration> selection_text_decoration,
       const AppliedTextDecoration* decoration_override = nullptr,
       const Font* font_override = nullptr,
       MinimumThickness1 minimum_thickness1 = MinimumThickness1(true),
@@ -105,10 +101,10 @@ class CORE_EXPORT TextDecorationInfo {
   // through. Must be called before trying to paint or compute bounds
   // for a line.
   void SetLineData(TextDecorationLine line, float line_offset);
-  void SetUnderlineLineData(const TextDecorationOffset& decoration_offset);
-  void SetOverlineLineData(const TextDecorationOffset& decoration_offset);
+  void SetUnderlineLineData(const NGTextDecorationOffset& decoration_offset);
+  void SetOverlineLineData(const NGTextDecorationOffset& decoration_offset);
   void SetLineThroughLineData();
-  void SetSpellingOrGrammarErrorLineData(const TextDecorationOffset&);
+  void SetSpellingOrGrammarErrorLineData(const NGTextDecorationOffset&);
 
   // These methods do not depend on |SetDecorationIndex|.
   LayoutUnit Width() const { return width_; }
@@ -154,7 +150,7 @@ class CORE_EXPORT TextDecorationInfo {
   // (for originating decorations being painted in highlight overlays), or the
   // highlight ‘text-decoration-color’ resolved with the correct ‘currentColor’
   // (for decorations introduced by highlight pseudos).
-  void SetHighlightOverrideColor(const std::optional<Color>&);
+  void SetHighlightOverrideColor(const absl::optional<Color>&);
 
  private:
   LayoutUnit OffsetFromDecoratingBox() const;
@@ -183,12 +179,10 @@ class CORE_EXPORT TextDecorationInfo {
   const ComputedStyle* decorating_box_style_ = nullptr;
 
   // Decorating box properties for the current |decoration_index_|.
-  const InlinePaintContext* const inline_context_ = nullptr;
-  const DecoratingBox* decorating_box_ = nullptr;
+  const NGInlinePaintContext* const inline_context_ = nullptr;
+  const NGDecoratingBox* decorating_box_ = nullptr;
   const AppliedTextDecoration* applied_text_decoration_ = nullptr;
-  const TextDecorationLine selection_decoration_line_ =
-      TextDecorationLine::kNone;
-  const Color selection_decoration_color_;
+  const absl::optional<AppliedTextDecoration> selection_text_decoration_;
   const Font* font_ = nullptr;
   const SimpleFontData* font_data_ = nullptr;
 
@@ -240,7 +234,7 @@ class CORE_EXPORT TextDecorationInfo {
     float double_offset;
 
     // Only used for kDotted and kDashed lines.
-    std::optional<Path> stroke_path;
+    absl::optional<Path> stroke_path;
 
     // Only used for kWavy lines.
     int wavy_offset_factor;
@@ -248,7 +242,7 @@ class CORE_EXPORT TextDecorationInfo {
     cc::PaintRecord wavy_tile_record;
   };
   LineData line_data_;
-  std::optional<Color> highlight_override_;
+  absl::optional<Color> highlight_override_;
 };
 
 }  // namespace blink

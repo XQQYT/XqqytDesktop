@@ -15,19 +15,18 @@
 #ifndef CRASHPAD_CLIENT_ANNOTATION_H_
 #define CRASHPAD_CLIENT_ANNOTATION_H_
 
-#include <stdint.h>
-#include <string.h>
-#include <sys/types.h>
-
 #include <algorithm>
 #include <atomic>
 #include <optional>
 #include <ostream>
-#include <string_view>
+
+#include <stdint.h>
+#include <string.h>
+#include <sys/types.h>
 
 #include "base/check.h"
 #include "base/numerics/safe_conversions.h"
-
+#include "base/strings/string_piece.h"
 #include "build/build_config.h"
 #include "util/synchronization/scoped_spin_guard.h"
 
@@ -248,14 +247,6 @@ class Annotation {
 
   std::atomic<Annotation*>& link_node() { return link_node_; }
 
-  Annotation* GetLinkNode(std::memory_order order = std::memory_order_seq_cst) {
-    return link_node_.load(order);
-  }
-  const Annotation* GetLinkNode(
-      std::memory_order order = std::memory_order_seq_cst) const {
-    return link_node_.load(order);
-  }
-
  private:
   //! \brief Linked list next-node pointer. Accessed only by \sa AnnotationList.
   //!
@@ -330,19 +321,17 @@ class StringAnnotation : public Annotation {
   //! \brief Sets the Annotation's string value.
   //!
   //! \param[in] string The string value.
-  void Set(std::string_view string) {
+  void Set(base::StringPiece string) {
     Annotation::ValueSizeType size =
         std::min(MaxSize, base::saturated_cast<ValueSizeType>(string.size()));
-    string = string.substr(0, size);
-    std::copy(string.begin(), string.end(), value_);
+    memcpy(value_, string.data(), size);
     // Check for no embedded `NUL` characters.
-    DCHECK(string.find('\0', /*pos=*/0) == std::string_view::npos)
-        << "embedded NUL";
+    DCHECK(!memchr(value_, '\0', size)) << "embedded NUL";
     SetSize(size);
   }
 
-  const std::string_view value() const {
-    return std::string_view(value_, size());
+  const base::StringPiece value() const {
+    return base::StringPiece(value_, size());
   }
 
  private:

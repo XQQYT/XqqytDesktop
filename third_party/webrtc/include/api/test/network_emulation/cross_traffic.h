@@ -10,9 +10,8 @@
 #ifndef API_TEST_NETWORK_EMULATION_CROSS_TRAFFIC_H_
 #define API_TEST_NETWORK_EMULATION_CROSS_TRAFFIC_H_
 
-#include <cstddef>
-#include <functional>
-
+#include "api/task_queue/task_queue_base.h"
+#include "api/test/network_emulation/network_emulation_interfaces.h"
 #include "api/units/data_rate.h"
 #include "api/units/data_size.h"
 #include "api/units/time_delta.h"

@@ -16,9 +16,7 @@
 
 #include <string>
 
-#include "absl/base/attributes.h"
 #include "absl/strings/string_view.h"
-#include "api/array_view.h"
 #include "rtc_base/buffer.h"
 #include "rtc_base/byte_order.h"
 
@@ -27,56 +25,39 @@ namespace rtc {
 
 template <class BufferClassT>
 class ByteBufferWriterT {
-  using value_type = typename BufferClassT::value_type;
-
  public:
   ByteBufferWriterT() { Construct(nullptr, kDefaultCapacity); }
-  ByteBufferWriterT(const value_type* bytes, size_t len) {
-    Construct(bytes, len);
-  }
+  ByteBufferWriterT(const char* bytes, size_t len) { Construct(bytes, len); }
 
   ByteBufferWriterT(const ByteBufferWriterT&) = delete;
   ByteBufferWriterT& operator=(const ByteBufferWriterT&) = delete;
 
-  const value_type* Data() const { return buffer_.data(); }
+  const char* Data() const { return buffer_.data(); }
   size_t Length() const { return buffer_.size(); }
   size_t Capacity() const { return buffer_.capacity(); }
-  rtc::ArrayView<const value_type> DataView() const {
-    return rtc::MakeArrayView(Data(), Length());
-  }
-  // Accessor that returns a string_view, independent of underlying type.
-  // Intended to provide access for existing users that expect char*
-  // when the underlying type changes to uint8_t.
-  // TODO(bugs.webrtc.org/15665): Delete when users are converted.
-  absl::string_view DataAsStringView() const {
-    return absl::string_view(reinterpret_cast<const char*>(Data()), Length());
-  }
-  const char* DataAsCharPointer() const {
-    return reinterpret_cast<const char*>(Data());
-  }
 
   // Write value to the buffer. Resizes the buffer when it is
   // neccessary.
   void WriteUInt8(uint8_t val) {
-    WriteBytesInternal(reinterpret_cast<const value_type*>(&val), 1);
+    WriteBytes(reinterpret_cast<const char*>(&val), 1);
   }
   void WriteUInt16(uint16_t val) {
-    uint16_t v = webrtc::HostToNetwork16(val);
-    WriteBytesInternal(reinterpret_cast<const value_type*>(&v), 2);
+    uint16_t v = HostToNetwork16(val);
+    WriteBytes(reinterpret_cast<const char*>(&v), 2);
   }
   void WriteUInt24(uint32_t val) {
-    uint32_t v = webrtc::HostToNetwork32(val);
-    value_type* start = reinterpret_cast<value_type*>(&v);
+    uint32_t v = HostToNetwork32(val);
+    char* start = reinterpret_cast<char*>(&v);
     ++start;
-    WriteBytesInternal(start, 3);
+    WriteBytes(start, 3);
   }
   void WriteUInt32(uint32_t val) {
-    uint32_t v = webrtc::HostToNetwork32(val);
-    WriteBytesInternal(reinterpret_cast<const value_type*>(&v), 4);
+    uint32_t v = HostToNetwork32(val);
+    WriteBytes(reinterpret_cast<const char*>(&v), 4);
   }
   void WriteUInt64(uint64_t val) {
-    uint64_t v = webrtc::HostToNetwork64(val);
-    WriteBytesInternal(reinterpret_cast<const value_type*>(&v), 8);
+    uint64_t v = HostToNetwork64(val);
+    WriteBytes(reinterpret_cast<const char*>(&v), 8);
   }
   // Serializes an unsigned varint in the format described by
   // https://developers.google.com/protocol-buffers/docs/encoding#varints
@@ -85,31 +66,22 @@ class ByteBufferWriterT {
     while (val >= 0x80) {
       // Write 7 bits at a time, then set the msb to a continuation byte
       // (msb=1).
-      value_type byte = static_cast<value_type>(val) | 0x80;
-      WriteBytesInternal(&byte, 1);
+      char byte = static_cast<char>(val) | 0x80;
+      WriteBytes(&byte, 1);
       val >>= 7;
     }
-    value_type last_byte = static_cast<value_type>(val);
-    WriteBytesInternal(&last_byte, 1);
+    char last_byte = static_cast<char>(val);
+    WriteBytes(&last_byte, 1);
   }
   void WriteString(absl::string_view val) {
-    WriteBytesInternal(reinterpret_cast<const value_type*>(val.data()),
-                       val.size());
+    WriteBytes(val.data(), val.size());
   }
-  // Write an array of bytes (uint8_t)
-  [[deprecated("issues.webrtc.org/4225170 - use Write(ArrayView)")]]
-  void WriteBytes(const uint8_t* val, size_t len) {
-    WriteBytesInternal(reinterpret_cast<const value_type*>(val), len);
-  }
+  void WriteBytes(const char* val, size_t len) { buffer_.AppendData(val, len); }
 
-  void Write(ArrayView<const value_type> data) {
-    WriteBytesInternal(data.data(), data.size());
-  }
-
-  // Reserves the given number of bytes and returns a value_type* that can be
-  // written into. Useful for functions that require a value_type* buffer and
-  // not a ByteBufferWriter.
-  value_type* ReserveWriteBuffer(size_t len) {
+  // Reserves the given number of bytes and returns a char* that can be written
+  // into. Useful for functions that require a char* buffer and not a
+  // ByteBufferWriter.
+  char* ReserveWriteBuffer(size_t len) {
     buffer_.SetSize(buffer_.size() + len);
     return buffer_.data();
   }
@@ -120,21 +92,15 @@ class ByteBufferWriterT {
   // Clears the contents of the buffer. After this, Length() will be 0.
   void Clear() { buffer_.Clear(); }
 
-  BufferClassT Extract() && { return std::move(buffer_); }
-
  private:
   static constexpr size_t kDefaultCapacity = 4096;
 
-  void Construct(const value_type* bytes, size_t size) {
+  void Construct(const char* bytes, size_t size) {
     if (bytes) {
       buffer_.AppendData(bytes, size);
     } else {
       buffer_.EnsureCapacity(size);
     }
-  }
-
-  void WriteBytesInternal(const value_type* val, size_t len) {
-    buffer_.AppendData(val, len);
   }
 
   BufferClassT buffer_;
@@ -143,10 +109,10 @@ class ByteBufferWriterT {
   // base.
 };
 
-class ByteBufferWriter : public ByteBufferWriterT<BufferT<uint8_t>> {
+class ByteBufferWriter : public ByteBufferWriterT<BufferT<char>> {
  public:
   ByteBufferWriter();
-  ByteBufferWriter(const uint8_t* bytes, size_t len);
+  ByteBufferWriter(const char* bytes, size_t len);
 
   ByteBufferWriter(const ByteBufferWriter&) = delete;
   ByteBufferWriter& operator=(const ByteBufferWriter&) = delete;
@@ -156,21 +122,22 @@ class ByteBufferWriter : public ByteBufferWriterT<BufferT<uint8_t>> {
 // valid during the lifetime of the reader.
 class ByteBufferReader {
  public:
-  explicit ByteBufferReader(
-      rtc::ArrayView<const uint8_t> bytes ABSL_ATTRIBUTE_LIFETIME_BOUND);
+  ByteBufferReader(const char* bytes, size_t len);
+
+  // Initializes buffer from a zero-terminated string.
+  explicit ByteBufferReader(const char* bytes);
+
+  explicit ByteBufferReader(const Buffer& buf);
 
   explicit ByteBufferReader(const ByteBufferWriter& buf);
 
   ByteBufferReader(const ByteBufferReader&) = delete;
   ByteBufferReader& operator=(const ByteBufferReader&) = delete;
 
-  const uint8_t* Data() const { return bytes_ + start_; }
+  // Returns start of unprocessed data.
+  const char* Data() const { return bytes_ + start_; }
   // Returns number of unprocessed bytes.
   size_t Length() const { return end_ - start_; }
-  // Returns a view of the unprocessed data. Does not move current position.
-  rtc::ArrayView<const uint8_t> DataView() const {
-    return rtc::ArrayView<const uint8_t>(bytes_ + start_, end_ - start_);
-  }
 
   // Read a next value from the buffer. Return false if there isn't
   // enough data left for the specified type.
@@ -180,14 +147,11 @@ class ByteBufferReader {
   bool ReadUInt32(uint32_t* val);
   bool ReadUInt64(uint64_t* val);
   bool ReadUVarint(uint64_t* val);
-  // Copies the val.size() next bytes into val.data().
-  bool ReadBytes(rtc::ArrayView<uint8_t> val);
+  bool ReadBytes(char* val, size_t len);
+
   // Appends next `len` bytes from the buffer to `val`. Returns false
   // if there is less than `len` bytes left.
   bool ReadString(std::string* val, size_t len);
-  // Same as `ReadString` except that the returned string_view will point into
-  // the internal buffer (no additional buffer allocation).
-  bool ReadStringView(absl::string_view* val, size_t len);
 
   // Moves current position `size` bytes forward. Returns false if
   // there is less than `size` bytes left in the buffer. Consume doesn't
@@ -195,11 +159,10 @@ class ByteBufferReader {
   // after this call.
   bool Consume(size_t size);
 
- private:
-  void Construct(const uint8_t* bytes, size_t size);
-  bool ReadBytes(uint8_t* val, size_t len);
+ protected:
+  void Construct(const char* bytes, size_t size);
 
-  const uint8_t* bytes_;
+  const char* bytes_;
   size_t size_;
   size_t start_;
   size_t end_;

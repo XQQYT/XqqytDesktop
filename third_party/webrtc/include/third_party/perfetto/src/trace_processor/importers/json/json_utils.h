@@ -17,14 +17,12 @@
 #ifndef SRC_TRACE_PROCESSOR_IMPORTERS_JSON_JSON_UTILS_H_
 #define SRC_TRACE_PROCESSOR_IMPORTERS_JSON_JSON_UTILS_H_
 
-#include <cstdint>
+#include <stdint.h>
 #include <optional>
-#include <string>
 
-#include "perfetto/base/build_config.h"
 #include "perfetto/ext/base/string_view.h"
+
 #include "src/trace_processor/importers/common/args_tracker.h"
-#include "src/trace_processor/storage/trace_storage.h"
 
 #if PERFETTO_BUILDFLAG(PERFETTO_TP_JSON)
 #include <json/value.h>
@@ -34,17 +32,13 @@ class Value {};
 }  // namespace Json
 #endif
 
-namespace perfetto::trace_processor::json {
+namespace perfetto {
+namespace trace_processor {
+namespace json {
 
 // Returns whether JSON related functioanlity is supported with the current
 // build flags.
-constexpr bool IsJsonSupported() {
-#if PERFETTO_BUILDFLAG(PERFETTO_TP_JSON)
-  return true;
-#else
-  return false;
-#endif
-}
+bool IsJsonSupported();
 
 std::optional<int64_t> CoerceToTs(const Json::Value& value);
 std::optional<int64_t> CoerceToTs(const std::string& value);
@@ -67,6 +61,8 @@ bool AddJsonValueToArgs(const Json::Value& value,
                         TraceStorage* storage,
                         ArgsTracker::BoundInserter* inserter);
 
-}  // namespace perfetto::trace_processor::json
+}  // namespace json
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_IMPORTERS_JSON_JSON_UTILS_H_

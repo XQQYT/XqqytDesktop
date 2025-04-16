@@ -25,7 +25,6 @@ class PaymentAddress;
 class PaymentStateResolver;
 class PaymentValidationErrors;
 class ScriptState;
-class V8PaymentComplete;
 
 class MODULES_EXPORT PaymentResponse final
     : public EventTarget,
@@ -50,23 +49,21 @@ class MODULES_EXPORT PaymentResponse final
               PaymentAddress* shipping_address);
   void UpdatePayerDetail(payments::mojom::blink::PayerDetailPtr);
 
-  ScriptObject toJSONForBinding(ScriptState*) const;
+  ScriptValue toJSONForBinding(ScriptState*) const;
 
   const String& requestId() const { return request_id_; }
   const String& methodName() const { return method_name_; }
-  ScriptObject details() const { return details_; }
+  ScriptValue details(ScriptState* script_state) const;
   PaymentAddress* shippingAddress() const { return shipping_address_.Get(); }
   const String& shippingOption() const { return shipping_option_; }
   const String& payerName() const { return payer_name_; }
   const String& payerEmail() const { return payer_email_; }
   const String& payerPhone() const { return payer_phone_; }
 
-  ScriptPromise<IDLUndefined> complete(ScriptState*,
-                                       const V8PaymentComplete& result,
-                                       ExceptionState&);
-  ScriptPromise<IDLUndefined> retry(ScriptState*,
-                                    const PaymentValidationErrors*,
-                                    ExceptionState&);
+  ScriptPromise complete(ScriptState*, const String& result, ExceptionState&);
+  ScriptPromise retry(ScriptState*,
+                      const PaymentValidationErrors*,
+                      ExceptionState&);
 
   bool HasPendingActivity() const override;
 
@@ -80,7 +77,7 @@ class MODULES_EXPORT PaymentResponse final
  private:
   String request_id_;
   String method_name_;
-  ScriptObject details_;
+  WorldSafeV8Reference<v8::Value> details_;
   Member<PaymentAddress> shipping_address_;
   String shipping_option_;
   String payer_name_;

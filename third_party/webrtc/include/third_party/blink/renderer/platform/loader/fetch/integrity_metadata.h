@@ -5,38 +5,20 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_INTEGRITY_METADATA_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_INTEGRITY_METADATA_H_
 
-#include "services/network/public/mojom/integrity_algorithm.mojom-blink.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/hash_set.h"
 #include "third_party/blink/renderer/platform/wtf/text/string_hash.h"
 #include "third_party/blink/renderer/platform/wtf/text/string_hasher.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
-#include "third_party/blink/renderer/platform/wtf/vector.h"
 
 namespace blink {
 
 class IntegrityMetadata;
+enum class IntegrityAlgorithm : uint8_t;
 
-using IntegrityAlgorithm = network::mojom::blink::IntegrityAlgorithm;
 using IntegrityMetadataPair = std::pair<String, IntegrityAlgorithm>;
-
-// Contains the result of SRI's "Parse Metadata" algorithm:
-//
-// https://wicg.github.io/signature-based-sri/#abstract-opdef-parse-metadata
-struct PLATFORM_EXPORT IntegrityMetadataSet {
-  IntegrityMetadataSet() = default;
-  bool empty() const { return hashes.empty() && public_keys.empty(); }
-  WTF::Vector<IntegrityMetadataPair> hashes;
-  WTF::Vector<IntegrityMetadataPair> public_keys;
-
-  void Insert(const IntegrityMetadataPair& pair);
-
-  bool operator==(const IntegrityMetadataSet& other) const {
-    return this->hashes == other.hashes &&
-           this->public_keys == other.public_keys;
-  }
-};
+using IntegrityMetadataSet = WTF::HashSet<IntegrityMetadataPair>;
 
 class PLATFORM_EXPORT IntegrityMetadata {
   STACK_ALLOCATED();
@@ -53,6 +35,9 @@ class PLATFORM_EXPORT IntegrityMetadata {
 
   IntegrityMetadataPair ToPair() const;
 
+  static bool SetsEqual(const IntegrityMetadataSet& set1,
+                        const IntegrityMetadataSet& set2);
+
  private:
   String digest_;
   IntegrityAlgorithm algorithm_;
@@ -60,11 +45,11 @@ class PLATFORM_EXPORT IntegrityMetadata {
 
 enum class ResourceIntegrityDisposition : uint8_t {
   kNotChecked = 0,
-  kNetworkError,
-  kFailedUnencodedDigest,
-  kFailedIntegrityMetadata,
+  kFailed,
   kPassed
 };
+
+enum class IntegrityAlgorithm : uint8_t { kSha256, kSha384, kSha512 };
 
 }  // namespace blink
 

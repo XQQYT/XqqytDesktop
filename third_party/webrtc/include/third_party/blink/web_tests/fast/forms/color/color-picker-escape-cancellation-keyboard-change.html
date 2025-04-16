@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<meta name=fuzzy content="maxDifference=0-3; totalPixels=0-1000">
+<html>
+<head>
 <script src='../../../resources/testharness.js'></script>
 <script src='../../../resources/testharnessreport.js'></script>
 <script src="../../../resources/testdriver.js"></script>
 <script src="../../../resources/testdriver-vendor.js"></script>
 <script src='../../../fast/forms/resources/picker-common.js'></script>
-
+</head>
+<body>
 <input type='color' id='color' value='#80d9ff'>
 <script>
 'use strict';
@@ -36,3 +38,5 @@ promise_test(() => {
 }, "Color picker: Pressing escape once discards manual color selection but keeps popup open, pressing again closes popup");
 
 </script>
+</body>
+</html>

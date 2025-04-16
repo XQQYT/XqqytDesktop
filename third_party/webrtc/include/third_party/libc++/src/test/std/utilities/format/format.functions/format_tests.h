@@ -1,5 +1,4 @@
 //===----------------------------------------------------------------------===//
-//
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
@@ -2991,7 +2990,7 @@ void format_test_pointer(TestFunction check, ExceptionTest check_exception) {
 
 template <class CharT, class TestFunction, class ExceptionTest>
 void format_test_handle(TestFunction check, ExceptionTest check_exception) {
-  // *** Valid permutations ***
+  // *** Valid permuatations ***
   check(SV("answer is '0xaaaa'"), SV("answer is '{}'"), status::foo);
   check(SV("answer is '0xaaaa'"), SV("answer is '{:x}'"), status::foo);
   check(SV("answer is '0XAAAA'"), SV("answer is '{:X}'"), status::foo);
@@ -3038,7 +3037,7 @@ void format_test_buffer_optimizations(TestFunction check) {
   // Used to validate our test sets are the proper size.
   // To test the chunked operations it needs to be larger than the internal
   // buffer. Picked a nice looking number.
-  constexpr int minimum = 3 * 256;
+  constexpr int minimum = 3 * std::__format::__internal_storage<CharT>::__buffer_size;
 #else
   constexpr int minimum = 1;
 #endif
@@ -3240,7 +3239,7 @@ void format_tests(TestFunction check, ExceptionTest check_exception) {
   if constexpr (modus == execution_modus::full)
     format_test_floating_point<CharT>(check, check_exception);
 
-  // *** Test pointer formatter argument ***
+  // *** Test pointer formater argument ***
   check(SV("hello 0x0"), SV("hello {}"), nullptr);
   check(SV("hello 0x42"), SV("hello {}"), reinterpret_cast<void*>(0x42));
   check(SV("hello 0x42"), SV("hello {}"), reinterpret_cast<const void*>(0x42));
@@ -3250,7 +3249,7 @@ void format_tests(TestFunction check, ExceptionTest check_exception) {
   // *** Test handle formatter argument ***
   format_test_handle<CharT>(check, check_exception);
 
-  // *** Test the internal buffer optimizations ***
+  // *** Test the interal buffer optimizations ***
   if constexpr (modus == execution_modus::full)
     format_test_buffer_optimizations<CharT>(check);
 }

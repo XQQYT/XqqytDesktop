@@ -13,7 +13,6 @@
 #include "third_party/blink/renderer/bindings/core/v8/module_record.h"
 #include "third_party/blink/renderer/bindings/core/v8/module_request.h"
 #include "third_party/blink/renderer/bindings/core/v8/sanitize_script_errors.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_code_cache.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/script/import_map_error.h"
@@ -22,7 +21,6 @@
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/bindings/v8_per_context_data.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
-#include "third_party/blink/renderer/platform/loader/fetch/integrity_metadata.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/weborigin/referrer.h"
 #include "third_party/blink/renderer/platform/wtf/text/text_position.h"
@@ -39,6 +37,7 @@ class ReferrerScriptInfo;
 class ResourceFetcher;
 class ModuleRecordResolver;
 class ScriptFetchOptions;
+class ScriptPromiseResolver;
 class ScriptState;
 enum class ModuleType;
 
@@ -171,27 +170,27 @@ class CORE_EXPORT Modulator : public GarbageCollected<Modulator>,
   // https://github.com/whatwg/html/pull/5883
   virtual ModuleScript* GetFetchedModuleScript(const KURL&, ModuleType) = 0;
 
-  // https://html.spec.whatwg.org/C#resolve-a-module-specifier
+  // https://html.spec.whatwg.org/C/#resolve-a-module-specifier
   virtual KURL ResolveModuleSpecifier(const String& module_request,
                                       const KURL& base_url,
-                                      String* failure_reason) = 0;
+                                      String* failure_reason = nullptr) = 0;
 
   // https://tc39.github.io/proposal-dynamic-import/#sec-hostimportmoduledynamically
   virtual void ResolveDynamically(const ModuleRequest& module_request,
                                   const ReferrerScriptInfo&,
-                                  ScriptPromiseResolver<IDLAny>*) = 0;
+                                  ScriptPromiseResolver*) = 0;
 
-  // Methods below relate to import maps.
-  // https://html.spec.whatwg.org/C#import-maps
+  // Import maps. https://github.com/WICG/import-maps
 
-  // https://html.spec.whatwg.org/C#merge-existing-and-new-import-maps
-  virtual void MergeExistingAndNewImportMaps(ImportMap*) {
-    // 1. Assert: global implements Window
-    NOTREACHED();
+  void SetImportMap(const ImportMap* import_map) {
+    // Because the second and subsequent import maps are already rejected in
+    // ScriptLoader::PrepareScript(), this is called only once.
+    DCHECK(!import_map_);
+    import_map_ = import_map;
   }
-
   const ImportMap* GetImportMapForTest() const { return import_map_.Get(); }
 
+  // https://wicg.github.io/import-maps/#document-acquiring-import-maps
   enum class AcquiringImportMapsState {
     // The flag is true.
     kAcquiring,
@@ -209,13 +208,9 @@ class CORE_EXPORT Modulator : public GarbageCollected<Modulator>,
     acquiring_import_maps_ = value;
   }
 
-  // https://html.spec.whatwg.org/C#hostgetimportmetaproperties
+  // https://html.spec.whatwg.org/C/#hostgetimportmetaproperties
   virtual ModuleImportMeta HostGetImportMetaProperties(
       v8::Local<v8::Module>) const = 0;
-
-  // https://html.spec.whatwg.org/C#resolving-a-module-integrity-metadata
-  virtual String GetIntegrityMetadataString(const KURL&) const = 0;
-  virtual IntegrityMetadataSet GetIntegrityMetadata(const KURL&) const = 0;
 
   virtual bool HasValidContext() = 0;
 
@@ -229,18 +224,15 @@ class CORE_EXPORT Modulator : public GarbageCollected<Modulator>,
   // Produce V8 code cache for the given ModuleScript and its submodules.
   virtual void ProduceCacheModuleTreeTopLevel(ModuleScript*) = 0;
 
-  // https://html.spec.whatwg.org/C#add-module-to-resolved-module-set
-  virtual void AddModuleToResolvedModuleSet(std::optional<AtomicString>,
-                                            AtomicString) {
-    // 2. If global does not implement Window, then return.
-  }
-
  protected:
-  Member<ImportMap> import_map_;
+  const ImportMap* GetImportMap() const { return import_map_.Get(); }
 
  private:
-  // TODO(crbug.com/365578430): Remove this state and its setters/getters once
-  // the MultipleImportMaps flag is removed.
+  Member<const ImportMap> import_map_;
+
+  // https://wicg.github.io/import-maps/#document-acquiring-import-maps
+  // Each Document has an acquiring import maps boolean. It is initially true.
+  // [spec text]
   AcquiringImportMapsState acquiring_import_maps_ =
       AcquiringImportMapsState::kAcquiring;
 };

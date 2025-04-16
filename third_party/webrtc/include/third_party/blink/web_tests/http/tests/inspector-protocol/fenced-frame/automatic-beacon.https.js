@@ -1,25 +1,17 @@
-(async function(/** @type {import('test_runner').TestRunner} */ testRunner) {
+(async function (testRunner) {
   const { session, dp } = await testRunner.startURL('../resources/empty.html',
     'Tests that fenced frame automatic beacons are surfaced to dev tools.');
 
-  dp.Target.setAutoAttach(
-    {autoAttach: true, waitForDebuggerOnStart: true, flatten: true});
-
   // Create a selectURL fenced frame with a reporting beacon registered.
-  session.evaluate(async function () {
+  await session.evaluateAsync(async function () {
     const href = new URL('../fenced-frame/resources/page-with-title.php',
         location.href);
     await sharedStorage.worklet.addModule(
       "../fenced-frame/resources/simple-shared-storage-module.js");
     const config = await sharedStorage.selectURL(
-        'test-url-selection-operation', [{
-          url: href,
-          reportingMetadata: {
-            'reserved.top_navigation':
-                '../fenced-frame/resources/beacon-store.py'
-          }
-        }],
-        {
+        'test-url-selection-operation', [{url: href,
+            reportingMetadata: {'reserved.top_navigation':
+                '../fenced-frame/resources/automatic-beacon-store.py'}}], {
           data: {'mockResult': 0},
           resolveToConfig: true,
         });
@@ -28,30 +20,26 @@
     document.body.appendChild(ff);
   });
 
-  const {sessionId: workletSessionId} = (await dp.Target.onceAttachedToTarget()).params;
-  const workletSession = session.createChild(workletSessionId);
-  const workletdp = workletSession.protocol;
-  workletdp.Runtime.runIfWaitingForDebugger();
+  dp.Target.setAutoAttach(
+      {autoAttach: true, waitForDebuggerOnStart: true, flatten: true});
 
-  const {sessionId} = (await dp.Target.onceAttachedToTarget()).params;
-  const ffSession = session.createChild(sessionId);
-  const ffdp = ffSession.protocol;
+  let {sessionId} = (await dp.Target.onceAttachedToTarget()).params;
+  let ffSession = session.createChild(sessionId);
+  let ffdp = ffSession.protocol;
 
   ffdp.Page.enable();
   ffdp.Runtime.enable();
   ffdp.Page.setLifecycleEventsEnabled({enabled: true});
+  await ffdp.Page.onceLifecycleEvent(event => event.params.name === 'load');
 
   // Set up promises for the network events we'll need.
   ffdp.Network.enable();
-  ffdp.Runtime.runIfWaitingForDebugger();
-
-  await ffdp.Page.onceLifecycleEvent(event => event.params.name === 'load');
-
   const requestWillBeSentPromise = ffdp.Network.onceRequestWillBeSent();
   const requestWillBeSentExtraInfoPromise =
       ffdp.Network.onceRequestWillBeSentExtraInfo();
   const responseReceivedPromise = ffdp.Network.onceResponseReceived();
   const loadingFinishedPromise = ffdp.Network.onceLoadingFinished();
+  ffdp.Runtime.runIfWaitingForDebugger();
 
   // Trigger the network request with reportEvent.
   await ffSession.evaluateAsyncWithUserGesture(function() {

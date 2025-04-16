@@ -27,8 +27,7 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_TRANSFORMS_PERSPECTIVE_TRANSFORM_OPERATION_H_
 
 #include <algorithm>
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/transforms/transform_operation.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 
@@ -37,9 +36,12 @@ namespace blink {
 class PLATFORM_EXPORT PerspectiveTransformOperation final
     : public TransformOperation {
  public:
-  explicit PerspectiveTransformOperation(std::optional<double> p) : p_(p) {}
+  static scoped_refptr<PerspectiveTransformOperation> Create(
+      absl::optional<double> p) {
+    return base::AdoptRef(new PerspectiveTransformOperation(p));
+  }
 
-  std::optional<double> Perspective() const { return p_; }
+  absl::optional<double> Perspective() const { return p_; }
 
   double UsedPerspective() const {
     DCHECK(p_.has_value());
@@ -73,18 +75,22 @@ class PLATFORM_EXPORT PerspectiveTransformOperation final
     }
   }
 
-  TransformOperation* Accumulate(const TransformOperation& other) override;
-  TransformOperation* Blend(const TransformOperation* from,
-                            double progress,
-                            bool blend_to_identity = false) override;
-  TransformOperation* Zoom(double factor) final;
+  scoped_refptr<TransformOperation> Accumulate(
+      const TransformOperation& other) override;
+  scoped_refptr<TransformOperation> Blend(
+      const TransformOperation* from,
+      double progress,
+      bool blend_to_identity = false) override;
+  scoped_refptr<TransformOperation> Zoom(double factor) final;
 
   // Perspective does not, by itself, specify a 3D transform.
   bool HasNonTrivial3DComponent() const override { return false; }
 
+  explicit PerspectiveTransformOperation(absl::optional<double> p) : p_(p) {}
+
   // !p_.has_value() means the value is `none`, which is equivalent to
   // infinity.
-  std::optional<double> p_;
+  absl::optional<double> p_;
 };
 
 template <>

@@ -77,12 +77,6 @@ typedef enum {
   FRAME_CONTENT_TYPES = 2
 } FRAME_CONTENT_TYPE;
 
-typedef struct ExternalRcReference {
-  int last_index;
-  int golden_index;
-  int altref_index;
-} ExternalRcReference;
-
 typedef struct {
   unsigned char index;
   RATE_FACTOR_LEVEL rf_level[MAX_STATIC_GF_GROUP_LENGTH + 2];
@@ -92,7 +86,6 @@ typedef struct {
   unsigned char frame_gop_index[MAX_STATIC_GF_GROUP_LENGTH + 2];
   int bit_allocation[MAX_STATIC_GF_GROUP_LENGTH + 2];
   int gfu_boost[MAX_STATIC_GF_GROUP_LENGTH + 2];
-  int update_ref_idx[MAX_STATIC_GF_GROUP_LENGTH + 2];
 
   int frame_start;
   int frame_end;
@@ -104,11 +97,6 @@ typedef struct {
   int max_layer_depth;
   int allowed_max_layer_depth;
   int group_noise_energy;
-
-  // Structure to store the reference information from external RC.
-  // Used to override reference frame decisions in libvpx.
-  ExternalRcReference ext_rc_ref[MAX_STATIC_GF_GROUP_LENGTH + 2];
-  int ref_frame_list[MAX_STATIC_GF_GROUP_LENGTH + 2][REFS_PER_FRAME];
 } GF_GROUP;
 
 typedef struct {

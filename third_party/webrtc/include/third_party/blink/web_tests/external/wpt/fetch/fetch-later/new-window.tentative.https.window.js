@@ -1,6 +1,8 @@
+// META: script=/resources/testharness.js
+// META: script=/resources/testharnessreport.js
 // META: script=/common/utils.js
 // META: script=/common/get-host-info.sub.js
-// META: script=/fetch/fetch-later/resources/fetch-later-helper.js
+// META: script=/pending-beacon/resources/pending_beacon-helper.js
 
 'use strict';
 
@@ -11,32 +13,11 @@ const {
 
 function fetchLaterPopupUrl(host, targetUrl) {
   return `${host}/fetch/fetch-later/resources/fetch-later.html?url=${
-      encodeURIComponent(targetUrl)}&activateAfter=0`;
-}
-
-async function receiveMessageFromPopup(url) {
-  const expect =
-      new FetchLaterIframeExpectation(FetchLaterExpectationType.DONE);
-  const messageType = await new Promise((resolve, reject) => {
-    window.addEventListener('message', function handler(e) {
-      try {
-        if (expect.run(e, url)) {
-          window.removeEventListener('message', handler);
-          resolve(e.data.type);
-        }
-      } catch (err) {
-        reject(err);
-      }
-    });
-  });
-
-  assert_equals(messageType, FetchLaterIframeMessageType.DONE);
+      encodeURIComponent(targetUrl)}`;
 }
 
 for (const target of ['', '_blank']) {
-  // NOTE: noopener popup window cannot communicate back. It will be too
-  // unreliable to only use `expectBeacon()` to test such window.
-  for (const features of ['', 'popup']) {
+  for (const features in ['', 'popup', 'popup,noopener']) {
     parallelPromiseTest(
         async t => {
           const uuid = token();
@@ -64,7 +45,7 @@ for (const target of ['', '_blank']) {
 
           // Opens a same-origin popup that fires a fetchLater request.
           const w = window.open(popupUrl, target, features);
-          await receiveMessageFromPopup(popupUrl);
+          await new Promise(resolve => w.addEventListener('load', resolve));
 
           // The popup should have sent the request.
           await expectBeacon(uuid, {count: 1});
@@ -81,7 +62,10 @@ for (const target of ['', '_blank']) {
 
           // Opens a cross-origin popup that fires a fetchLater request.
           const w = window.open(popupUrl, target, features);
-          await receiveMessageFromPopup(popupUrl);
+          // As events from cross-origin window is not accessible, waiting for
+          // its message instead.
+          await new Promise(
+              resolve => window.addEventListener('message', resolve));
 
           // The popup should have sent the request.
           await expectBeacon(uuid, {count: 1});

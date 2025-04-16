@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_STREAMS_READABLE_BYTE_STREAM_CONTROLLER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_STREAMS_READABLE_BYTE_STREAM_CONTROLLER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_value.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/streams/readable_stream_controller.h"
@@ -45,10 +44,10 @@ class CORE_EXPORT ReadableByteStreamController
       ReadableByteStreamController*);
 
   // https://streams.spec.whatwg.org/#rbs-controller-desired-size
-  std::optional<double> desiredSize();
+  absl::optional<double> desiredSize();
 
   // https://streams.spec.whatwg.org/#readable-byte-stream-controller-get-desired-size
-  static std::optional<double> GetDesiredSize(ReadableByteStreamController*);
+  static absl::optional<double> GetDesiredSize(ReadableByteStreamController*);
 
   // https://streams.spec.whatwg.org/#rbs-controller-close
   void close(ScriptState*, ExceptionState&);
@@ -122,7 +121,7 @@ class CORE_EXPORT ReadableByteStreamController
   };
 
   // https://streams.spec.whatwg.org/#readable-byte-stream-controller-close
-  void Close(ScriptState*, ReadableByteStreamController*);
+  void Close(ScriptState*, ReadableByteStreamController*, ExceptionState&);
 
   // https://streams.spec.whatwg.org/#readable-byte-stream-controller-error
   static void Error(ScriptState*,
@@ -154,12 +153,12 @@ class CORE_EXPORT ReadableByteStreamController
   // https://streams.spec.whatwg.org/#readable-byte-stream-controller-process-pull-into-descriptors-using-queue
   static void ProcessPullIntoDescriptorsUsingQueue(
       ScriptState*,
-      ReadableByteStreamController*);
+      ReadableByteStreamController*,
+      ExceptionState&);
 
   // https://streams.spec.whatwg.org/#abstract-opdef-readablebytestreamcontrollerprocessreadrequestsusingqueue
   static void ProcessReadRequestsUsingQueue(ScriptState*,
-                                            ReadableByteStreamController*,
-                                            ExceptionState&);
+                                            ReadableByteStreamController*);
 
   // https://streams.spec.whatwg.org/#readable-byte-stream-controller-call-pull-if-needed
   static void CallPullIfNeeded(ScriptState*, ReadableByteStreamController*);
@@ -218,14 +217,12 @@ class CORE_EXPORT ReadableByteStreamController
 
   // https://streams.spec.whatwg.org/#readable-byte-stream-controller-fill-pull-into-descriptor-from-queue
   static bool FillPullIntoDescriptorFromQueue(ReadableByteStreamController*,
-                                              PullIntoDescriptor*,
-                                              ExceptionState&);
+                                              PullIntoDescriptor*);
 
   // https://streams.spec.whatwg.org/#abstract-opdef-readablebytestreamcontrollerfillreadrequestfromqueue
   static void FillReadRequestFromQueue(ScriptState*,
                                        ReadableByteStreamController*,
-                                       ReadRequest* read_request,
-                                       ExceptionState&);
+                                       ReadRequest* read_request);
 
   // https://streams.spec.whatwg.org/#readable-byte-stream-controller-pull-into
   static void PullInto(ScriptState*,
@@ -280,11 +277,11 @@ class CORE_EXPORT ReadableByteStreamController
                                              ExceptionState&);
 
   // https://streams.spec.whatwg.org/#rbs-controller-private-cancel
-  ScriptPromise<IDLUndefined> CancelSteps(ScriptState*,
-                                          v8::Local<v8::Value> reason) override;
+  v8::Local<v8::Promise> CancelSteps(ScriptState*,
+                                     v8::Local<v8::Value> reason) override;
 
   // https://streams.spec.whatwg.org/#rbs-controller-private-pull
-  void PullSteps(ScriptState*, ReadRequest*, ExceptionState&) override;
+  void PullSteps(ScriptState*, ReadRequest*) override;
 
   // https://streams.spec.whatwg.org/#abstract-opdef-readablebytestreamcontroller-releasesteps
   void ReleaseSteps() override;

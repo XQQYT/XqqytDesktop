@@ -10,7 +10,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "sdk/objc/base/RTCMacros.h"
+#import "RTCMacros.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

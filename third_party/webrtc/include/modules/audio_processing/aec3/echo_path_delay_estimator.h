@@ -13,8 +13,7 @@
 
 #include <stddef.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/array_view.h"
 #include "modules/audio_processing/aec3/alignment_mixer.h"
 #include "modules/audio_processing/aec3/block.h"
@@ -46,7 +45,7 @@ class EchoPathDelayEstimator {
   void Reset(bool reset_delay_confidence);
 
   // Produce a delay estimate if such is avaliable.
-  std::optional<DelayEstimate> EstimateDelay(
+  absl::optional<DelayEstimate> EstimateDelay(
       const DownsampledRenderBuffer& render_buffer,
       const Block& capture);
 
@@ -69,7 +68,7 @@ class EchoPathDelayEstimator {
   Decimator capture_decimator_;
   MatchedFilter matched_filter_;
   MatchedFilterLagAggregator matched_filter_lag_aggregator_;
-  std::optional<DelayEstimate> old_aggregated_lag_;
+  absl::optional<DelayEstimate> old_aggregated_lag_;
   size_t consistent_estimate_counter_ = 0;
   ClockdriftDetector clockdrift_detector_;
 

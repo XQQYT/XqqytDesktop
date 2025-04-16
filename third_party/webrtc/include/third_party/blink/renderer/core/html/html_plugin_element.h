@@ -24,7 +24,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_HTML_HTML_PLUGIN_ELEMENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_HTML_HTML_PLUGIN_ELEMENT_H_
 
-#include "services/network/public/cpp/permissions_policy/permissions_policy_declaration.h"
 #include "third_party/blink/renderer/bindings/core/v8/active_script_wrappable.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/dom/create_element_flags.h"
@@ -82,7 +81,7 @@ class CORE_EXPORT HTMLPlugInElement
 
   bool ShouldAccelerate() const;
 
-  network::ParsedPermissionsPolicy ConstructContainerPolicy() const override;
+  ParsedPermissionsPolicy ConstructContainerPolicy() const override;
 
   bool IsImageType() const;
   HTMLImageLoader* ImageLoader() const { return image_loader_.Get(); }
@@ -109,10 +108,7 @@ class CORE_EXPORT HTMLPlugInElement
   void CollectStyleForPresentationAttribute(
       const QualifiedName&,
       const AtomicString&,
-      HeapVector<CSSPropertyValue, 8>&) override;
-  // HTMLFrameOwnerElement overrides:
-  void DisconnectContentFrame() override;
-  void NaturalSizingInfoChanged() final;
+      MutableCSSPropertyValueSet*) override;
 
   virtual bool HasFallbackContent() const;
   // Create or update the LayoutEmbeddedContent and return it, triggering layout
@@ -161,13 +157,9 @@ class CORE_EXPORT HTMLPlugInElement
 
   // Element overrides:
   LayoutObject* CreateLayoutObject(const ComputedStyle&) override;
-  FocusableState SupportsFocus(UpdateBehavior) const final {
-    return FocusableState::kFocusable;
-  }
-  bool IsFocusableStyle(UpdateBehavior update_behavior =
-                            UpdateBehavior::kStyleAndLayout) const final;
-  bool IsKeyboardFocusableSlow(UpdateBehavior update_behavior =
-                                   UpdateBehavior::kStyleAndLayout) const final;
+  bool SupportsFocus() const final { return true; }
+  bool IsFocusableStyle() const final;
+  bool IsKeyboardFocusable() const final;
   void DidAddUserAgentShadowRoot(ShadowRoot&) final;
   const ComputedStyle* CustomStyleForLayoutObject(
       const StyleRecalcContext&) final;
@@ -175,6 +167,10 @@ class CORE_EXPORT HTMLPlugInElement
   // HTMLElement overrides:
   bool HasCustomFocusLogic() const override;
   bool IsPluginElement() const final;
+
+  // HTMLFrameOwnerElement overrides:
+  void DisconnectContentFrame() override;
+  void IntrinsicSizingInfoChanged() final;
 
   // TODO(dcheng): Consider removing this, since HTMLEmbedElementLegacyCall
   // and HTMLObjectElementLegacyCall usage is extremely low.
@@ -240,6 +236,10 @@ class CORE_EXPORT HTMLPlugInElement
   bool dispose_view_ = false;
 };
 
+template <>
+inline bool IsElementOfType<const HTMLPlugInElement>(const Node& node) {
+  return IsA<HTMLPlugInElement>(node);
+}
 template <>
 struct DowncastTraits<HTMLPlugInElement> {
   static bool AllowFrom(const Node& node) {

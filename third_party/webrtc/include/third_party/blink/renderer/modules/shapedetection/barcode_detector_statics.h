@@ -7,8 +7,6 @@
 
 #include "services/shape_detection/public/mojom/barcodedetection_provider.mojom-blink.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_barcode_format.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_set.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_remote.h"
@@ -19,6 +17,7 @@
 namespace blink {
 
 class ExecutionContext;
+class ScriptPromiseResolver;
 
 // This class owns the BarcodeDetectionProvider connection used to create the
 // BarcodeDetector instances for this ExecutionContext.
@@ -36,15 +35,14 @@ class BarcodeDetectorStatics final
   void CreateBarcodeDetection(
       mojo::PendingReceiver<shape_detection::mojom::blink::BarcodeDetection>,
       shape_detection::mojom::blink::BarcodeDetectorOptionsPtr);
-  ScriptPromise<IDLSequence<V8BarcodeFormat>> EnumerateSupportedFormats(
-      ScriptState*);
+  ScriptPromise EnumerateSupportedFormats(ScriptState*);
 
   void Trace(Visitor*) const override;
 
  private:
   void EnsureServiceConnection();
   void OnEnumerateSupportedFormats(
-      ScriptPromiseResolver<IDLSequence<V8BarcodeFormat>>*,
+      ScriptPromiseResolver*,
       const Vector<shape_detection::mojom::blink::BarcodeFormat>&);
   void OnConnectionError();
 
@@ -53,8 +51,7 @@ class BarcodeDetectorStatics final
 
   // Holds Promises returned by EnumerateSupportedFormats() so that they can be
   // resolve in the case of a Mojo connection error.
-  HeapHashSet<Member<ScriptPromiseResolver<IDLSequence<V8BarcodeFormat>>>>
-      get_supported_format_requests_;
+  HeapHashSet<Member<ScriptPromiseResolver>> get_supported_format_requests_;
 };
 
 }  // namespace blink

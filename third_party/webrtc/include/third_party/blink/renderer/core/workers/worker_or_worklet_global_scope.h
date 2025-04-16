@@ -65,19 +65,19 @@ class CORE_EXPORT WorkerOrWorkletGlobalScope
       std::unique_ptr<WebContentSettingsClient>,
       scoped_refptr<WebWorkerFetchContext>,
       WorkerReportingProxy&,
-      bool is_worker_loaded_from_data_url,
-      bool is_default_world_of_isolate);
+      bool is_worker_loaded_from_data_url);
   ~WorkerOrWorkletGlobalScope() override;
 
   // EventTarget
   const AtomicString& InterfaceName() const override;
 
   // ScriptWrappable
-  v8::Local<v8::Value> Wrap(ScriptState*) final;
+  v8::MaybeLocal<v8::Value> Wrap(ScriptState*) final;
   v8::Local<v8::Object> AssociateWithWrapper(
       v8::Isolate*,
       const WrapperTypeInfo*,
       v8::Local<v8::Object> wrapper) final;
+  bool HasPendingActivity() const override;
 
   // ExecutionContext
   bool IsWorkerOrWorkletGlobalScope() const final { return true; }
@@ -93,10 +93,8 @@ class CORE_EXPORT WorkerOrWorkletGlobalScope
 
   // BackForwardCacheLoaderHelperImpl::Delegate
   void EvictFromBackForwardCache(
-      mojom::blink::RendererEvictionReason reason,
-      std::unique_ptr<SourceLocation> source_location) override {}
-  void DidBufferLoadWhileInBackForwardCache(bool update_process_wide_count,
-                                            size_t num_bytes) override {}
+      mojom::blink::RendererEvictionReason reason) override {}
+  void DidBufferLoadWhileInBackForwardCache(size_t num_bytes) override {}
 
   // Returns true when the WorkerOrWorkletGlobalScope is closing (e.g. via
   // WorkerGlobalScope#close() method). If this returns true, the worker is
@@ -113,7 +111,6 @@ class CORE_EXPORT WorkerOrWorkletGlobalScope
   // UseCounter
   void CountUse(WebFeature feature) final;
   void CountDeprecation(WebFeature feature) final;
-  void CountWebDXFeature(WebDXFeature feature) final;
 
   // May return nullptr if this global scope is not threaded (i.e.,
   // WorkletGlobalScope for the main thread) or after Dispose() is called.
@@ -205,7 +202,7 @@ class CORE_EXPORT WorkerOrWorkletGlobalScope
                                    SourceLocation* location);
 
   // Called when BestEffortServiceWorker(crbug.com/1420517) is enabled.
-  virtual std::optional<
+  virtual absl::optional<
       mojo::PendingRemote<network::mojom::blink::URLLoaderFactory>>
   FindRaceNetworkRequestURLLoaderFactory(
       const base::UnguessableToken& token) = 0;
@@ -233,6 +230,11 @@ class CORE_EXPORT WorkerOrWorkletGlobalScope
   const Vector<network::mojom::blink::ContentSecurityPolicyPtr>&
   OutsideContentSecurityPolicies() const {
     return outside_content_security_policies_;
+  }
+
+  void SetIsOfflineMode(bool is_offline_mode) {
+    DCHECK(web_worker_fetch_context_);
+    web_worker_fetch_context_->SetIsOfflineMode(is_offline_mode);
   }
 
   WebWorkerFetchContext* web_worker_fetch_context() const {
@@ -283,7 +285,7 @@ class CORE_EXPORT WorkerOrWorkletGlobalScope
   // TODO(crbug/903579): Consider putting WebWorkerFetchContext-originated
   // things at a single place. Currently they are placed here and subclasses of
   // WebWorkerFetchContext.
-  const scoped_refptr<WebWorkerFetchContext> web_worker_fetch_context_;
+  scoped_refptr<WebWorkerFetchContext> web_worker_fetch_context_;
   Member<SubresourceFilter> subresource_filter_;
 
   Member<WorkerOrWorkletScriptController> script_controller_;
@@ -297,10 +299,8 @@ class CORE_EXPORT WorkerOrWorkletGlobalScope
   WorkerReportingProxy& reporting_proxy_;
 
   // This is the set of features that this worker has used.
-  std::bitset<static_cast<size_t>(WebFeature::kMaxValue) + 1> used_features_;
-  // This is the set of WebDXFeatures that this worker has used.
-  std::bitset<static_cast<size_t>(WebDXFeature::kMaxValue) + 1>
-      used_webdx_features_;
+  std::bitset<static_cast<size_t>(WebFeature::kNumberOfFeatures)>
+      used_features_;
 
   // This tracks deprecation features that have been used.
   Deprecation deprecation_;

@@ -8,7 +8,6 @@
 #include "third_party/blink/public/mojom/back_forward_cache_not_restored_reasons.mojom-blink.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_value.h"
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/timing/not_restored_reason_details.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_vector.h"
 
@@ -18,15 +17,17 @@ class CORE_EXPORT NotRestoredReasons : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
-  explicit NotRestoredReasons(
-      String src,
-      String id,
-      String name,
-      String url,
-      HeapVector<Member<NotRestoredReasonDetails>>* reasons,
-      HeapVector<Member<NotRestoredReasons>>* children);
+  explicit NotRestoredReasons(String prevented,
+                              String src,
+                              String id,
+                              String name,
+                              String url,
+                              Vector<String>* reasons,
+                              HeapVector<Member<NotRestoredReasons>>* children);
 
   NotRestoredReasons(const NotRestoredReasons&);
+
+  const String preventedBackForwardCache() const { return prevented_; }
 
   const String src() const { return src_; }
 
@@ -36,24 +37,25 @@ class CORE_EXPORT NotRestoredReasons : public ScriptWrappable {
 
   const String url() const { return url_; }
 
-  const std::optional<HeapVector<Member<NotRestoredReasonDetails>>> reasons()
-      const;
+  const absl::optional<Vector<String>> reasons() const;
 
-  const std::optional<HeapVector<Member<NotRestoredReasons>>> children() const;
+  const absl::optional<HeapVector<Member<NotRestoredReasons>>> children() const;
 
-  ScriptObject toJSON(ScriptState* script_state) const;
+  ScriptValue toJSON(ScriptState* script_state) const;
 
   void Trace(Visitor* visitor) const override;
 
  private:
+  String prevented_;
   String src_;
   String id_;
   String name_;
   String url_;
-  HeapVector<Member<NotRestoredReasonDetails>> reasons_;
+  Vector<String> reasons_;
   HeapVector<Member<NotRestoredReasons>> children_;
 };
 
 }  // namespace blink
 
-#endif  // THIRD_PARTY_BLINK_RENDERER_CORE_TIMING_NOT_RESTORED_REASONS_H_
+#endif  // #define
+        // THIRD_PARTY_BLINK_RENDERER_CORE_TIMING_NOT_RESTORED_REASONS_H_

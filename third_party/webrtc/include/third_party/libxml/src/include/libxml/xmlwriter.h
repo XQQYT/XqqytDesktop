@@ -478,7 +478,6 @@ extern "C" {
  * misc
  */
     XMLPUBFUN int xmlTextWriterFlush(xmlTextWriterPtr writer);
-    XMLPUBFUN int xmlTextWriterClose(xmlTextWriterPtr writer);
 
 #ifdef __cplusplus
 }

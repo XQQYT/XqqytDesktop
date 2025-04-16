@@ -15,7 +15,6 @@
 #ifndef MEDIAPIPE_UTIL_TRACKING_TRACKED_DETECTION_H_
 #define MEDIAPIPE_UTIL_TRACKING_TRACKED_DETECTION_H_
 
-#include <cstdint>
 #include <string>
 
 #include "absl/container/node_hash_map.h"
@@ -30,7 +29,7 @@ class TrackedDetection {
  public:
   TrackedDetection() = delete;
   // Creates a detection that has a bounding box occupying the entire image.
-  TrackedDetection(int unique_id, int64_t timestamp)
+  TrackedDetection(int unique_id, int64 timestamp)
       : unique_id_(unique_id),
         initial_timestamp_(timestamp),
         last_updated_timestamp_(timestamp),
@@ -38,7 +37,7 @@ class TrackedDetection {
 
   // Creates a detection with the specified bounding box normalized by image
   // dimensions.
-  TrackedDetection(int unique_id, int64_t timestamp,
+  TrackedDetection(int unique_id, int64 timestamp,
                    const ::mediapipe::NormalizedRect& bounding_box)
       : unique_id_(unique_id),
         initial_timestamp_(timestamp),
@@ -61,9 +60,9 @@ class TrackedDetection {
   // Merges labels and score from another TrackedDetection.
   void MergeLabelScore(const TrackedDetection& other);
 
-  int64_t initial_timestamp() const { return initial_timestamp_; }
-  int64_t last_updated_timestamp() const { return last_updated_timestamp_; }
-  void set_last_updated_timestamp(int64_t timestamp) {
+  int64 initial_timestamp() const { return initial_timestamp_; }
+  int64 last_updated_timestamp() const { return last_updated_timestamp_; }
+  void set_last_updated_timestamp(int64 timestamp) {
     last_updated_timestamp_ = timestamp;
   }
 
@@ -112,9 +111,9 @@ class TrackedDetection {
   float bottom_ = 0.f;
 
   // The timestamp in milliseconds when this object is initialized.
-  int64_t initial_timestamp_;
+  int64 initial_timestamp_;
   // The latest timestamp when this object is updated.
-  int64_t last_updated_timestamp_;
+  int64 last_updated_timestamp_;
 
   // The id of the previous detection that this detection is associated with.
   int previous_id_;

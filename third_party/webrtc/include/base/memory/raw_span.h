@@ -23,9 +23,8 @@ using raw_span =
     span<T, dynamic_extent, raw_ptr<T, Traits | AllowPtrArithmetic>>;
 
 template <typename T>
-auto ExtractAsDanglingSpan(raw_span<T>& arg) {
-  raw_span<T, DisableDanglingPtrDetection> result =
-      std::exchange(arg, raw_span<T>());
+span<T> ExtractAsDanglingSpan(raw_span<T>& arg) {
+  span<T> result = std::exchange(arg, raw_span<T>());
   return result;
 }
 

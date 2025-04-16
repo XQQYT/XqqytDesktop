@@ -93,6 +93,8 @@ class CORE_EXPORT LayoutFlowThread : public LayoutBlockFlow {
       const LayoutObject&,
       AncestorSearchConstraint);
 
+  void UpdateLayout() final;
+
   PaintLayerType LayerTypeRequired() const final;
 
   virtual void FlowThreadDescendantWasInserted(LayoutObject*) {
@@ -102,27 +104,26 @@ class CORE_EXPORT LayoutFlowThread : public LayoutBlockFlow {
     NOT_DESTROYED();
   }
   virtual void FlowThreadDescendantStyleWillChange(
-      LayoutBoxModelObject*,
+      LayoutBox*,
       StyleDifference,
       const ComputedStyle& new_style) {
     NOT_DESTROYED();
   }
   virtual void FlowThreadDescendantStyleDidChange(
-      LayoutBoxModelObject*,
+      LayoutBox*,
       StyleDifference,
       const ComputedStyle& old_style) {
     NOT_DESTROYED();
   }
 
-  void QuadsInAncestorForDescendant(const LayoutBox& descendant,
-                                    Vector<gfx::QuadF>&,
-                                    const LayoutBoxModelObject* ancestor,
-                                    MapCoordinatesFlags);
+  void AbsoluteQuadsForDescendant(const LayoutBox& descendant,
+                                  Vector<gfx::QuadF>&,
+                                  MapCoordinatesFlags mode = 0);
 
   void AddOutlineRects(OutlineRectCollector&,
                        OutlineInfo*,
                        const PhysicalOffset& additional_offset,
-                       OutlineType) const override;
+                       NGOutlineType) const override;
 
   void Paint(const PaintInfo& paint_info) const final;
 
@@ -133,6 +134,8 @@ class CORE_EXPORT LayoutFlowThread : public LayoutBlockFlow {
 
   virtual void AddColumnSetToThread(LayoutMultiColumnSet*) = 0;
   virtual void RemoveColumnSetFromThread(LayoutMultiColumnSet*);
+
+  virtual void UpdateLogicalWidth() = 0;
 
   bool HasColumnSets() const {
     NOT_DESTROYED();
@@ -172,7 +175,7 @@ class CORE_EXPORT LayoutFlowThread : public LayoutBlockFlow {
 
   const char* GetName() const override = 0;
 
-  RecalcScrollableOverflowResult RecalcScrollableOverflow() final;
+  RecalcLayoutOverflowResult RecalcLayoutOverflow() final;
 
  protected:
   void GenerateColumnSetIntervalTree();

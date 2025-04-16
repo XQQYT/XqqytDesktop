@@ -199,7 +199,6 @@ promise_test(t => {
           return response.arrayBuffer();
         })
         .then(buffer => {
-          // IDAT chunk starts at byte 83 (0x53).
           decoder =
               new ImageDecoder({data: buffer.slice(0, 100), type: 'image/png'});
           return decoder.tracks.ready;
@@ -208,28 +207,14 @@ promise_test(t => {
           // Queue two decodes to ensure index verification and decoding are
           // properly ordered.
           p1 = decoder.decode({frameIndex: 0});
-          return promise_rejects_dom(
-              // Requesting to decode frame #1 would normally be expected to
-              // return RangeError (see 'Test out of range index returns
-              // RangeError' above).  Here the decoder fails earlier because
-              // `p1` is requesting to decode frame #0 and the PNG has been
-              // truncated to the first 100 bytes.  This is why here we expect
-              // EncodingError instead.
-              //
-              // Also note that in this test the data source is an ArrayBuffer.
-              // Therefore the decoder can see that there is no more data coming
-              // - this means that the decoder can declare a fatal error, rather
-              // than assuming an incomplete input stream.
-              t, 'EncodingError', decoder.decode({frameIndex: 1}));
+          return promise_rejects_js(
+              t, RangeError, decoder.decode({frameIndex: 1}));
         })
         .then(_ => {
-          // Requesting to decode frame #0 (the `p1` Promise) throws
-          // EncodingError, because the PNG has been truncated to the first 100
-          // bytes.
-          return promise_rejects_dom(t, 'EncodingError', p1);
+          return promise_rejects_js(t, RangeError, p1);
         })
   });
-}, 'Test decoding a partial ArrayBuffer results in EncodingError');
+}, 'Test partial decoding without a frame results in an error');
 
 promise_test(t => {
   var decoder;

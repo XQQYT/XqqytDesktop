@@ -10,7 +10,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "sdk/objc/base/RTCMacros.h"
+#import "RTCMacros.h"
 
 RTC_EXTERN void RTCSetupInternalTracer(void);
 /** Starts capture to specified file. Must be a valid writable path.

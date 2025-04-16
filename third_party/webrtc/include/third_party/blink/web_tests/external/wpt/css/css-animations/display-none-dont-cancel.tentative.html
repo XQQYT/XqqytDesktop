@@ -17,9 +17,7 @@
 }
 </style>
 <script>
-promise_test(async (t) => {
-  t.add_cleanup(() => target1.classList.remove('animate1'));
-
+promise_test(async () => {
   let numAnimationstartFired = 0;
   target1.addEventListener('animationstart', () => numAnimationstartFired++);
 
@@ -48,9 +46,7 @@ promise_test(async (t) => {
 }
 </style>
 <script>
-promise_test(async (t) => {
-  t.add_cleanup(() => target2.classList.remove('animate2'));
-
+promise_test(async () => {
   let numAnimationstartFired = 0;
   target2.addEventListener('animationstart', () => numAnimationstartFired++);
 
@@ -76,9 +72,7 @@ promise_test(async (t) => {
 }
 </style>
 <script>
-promise_test(async (t) => {
-  t.add_cleanup(() => target3.classList.remove('animate3'));
-
+promise_test(async () => {
   let numAnimationstartFired = 0;
   target3.addEventListener('animationstart', () => numAnimationstartFired++);
 
@@ -107,9 +101,7 @@ promise_test(async (t) => {
 }
 </style>
 <script>
-promise_test(async (t) => {
-  t.add_cleanup(() => target4.classList.remove('animate4'));
-
+promise_test(async () => {
   let numAnimationstartFired = 0;
   target4.addEventListener('animationstart', () => numAnimationstartFired++);
 
@@ -138,9 +130,7 @@ promise_test(async (t) => {
 }
 </style>
 <script>
-promise_test(async (t) => {
-  t.add_cleanup(() => target5.classList.remove('animate5'));
-
+promise_test(async () => {
   let numAnimationstartFired = 0;
   target5.addEventListener('animationstart', () => numAnimationstartFired++);
 

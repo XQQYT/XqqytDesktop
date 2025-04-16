@@ -13,10 +13,9 @@
 #ifndef RTC_BASE_NUMERICS_SAFE_CONVERSIONS_IMPL_H_
 #define RTC_BASE_NUMERICS_SAFE_CONVERSIONS_IMPL_H_
 
-#include <cstddef>
 #include <limits>
 
-namespace webrtc {
+namespace rtc {
 namespace internal {
 
 enum DstSign { DST_UNSIGNED, DST_SIGNED };
@@ -102,9 +101,7 @@ struct RangeCheckImpl {};
 // Dst range always contains the result: nothing to check.
 template <typename Dst, typename Src, DstSign IsDstSigned, SrcSign IsSrcSigned>
 struct RangeCheckImpl<Dst, Src, IsDstSigned, IsSrcSigned, CONTAINS_RANGE> {
-  static constexpr RangeCheckResult Check(Src /* value */) {
-    return TYPE_VALID;
-  }
+  static constexpr RangeCheckResult Check(Src value) { return TYPE_VALID; }
 };
 
 // Signed to signed narrowing.
@@ -175,6 +172,6 @@ inline constexpr RangeCheckResult RangeCheck(Src value) {
 }
 
 }  // namespace internal
-}  // namespace webrtc
+}  // namespace rtc
 
 #endif  // RTC_BASE_NUMERICS_SAFE_CONVERSIONS_IMPL_H_

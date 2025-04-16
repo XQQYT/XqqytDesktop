@@ -30,17 +30,18 @@
 #ifndef BASE_MESSAGE_LOOP_MESSAGE_PUMP_APPLE_H_
 #define BASE_MESSAGE_LOOP_MESSAGE_PUMP_APPLE_H_
 
+#include "base/message_loop/message_pump.h"
+
 #include <CoreFoundation/CoreFoundation.h>
 
 #include <memory>
-#include <optional>
 
 #include "base/apple/scoped_cftyperef.h"
 #include "base/containers/stack.h"
 #include "base/memory/raw_ptr.h"
-#include "base/message_loop/message_pump.h"
 #include "base/run_loop.h"
 #include "build/build_config.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 #if defined(__OBJC__)
 #if BUILDFLAG(IS_IOS)
@@ -48,8 +49,8 @@
 #else
 #import <AppKit/AppKit.h>
 
-// Clients must subclass NSApplication and implement this protocol if they want
-// message_pump_apple::Create() to return a MessagePumpCrApplication instance.
+// Clients must subclass NSApplication and implement this protocol if they use
+// MessagePumpMac.
 @protocol CrAppProtocol
 // Must return true if -[NSApplication sendEvent:] is currently on the stack.
 // See the comment for |CreateAutoreleasePool()| in the cc file for why this is
@@ -66,7 +67,6 @@ class BASE_EXPORT MessagePumpCFRunLoopBase : public MessagePump {
   MessagePumpCFRunLoopBase(const MessagePumpCFRunLoopBase&) = delete;
   MessagePumpCFRunLoopBase& operator=(const MessagePumpCFRunLoopBase&) = delete;
 
-  // Initializes features for this class. See `base::features::Init()`.
   static void InitializeFeatures();
 
   // MessagePump:
@@ -273,7 +273,7 @@ class BASE_EXPORT MessagePumpCFRunLoopBase : public MessagePump {
   // determined the loop is not processing a native event but the depth of the
   // stack should match |nesting_level_| at all times. A nullopt is also used
   // as a stand-in during delegateless operation.
-  base::stack<std::optional<base::MessagePump::Delegate::ScopedDoWorkItem>>
+  base::stack<absl::optional<base::MessagePump::Delegate::ScopedDoWorkItem>>
       stack_;
 };
 
@@ -340,7 +340,7 @@ class MessagePumpUIApplication : public MessagePumpCFRunLoopBase {
   void Detach() override;
 
  private:
-  std::optional<RunLoop> run_loop_;
+  absl::optional<RunLoop> run_loop_;
 };
 
 #else

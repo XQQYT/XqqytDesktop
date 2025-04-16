@@ -5,7 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_MEDIASTREAM_MOCK_MEDIA_STREAM_VIDEO_SOURCE_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_MEDIASTREAM_MOCK_MEDIA_STREAM_VIDEO_SOURCE_H_
 
-#include "build/build_config.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "third_party/blink/public/web/modules/mediastream/media_stream_video_source.h"
 #include "third_party/blink/renderer/modules/mediastream/sub_capture_target.h"
@@ -40,7 +39,7 @@ class MockMediaStreamVideoSource : public blink::MediaStreamVideoSource {
           const base::Token&,
           uint32_t,
           base::OnceCallback<void(media::mojom::ApplySubCaptureTargetResult)>));
-  MOCK_METHOD0(GetNextSubCaptureTargetVersion, std::optional<uint32_t>());
+  MOCK_METHOD0(GetNextSubCaptureTargetVersion, absl::optional<uint32_t>());
   MOCK_METHOD(uint32_t, GetSubCaptureTargetVersion, (), (const, override));
 
   // Simulate that the underlying source start successfully.
@@ -110,7 +109,7 @@ class MockMediaStreamVideoSource : public blink::MediaStreamVideoSource {
       VideoCaptureSubCaptureTargetVersionCB sub_capture_target_version_callback,
       VideoCaptureNotifyFrameDroppedCB frame_dropped_callback) override;
   void StopSourceImpl() override;
-  std::optional<media::VideoCaptureFormat> GetCurrentFormat() const override;
+  absl::optional<media::VideoCaptureFormat> GetCurrentFormat() const override;
   void StopSourceForRestartImpl() override;
   void RestartSourceImpl(const media::VideoCaptureFormat& new_format) override;
 

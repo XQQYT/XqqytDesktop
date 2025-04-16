@@ -5,37 +5,35 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_SCRIPT_RUN_ITERATOR_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_SCRIPT_RUN_ITERATOR_H_
 
-#include <unicode/uchar.h>
-#include <unicode/uscript.h>
-
-#include "base/containers/span.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/deque.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
+
+#include <unicode/uchar.h>
+#include <unicode/uscript.h>
 
 namespace blink {
 
 class ScriptData;
 
 class PLATFORM_EXPORT ScriptRunIterator {
-  STACK_ALLOCATED();
+  USING_FAST_MALLOC(ScriptRunIterator);
 
  public:
-  explicit ScriptRunIterator(base::span<const UChar> text);
+  ScriptRunIterator(const UChar* text, wtf_size_t length);
 
   // This maintains a reference to data. It must exist for the lifetime of
   // this object. Typically data is a singleton that exists for the life of
   // the process.
-  ScriptRunIterator(base::span<const UChar> text, const ScriptData*);
+  ScriptRunIterator(const UChar* text, wtf_size_t length, const ScriptData*);
 
   ScriptRunIterator(const ScriptRunIterator&) = delete;
   ScriptRunIterator& operator=(const ScriptRunIterator&) = delete;
 
   bool Consume(unsigned* limit, UScriptCode*);
 
-  static constexpr int kMaxUnicodeScriptExtensions = 23;
-  static constexpr int kMaxScriptCount = kMaxUnicodeScriptExtensions + 1;
+  static constexpr int kMaxScriptCount = 32;
   using UScriptCodeList = Vector<UScriptCode, kMaxScriptCount>;
 
  private:
@@ -99,8 +97,6 @@ class PLATFORM_EXPORT ScriptData {
     kBracketTypeCount
   };
 
-  static constexpr int kMaxUnicodeScriptExtensions =
-      ScriptRunIterator::kMaxUnicodeScriptExtensions;
   static constexpr int kMaxScriptCount = ScriptRunIterator::kMaxScriptCount;
   using UScriptCodeList = ScriptRunIterator::UScriptCodeList;
 

@@ -27,13 +27,14 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_HTML_PARSER_ATOMIC_HTML_TOKEN_H_
 
 #include <memory>
-#include <optional>
 
 #include "base/check_op.h"
 #include "base/containers/contains.h"
 #include "base/notreached.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/dom/attribute.h"
+#include "third_party/blink/renderer/core/html/parser/atomic_string_cache.h"
 #include "third_party/blink/renderer/core/html/parser/html_token.h"
 #include "third_party/blink/renderer/core/html_element_attribute_name_lookup_trie.h"
 #include "third_party/blink/renderer/core/html_element_lookup_trie.h"
@@ -43,7 +44,6 @@
 #include "third_party/blink/renderer/platform/wtf/hash_set.h"
 #include "third_party/blink/renderer/platform/wtf/text/atomic_string.h"
 #include "third_party/blink/renderer/platform/wtf/text/atomic_string_hash.h"
-#include "third_party/blink/renderer/platform/wtf/text/character_visitor.h"
 
 namespace blink {
 
@@ -58,7 +58,7 @@ class CORE_EXPORT HTMLTokenName {
  public:
   explicit HTMLTokenName(html_names::HTMLTag tag) : tag_(tag) {
     if (tag != html_names::HTMLTag::kUnknown)
-      local_name_ = html_names::TagToQualifiedName(tag).LocalName();
+      local_name_ = html_names::TagToQualifedName(tag).LocalName();
   }
 
   // Returns an HTMLTokenName for the specified string. This function looks up
@@ -67,9 +67,14 @@ class CORE_EXPORT HTMLTokenName {
     if (local_name.empty())
       return HTMLTokenName(html_names::HTMLTag::kUnknown);
 
-    return WTF::VisitCharacters(local_name, [&local_name](auto chars) {
-      return HTMLTokenName(LookupHtmlTag(chars), local_name);
-    });
+    if (local_name.Is8Bit()) {
+      return HTMLTokenName(
+          lookupHTMLTag(local_name.Characters8(), local_name.length()),
+          local_name);
+    }
+    return HTMLTokenName(
+        lookupHTMLTag(local_name.Characters16(), local_name.length()),
+        local_name);
   }
 
   bool operator==(const HTMLTokenName& other) const {
@@ -93,9 +98,13 @@ class CORE_EXPORT HTMLTokenName {
       // If the tag is unknown, then `name` must either be empty, or not
       // identify any other HTMLTag.
       if (!name.empty()) {
-        WTF::VisitCharacters(name, [](auto chars) {
-          DCHECK_EQ(html_names::HTMLTag::kUnknown, LookupHtmlTag(chars));
-        });
+        if (name.Is8Bit()) {
+          DCHECK_EQ(html_names::HTMLTag::kUnknown,
+                    lookupHTMLTag(name.Characters8(), name.length()));
+        } else {
+          DCHECK_EQ(html_names::HTMLTag::kUnknown,
+                    lookupHTMLTag(name.Characters16(), name.length()));
+        }
       }
     }
 #endif
@@ -144,13 +153,6 @@ class CORE_EXPORT AtomicHTMLToken {
   bool SelfClosing() const {
     DCHECK(type_ == HTMLToken::kStartTag || type_ == HTMLToken::kEndTag);
     return self_closing_;
-  }
-
-  void SetSelfClosingToFalse() {
-    DCHECK(self_closing_);
-    DCHECK_EQ(type_, HTMLToken::kStartTag);
-    DCHECK_EQ(GetHTMLTag(), html_names::HTMLTag::kScript);
-    self_closing_ = false;
   }
 
   bool HasDuplicateAttribute() const { return duplicate_attribute_; }
@@ -214,6 +216,7 @@ class CORE_EXPORT AtomicHTMLToken {
     switch (type_) {
       case HTMLToken::kUninitialized:
         NOTREACHED();
+        break;
       case HTMLToken::DOCTYPE:
         doctype_data_ = token.ReleaseDoctypeData();
         break;
@@ -286,7 +289,8 @@ class CORE_EXPORT AtomicHTMLToken {
         [[fallthrough]];
       case HTMLToken::kStartTag:
       case HTMLToken::kEndTag: {
-        const html_names::HTMLTag html_tag = LookupHtmlTag(token.GetName());
+        const html_names::HTMLTag html_tag =
+            lookupHTMLTag(token.GetName().data(), token.GetName().size());
         if (html_tag != html_names::HTMLTag::kUnknown)
           return HTMLTokenName(html_tag);
         return HTMLTokenName(token.GetName().AsAtomicString());
@@ -374,13 +378,9 @@ void AtomicHTMLToken::InitializeAttributes(
       }
     }
 
-    // The string pointer in |value| is null for attributes with no values, but
-    // the null atom is used to represent absence of attributes; attributes with
-    // no values have the value set to an empty atom instead.
-    AtomicString value(attribute.GetValue());
-    if (value.IsNull()) {
-      value = g_empty_atom;
-    }
+    AtomicString value =
+        HTMLAtomicStringCache::MakeAttributeValue(attribute.ValueBuffer());
+    DCHECK(!value.IsNull()) << "Attribute value should never be null";
     attributes_.UncheckedAppend(Attribute(std::move(name), std::move(value)));
   }
 }

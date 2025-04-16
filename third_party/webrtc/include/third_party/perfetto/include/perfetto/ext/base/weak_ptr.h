@@ -78,7 +78,8 @@ class WeakPtr {
 template <typename T>
 class WeakPtrFactory {
  public:
-  explicit WeakPtrFactory(T* owner) : weak_ptr_(std::make_shared<T*>(owner)) {
+  explicit WeakPtrFactory(T* owner)
+      : weak_ptr_(std::shared_ptr<T*>(new T* {owner})) {
     PERFETTO_DCHECK_THREAD(thread_checker);
   }
 
@@ -103,7 +104,7 @@ class WeakPtrFactory {
     // We should not have passed out any weak pointers yet at this point.
     PERFETTO_DCHECK(weak_ptr_.handle_.use_count() == 1);
 
-    weak_ptr_ = WeakPtr<T>(std::make_shared<T*>(owner));
+    weak_ptr_ = WeakPtr<T>(std::shared_ptr<T*>(new T* {owner}));
   }
 
  private:

@@ -9,10 +9,7 @@
 
 #include "base/dcheck_is_on.h"
 #include "base/functional/callback.h"
-#include "base/memory/weak_ptr.h"
-#include "mojo/public/cpp/bindings/pending_associated_remote.h"
 #include "third_party/blink/public/mojom/indexeddb/indexeddb.mojom-blink.h"
-#include "third_party/blink/renderer/modules/indexeddb/idb_record_array.h"
 #include "third_party/blink/renderer/platform/heap/persistent.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/deque.h"
@@ -25,8 +22,8 @@ class IDBDatabaseGetAllResultSinkImpl;
 class IDBKey;
 class IDBRequest;
 class IDBRequestLoader;
-class IDBRequestTest;
 class IDBValue;
+class WebIDBCursor;
 
 // Queues up a transaction's IDBRequest results for orderly delivery.
 //
@@ -65,23 +62,24 @@ class MODULES_EXPORT IDBRequestQueueItem {
                       std::unique_ptr<IDBValue>,
                       base::OnceClosure on_load_complete);
   IDBRequestQueueItem(IDBRequest*,
+                      Vector<std::unique_ptr<IDBValue>>,
+                      base::OnceClosure on_result_ready);
+  IDBRequestQueueItem(IDBRequest*,
                       std::unique_ptr<IDBKey>,
                       std::unique_ptr<IDBKey> primary_key,
                       std::unique_ptr<IDBValue>,
                       base::OnceClosure on_result_ready);
-  IDBRequestQueueItem(
-      IDBRequest*,
-      mojo::PendingAssociatedRemote<mojom::blink::IDBCursor> pending_cursor,
-      std::unique_ptr<IDBKey>,
-      std::unique_ptr<IDBKey> primary_key,
-      std::unique_ptr<IDBValue>,
-      base::OnceClosure on_result_ready);
+  IDBRequestQueueItem(IDBRequest*,
+                      std::unique_ptr<WebIDBCursor>,
+                      std::unique_ptr<IDBKey>,
+                      std::unique_ptr<IDBKey> primary_key,
+                      std::unique_ptr<IDBValue>,
+                      base::OnceClosure on_result_ready);
   // Asynchronous fetching of multiple results.
   IDBRequestQueueItem(
       IDBRequest*,
-      mojom::blink::IDBGetAllResultType get_all_result_type,
-      mojo::PendingAssociatedReceiver<mojom::blink::IDBDatabaseGetAllResultSink>
-          receiver,
+      bool key_only,
+      mojo::PendingReceiver<mojom::blink::IDBDatabaseGetAllResultSink> receiver,
       base::OnceClosure on_result_ready);
 
   ~IDBRequestQueueItem();
@@ -111,9 +109,14 @@ class MODULES_EXPORT IDBRequestQueueItem {
   // This should only be called by the request's IDBTransaction.
   void SendResult();
 
+  // Called by the associated IDBRequestLoader when result processing is done.
+  void OnResultLoadComplete();
+
+  // Called by the associated IDBRequestLoader when result processing fails.
+  void OnResultLoadComplete(DOMException* error);
+
  private:
   friend class IDBDatabaseGetAllResultSinkImpl;
-  friend class IDBRequestTest;
 
   // The IDBRequest callback that will be called for this result.
   enum ResponseType {
@@ -122,63 +125,35 @@ class MODULES_EXPORT IDBRequestQueueItem {
     kError,
     kNumber,
     kKey,
-    kKeyArray,
     kKeyPrimaryKeyValue,
-    kRecordArray,
     kValue,
     kValueArray,
     kVoid,
   };
-
-  // Checks `values_` for wrapped entries and, if there are any, creates
-  // `loader_` to unwrap them. Returns whether the loader was created.
-  // Note that `values_` is std::move'd into the loader when it's created.
-  bool MaybeCreateLoader();
-
-  // Callback run from IDBRequestLoader with the unwrapped values.
-  void OnLoadComplete(Vector<std::unique_ptr<IDBValue>>&& values,
-                      DOMException* error);
-
-  // Handle completion of post-processing, if any, of the result.
-  void OnResultReady();
 
   // The IDBRequest that will receive a callback for this result.
   Persistent<IDBRequest> request_;
 
   // The error argument to the IDBRequest callback.
   //
-  // Only used if the `response_type_` is `kError`.
+  // Only used if the mode_ is kError.
   Persistent<DOMException> error_;
 
   // The key argument to the IDBRequest callback.
   //
-  // Only used if `response_type_` is `kKey`, `kKeyPrimaryKeyValue` or
-  // `kCursorKeyPrimaryKeyValue`.
+  // Only used if mode_ is kKeyPrimaryKeyValue.
   std::unique_ptr<IDBKey> key_;
 
   // The primary_key argument to the IDBRequest callback.
   //
-  // Only used if `response_type_` is `kKeyPrimaryKeyValue` or
-  // `kCursorKeyPrimaryKeyValue`.
+  // Only used if mode_ is kKeyPrimaryKeyValue.
   std::unique_ptr<IDBKey> primary_key_;
 
-  // Contains 3 vectors: 1 for primary keys, 1 for values and 1 for index keys.
-  // Several kinds of `response_type_` use 1 or more of these vectors:
-  //
-  // (1) `kValue`, `kKeyPrimaryKeyValue` and `kCursorKeyPrimaryKeyValue` store
-  //     a single value in `records_.values`:
-  //
-  // (2) `kKeyArray` stores keys in `records_.primary_keys` for `getAllKeys()`.
-  //
-  // (3) `kValueArray` stores values in `records_.values` for `getAll()`.
-  //
-  // (4) `kRecordArray` stores primary keys, index keys and values in
-  //     `records_` for `getAllRecords()`.  The vectors are parallel.
-  //     `IDBObject::getAllRecords()` leaves `records_.index_keys` empty.
-  IDBRecordArray records_;
+  // All the values that will be passed back to the IDBRequest.
+  Vector<std::unique_ptr<IDBValue>> values_;
 
   // The cursor argument to the IDBRequest callback.
-  mojo::PendingAssociatedRemote<mojom::blink::IDBCursor> pending_cursor_;
+  std::unique_ptr<WebIDBCursor> cursor_;
 
   // Asynchronous result collection for get all.
   std::unique_ptr<IDBDatabaseGetAllResultSinkImpl> get_all_sink_;
@@ -214,11 +189,6 @@ class MODULES_EXPORT IDBRequestQueueItem {
   // `IDBRequest::SendResult()` call occurs.
   bool result_sent_ = false;
 #endif  // DCHECK_IS_ON()
-
-  // A WeakPtr to this class is passed in the callback to IDBRequestLoader for
-  // correctness and future-proofing. There is no known case currently where
-  // the callback is dispatched after we're destroyed.
-  base::WeakPtrFactory<IDBRequestQueueItem> weak_factory_{this};
 };
 
 using IDBRequestQueue = Deque<std::unique_ptr<IDBRequestQueueItem>>;

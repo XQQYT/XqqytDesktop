@@ -5,11 +5,10 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_OPENTYPE_OPEN_TYPE_BASELINE_METRICS_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_OPENTYPE_OPEN_TYPE_BASELINE_METRICS_H_
 
-#include <hb.h>
-
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/fonts/font_description.h"
+
+#include <hb.h>
 
 namespace blink {
 class HarfBuzzFace;
@@ -22,11 +21,11 @@ class PLATFORM_EXPORT OpenTypeBaselineMetrics {
   // OpenType spec reference:
   // https://learn.microsoft.com/en-us/typography/opentype/spec/baselinetags
   // Read the alphabetic baseline from the open type table.
-  std::optional<float> OpenTypeAlphabeticBaseline();
+  absl::optional<float> OpenTypeAlphabeticBaseline();
   // Read the hanging baseline from the open type table.
-  std::optional<float> OpenTypeHangingBaseline();
+  absl::optional<float> OpenTypeHangingBaseline();
   // Read the ideographic baseline from the open type table.
-  std::optional<float> OpenTypeIdeographicBaseline();
+  absl::optional<float> OpenTypeIdeographicBaseline();
 
  private:
   // TODO(crbug.com/1489080): When this member was briefly given

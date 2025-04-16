@@ -19,13 +19,13 @@
 namespace webrtc {
 namespace jni {
 
-RTCCertificatePEM JavaToNativeRTCCertificatePEM(
+rtc::RTCCertificatePEM JavaToNativeRTCCertificatePEM(
     JNIEnv* jni,
     const JavaRef<jobject>& j_rtc_certificate);
 
 ScopedJavaLocalRef<jobject> NativeToJavaRTCCertificatePEM(
     JNIEnv* env,
-    const RTCCertificatePEM& certificate);
+    const rtc::RTCCertificatePEM& certificate);
 
 }  // namespace jni
 }  // namespace webrtc

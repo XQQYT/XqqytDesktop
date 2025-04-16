@@ -12,10 +12,9 @@
 #define RTC_BASE_TYPE_TRAITS_H_
 
 #include <cstddef>
-#include <string>
 #include <type_traits>
 
-namespace webrtc {
+namespace rtc {
 
 // Determines if the given class has zero-argument .data() and .size() methods
 // whose return values are convertible to T* and size_t, respectively.
@@ -136,15 +135,6 @@ static_assert(!IsIntlike<S>::value, "");
 
 }  // namespace test_enum_intlike
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace rtc {
-template <typename DS, typename T>
-using HasDataAndSize = ::webrtc::HasDataAndSize<DS, T>;
-template <typename T>
-using IsIntlike = ::webrtc::IsIntlike<T>;
 }  // namespace rtc
 
 #endif  // RTC_BASE_TYPE_TRAITS_H_

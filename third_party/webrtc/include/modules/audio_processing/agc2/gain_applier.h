@@ -13,7 +13,6 @@
 
 #include <stddef.h>
 
-#include "api/audio/audio_view.h"
 #include "modules/audio_processing/include/audio_frame_view.h"
 
 namespace webrtc {
@@ -21,14 +20,9 @@ class GainApplier {
  public:
   GainApplier(bool hard_clip_samples, float initial_gain_factor);
 
-  void ApplyGain(DeinterleavedView<float> signal);
+  void ApplyGain(AudioFrameView<float> signal);
   void SetGainFactor(float gain_factor);
   float GetGainFactor() const { return current_gain_factor_; }
-
-  [[deprecated("Use DeinterleavedView<> version")]] void ApplyGain(
-      AudioFrameView<float> signal) {
-    ApplyGain(signal.view());
-  }
 
  private:
   void Initialize(int samples_per_channel);

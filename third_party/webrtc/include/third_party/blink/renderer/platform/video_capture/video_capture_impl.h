@@ -33,6 +33,10 @@ namespace base {
 class SequencedTaskRunner;
 }  // namespace base
 
+namespace gpu {
+class GpuMemoryBufferSupport;
+}  // namespace gpu
+
 namespace media {
 class GpuVideoAcceleratorFactories;
 }  // namespace media
@@ -40,6 +44,8 @@ class GpuVideoAcceleratorFactories;
 namespace blink {
 
 class BrowserInterfaceBrokerProxy;
+
+PLATFORM_EXPORT BASE_DECLARE_FEATURE(kTimeoutHangingVideoCaptureStarts);
 
 // These values are persisted to logs. Entries should not be renumbered and
 // numeric values should never be reused.
@@ -60,7 +66,7 @@ class PLATFORM_EXPORT VideoCaptureImpl
  public:
   VideoCaptureImpl(media::VideoCaptureSessionId session_id,
                    scoped_refptr<base::SequencedTaskRunner> main_task_runner,
-                   const BrowserInterfaceBrokerProxy& browser_interface_broker);
+                   BrowserInterfaceBrokerProxy* browser_interface_broker);
   VideoCaptureImpl(const VideoCaptureImpl&) = delete;
   VideoCaptureImpl& operator=(const VideoCaptureImpl&) = delete;
   ~VideoCaptureImpl() override;
@@ -112,6 +118,8 @@ class PLATFORM_EXPORT VideoCaptureImpl
       media::mojom::blink::VideoCaptureHost* service) {
     video_capture_host_for_testing_ = service;
   }
+  void SetGpuMemoryBufferSupportForTesting(
+      std::unique_ptr<gpu::GpuMemoryBufferSupport> gpu_memory_buffer_support);
 
   // media::mojom::VideoCaptureObserver implementation.
   void OnStateChanged(
@@ -137,7 +145,47 @@ class PLATFORM_EXPORT VideoCaptureImpl
   friend class MockVideoCaptureImpl;
 
   struct BufferContext;
-  struct VideoFrameInitData;
+
+  // Responsible for constructing a media::VideoFrame from a
+  // media::mojom::blink::ReadyBufferPtr. If a gfx::GpuMemoryBuffer is involved,
+  // this requires a round-trip to the media thread.
+  class VideoFrameBufferPreparer {
+   public:
+    VideoFrameBufferPreparer(VideoCaptureImpl& video_capture_impl,
+                             media::mojom::blink::ReadyBufferPtr ready_buffer);
+
+    int32_t buffer_id() const;
+    const media::mojom::blink::VideoFrameInfoPtr& frame_info() const;
+    scoped_refptr<media::VideoFrame> frame() const;
+    scoped_refptr<BufferContext> buffer_context() const;
+
+    // If initialization is successful, the video frame is either already bound
+    // or it needs to be bound on the media thread, see IsVideoFrameBound() and
+    // BindVideoFrameOnMediaThread().
+    bool Initialize();
+    bool IsVideoFrameBound() const;
+    // Returns false if the video frame could not be bound because the GPU
+    // context was lost.
+    bool BindVideoFrameOnMediaThread(
+        media::GpuVideoAcceleratorFactories* gpu_factories);
+    // Adds destruction observers and finalizes the color spaces.
+    // Called from OnVideoFrameReady() prior to frame delivery after deciding to
+    // use the media::VideoFrame.
+    void Finalize();
+
+   private:
+    // Set by constructor.
+    const raw_ref<VideoCaptureImpl, ExperimentalRenderer> video_capture_impl_;
+    int32_t buffer_id_;
+    media::mojom::blink::VideoFrameInfoPtr frame_info_;
+    // Set by Initialize().
+    scoped_refptr<BufferContext> buffer_context_;
+    scoped_refptr<media::VideoFrame> frame_;
+    std::unique_ptr<gfx::GpuMemoryBuffer> gpu_memory_buffer_;
+#if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_MAC)
+    bool is_webgpu_compatible_ = false;
+#endif
+  };
 
   // Contains information about a video capture client, including capture
   // parameters callbacks to the client.
@@ -147,15 +195,15 @@ class PLATFORM_EXPORT VideoCaptureImpl
 
   using BufferFinishedCallback = base::OnceClosure;
 
-  bool ProcessBuffer(media::mojom::blink::ReadyBufferPtr ready_buffer);
-  static bool BindVideoFrameOnMediaTaskRunner(
+  static void BindVideoFrameOnMediaThread(
       media::GpuVideoAcceleratorFactories* gpu_factories,
-      gfx::GpuMemoryBufferHandle gmb_handle,
-      VideoFrameInitData& video_frame_init_data,
-      base::OnceCallback<void()> on_gmb_not_supported);
-
-  void OnVideoFrameReady(base::TimeTicks reference_time,
-                         VideoFrameInitData video_frame_init_data);
+      std::unique_ptr<VideoFrameBufferPreparer> frame_preparer,
+      base::OnceCallback<void(std::unique_ptr<VideoFrameBufferPreparer>)>
+          on_frame_ready_callback,
+      base::OnceCallback<void()> on_gpu_context_lost);
+  void OnVideoFrameReady(
+      base::TimeTicks reference_time,
+      std::unique_ptr<VideoFrameBufferPreparer> frame_preparer);
 
   void OnAllClientsFinishedConsumingFrame(
       int buffer_id,
@@ -198,9 +246,6 @@ class PLATFORM_EXPORT VideoCaptureImpl
   void SetGpuFactoriesHandleOnIOTaskRunner(
       media::GpuVideoAcceleratorFactories* gpu_factories);
 
-  // Performs RequirePremappedFrames() and sets
-  // `mappable_buffers_not_supported_`.
-  void OnMappableBuffersNotSupported();
   // Sets fallback mode which will make it always request
   // premapped frames from the capturer.
   void RequirePremappedFrames();
@@ -219,7 +264,7 @@ class PLATFORM_EXPORT VideoCaptureImpl
   mojo::PendingRemote<media::mojom::blink::VideoCaptureHost>
       pending_video_capture_host_;
   mojo::Remote<media::mojom::blink::VideoCaptureHost> video_capture_host_;
-  raw_ptr<media::mojom::blink::VideoCaptureHost>
+  raw_ptr<media::mojom::blink::VideoCaptureHost, ExperimentalRenderer>
       video_capture_host_for_testing_;
 
   mojo::Receiver<media::mojom::blink::VideoCaptureObserver> observer_receiver_{
@@ -245,10 +290,15 @@ class PLATFORM_EXPORT VideoCaptureImpl
   int num_first_frame_logs_ = 0;
 
   // Methods of |gpu_factories_| need to run on |media_task_runner_|.
-  raw_ptr<media::GpuVideoAcceleratorFactories> gpu_factories_ = nullptr;
+  raw_ptr<media::GpuVideoAcceleratorFactories, ExperimentalRenderer>
+      gpu_factories_ = nullptr;
   scoped_refptr<base::SequencedTaskRunner> media_task_runner_;
   scoped_refptr<base::SequencedTaskRunner> main_task_runner_;
-  bool mappable_buffers_not_supported_ = false;
+  bool gmb_not_supported_ = false;
+
+  std::unique_ptr<gpu::GpuMemoryBufferSupport> gpu_memory_buffer_support_;
+
+  scoped_refptr<base::UnsafeSharedMemoryPool> pool_;
 
   // Stores feedback from the clients, received in |ProcessFeedback()|.
   // Only accessed on the IO thread.

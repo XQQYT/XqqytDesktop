@@ -49,7 +49,7 @@ struct function_traits<std::_Bind<Callable(Args...)>>
 using callback_id = size_t;
 
 class NetworkController;
-
+class WebrtcController;
 class EventBus {
 public:
     EventBus(const EventBus&) = delete;
@@ -149,7 +149,8 @@ private:
     std::unordered_set<std::string> registered_events;
     std::atomic<callback_id> next_id{0};
 
-    NetworkController *network_controller;
+    std::unique_ptr<NetworkController> network_controller;
+    std::unique_ptr<WebrtcController> webrtc_controller;
 };
 
 #endif

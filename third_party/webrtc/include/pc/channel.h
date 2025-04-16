@@ -15,12 +15,12 @@
 
 #include <functional>
 #include <memory>
-#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "api/crypto/crypto_options.h"
 #include "api/jsep.h"
 #include "api/media_types.h"
@@ -83,7 +83,7 @@ class BaseChannel : public ChannelInterface,
   // Constructor for use when the MediaChannels are split
   BaseChannel(
       webrtc::TaskQueueBase* worker_thread,
-      webrtc::Thread* network_thread,
+      rtc::Thread* network_thread,
       webrtc::TaskQueueBase* signaling_thread,
       std::unique_ptr<MediaSendChannelInterface> media_send_channel,
       std::unique_ptr<MediaReceiveChannelInterface> media_receive_channel,
@@ -94,7 +94,7 @@ class BaseChannel : public ChannelInterface,
   virtual ~BaseChannel();
 
   webrtc::TaskQueueBase* worker_thread() const { return worker_thread_; }
-  webrtc::Thread* network_thread() const { return network_thread_; }
+  rtc::Thread* network_thread() const { return network_thread_; }
   const std::string& mid() const override { return demuxer_criteria_.mid(); }
   // TODO(deadbeef): This is redundant; remove this.
   absl::string_view transport_name() const override {
@@ -122,10 +122,10 @@ class BaseChannel : public ChannelInterface,
   }
 
   // Channel control
-  bool SetLocalContent(const webrtc::MediaContentDescription* content,
+  bool SetLocalContent(const MediaContentDescription* content,
                        webrtc::SdpType type,
                        std::string& error_desc) override;
-  bool SetRemoteContent(const webrtc::MediaContentDescription* content,
+  bool SetRemoteContent(const MediaContentDescription* content,
                         webrtc::SdpType type,
                         std::string& error_desc) override;
   // Controls whether this channel will receive packets on the basis of
@@ -149,13 +149,12 @@ class BaseChannel : public ChannelInterface,
 
   // Used for latency measurements.
   void SetFirstPacketReceivedCallback(std::function<void()> callback) override;
-  void SetFirstPacketSentCallback(std::function<void()> callback) override;
 
   // From RtpTransport - public for testing only
   void OnTransportReadyToSend(bool ready);
 
   // Only public for unit tests.  Otherwise, consider protected.
-  int SetOption(SocketType type, webrtc::Socket::Option o, int val) override;
+  int SetOption(SocketType type, rtc::Socket::Option o, int val) override;
 
   // RtpPacketSinkInterface overrides.
   void OnRtpPacket(const webrtc::RtpPacketReceived& packet) override;
@@ -229,7 +228,7 @@ class BaseChannel : public ChannelInterface,
   // From RtpTransportInternal
   void OnWritableState(bool writable);
 
-  void OnNetworkRouteChanged(std::optional<rtc::NetworkRoute> network_route);
+  void OnNetworkRouteChanged(absl::optional<rtc::NetworkRoute> network_route);
 
   bool SendPacket(bool rtcp,
                   rtc::CopyOnWriteBuffer* packet,
@@ -257,18 +256,18 @@ class BaseChannel : public ChannelInterface,
                             webrtc::SdpType type,
                             std::string& error_desc)
       RTC_RUN_ON(worker_thread());
-  bool UpdateRemoteStreams_w(const webrtc::MediaContentDescription* content,
+  bool UpdateRemoteStreams_w(const MediaContentDescription* content,
                              webrtc::SdpType type,
                              std::string& error_desc)
       RTC_RUN_ON(worker_thread());
-  virtual bool SetLocalContent_w(const webrtc::MediaContentDescription* content,
+  virtual bool SetLocalContent_w(const MediaContentDescription* content,
                                  webrtc::SdpType type,
                                  std::string& error_desc)
       RTC_RUN_ON(worker_thread()) = 0;
-  virtual bool SetRemoteContent_w(
-      const webrtc::MediaContentDescription* content,
-      webrtc::SdpType type,
-      std::string& error_desc) RTC_RUN_ON(worker_thread()) = 0;
+  virtual bool SetRemoteContent_w(const MediaContentDescription* content,
+                                  webrtc::SdpType type,
+                                  std::string& error_desc)
+      RTC_RUN_ON(worker_thread()) = 0;
 
   // Returns a list of RTP header extensions where any extension URI is unique.
   // Encrypted extensions will be either preferred or discarded, depending on
@@ -296,7 +295,7 @@ class BaseChannel : public ChannelInterface,
   // failed, which needs to be treated as an error.
   bool MaybeUpdateDemuxerAndRtpExtensions_w(
       bool update_demuxer,
-      std::optional<RtpHeaderExtensions> extensions,
+      absl::optional<RtpHeaderExtensions> extensions,
       std::string& error_desc) RTC_RUN_ON(worker_thread());
 
   bool RegisterRtpDemuxerSink_w() RTC_RUN_ON(worker_thread());
@@ -313,21 +312,19 @@ class BaseChannel : public ChannelInterface,
   void SignalSentPacket_n(const rtc::SentPacket& sent_packet);
 
   webrtc::TaskQueueBase* const worker_thread_;
-  webrtc::Thread* const network_thread_;
+  rtc::Thread* const network_thread_;
   webrtc::TaskQueueBase* const signaling_thread_;
   rtc::scoped_refptr<webrtc::PendingTaskSafetyFlag> alive_;
 
-  // The functions are deleted after they have been called.
   std::function<void()> on_first_packet_received_
       RTC_GUARDED_BY(network_thread());
-  std::function<void()> on_first_packet_sent_ RTC_GUARDED_BY(network_thread());
 
   webrtc::RtpTransportInternal* rtp_transport_
       RTC_GUARDED_BY(network_thread()) = nullptr;
 
-  std::vector<std::pair<webrtc::Socket::Option, int> > socket_options_
+  std::vector<std::pair<rtc::Socket::Option, int> > socket_options_
       RTC_GUARDED_BY(network_thread());
-  std::vector<std::pair<webrtc::Socket::Option, int> > rtcp_socket_options_
+  std::vector<std::pair<rtc::Socket::Option, int> > rtcp_socket_options_
       RTC_GUARDED_BY(network_thread());
   bool writable_ RTC_GUARDED_BY(network_thread()) = false;
   bool was_ever_writable_n_ RTC_GUARDED_BY(network_thread()) = false;
@@ -371,7 +368,7 @@ class VoiceChannel : public BaseChannel {
  public:
   VoiceChannel(
       webrtc::TaskQueueBase* worker_thread,
-      webrtc::Thread* network_thread,
+      rtc::Thread* network_thread,
       webrtc::TaskQueueBase* signaling_thread,
       std::unique_ptr<VoiceMediaSendChannelInterface> send_channel_impl,
       std::unique_ptr<VoiceMediaReceiveChannelInterface> receive_channel_impl,
@@ -412,18 +409,18 @@ class VoiceChannel : public BaseChannel {
     return receive_channel();
   }
 
-  webrtc::MediaType media_type() const override {
-    return webrtc::MediaType::AUDIO;
+  cricket::MediaType media_type() const override {
+    return cricket::MEDIA_TYPE_AUDIO;
   }
 
  private:
   // overrides from BaseChannel
   void UpdateMediaSendRecvState_w() RTC_RUN_ON(worker_thread()) override;
-  bool SetLocalContent_w(const webrtc::MediaContentDescription* content,
+  bool SetLocalContent_w(const MediaContentDescription* content,
                          webrtc::SdpType type,
                          std::string& error_desc)
       RTC_RUN_ON(worker_thread()) override;
-  bool SetRemoteContent_w(const webrtc::MediaContentDescription* content,
+  bool SetRemoteContent_w(const MediaContentDescription* content,
                           webrtc::SdpType type,
                           std::string& error_desc)
       RTC_RUN_ON(worker_thread()) override;
@@ -441,7 +438,7 @@ class VideoChannel : public BaseChannel {
  public:
   VideoChannel(
       webrtc::TaskQueueBase* worker_thread,
-      webrtc::Thread* network_thread,
+      rtc::Thread* network_thread,
       webrtc::TaskQueueBase* signaling_thread,
       std::unique_ptr<VideoMediaSendChannelInterface> media_send_channel,
       std::unique_ptr<VideoMediaReceiveChannelInterface> media_receive_channel,
@@ -481,18 +478,18 @@ class VideoChannel : public BaseChannel {
     return receive_channel();
   }
 
-  webrtc::MediaType media_type() const override {
-    return webrtc::MediaType::VIDEO;
+  cricket::MediaType media_type() const override {
+    return cricket::MEDIA_TYPE_VIDEO;
   }
 
  private:
   // overrides from BaseChannel
   void UpdateMediaSendRecvState_w() RTC_RUN_ON(worker_thread()) override;
-  bool SetLocalContent_w(const webrtc::MediaContentDescription* content,
+  bool SetLocalContent_w(const MediaContentDescription* content,
                          webrtc::SdpType type,
                          std::string& error_desc)
       RTC_RUN_ON(worker_thread()) override;
-  bool SetRemoteContent_w(const webrtc::MediaContentDescription* content,
+  bool SetRemoteContent_w(const MediaContentDescription* content,
                           webrtc::SdpType type,
                           std::string& error_desc)
       RTC_RUN_ON(worker_thread()) override;

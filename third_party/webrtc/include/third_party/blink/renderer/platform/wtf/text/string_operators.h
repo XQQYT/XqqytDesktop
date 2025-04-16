@@ -23,7 +23,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TEXT_STRING_OPERATORS_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TEXT_STRING_OPERATORS_H_
 
-#include "base/numerics/checked_math.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/text/string_concatenate.h"
 
@@ -39,11 +38,11 @@ class StringAppend final {
   operator String() const;
   operator AtomicString() const;
 
-  size_t length() const;
+  unsigned length() const;
   bool Is8Bit() const;
 
-  void WriteTo(base::span<LChar> destination) const;
-  void WriteTo(base::span<UChar> destination) const;
+  void WriteTo(LChar* destination) const;
+  void WriteTo(UChar* destination) const;
 
  private:
   const StringType1 string1_;
@@ -57,17 +56,16 @@ StringAppend<StringType1, StringType2>::StringAppend(StringType1 string1,
 
 template <typename StringType1, typename StringType2>
 StringAppend<StringType1, StringType2>::operator String() const {
-  const size_t computed_length = length();
   if (Is8Bit()) {
-    base::span<LChar> buffer;
+    LChar* buffer;
     scoped_refptr<StringImpl> result =
-        StringImpl::CreateUninitialized(computed_length, buffer);
+        StringImpl::CreateUninitialized(length(), buffer);
     WriteTo(buffer);
     return result;
   }
-  base::span<UChar> buffer;
+  UChar* buffer;
   scoped_refptr<StringImpl> result =
-      StringImpl::CreateUninitialized(computed_length, buffer);
+      StringImpl::CreateUninitialized(length(), buffer);
   WriteTo(buffer);
   return result;
 }
@@ -85,39 +83,31 @@ bool StringAppend<StringType1, StringType2>::Is8Bit() const {
 }
 
 template <typename StringType1, typename StringType2>
-void StringAppend<StringType1, StringType2>::WriteTo(
-    base::span<LChar> destination) const {
+void StringAppend<StringType1, StringType2>::WriteTo(LChar* destination) const {
   DCHECK(Is8Bit());
   StringTypeAdapter<StringType1> adapter1(string1_);
   StringTypeAdapter<StringType2> adapter2(string2_);
-  // Assuming a left-heavy tree of StringAppend<>s, split using the length of
-  // the right side of the expression.
-  auto [part1, part2] =
-      destination.split_at(destination.size() - adapter2.length());
-  adapter1.WriteTo(part1);
-  adapter2.WriteTo(part2);
+  adapter1.WriteTo(destination);
+  adapter2.WriteTo(destination + adapter1.length());
 }
 
 template <typename StringType1, typename StringType2>
-void StringAppend<StringType1, StringType2>::WriteTo(
-    base::span<UChar> destination) const {
+void StringAppend<StringType1, StringType2>::WriteTo(UChar* destination) const {
   StringTypeAdapter<StringType1> adapter1(string1_);
   StringTypeAdapter<StringType2> adapter2(string2_);
-  // Assuming a left-heavy tree of StringAppend<>s, split using the length of
-  // the right side of the expression.
-  auto [part1, part2] =
-      destination.split_at(destination.size() - adapter2.length());
-  adapter1.WriteTo(part1);
-  adapter2.WriteTo(part2);
+  adapter1.WriteTo(destination);
+  adapter2.WriteTo(destination + adapter1.length());
 }
 
 template <typename StringType1, typename StringType2>
-size_t StringAppend<StringType1, StringType2>::length() const {
+unsigned StringAppend<StringType1, StringType2>::length() const {
   StringTypeAdapter<StringType1> adapter1(string1_);
-  base::CheckedNumeric<size_t> total(adapter1.length());
   StringTypeAdapter<StringType2> adapter2(string2_);
-  total += adapter2.length();
-  return total.ValueOrDie();
+  unsigned total = adapter1.length() + adapter2.length();
+  // Guard against overflow.
+  CHECK_GE(total, adapter1.length());
+  CHECK_GE(total, adapter2.length());
+  return total;
 }
 
 template <typename StringType1, typename StringType2>
@@ -129,15 +119,11 @@ class StringTypeAdapter<StringAppend<StringType1, StringType2>> {
       const StringAppend<StringType1, StringType2>& buffer)
       : buffer_(buffer) {}
 
-  size_t length() const { return buffer_.length(); }
+  unsigned length() const { return buffer_.length(); }
   bool Is8Bit() const { return buffer_.Is8Bit(); }
 
-  void WriteTo(base::span<LChar> destination) const {
-    buffer_.WriteTo(destination);
-  }
-  void WriteTo(base::span<UChar> destination) const {
-    buffer_.WriteTo(destination);
-  }
+  void WriteTo(LChar* destination) const { buffer_.WriteTo(destination); }
+  void WriteTo(UChar* destination) const { buffer_.WriteTo(destination); }
 
  private:
   const StringAppend<StringType1, StringType2>& buffer_;
@@ -160,6 +146,13 @@ inline StringAppend<const char*, StringView> operator+(
   return StringAppend<const char*, StringView>(string1, string2);
 }
 
+template <typename U, typename V>
+inline StringAppend<const char*, StringAppend<U, V>> operator+(
+    const char* string1,
+    const StringAppend<U, V>& string2) {
+  return StringAppend<const char*, StringAppend<U, V>>(string1, string2);
+}
+
 inline StringAppend<const UChar*, String> operator+(const UChar* string1,
                                                     const String& string2) {
   return StringAppend<const UChar*, String>(string1, string2);
@@ -175,6 +168,13 @@ inline StringAppend<const UChar*, StringView> operator+(
     const UChar* string1,
     const StringView& string2) {
   return StringAppend<const UChar*, StringView>(string1, string2);
+}
+
+template <typename U, typename V>
+inline StringAppend<const UChar*, StringAppend<U, V>> operator+(
+    const UChar* string1,
+    const StringAppend<U, V>& string2) {
+  return StringAppend<const UChar*, StringAppend<U, V>>(string1, string2);
 }
 
 template <typename T>

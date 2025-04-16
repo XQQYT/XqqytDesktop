@@ -19,20 +19,16 @@
 #ifndef GRPC_SRC_CORE_LIB_IOMGR_SOCKET_UTILS_POSIX_H
 #define GRPC_SRC_CORE_LIB_IOMGR_SOCKET_UTILS_POSIX_H
 
-#include <grpc/event_engine/endpoint_config.h>
-#include <grpc/event_engine/event_engine.h>
-#include <grpc/impl/grpc_types.h>
 #include <grpc/support/port_platform.h>
 
-#include <cstddef>
-#include <memory>
-#include <utility>
+#include <grpc/event_engine/endpoint_config.h>
+#include <grpc/impl/grpc_types.h>
 
 #include "src/core/lib/iomgr/error.h"
-#include "src/core/lib/iomgr/resolved_address.h"
+#include "src/core/lib/iomgr/resolve_address.h"
+#include "src/core/lib/iomgr/socket_factory_posix.h"
 #include "src/core/lib/iomgr/socket_mutator.h"
 #include "src/core/lib/resource_quota/resource_quota.h"
-#include "src/core/util/ref_counted_ptr.h"
 
 #ifdef GRPC_LINUX_ERRQUEUE
 #ifndef SO_ZEROCOPY
@@ -53,30 +49,23 @@ struct PosixTcpOptions {
   static constexpr int kMaxChunkSize = 32 * 1024 * 1024;
   static constexpr int kDefaultMaxSends = 4;
   static constexpr size_t kDefaultSendBytesThreshold = 16 * 1024;
-  // Let the system decide the proper buffer size.
-  static constexpr int kReadBufferSizeUnset = -1;
-  static constexpr int kDscpNotSet = -1;
   int tcp_read_chunk_size = kDefaultReadChunkSize;
   int tcp_min_read_chunk_size = kDefaultMinReadChunksize;
   int tcp_max_read_chunk_size = kDefaultMaxReadChunksize;
   int tcp_tx_zerocopy_send_bytes_threshold = kDefaultSendBytesThreshold;
   int tcp_tx_zerocopy_max_simultaneous_sends = kDefaultMaxSends;
-  int tcp_receive_buffer_size = kReadBufferSizeUnset;
   bool tcp_tx_zero_copy_enabled = kZerocpTxEnabledDefault;
   int keep_alive_time_ms = 0;
   int keep_alive_timeout_ms = 0;
-  int dscp = kDscpNotSet;
   bool expand_wildcard_addrs = false;
   bool allow_reuse_port = false;
   RefCountedPtr<ResourceQuota> resource_quota;
   struct grpc_socket_mutator* socket_mutator = nullptr;
-  std::shared_ptr<grpc_event_engine::experimental::EventEngine> event_engine;
   PosixTcpOptions() = default;
   // Move ctor
   PosixTcpOptions(PosixTcpOptions&& other) noexcept {
     socket_mutator = std::exchange(other.socket_mutator, nullptr);
     resource_quota = std::move(other.resource_quota);
-    event_engine = std::move(other.event_engine);
     CopyIntegerOptions(other);
   }
   // Move assignment
@@ -86,7 +75,6 @@ struct PosixTcpOptions {
     }
     socket_mutator = std::exchange(other.socket_mutator, nullptr);
     resource_quota = std::move(other.resource_quota);
-    event_engine = std::move(other.event_engine);
     CopyIntegerOptions(other);
     return *this;
   }
@@ -96,7 +84,6 @@ struct PosixTcpOptions {
       socket_mutator = grpc_socket_mutator_ref(other.socket_mutator);
     }
     resource_quota = other.resource_quota;
-    event_engine = other.event_engine;
     CopyIntegerOptions(other);
   }
   // Copy assignment
@@ -112,7 +99,6 @@ struct PosixTcpOptions {
       socket_mutator = grpc_socket_mutator_ref(other.socket_mutator);
     }
     resource_quota = other.resource_quota;
-    event_engine = other.event_engine;
     CopyIntegerOptions(other);
     return *this;
   }
@@ -137,7 +123,6 @@ struct PosixTcpOptions {
     keep_alive_timeout_ms = other.keep_alive_timeout_ms;
     expand_wildcard_addrs = other.expand_wildcard_addrs;
     allow_reuse_port = other.allow_reuse_port;
-    dscp = other.dscp;
   }
 };
 
@@ -170,9 +155,6 @@ grpc_error_handle grpc_set_socket_low_latency(int fd, int low_latency);
 
 // set SO_REUSEPORT
 grpc_error_handle grpc_set_socket_reuse_port(int fd, int reuse);
-
-/* Set Differentiated Services Code Point (DSCP) */
-grpc_error_handle grpc_set_socket_dscp(int fd, int dscp);
 
 // Configure the default values for TCP_USER_TIMEOUT
 void config_default_tcp_user_timeout(bool enable, int timeout, bool is_client);

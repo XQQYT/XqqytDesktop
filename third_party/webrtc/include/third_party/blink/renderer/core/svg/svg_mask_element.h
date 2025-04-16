@@ -52,6 +52,10 @@ class SVGMaskElement final : public SVGElement, public SVGTests {
  private:
   bool IsValid() const override { return SVGTests::IsValid(); }
 
+  void CollectStyleForPresentationAttribute(
+      const QualifiedName&,
+      const AtomicString&,
+      MutableCSSPropertyValueSet*) override;
   void SvgAttributeChanged(const SvgAttributeChangedParams&) override;
   void ChildrenChanged(const ChildrenChange&) override;
 
@@ -63,7 +67,7 @@ class SVGMaskElement final : public SVGElement, public SVGTests {
       const QualifiedName& attribute_name) const override;
   void SynchronizeAllSVGAttributes() const override;
   void CollectExtraStyleForPresentationAttribute(
-      HeapVector<CSSPropertyValue, 8>& style) override;
+      MutableCSSPropertyValueSet* style) override;
 
   Member<SVGAnimatedLength> x_;
   Member<SVGAnimatedLength> y_;

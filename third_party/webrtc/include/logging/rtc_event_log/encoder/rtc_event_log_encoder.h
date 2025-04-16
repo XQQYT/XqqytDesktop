@@ -11,7 +11,6 @@
 #ifndef LOGGING_RTC_EVENT_LOG_ENCODER_RTC_EVENT_LOG_ENCODER_H_
 #define LOGGING_RTC_EVENT_LOG_ENCODER_RTC_EVENT_LOG_ENCODER_H_
 
-#include <cstdint>
 #include <deque>
 #include <memory>
 #include <string>

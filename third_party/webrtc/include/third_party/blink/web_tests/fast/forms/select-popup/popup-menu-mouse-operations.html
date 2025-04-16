@@ -49,20 +49,8 @@ function openPickerErrorCallback() {
     testFailed('picker didn\'t open')
     finishJSTest();
 }
-openPickerDeprecatedJsTest(menu2, test1, openPickerErrorCallback);
-
+openPickerDeprecatedJsTest(menu, test1, openPickerErrorCallback);
 function test1() {
-    picker = internals.pagePopupWindow.global.picker;
-    // We had a bug that almost-invisible OPTION was selected and the popup was
-    // scrolled. crbug.com/558287.
-    eventSender.mouseMoveTo(10, picker.selectElement_.offsetHeight - 2);
-    shouldBeEqualToString('picker.selectElement_.selectedOptions[0].label', 'option20');
-    waitUntilClosingDeprecatedJsTest(function() {
-        openPickerDeprecatedJsTest(menu, test2, openPickerErrorCallback);
-    });
-}
-
-function test2() {
     picker = internals.pagePopupWindow.global.picker;
     shouldBeEqualToString('picker.selectElement_.value', '1');
     shouldBeEqualToString('menuElement.value', 'bar');
@@ -100,11 +88,11 @@ function test2() {
     shouldBe('mouseupEventCounter', '1');
 
     waitUntilClosingDeprecatedJsTest(function() {
-        openPickerDeprecatedJsTest(menu, test3, openPickerErrorCallback);
+        openPickerDeprecatedJsTest(menu, test2, openPickerErrorCallback);
     });
 }
 
-function test3() {
+function test2() {
     picker = internals.pagePopupWindow.global.picker;
     shouldBeEqualToString('picker.selectElement_.value', '2');
     shouldBeEqualToString('internals.selectMenuListText(menu)', 'baz');
@@ -121,6 +109,18 @@ function test3() {
     shouldBeNull('internals.pagePopupWindow');
     shouldBeEqualToString('menu.value', 'bar');
     shouldBeEqualToString('internals.selectMenuListText(menu)', 'bar');
+
+    waitUntilClosingDeprecatedJsTest(function() {
+        openPickerDeprecatedJsTest(menu2, test3, openPickerErrorCallback);
+    });
+}
+
+function test3() {
+    picker = internals.pagePopupWindow.global.picker;
+    // We had a bug that almost-invisible OPTION was selected and the popup was
+    // scrolled. crbug.com/558287.
+    eventSender.mouseMoveTo(10, picker.selectElement_.offsetHeight - 2);
+    shouldBeEqualToString('picker.selectElement_.selectedOptions[0].label', 'option20');
 
     finishJSTest();
 }

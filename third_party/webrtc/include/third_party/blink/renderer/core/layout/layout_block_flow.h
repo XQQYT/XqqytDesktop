@@ -38,7 +38,6 @@
 
 #include "base/dcheck_is_on.h"
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/layout/inline/inline_node_data.h"
 #include "third_party/blink/renderer/core/layout/layout_block.h"
 
 namespace blink {
@@ -143,31 +142,19 @@ class CORE_EXPORT LayoutBlockFlow : public LayoutBlock {
 
   // Returns the associated `InlineNodeData`, or `nullptr` if `this` doesn't
   // have one (i.e., not an NG inline formatting context.)
-  InlineNodeData* GetInlineNodeData() const {
+  virtual InlineNodeData* GetInlineNodeData() const {
     NOT_DESTROYED();
-    return inline_node_data_.Get();
+    return nullptr;
   }
   // Same as `GetInlineNodeData` and then `ClearInlineNodeData`.
-  InlineNodeData* TakeInlineNodeData() {
+  virtual InlineNodeData* TakeInlineNodeData() {
     NOT_DESTROYED();
-    return inline_node_data_.Release();
+    return nullptr;
   }
   // Reset `InlineNodeData` to a new instance.
-  void ResetInlineNodeData() {
-    NOT_DESTROYED();
-    inline_node_data_ = MakeGarbageCollected<InlineNodeData>();
-  }
+  virtual void ResetInlineNodeData() { NOT_DESTROYED(); }
   // Clear `InlineNodeData` to `nullptr`.
-  void ClearInlineNodeData() {
-    NOT_DESTROYED();
-    if (inline_node_data_) {
-      // inline_node_data_ is not used from now on but exists until GC happens,
-      // so it is better to eagerly clear HeapVector to improve memory
-      // utilization.
-      inline_node_data_->items.clear();
-      inline_node_data_.Clear();
-    }
-  }
+  virtual void ClearInlineNodeData() { NOT_DESTROYED(); }
   virtual void WillCollectInlines() { NOT_DESTROYED(); }
 
  protected:
@@ -181,13 +168,6 @@ class CORE_EXPORT LayoutBlockFlow : public LayoutBlock {
                        const HitTestLocation&,
                        const PhysicalOffset& accumulated_offset,
                        HitTestPhase) override;
-
-  void AddOutlineRects(OutlineRectCollector&,
-                       LayoutObject::OutlineInfo*,
-                       const PhysicalOffset& additional_offset,
-                       OutlineType) const override;
-
-  void DirtyLinesFromChangedChild(LayoutObject* child) final;
 
  private:
   void CreateOrDestroyMultiColumnFlowThreadIfNeeded(
@@ -215,7 +195,6 @@ class CORE_EXPORT LayoutBlockFlow : public LayoutBlock {
 
  private:
   Member<LayoutMultiColumnFlowThread> multi_column_flow_thread_;
-  Member<InlineNodeData> inline_node_data_;
 
  protected:
   // LayoutRubyBase objects need to be able to split and merge, moving their

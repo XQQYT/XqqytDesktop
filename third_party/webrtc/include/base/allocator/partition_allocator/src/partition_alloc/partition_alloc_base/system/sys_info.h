@@ -2,16 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_SYSTEM_SYS_INFO_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_SYSTEM_SYS_INFO_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_SYSTEM_SYS_INFO_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_SYSTEM_SYS_INFO_H_
 
 #include <cstdint>
 
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
 
 namespace partition_alloc::internal::base {
 
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) SysInfo {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) SysInfo {
  public:
   // Retrieves detailed numeric values for the OS version.
   // DON'T USE THIS ON THE MAC OR WINDOWS to determine the current OS release
@@ -26,4 +26,4 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) SysInfo {
 
 }  // namespace partition_alloc::internal::base
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_SYSTEM_SYS_INFO_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_SYSTEM_SYS_INFO_H_

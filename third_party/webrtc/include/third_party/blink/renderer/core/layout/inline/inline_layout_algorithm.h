@@ -8,20 +8,17 @@
 #include "base/dcheck_is_on.h"
 #include "base/notreached.h"
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/layout/box_fragment_builder.h"
-#include "third_party/blink/renderer/core/layout/constraint_space_builder.h"
 #include "third_party/blink/renderer/core/layout/inline/inline_node.h"
-#include "third_party/blink/renderer/core/layout/inline/line_box_fragment_builder.h"
 #include "third_party/blink/renderer/core/layout/inline/logical_line_item.h"
-#include "third_party/blink/renderer/core/layout/layout_algorithm.h"
-#include "third_party/blink/renderer/core/layout/unpositioned_float.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_box_fragment_builder.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_constraint_space_builder.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_layout_algorithm.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_unpositioned_float.h"
 #include "third_party/blink/renderer/platform/fonts/font_baseline.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 
 namespace blink {
 
-class ColumnSpannerPath;
-class ConstraintSpace;
 class ExclusionSpace;
 class InlineBreakToken;
 class InlineChildLayoutContext;
@@ -29,7 +26,9 @@ class InlineItem;
 class InlineLayoutStateStack;
 class InlineNode;
 class LineInfo;
-class LogicalLineContainer;
+class NGColumnSpannerPath;
+class NGConstraintSpace;
+struct InlineBoxState;
 struct InlineItemResult;
 struct LeadingFloats;
 
@@ -40,56 +39,80 @@ struct LeadingFloats;
 //
 // Uses LineBreaker to find InlineItems to form a line.
 class CORE_EXPORT InlineLayoutAlgorithm final
-    : public LayoutAlgorithm<InlineNode,
-                             LineBoxFragmentBuilder,
-                             InlineBreakToken> {
+    : public NGLayoutAlgorithm<InlineNode,
+                               LineBoxFragmentBuilder,
+                               InlineBreakToken> {
  public:
   InlineLayoutAlgorithm(InlineNode,
-                        const ConstraintSpace&,
+                        const NGConstraintSpace&,
                         const InlineBreakToken*,
-                        const ColumnSpannerPath*,
+                        const NGColumnSpannerPath*,
                         InlineChildLayoutContext* context);
-  ~InlineLayoutAlgorithm();
+  ~InlineLayoutAlgorithm() override;
 
   void CreateLine(const LineLayoutOpportunity&,
                   LineInfo*,
-                  LogicalLineContainer* line_container);
+                  LogicalLineItems* line_box);
 
-  const LayoutResult* Layout();
+  const NGLayoutResult* Layout() override;
 
-  MinMaxSizesResult ComputeMinMaxSizes(const MinMaxSizesFloatInput&) {
+  MinMaxSizesResult ComputeMinMaxSizes(const MinMaxSizesFloatInput&) override {
     NOTREACHED();
-  }
-
-#if EXPENSIVE_DCHECKS_ARE_ON()
-  void CheckBoxStates(const LineInfo&) const;
-#endif
-  void PlaceBlockInInline(const InlineItem&,
-                          InlineItemResult*,
-                          LogicalLineItems* line_box);
-
-  struct LineClampEllipsis {
-    STACK_ALLOCATED();
-
-   public:
-    String text;
-    const ShapeResult* shape_result;
-    FontHeight text_metrics;
-  };
-  const std::optional<LineClampEllipsis>& GetLineClampEllipsis() {
-    return line_clamp_ellipsis_;
+    return MinMaxSizesResult();
   }
 
  private:
   friend class LineWidthsTest;
 
   void PositionLeadingFloats(ExclusionSpace&, LeadingFloats&);
-  PositionedFloat PositionFloat(LayoutUnit origin_block_bfc_offset,
-                                LayoutObject* floating_object,
-                                ExclusionSpace*);
+  NGPositionedFloat PositionFloat(LayoutUnit origin_block_bfc_offset,
+                                  LayoutObject* floating_object,
+                                  ExclusionSpace*);
 
   void PrepareBoxStates(const LineInfo&, const InlineBreakToken*);
+  void RebuildBoxStates(const LineInfo&,
+                        const InlineBreakToken*,
+                        InlineLayoutStateStack*) const;
+#if EXPENSIVE_DCHECKS_ARE_ON()
+  void CheckBoxStates(const LineInfo&, const InlineBreakToken*) const;
+#endif
 
+  InlineBoxState* HandleOpenTag(const InlineItem&,
+                                const InlineItemResult&,
+                                LogicalLineItems*,
+                                InlineLayoutStateStack*) const;
+  InlineBoxState* HandleCloseTag(const InlineItem&,
+                                 const InlineItemResult&,
+                                 LogicalLineItems* line_box,
+                                 InlineBoxState*);
+
+  void BidiReorder(TextDirection base_direction, LogicalLineItems* line_box);
+
+  void PlaceControlItem(const InlineItem&,
+                        const LineInfo&,
+                        InlineItemResult*,
+                        LogicalLineItems* line_box,
+                        InlineBoxState*);
+  void PlaceHyphen(const InlineItemResult&,
+                   LayoutUnit hyphen_inline_size,
+                   LogicalLineItems* line_box,
+                   InlineBoxState*);
+  InlineBoxState* PlaceAtomicInline(const InlineItem&,
+                                    const LineInfo&,
+                                    InlineItemResult*,
+                                    LogicalLineItems* line_box);
+  void PlaceBlockInInline(const InlineItem&,
+                          const LineInfo&,
+                          InlineItemResult*,
+                          LogicalLineItems* line_box);
+  void PlaceInitialLetterBox(const InlineItem&,
+                             const LineInfo&,
+                             InlineItemResult*,
+                             LogicalLineItems* line_box);
+  void PlaceLayoutResult(InlineItemResult*,
+                         LogicalLineItems* line_box,
+                         InlineBoxState*,
+                         LayoutUnit inline_offset = LayoutUnit());
   void PlaceOutOfFlowObjects(const LineInfo&,
                              const FontHeight&,
                              LogicalLineItems* line_box);
@@ -98,10 +121,11 @@ class CORE_EXPORT InlineLayoutAlgorithm final
                             LayoutUnit ruby_block_start_adjust,
                             LineInfo*,
                             LogicalLineItems* line_box);
+  void PlaceRelativePositionedItems(LogicalLineItems* line_box);
+  void PlaceListMarker(const InlineItem&, InlineItemResult*, const LineInfo&);
 
   LayoutUnit ApplyTextAlign(LineInfo*);
-
-  void ApplyTextBoxTrim(LineInfo&, bool is_truncated);
+  absl::optional<LayoutUnit> ApplyJustify(LayoutUnit space, LineInfo*);
 
   // Add any trailing clearance requested by a BR 'clear' attribute on the line.
   // Return true if this was successful (this also includes cases where there is
@@ -109,40 +133,17 @@ class CORE_EXPORT InlineLayoutAlgorithm final
   // will be resumed in a subsequent fragmentainer.
   bool AddAnyClearanceAfterLine(const LineInfo&);
 
-  LayoutUnit SetAnnotationOverflow(
-      const LineInfo& line_info,
-      const LogicalLineItems& line_box,
-      const FontHeight& line_box_metrics,
-      std::optional<FontHeight> annotation_font_height);
-
-  LayoutUnit SetupLineClampEllipsis();
-
-  enum class LineClampState {
-    kShow,
-    kLineClampEllipsis,
-    kTextOverflowEllipsis,
-    kHide,
-  };
-  LineClampState GetLineClampState(const LineInfo*,
-                                   LayoutUnit line_box_height) const;
-
-  // Checks whether the remainder of the IFC (i.e. anything after the current
-  // break token) would be able to fit in the current line if it didn't have a
-  // line-clamp ellipsis that pushes some of that content to the next line.
-  //
-  // This method will try to compute that without performing actual line
-  // breaking, but it will return `nullopt` if it can't.
-  std::optional<bool> DoesRemainderFitInLineWithoutEllipsis(const LineInfo&);
+  LayoutUnit SetAnnotationOverflow(const LineInfo& line_info,
+                                   const LogicalLineItems& line_box,
+                                   const FontHeight& line_box_metrics);
 
   InlineLayoutStateStack* box_states_;
   InlineChildLayoutContext* context_;
 
-  const ColumnSpannerPath* column_spanner_path_;
+  const NGColumnSpannerPath* column_spanner_path_;
 
   MarginStrut end_margin_strut_;
-  std::optional<int> lines_until_clamp_;
-
-  std::optional<LineClampEllipsis> line_clamp_ellipsis_;
+  absl::optional<int> lines_until_clamp_;
 
   FontBaseline baseline_type_ = FontBaseline::kAlphabeticBaseline;
 

@@ -21,10 +21,7 @@
 #include <optional>
 #include <set>
 
-#include "perfetto/ext/base/flat_hash_map.h"
-#include "protos/perfetto/trace/ftrace/generic.pbzero.h"
 #include "src/kernel_utils/syscall_table.h"
-#include "src/traced/probes/ftrace/atrace_wrapper.h"
 #include "src/traced/probes/ftrace/compact_sched.h"
 #include "src/traced/probes/ftrace/ftrace_config_utils.h"
 #include "src/traced/probes/ftrace/ftrace_print_filter.h"
@@ -32,9 +29,6 @@
 #include "src/traced/probes/ftrace/proto_translation_table.h"
 
 namespace perfetto {
-
-constexpr std::string_view kKprobeGroup = "perfetto_kprobes";
-constexpr std::string_view kKretprobeGroup = "perfetto_kretprobes";
 
 namespace protos {
 namespace pbzero {
@@ -47,28 +41,24 @@ struct FtraceSetupErrors;
 // State held by the muxer per data source, used to parse ftrace according to
 // that data source's config.
 struct FtraceDataSourceConfig {
-  FtraceDataSourceConfig(
-      EventFilter event_filter_in,
-      EventFilter syscall_filter_in,
-      CompactSchedConfig compact_sched_in,
-      std::optional<FtracePrintFilterConfig> print_filter_in,
-      std::vector<std::string> atrace_apps_in,
-      std::vector<std::string> atrace_categories_in,
-      std::vector<std::string> atrace_categories_sdk_optout_in,
-      bool symbolize_ksyms_in,
-      uint32_t buffer_percent_in,
-      base::FlatSet<int64_t> syscalls_returning_fd_in)
-      : event_filter(std::move(event_filter_in)),
-        syscall_filter(std::move(syscall_filter_in)),
-        compact_sched(compact_sched_in),
-        print_filter(std::move(print_filter_in)),
-        atrace_apps(std::move(atrace_apps_in)),
-        atrace_categories(std::move(atrace_categories_in)),
-        atrace_categories_sdk_optout(
-            std::move(atrace_categories_sdk_optout_in)),
-        symbolize_ksyms(symbolize_ksyms_in),
-        buffer_percent(buffer_percent_in),
-        syscalls_returning_fd(std::move(syscalls_returning_fd_in)) {}
+  FtraceDataSourceConfig(EventFilter _event_filter,
+                         EventFilter _syscall_filter,
+                         CompactSchedConfig _compact_sched,
+                         std::optional<FtracePrintFilterConfig> _print_filter,
+                         std::vector<std::string> _atrace_apps,
+                         std::vector<std::string> _atrace_categories,
+                         bool _symbolize_ksyms,
+                         bool _preserve_ftrace_buffer,
+                         base::FlatSet<int64_t> _syscalls_returning_fd)
+      : event_filter(std::move(_event_filter)),
+        syscall_filter(std::move(_syscall_filter)),
+        compact_sched(_compact_sched),
+        print_filter(std::move(_print_filter)),
+        atrace_apps(std::move(_atrace_apps)),
+        atrace_categories(std::move(_atrace_categories)),
+        symbolize_ksyms(_symbolize_ksyms),
+        preserve_ftrace_buffer(_preserve_ftrace_buffer),
+        syscalls_returning_fd(std::move(_syscalls_returning_fd)) {}
   // The event filter allows to quickly check if a certain ftrace event with id
   // x is enabled for this data source.
   EventFilter event_filter;
@@ -87,19 +77,15 @@ struct FtraceDataSourceConfig {
   // Used only in Android for ATRACE_EVENT/os.Trace() userspace annotations.
   std::vector<std::string> atrace_apps;
   std::vector<std::string> atrace_categories;
-  std::vector<std::string> atrace_categories_sdk_optout;
 
   // When enabled will turn on the kallsyms symbolizer in CpuReader.
   const bool symbolize_ksyms;
 
-  // FtraceConfig.drain_buffer_percent for poll-based reads. Zero if unset.
-  const uint32_t buffer_percent;
+  // Does not clear previous traces.
+  const bool preserve_ftrace_buffer;
 
   // List of syscalls monitored to return a new filedescriptor upon success
   base::FlatSet<int64_t> syscalls_returning_fd;
-
-  // Keep track of the kprobe type for the given tracefs event id
-  base::FlatHashMap<uint32_t, protos::pbzero::KprobeEvent::KprobeType> kprobes;
 };
 
 // Ftrace is a bunch of globally modifiable persistent state.
@@ -120,7 +106,6 @@ class FtraceConfigMuxer {
   // should outlive this instance.
   FtraceConfigMuxer(
       FtraceProcfs* ftrace,
-      AtraceWrapper* atrace_wrapper,
       ProtoTranslationTable* table,
       SyscallTable syscalls,
       std::map<std::string, std::vector<GroupAndName>> vendor_events,
@@ -189,6 +174,10 @@ class FtraceConfigMuxer {
       const SyscallTable& syscalls);
 
  private:
+  static bool StartAtrace(const std::vector<std::string>& apps,
+                          const std::vector<std::string>& categories,
+                          std::string* atrace_errors);
+
   struct FtraceState {
     EventFilter ftrace_events;
     std::set<size_t> syscall_filter;  // syscall ids or kAllSyscallsId
@@ -197,17 +186,9 @@ class FtraceConfigMuxer {
     protos::pbzero::FtraceClock ftrace_clock{};
     // Used only in Android for ATRACE_EVENT/os.Trace() userspace:
     bool atrace_on = false;
-    // Apps that should have the app tag enabled. This is a union of all the
-    // active configs.
     std::vector<std::string> atrace_apps;
-    // Categories that should be enabled. This is a union of all the active
-    // configs.
     std::vector<std::string> atrace_categories;
-    // Categories for which the perfetto SDK track_event should be enabled.
-    std::vector<std::string> atrace_categories_prefer_sdk;
     bool saved_tracing_on;  // Backup for the original tracing_on.
-    // Set of kprobes that we've installed, to be cleaned up when tracing stops.
-    base::FlatSet<GroupAndName> installed_kprobes;
   };
 
   FtraceConfigMuxer(const FtraceConfigMuxer&) = delete;
@@ -215,13 +196,7 @@ class FtraceConfigMuxer {
 
   void SetupClock(const FtraceConfig& request);
   void SetupBufferSize(const FtraceConfig& request);
-  bool UpdateBufferPercent();
   void UpdateAtrace(const FtraceConfig& request, std::string* atrace_errors);
-  bool StartAtrace(const std::vector<std::string>& apps,
-                   const std::vector<std::string>& categories,
-                   std::string* atrace_errors);
-  bool SetAtracePreferSdk(const std::vector<std::string>& prefer_sdk_categories,
-                          std::string* atrace_errors);
   void DisableAtrace();
 
   // This processes the config to get the exact events.
@@ -230,11 +205,6 @@ class FtraceConfigMuxer {
   // atrace category -> Will add events in that category.
   std::set<GroupAndName> GetFtraceEvents(const FtraceConfig& request,
                                          const ProtoTranslationTable*);
-
-  void EnableFtraceEvent(const Event*,
-                         const GroupAndName& group_and_name,
-                         EventFilter* filter,
-                         FtraceSetupErrors* errors);
 
   // Returns true if the event filter has at least one event from group.
   bool FilterHasGroup(const EventFilter& filter, const std::string& group);
@@ -255,7 +225,6 @@ class FtraceConfigMuxer {
   bool SetSyscallEventFilter(const EventFilter& extra_syscalls);
 
   FtraceProcfs* ftrace_;
-  AtraceWrapper* atrace_wrapper_;
   ProtoTranslationTable* table_;
   SyscallTable syscalls_;
 
@@ -280,9 +249,7 @@ class FtraceConfigMuxer {
   bool secondary_instance_;
 };
 
-size_t ComputeCpuBufferSizeInPages(size_t requested_buffer_size_kb,
-                                   bool buffer_size_lower_bound,
-                                   int64_t sysconf_phys_pages);
+size_t ComputeCpuBufferSizeInPages(size_t requested_buffer_size_kb);
 
 }  // namespace perfetto
 

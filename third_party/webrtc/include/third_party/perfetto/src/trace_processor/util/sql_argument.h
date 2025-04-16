@@ -16,19 +16,15 @@
 
 #ifndef SRC_TRACE_PROCESSOR_UTIL_SQL_ARGUMENT_H_
 #define SRC_TRACE_PROCESSOR_UTIL_SQL_ARGUMENT_H_
-
 #include <optional>
-#include <string>
-#include <utility>
-#include <vector>
 
-#include "perfetto/base/logging.h"
 #include "perfetto/base/status.h"
-#include "perfetto/ext/base/string_view.h"
 #include "perfetto/trace_processor/basic_types.h"
 #include "src/trace_processor/containers/null_term_string_view.h"
 
-namespace perfetto::trace_processor::sql_argument {
+namespace perfetto {
+namespace trace_processor {
+namespace sql_argument {
 
 // Possible types which can be specified in SQL.
 // This differs from SqlValue::Type by allowing specifying richer
@@ -37,16 +33,13 @@ namespace perfetto::trace_processor::sql_argument {
 // and, when lots of values are stored, reduced memory usage.
 enum class Type {
   kBool,
-  kLong,
-  kDouble,
-  kString,
-
-  // Deprecated types.
-  // TODO(b/380259828): Remove.
   kInt,
   kUint,
-  kProto,
+  kLong,
   kFloat,
+  kDouble,
+  kString,
+  kProto,
   kBytes,
 };
 
@@ -111,6 +104,8 @@ base::Status ParseArgumentDefinitions(const std::string& args,
 // Serialises the given argument list into a string.
 std::string SerializeArguments(const std::vector<ArgumentDefinition>& args);
 
-}  // namespace perfetto::trace_processor::sql_argument
+}  // namespace sql_argument
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_UTIL_SQL_ARGUMENT_H_

@@ -30,10 +30,9 @@ class CORE_EXPORT MathMLPaddedElement final : public MathMLRowElement {
  private:
   void ParseAttribute(const AttributeModificationParams&) final;
   bool IsPresentationAttribute(const QualifiedName&) const final;
-  void CollectStyleForPresentationAttribute(
-      const QualifiedName&,
-      const AtomicString&,
-      HeapVector<CSSPropertyValue, 8>&) final;
+  void CollectStyleForPresentationAttribute(const QualifiedName&,
+                                            const AtomicString&,
+                                            MutableCSSPropertyValueSet*) final;
   LayoutObject* CreateLayoutObject(const ComputedStyle&) final;
 
   bool IsGroupingElement() const final { return false; }

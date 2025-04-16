@@ -5,12 +5,11 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_TABLE_TABLE_BORDERS_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_TABLE_TABLE_BORDERS_H_
 
-#include <optional>
-
 #include "base/check_op.h"
 #include "base/dcheck_is_on.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/notreached.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/style/computed_style.h"
 #include "third_party/blink/renderer/core/style/computed_style_constants.h"
 #include "third_party/blink/renderer/platform/geometry/layout_unit.h"
@@ -20,8 +19,8 @@
 
 namespace blink {
 
-class BlockNode;
 class ComputedStyle;
+class NGBlockNode;
 struct BoxStrut;
 
 // When table has collapsed borders, computing borders for table parts is
@@ -62,7 +61,7 @@ struct BoxStrut;
 
 class TableBorders : public GarbageCollected<TableBorders> {
  public:
-  static const TableBorders* ComputeTableBorders(const BlockNode&);
+  static const TableBorders* ComputeTableBorders(const NGBlockNode&);
 
   TableBorders(const BoxStrut& table_border, const bool is_collapsed);
 
@@ -135,7 +134,14 @@ class TableBorders : public GarbageCollected<TableBorders> {
         border_style = EBorderStyle::kNone;
         break;
     }
-    return ComputedStyle::CollapsedBorderStyle(border_style);
+    // The spec (https://drafts.csswg.org/css-backgrounds-3/#border-style)
+    // states that outset is treated as grove in the collapsing border model,
+    // and inset is treated as ridge in the collapsing border model.
+    if (border_style == EBorderStyle::kOutset)
+      return EBorderStyle::kGroove;
+    if (border_style == EBorderStyle::kInset)
+      return EBorderStyle::kRidge;
+    return border_style;
   }
 
   static Color BorderColor(const ComputedStyle* style, EdgeSide edge_side);
@@ -183,7 +189,7 @@ class TableBorders : public GarbageCollected<TableBorders> {
 
   const BoxStrut& TableBorder() const { return table_border_; }
 
-  BoxStrut CellBorder(const BlockNode& cell,
+  BoxStrut CellBorder(const NGBlockNode& cell,
                       wtf_size_t row,
                       wtf_size_t column,
                       wtf_size_t section,

@@ -25,7 +25,7 @@ struct RARPPM_SEE2_CONTEXT : RARPPM_DEF
   }
   uint getMean()
   {
-    short RetVal=GET_SHORT16(Summ) >> Shift;
+    uint RetVal=GET_SHORT16(Summ) >> Shift;
     Summ -= RetVal;
     return RetVal+(RetVal == 0);
   }

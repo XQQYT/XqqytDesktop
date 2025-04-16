@@ -17,7 +17,7 @@ namespace blink {
 class ComputedStyle;
 class FragmentData;
 class GraphicsContext;
-class PhysicalBoxFragment;
+class NGPhysicalBoxFragment;
 
 // This class is responsible for painting self-painting PaintLayer.
 //
@@ -50,7 +50,7 @@ class CORE_EXPORT PaintLayerPainter {
   void PaintFragmentWithPhase(PaintPhase,
                               const FragmentData&,
                               wtf_size_t fragment_data_idx,
-                              const PhysicalBoxFragment*,
+                              const NGPhysicalBoxFragment*,
                               GraphicsContext&,
                               PaintFlags);
   void PaintWithPhase(PaintPhase, GraphicsContext&, PaintFlags);

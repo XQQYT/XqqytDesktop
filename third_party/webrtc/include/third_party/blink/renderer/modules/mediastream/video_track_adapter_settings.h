@@ -7,9 +7,8 @@
 
 #include <stdint.h>
 
-#include <optional>
-
 #include "base/check.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "ui/gfx/geometry/size.h"
 
@@ -23,19 +22,19 @@ class MODULES_EXPORT VideoTrackAdapterSettings {
   // Creates a VideoTrackAdapterSettings with a given target resolution and
   // and frame rate, and without any constraints on the resolution.
   VideoTrackAdapterSettings(const gfx::Size& target_size,
-                            std::optional<double> max_frame_rate);
+                            absl::optional<double> max_frame_rate);
   // Creates a VideoTrackAdapterSettings with the specified resolution, frame
   // rate and resolution constraints. If |target_size| is null, it means that
   // no video processing is desired.
-  VideoTrackAdapterSettings(std::optional<gfx::Size> target_size,
+  VideoTrackAdapterSettings(absl::optional<gfx::Size> target_size,
                             double min_aspect_ratio,
                             double max_aspect_ratio,
-                            std::optional<double> max_frame_rate);
+                            absl::optional<double> max_frame_rate);
   VideoTrackAdapterSettings(const VideoTrackAdapterSettings& other);
   VideoTrackAdapterSettings& operator=(const VideoTrackAdapterSettings& other);
   bool operator==(const VideoTrackAdapterSettings& other) const;
 
-  const std::optional<gfx::Size>& target_size() const { return target_size_; }
+  const absl::optional<gfx::Size>& target_size() const { return target_size_; }
   int target_width() const {
     DCHECK(target_size_);
     return target_size_->width();
@@ -46,16 +45,16 @@ class MODULES_EXPORT VideoTrackAdapterSettings {
   }
   double min_aspect_ratio() const { return min_aspect_ratio_; }
   double max_aspect_ratio() const { return max_aspect_ratio_; }
-  std::optional<double> max_frame_rate() const { return max_frame_rate_; }
+  absl::optional<double> max_frame_rate() const { return max_frame_rate_; }
   void set_max_frame_rate(double max_frame_rate) {
     max_frame_rate_ = max_frame_rate;
   }
 
  private:
-  std::optional<gfx::Size> target_size_;
+  absl::optional<gfx::Size> target_size_;
   double min_aspect_ratio_;
   double max_aspect_ratio_;
-  std::optional<double> max_frame_rate_;
+  absl::optional<double> max_frame_rate_;
 };
 
 }  // namespace blink

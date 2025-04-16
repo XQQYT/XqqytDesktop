@@ -11,12 +11,11 @@
 #define TRACELINE_SYM_RESOLVER_H_
 
 #include <windows.h>
-
 #include <dbghelp.h>
 
-#include <map>
-#include <string>
 #include <vector>
+#include <string>
+#include <map>
 
 static BOOL CALLBACK SymEnumer(PCSTR name, DWORD64 base, PVOID context) {
   reinterpret_cast<std::vector<DWORD64>*>(context)->push_back(base);

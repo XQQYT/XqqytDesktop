@@ -32,7 +32,7 @@ class MODULES_EXPORT SharedStorageOperationDefinition final
 
   ~SharedStorageOperationDefinition() override;
 
-  void Trace(Visitor* visitor) const;
+  virtual void Trace(Visitor* visitor) const;
 
   const char* NameInHeapSnapshot() const override {
     return "SharedStorageOperationDefinition";

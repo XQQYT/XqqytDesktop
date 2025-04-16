@@ -681,7 +681,7 @@
 /* #undef HAVE_MEMFD_CREATE */
 
 /* Define to 1 if you have the <memory.h> header file. */
-/* #undef HAVE_MEMORY_H */
+#define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `memrchr' function. */
 #define HAVE_MEMRCHR 1
@@ -1351,7 +1351,7 @@
 
 /* Define to 1 if `major', `minor', and `makedev' are declared in
    <sysmacros.h>. */
-#define MAJOR_IN_SYSMACROS 1
+/* #undef MAJOR_IN_SYSMACROS */
 
 /* Define if mvwdelch in curses.h is an expression. */
 #define MVWDELCH_IS_EXPRESSION 1
@@ -1411,6 +1411,9 @@
 
 /* Define if you want to enable tracing references for debugging purpose */
 /* #undef Py_TRACE_REFS */
+
+/* Define to override the PY_VERSION reported Python version. */
+#define PY_VERSION_OVERRIDE "3.8.10+chromium.25"
 
 /* assume C89 semantics that RETSIGTYPE is always void */
 #define RETSIGTYPE void

@@ -35,6 +35,11 @@ std::shared_ptr<std::string> JsonFactory::ws_get_target_status(const std::string
     return nullptr;
 }
 
+std::shared_ptr<std::string> JsonFactory::ws_sdp_offer(const std::string&& user_id,const std::string&& target_id,const std::string&& sdp)
+{
+    return nullptr;
+}
+
 std::unique_ptr<Parser> JsonFactory::getParser()
 {
     return nullptr;

@@ -1,8 +1,10 @@
 #include "WebRTC.h"
 
-WebRTC::WebRTC():
-  sdpo(new rtc::RefCountedObject<SDPO>())
+
+WebRTC::WebRTC(Operator& base_operator):
+  webrtc_operator(base_operator)
 {
+  sdpo = new rtc::RefCountedObject<SDPO>(*this);
   is_first = true;
 }
 
@@ -49,4 +51,9 @@ void WebRTC::createSDP()
       exit(EXIT_FAILURE);
     }
     peer_connection->CreateOffer(sdpo.get(), webrtc::PeerConnectionInterface::RTCOfferAnswerOptions());
+}
+
+void WebRTC::display_string(std::string event_name,std::string str)
+{
+  webrtc_operator.dispatch_string(std::move(event_name),std::move(str));
 }

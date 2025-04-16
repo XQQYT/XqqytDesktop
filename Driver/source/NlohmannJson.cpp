@@ -74,6 +74,12 @@ std::shared_ptr<std::string> NlohmannJson::ws_get_target_status(const std::strin
     return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::ws_sdp_offer(const std::string&& user_id,const std::string&& target_id,const std::string&& sdp)
+{
+    json result_msg = {{"type","sdp_offer"},{"content",{{"user_id",user_id},{"target_id",target_id},{"sdp",sdp}}}};
+    return std::make_shared<std::string>(result_msg.dump());
+}
+
 
 std::unique_ptr<Parser> NlohmannJson::getParser()
 {

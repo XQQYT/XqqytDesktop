@@ -2,8 +2,12 @@
 #define _WEBRTCCONTROLLER_H
 #include "EventBus.h"
 #include "WebRTC.h"
+#include "Operator.h"
 
-class WebrtcController{
+class WebrtcController : public Operator{
+public:
+    void dispatch_string(std::string event_name,std::string str) override;
+
 public:
     WebrtcController();
     void initWebrtcSubscribe();

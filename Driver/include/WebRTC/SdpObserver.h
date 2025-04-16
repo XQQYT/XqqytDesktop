@@ -8,8 +8,10 @@
 #include "rtc_base/platform_thread_types.h"
 #include "rtc_base/thread.h"
 
+class WebRTC;
 class SDPO : public webrtc::CreateSessionDescriptionObserver {
  public:
+  SDPO(WebRTC&);
   // This callback transfers the ownership of the `desc`.
   // TODO(deadbeef): Make this take an std::unique_ptr<> to avoid confusion
   // around ownership.
@@ -24,6 +26,8 @@ class SDPO : public webrtc::CreateSessionDescriptionObserver {
 
  protected:
   ~SDPO() override = default;
+private:
+    WebRTC& webrtc_instance;
 };
 
 #endif

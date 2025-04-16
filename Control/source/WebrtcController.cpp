@@ -2,7 +2,7 @@
 
 WebrtcController::WebrtcController()
 {
-    webrtc_instance = std::make_unique<WebRTC>();
+    webrtc_instance = std::make_unique<WebRTC>(*this);
 }
 
 void WebrtcController::initWebrtcSubscribe()
@@ -16,4 +16,10 @@ void WebrtcController::initWebrtcSubscribe()
 void WebrtcController::createSDP()
 {
     webrtc_instance->createSDP();
+}
+
+void WebrtcController::dispatch_string(std::string event_name,std::string str)
+{
+    EventBus::getInstance().publish(event_name,std::move(str));
+    std::cout<<"publish "<<event_name<<"  "<<str<<std::endl;
 }

@@ -54,7 +54,6 @@ public:
     void TestNormalizeIllFormedText();
     void TestComposeJamoTBase();
     void TestComposeBoundaryAfter();
-    void TestNFKC_SCF();
 
 private:
     UnicodeString canonTests[24][3];

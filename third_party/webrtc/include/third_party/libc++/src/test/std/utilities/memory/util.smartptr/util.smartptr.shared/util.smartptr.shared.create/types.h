@@ -11,7 +11,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <exception>
 
 #include "test_macros.h"
 

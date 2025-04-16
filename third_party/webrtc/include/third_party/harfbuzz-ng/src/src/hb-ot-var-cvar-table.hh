@@ -45,8 +45,7 @@ struct cvar
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  hb_barrier () &&
-		  likely (version.major == 1) &&
+		  version.sanitize (c) && likely (version.major == 1) &&
 		  tupleVariationData.sanitize (c));
   }
 
@@ -107,14 +106,14 @@ struct cvar
 
       bool has_private_points = iterator.current_tuple->has_private_points ();
       if (has_private_points &&
-          !TupleVariationData::decompile_points (p, private_indices, end))
+          !TupleVariationData::unpack_points (p, private_indices, end))
         return false;
       const hb_vector_t<unsigned int> &indices = has_private_points ? private_indices : shared_indices;
 
       bool apply_to_all = (indices.length == 0);
       unsigned num_deltas = apply_to_all ? num_cvt_item : indices.length;
       if (unlikely (!unpacked_deltas.resize (num_deltas, false))) return false;
-      if (unlikely (!TupleVariationData::decompile_deltas (p, unpacked_deltas, end))) return false;
+      if (unlikely (!TupleVariationData::unpack_deltas (p, unpacked_deltas, end))) return false;
 
       for (unsigned int i = 0; i < num_deltas; i++)
       {

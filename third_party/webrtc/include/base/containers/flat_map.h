@@ -13,6 +13,7 @@
 
 #include "base/check.h"
 #include "base/containers/flat_tree.h"
+#include "base/template_util.h"
 
 namespace base {
 
@@ -280,9 +281,8 @@ template <class Key, class Mapped, class Compare, class Container>
 auto flat_map<Key, Mapped, Compare, Container>::operator[](const key_type& key)
     -> mapped_type& {
   iterator found = tree::lower_bound(key);
-  if (found == tree::end() || tree::key_comp()(key, found->first)) {
+  if (found == tree::end() || tree::key_comp()(key, found->first))
     found = tree::unsafe_emplace(found, key, mapped_type());
-  }
   return found->second;
 }
 
@@ -290,9 +290,8 @@ template <class Key, class Mapped, class Compare, class Container>
 auto flat_map<Key, Mapped, Compare, Container>::operator[](key_type&& key)
     -> mapped_type& {
   iterator found = tree::lower_bound(key);
-  if (found == tree::end() || tree::key_comp()(key, found->first)) {
+  if (found == tree::end() || tree::key_comp()(key, found->first))
     found = tree::unsafe_emplace(found, std::move(key), mapped_type());
-  }
   return found->second;
 }
 
@@ -303,9 +302,8 @@ auto flat_map<Key, Mapped, Compare, Container>::insert_or_assign(K&& key,
     -> std::pair<iterator, bool> {
   auto result =
       tree::emplace_key_args(key, std::forward<K>(key), std::forward<M>(obj));
-  if (!result.second) {
+  if (!result.second)
     result.first->second = std::forward<M>(obj);
-  }
   return result;
 }
 
@@ -317,9 +315,8 @@ auto flat_map<Key, Mapped, Compare, Container>::insert_or_assign(
     M&& obj) -> iterator {
   auto result = tree::emplace_hint_key_args(hint, key, std::forward<K>(key),
                                             std::forward<M>(obj));
-  if (!result.second) {
+  if (!result.second)
     result.first->second = std::forward<M>(obj);
-  }
   return result.first;
 }
 
@@ -373,15 +370,15 @@ template <class Key,
           class KeyCompare = std::less<>,
           class Container = std::vector<std::pair<Key, Mapped>>,
           class InputContainer,
-          class Projection = std::identity>
+          class Projection = base::identity>
 constexpr flat_map<Key, Mapped, KeyCompare, Container> MakeFlatMap(
     const InputContainer& unprojected_elements,
     const KeyCompare& comp = KeyCompare(),
     const Projection& proj = Projection()) {
   Container elements;
   internal::ReserveIfSupported(elements, unprojected_elements);
-  std::ranges::transform(unprojected_elements, std::back_inserter(elements),
-                         proj);
+  base::ranges::transform(unprojected_elements, std::back_inserter(elements),
+                          proj);
   return flat_map<Key, Mapped, KeyCompare, Container>(std::move(elements),
                                                       comp);
 }

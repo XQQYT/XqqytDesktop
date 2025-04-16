@@ -402,7 +402,6 @@ static inline int get_ur_golomb(GetBitContext *gb, int k, int limit,
     log = av_log2(buf);
 
     if (log > 31 - limit) {
-        av_assert2(log >= k);
         buf >>= log - k;
         buf  += (30U - log) << k;
         LAST_SKIP_BITS(re, gb, 32 + k - log);
@@ -425,8 +424,6 @@ static inline int get_ur_golomb(GetBitContext *gb, int k, int limit,
 
 /**
  * read unsigned golomb rice code (jpegls).
- *
- * @returns -1 on error
  */
 static inline int get_ur_golomb_jpegls(GetBitContext *gb, int k, int limit,
                                        int esc_len)
@@ -538,8 +535,6 @@ static inline int get_sr_golomb(GetBitContext *gb, int k, int limit,
 
 /**
  * read signed golomb rice code (flac).
- *
- * @returns INT_MIN on error
  */
 static inline int get_sr_golomb_flac(GetBitContext *gb, int k, int limit,
                                      int esc_len)

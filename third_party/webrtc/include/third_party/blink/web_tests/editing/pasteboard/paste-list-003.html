@@ -14,7 +14,8 @@ function editingTest()
     copyCommand();
 
     // Paste with the cursor right before "four" (insert between three and four)
-    moveSelectionForwardByLineCommand();
+    for (i = 0; i < 2; i++)
+        moveSelectionForwardByLineCommand();
     pasteCommand();
 
     // Verify that the cursor is in the right place (still before four).

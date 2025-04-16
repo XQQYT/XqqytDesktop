@@ -44,14 +44,13 @@ class FEImage final : public FilterEffect {
   // depend on the value of color-interpolation-filters.
   void SetOperatingInterpolationSpace(InterpolationSpace) override {}
 
-  StringBuilder& ExternalRepresentation(StringBuilder&,
-                                        wtf_size_t indent) const override;
+  WTF::TextStream& ExternalRepresentation(WTF::TextStream&,
+                                          int indention) const override;
 
   void Trace(Visitor*) const override;
 
  private:
   const LayoutObject* ReferencedLayoutObject() const;
-  scoped_refptr<Image> GetImage(const gfx::SizeF& container_size) const;
 
   FilterEffectType GetFilterEffectType() const override {
     return kFilterEffectTypeImage;

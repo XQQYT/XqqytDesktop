@@ -25,7 +25,6 @@
 
 #include "perfetto/public/pb_macros.h"
 
-PERFETTO_PB_MSG_DECL(perfetto_protos_AppWakelockInfo);
 PERFETTO_PB_MSG_DECL(perfetto_protos_Callstack);
 PERFETTO_PB_MSG_DECL(perfetto_protos_DebugAnnotationName);
 PERFETTO_PB_MSG_DECL(perfetto_protos_DebugAnnotationValueTypeName);
@@ -36,14 +35,10 @@ PERFETTO_PB_MSG_DECL(perfetto_protos_HistogramName);
 PERFETTO_PB_MSG_DECL(perfetto_protos_InternedGpuRenderStageSpecification);
 PERFETTO_PB_MSG_DECL(perfetto_protos_InternedGraphicsContext);
 PERFETTO_PB_MSG_DECL(perfetto_protos_InternedString);
-PERFETTO_PB_MSG_DECL(perfetto_protos_InternedV8Isolate);
-PERFETTO_PB_MSG_DECL(perfetto_protos_InternedV8JsFunction);
-PERFETTO_PB_MSG_DECL(perfetto_protos_InternedV8JsScript);
-PERFETTO_PB_MSG_DECL(perfetto_protos_InternedV8String);
-PERFETTO_PB_MSG_DECL(perfetto_protos_InternedV8WasmScript);
 PERFETTO_PB_MSG_DECL(perfetto_protos_LogMessageBody);
 PERFETTO_PB_MSG_DECL(perfetto_protos_Mapping);
 PERFETTO_PB_MSG_DECL(perfetto_protos_NetworkPacketContext);
+PERFETTO_PB_MSG_DECL(perfetto_protos_ProfiledFrameSymbols);
 PERFETTO_PB_MSG_DECL(perfetto_protos_SourceLocation);
 PERFETTO_PB_MSG_DECL(perfetto_protos_UnsymbolizedSourceLocation);
 
@@ -110,6 +105,11 @@ PERFETTO_PB_FIELD(perfetto_protos_InternedData,
                   5);
 PERFETTO_PB_FIELD(perfetto_protos_InternedData,
                   MSG,
+                  perfetto_protos_ProfiledFrameSymbols,
+                  profiled_frame_symbols,
+                  21);
+PERFETTO_PB_FIELD(perfetto_protos_InternedData,
+                  MSG,
                   perfetto_protos_Mapping,
                   mappings,
                   19);
@@ -153,65 +153,5 @@ PERFETTO_PB_FIELD(perfetto_protos_InternedData,
                   perfetto_protos_NetworkPacketContext,
                   packet_context,
                   30);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedV8String,
-                  v8_js_function_name,
-                  31);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedV8JsFunction,
-                  v8_js_function,
-                  32);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedV8JsScript,
-                  v8_js_script,
-                  33);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedV8WasmScript,
-                  v8_wasm_script,
-                  34);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedV8Isolate,
-                  v8_isolate,
-                  35);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedString,
-                  protolog_string_args,
-                  36);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedString,
-                  protolog_stacktrace,
-                  37);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedString,
-                  viewcapture_package_name,
-                  38);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedString,
-                  viewcapture_window_name,
-                  39);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedString,
-                  viewcapture_view_id,
-                  40);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_InternedString,
-                  viewcapture_class_name,
-                  41);
-PERFETTO_PB_FIELD(perfetto_protos_InternedData,
-                  MSG,
-                  perfetto_protos_AppWakelockInfo,
-                  app_wakelock_info,
-                  42);
 
 #endif  // INCLUDE_PERFETTO_PUBLIC_PROTOS_TRACE_INTERNED_DATA_INTERNED_DATA_PZC_H_

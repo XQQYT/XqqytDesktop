@@ -18,8 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 ()
 
     /** Initialize an RTCLegacyStatsReport object from a native StatsReport. */
-    - (instancetype)initWithNativeReport
-    : (const webrtc::StatsReport &)nativeReport;
+    - (instancetype)initWithNativeReport : (const webrtc::StatsReport &)nativeReport;
 
 @end
 

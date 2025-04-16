@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_DISALLOW_TRANSITION_SCOPE_H_
 
 #include "base/dcheck_is_on.h"
-#include "base/memory/raw_ref.h"
 
 #if DCHECK_IS_ON()
 
@@ -28,7 +27,7 @@ class BLINK_EXPORT WebDisallowTransitionScope {
  private:
   DocumentLifecycle& Lifecycle(WebDocument*) const;
 
-  const raw_ref<DocumentLifecycle> document_lifecycle_;
+  DocumentLifecycle& document_lifecycle_;
 };
 
 }  // namespace blink

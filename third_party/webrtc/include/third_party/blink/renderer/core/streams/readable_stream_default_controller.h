@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_STREAMS_READABLE_STREAM_DEFAULT_CONTROLLER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_STREAMS_READABLE_STREAM_DEFAULT_CONTROLLER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/streams/readable_stream_controller.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
@@ -18,6 +17,7 @@ class ExceptionState;
 class QueueWithSizes;
 class ReadableStream;
 class ReadRequest;
+class ScriptFunction;
 class ScriptState;
 class ScriptValue;
 class StrategySizeAlgorithm;
@@ -31,7 +31,7 @@ class ReadableStreamDefaultController : public ReadableStreamController {
   explicit ReadableStreamDefaultController(ScriptState*);
 
   // https://streams.spec.whatwg.org/#rs-default-controller-desired-size
-  std::optional<double> desiredSize() const { return GetDesiredSize(); }
+  absl::optional<double> desiredSize() const { return GetDesiredSize(); }
 
   // https://streams.spec.whatwg.org/#rs-default-controller-close
   void close(ScriptState*, ExceptionState&);
@@ -59,7 +59,7 @@ class ReadableStreamDefaultController : public ReadableStreamController {
                     v8::Local<v8::Value> e);
 
   // https://streams.spec.whatwg.org/#readable-stream-default-controller-get-desired-size
-  std::optional<double> GetDesiredSize() const;
+  absl::optional<double> GetDesiredSize() const;
 
   //
   // Used by TransformStream
@@ -79,11 +79,11 @@ class ReadableStreamDefaultController : public ReadableStreamController {
   void Trace(Visitor*) const override;
 
   // https://streams.spec.whatwg.org/#rs-default-controller-private-cancel
-  ScriptPromise<IDLUndefined> CancelSteps(ScriptState*,
-                                          v8::Local<v8::Value> reason) override;
+  v8::Local<v8::Promise> CancelSteps(ScriptState*,
+                                     v8::Local<v8::Value> reason) override;
 
   // https://streams.spec.whatwg.org/#rs-default-controller-private-pull
-  void PullSteps(ScriptState*, ReadRequest*, ExceptionState&) override;
+  void PullSteps(ScriptState*, ReadRequest*) override;
 
   // https://streams.spec.whatwg.org/#abstract-opdef-readablestreamdefaultcontroller-releasesteps
   void ReleaseSteps() override;
@@ -91,9 +91,6 @@ class ReadableStreamDefaultController : public ReadableStreamController {
  private:
   friend class ReadableStream;
   friend class ReadableStreamDefaultReader;
-
-  class CallPullIfNeededResolveFunction;
-  class CallPullIfNeededRejectFunction;
 
   // https://streams.spec.whatwg.org/#readable-stream-default-controller-call-pull-if-needed
   static void CallPullIfNeeded(ScriptState*, ReadableStreamDefaultController*);
@@ -135,8 +132,8 @@ class ReadableStreamDefaultController : public ReadableStreamController {
   Member<QueueWithSizes> queue_;
   double strategy_high_water_mark_ = 0.0;
   Member<StrategySizeAlgorithm> strategy_size_algorithm_;
-  Member<CallPullIfNeededResolveFunction> resolve_function_;
-  Member<CallPullIfNeededRejectFunction> reject_function_;
+  Member<ScriptFunction> resolve_function_;
+  Member<ScriptFunction> reject_function_;
 };
 
 template <>

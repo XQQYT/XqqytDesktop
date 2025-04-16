@@ -10,8 +10,6 @@
 
 namespace blink {
 
-class V8DirectiveType;
-
 // Provides the JavaScript-exposed Directive base class used by
 // window.fragmentDirective.items. This is the base interface for all fragment
 // directive types.
@@ -32,7 +30,7 @@ class Directive : public ScriptWrappable {
   void Trace(Visitor*) const override;
 
   // Web-exposed Directive interface.
-  V8DirectiveType type() const;
+  String type() const;
   String toString() const;
 
  protected:

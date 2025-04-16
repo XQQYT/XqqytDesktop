@@ -32,7 +32,6 @@ class CORE_EXPORT ScopedPagePauser final {
   USING_FAST_MALLOC(ScopedPagePauser);
 
  public:
-  explicit ScopedPagePauser(Page* primary_page);
   ScopedPagePauser();
   ScopedPagePauser(const ScopedPagePauser&) = delete;
   ScopedPagePauser& operator=(const ScopedPagePauser&) = delete;
@@ -41,7 +40,7 @@ class CORE_EXPORT ScopedPagePauser final {
  private:
   friend class Page;
 
-  static void SetPaused(Page* primary_page, bool);
+  static void SetPaused(bool);
   static bool IsActive();
 
   std::unique_ptr<MainThreadScheduler::RendererPauseHandle> pause_handle_;

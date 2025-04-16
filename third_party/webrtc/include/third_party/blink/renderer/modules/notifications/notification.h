@@ -38,7 +38,6 @@
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_value.h"
 #include "third_party/blink/renderer/bindings/core/v8/serialization/serialized_script_value.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_notification_permission.h"
 #include "third_party/blink/renderer/core/dom/dom_time_stamp.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/modules/event_target_modules.h"
@@ -47,6 +46,7 @@
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_receiver.h"
 #include "third_party/blink/renderer/platform/timer.h"
+#include "third_party/blink/renderer/platform/weborigin/kurl.h"
 
 namespace blink {
 
@@ -54,8 +54,8 @@ class ExecutionContext;
 class NotificationOptions;
 class NotificationResourcesLoader;
 class ScriptState;
-class TimestampTrigger;
 class V8NotificationPermissionCallback;
+class TimestampTrigger;
 
 class MODULES_EXPORT Notification final
     : public EventTarget,
@@ -120,10 +120,9 @@ class MODULES_EXPORT Notification final
   TimestampTrigger* showTrigger() const { return show_trigger_.Get(); }
   String scenario() const;
 
-  static V8NotificationPermission::Enum PermissionToV8Enum(
-      mojom::blink::PermissionStatus permission);
-  static V8NotificationPermission permission(ExecutionContext* context);
-  static ScriptPromise<V8NotificationPermission> requestPermission(
+  static String PermissionString(mojom::blink::PermissionStatus permission);
+  static String permission(ExecutionContext* context);
+  static ScriptPromise requestPermission(
       ScriptState* script_state,
       V8NotificationPermissionCallback* deprecated_callback = nullptr);
 

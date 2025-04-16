@@ -20,10 +20,6 @@
   mo {
       font-family: operators;
   }
-  @font-face {
-    font-family: stretchy;
-    src: url("/fonts/math/stretchy.woff");
-  }
 </style>
 <script>
   setup({ explicit_done: true });
@@ -52,27 +48,17 @@
       test(function() {
           assert_approx_equals(document.getElementById("percent_minsize").getBoundingClientRect().height, 12 * emToPx, epsilon, "percent minsize");
           assert_approx_equals(document.getElementById("percent_maxsize").getBoundingClientRect().height, 3 * emToPx, epsilon, "percent maxsize");
-      }, `minsize/maxsize percentages are relative to the unstretched size`);
+      }, `minsize/maxsize percentages are relative to the target size`);
 
       test(function() {
-          // - The unstretched size is a lower bound for the stretched size, so
-          //   specifying a lower minsize has no effect. This test only verifies
-          //   that the default minsize is at most 100% the unstretched size.
-          const unstretched_size = 1 * emToPx;
-          assert_approx_equals(document.getElementById("default_minsize").getBoundingClientRect().height, unstretched_size, epsilon, "default minsize is 100%");
-
-          // Previous version of MathML Core were defining minsize as 1em rather
-          // than 100% the unstretched size. So try the same test with a .5em
-          // unstretched size.
-          const unstretched_size_2 = .5 * emToPx;
-          assert_approx_equals(document.getElementById("default_minsize_2").getBoundingClientRect().height, unstretched_size_2, epsilon, "default minsize is not 1em");
-
-          // - The target size is an upper bound for the stretched size, so
-          //   specifying a larger maxsize has no effect. This test only
-          //   verifies that the default maxsize is at least 300 times the
-          //   unstretched size.
+          // These tests are not really strong:
+          // - The smallest glyph for this stretchy operator is a 1em square so
+          //   it can't go under a minsize of 1em anyway.
+          // - The maxsize is theorically infinite, this only tests that a large
+          //   value of 300em is clamped.
+          assert_approx_equals(document.getElementById("default_minsize").getBoundingClientRect().height, 1 * emToPx, epsilon, "default minsize is 1em");
           assert_approx_equals(document.getElementById("default_maxsize").getBoundingClientRect().height, 300 * emToPx, epsilon, "default maxsize is infinity");
-      }, `default minsize/maxsize values`);
+      }, `default minsize/maxsize percentages`);
 
       done();
   }
@@ -85,7 +71,7 @@
       <mrow>
         <mspace width="1em" height="5em" style="background: blue"/>
         <mo id="negative_minsize" minsize="-10em" stretchy="true" symmetric="false">⥯</mo>
-        <mpadded height="0" depth="0"><mn><!-- not space like --></mn></mpadded>
+        <mn><!-- not space like --></mn>
       </mrow>
     </math>
   </p>
@@ -94,7 +80,7 @@
       <mrow>
         <mspace width="1em" height="5em" style="background: blue"/>
         <mo id="maxsize_less_than_minsize" minsize="7em" maxsize="2em" stretchy="true" symmetric="false">⥯</mo>
-        <mpadded height="0" depth="0"><mn><!-- not space like --></mn></mpadded>
+        <mn><!-- not space like --></mn>
       </mrow>
     </math>
   </p>
@@ -103,7 +89,7 @@
       <mrow>
         <mspace width="1em" height="5em" style="background: blue"/>
         <mo id="minsize_less_than_negative_maxsize" minsize="-2em" maxsize="-1em" stretchy="true" symmetric="false">⥯</mo>
-        <mpadded height="0" depth="0"><mn><!-- not space like --></mn></mpadded>
+        <mn><!-- not space like --></mn>
       </mrow>
     </math>
   </p>
@@ -112,7 +98,7 @@
       <mrow>
         <mspace id="zero_target_size_with_minsize_math_axis" width="1em" height="0em" style="background: blue"/>
         <mo id="zero_target_size_with_minsize" minsize="2em" stretchy="true" symmetric="true">⥯</mo>
-        <mpadded height="0" depth="0"><mn><!-- not space like --></mn></mpadded>
+        <mn><!-- not space like --></mn>
       </mrow>
     </math>
   </p>
@@ -120,8 +106,8 @@
     <math>
       <mrow>
         <mspace width="1em" height="6em" style="background: blue"/>
-        <mo id="percent_minsize" minsize="1200%" stretchy="true" symmetric="false">⥯</mo>
-        <mpadded height="0" depth="0"><mn><!-- not space like --></mn></mpadded>
+        <mo id="percent_minsize" minsize="200%" stretchy="true" symmetric="false">⥯</mo>
+        <mn><!-- not space like --></mn>
       </mrow>
     </math>
   </p>
@@ -129,8 +115,8 @@
     <math>
       <mrow>
         <mspace width="1em" height="6em" style="background: blue"/>
-        <mo id="percent_maxsize" maxsize="300%" stretchy="true" symmetric="false">⥯</mo>
-        <mpadded height="0" depth="0"><mn><!-- not space like --></mn></mpadded>
+        <mo id="percent_maxsize" maxsize="50%" stretchy="true" symmetric="false">⥯</mo>
+        <mn><!-- not space like --></mn>
       </mrow>
     </math>
   </p>
@@ -139,16 +125,7 @@
       <mrow>
         <mspace width="1em" height=".5em" style="background: blue"/>
         <mo id="default_minsize" stretchy="true" symmetric="false">⥯</mo>
-        <mpadded height="0" depth="0"><mn><!-- not space like --></mn></mpadded>
-      </mrow>
-    </math>
-  </p>
-  <p>
-    <math>
-      <mrow>
-        <mspace width="1em" height=".25em" style="background: blue"/>
-        <mo style="font-family: stretchy" id="default_minsize_2" stretchy="true" symmetric="false">↨</mo>
-        <mpadded height="0" depth="0"><mn><!-- not space like --></mn></mpadded>
+        <mn><!-- not space like --></mn>
       </mrow>
     </math>
   </p>
@@ -157,9 +134,10 @@
       <mrow>
         <mspace width="1em" height="300em" style="background: blue"/>
         <mo id="default_maxsize" stretchy="true" symmetric="false">⥯</mo>
-        <mpadded height="0" depth="0"><mn><!-- not space like --></mn></mpadded>
+        <mn><!-- not space like --></mn>
       </mrow>
     </math>
   </p>
+
 </body>
 </html>

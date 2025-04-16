@@ -43,7 +43,9 @@ class ResourceClientWalker {
  public:
   explicit ResourceClientWalker(
       const HeapHashCountedSet<WeakMember<ResourceClient>>& set)
-      : client_set_(set), client_vector_(client_set_.Values()) {}
+      : client_set_(set) {
+    CopyToVector(client_set_, client_vector_);
+  }
 
   T* Next() {
     wtf_size_t size = client_vector_.size();

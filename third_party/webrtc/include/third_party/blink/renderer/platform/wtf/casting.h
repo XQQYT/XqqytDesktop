@@ -5,9 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_CASTING_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_CASTING_H_
 
-#include <concepts>
-#include <type_traits>
-
+#include "base/notreached.h"
+#include "base/template_util.h"
 #include "third_party/blink/renderer/platform/wtf/assertions.h"
 
 namespace blink {
@@ -62,33 +61,33 @@ namespace blink {
 //   std::cout << IsA<Derived>(another_base) << '\n';  // prints true
 //   std::cout << IsA<Derived>(unrelated) << '\n';     // prints false
 // }
-template <typename Derived>
-struct DowncastTraits;
-
-namespace internal {
-
-template <typename Derived, typename Base>
-struct DowncastTraitsHelper {
-  static_assert(sizeof(Derived) == 0,
-                "Unknown type, this error typically means you need to include "
-                "the header of the type being cast to.");
-};
-
-template <typename Derived, typename Base>
-  requires(!std::is_base_of_v<Derived, Base>)
-struct DowncastTraitsHelper<Derived, Base> {
-  static bool AllowFrom(const Base& from) {
-    return DowncastTraits<Derived>::AllowFrom(from);
+template <typename T>
+struct DowncastTraits {
+  template <typename U>
+  static bool AllowFrom(const U&) {
+    static_assert(sizeof(U) == 0, "no downcast traits specialization for T");
+    NOTREACHED();
+    return false;
   }
 };
 
-// If Derived is actually a base class of Base, unconditionally return true to
-// skip the type checks.
+namespace internal {
+
+// Though redundant with the return type inferred by `auto`, the trailing return
+// type is needed for SFINAE.
 template <typename Derived, typename Base>
-  requires(std::is_base_of_v<Derived, Base>)
-struct DowncastTraitsHelper<Derived, Base> {
-  static bool AllowFrom(const Base&) { return true; }
-};
+auto IsDowncastAllowedHelper(const Base& from, base::internal::priority_tag<1>)
+    -> decltype(DowncastTraits<Derived>::AllowFrom(from)) {
+  return DowncastTraits<Derived>::AllowFrom(from);
+}
+
+// Though redundant with the return type inferred by `auto`, the trailing return
+// type is needed for SFINAE.
+template <typename Derived, typename Base>
+auto IsDowncastAllowedHelper(const Base& from, base::internal::priority_tag<0>)
+    -> decltype(Derived::IsClassOf(from)) {
+  return Derived::IsClassOf(from);
+}
 
 }  // namespace internal
 
@@ -96,26 +95,22 @@ struct DowncastTraitsHelper<Derived, Base> {
 // pointer overloads, returns false if the input pointer is nullptr.
 template <typename Derived, typename Base>
 bool IsA(const Base& from) {
-  static_assert(std::is_base_of_v<Base, Derived>, "Unnecessary type check");
-  return internal::DowncastTraitsHelper<Derived, const Base>::AllowFrom(from);
+  return internal::IsDowncastAllowedHelper<Derived>(
+      from, base::internal::priority_tag<1>());
 }
 
 template <typename Derived, typename Base>
 bool IsA(const Base* from) {
-  static_assert(std::is_base_of_v<Base, Derived>, "Unnecessary type check");
   return from && IsA<Derived>(*from);
 }
 
 template <typename Derived, typename Base>
 bool IsA(Base& from) {
-  static_assert(std::is_base_of_v<Base, Derived>, "Unnecessary type check");
-  return internal::DowncastTraitsHelper<Derived, const Base>::AllowFrom(
-      const_cast<const Base&>(from));
+  return IsA<Derived>(static_cast<const Base&>(from));
 }
 
 template <typename Derived, typename Base>
 bool IsA(Base* from) {
-  static_assert(std::is_base_of_v<Base, Derived>, "Unnecessary type check");
   return from && IsA<Derived>(*from);
 }
 

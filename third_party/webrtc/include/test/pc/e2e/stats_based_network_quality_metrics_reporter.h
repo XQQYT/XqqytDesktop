@@ -70,6 +70,9 @@ class StatsBasedNetworkQualityMetricsReporter
 
  private:
   struct PCStats {
+    // TODO(bugs.webrtc.org/10525): Separate audio and video counters. Depends
+    // on standard stat counters, enabled by field trial
+    // "WebRTC-UseStandardBytesStats".
     DataSize payload_received = DataSize::Zero();
     DataSize payload_sent = DataSize::Zero();
 
@@ -103,7 +106,7 @@ class StatsBasedNetworkQualityMetricsReporter
         RTC_GUARDED_BY(mutex_);
     std::map<std::string, std::vector<EmulatedNetworkNode*>> peer_downlinks_
         RTC_GUARDED_BY(mutex_);
-    std::map<IPAddress, std::string> ip_to_peer_ RTC_GUARDED_BY(mutex_);
+    std::map<rtc::IPAddress, std::string> ip_to_peer_ RTC_GUARDED_BY(mutex_);
     NetworkEmulationManager* const network_emulation_;
   };
 

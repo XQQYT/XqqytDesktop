@@ -23,9 +23,6 @@
 #  pragma GCC system_header
 #endif
 
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
-
 #if _LIBCPP_STD_VER >= 20
 
 _LIBCPP_BEGIN_NAMESPACE_STD
@@ -42,7 +39,8 @@ __replace_if_impl(_Iter __first, _Sent __last, _Pred& __pred, const _Type& __new
   return __first;
 }
 
-struct __replace_if {
+namespace __replace_if {
+struct __fn {
   template <input_iterator _Iter,
             sentinel_for<_Iter> _Sent,
             class _Type,
@@ -64,16 +62,15 @@ struct __replace_if {
     return ranges::__replace_if_impl(ranges::begin(__range), ranges::end(__range), __pred, __new_value, __proj);
   }
 };
+} // namespace __replace_if
 
 inline namespace __cpo {
-inline constexpr auto replace_if = __replace_if{};
+inline constexpr auto replace_if = __replace_if::__fn{};
 } // namespace __cpo
 } // namespace ranges
 
 _LIBCPP_END_NAMESPACE_STD
 
 #endif // _LIBCPP_STD_VER >= 20
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___ALGORITHM_RANGES_REPLACE_IF_H

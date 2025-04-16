@@ -22,16 +22,16 @@ debug('SVGGeometryElement');
 // SVGGeometryElement is an abstract class: instantiate object of derived class
 
 debug('');
-debug('isPointInFill(optional DOMPointInit point)');
+debug('isPointInFill(SVGPoint point)');
 shouldNotThrow('circle.isPointInFill(point)');
-shouldNotThrow('circle.isPointInFill(undefined)');
-shouldNotThrow('circle.isPointInFill(null)');
+shouldThrow('circle.isPointInFill(undefined)');
+shouldThrow('circle.isPointInFill(null)');
 
 debug('');
-debug('isPointInStroke(optional DOMPointInit point)');
+debug('isPointInStroke(SVGPoint point)');
 shouldNotThrow('circle.isPointInStroke(point)');
-shouldNotThrow('circle.isPointInStroke(undefined)');
-shouldNotThrow('circle.isPointInStroke(null)');
+shouldThrow('circle.isPointInStroke(undefined)');
+shouldThrow('circle.isPointInStroke(null)');
 
 
 debug('');
@@ -83,9 +83,9 @@ debug('');
 debug('SVGTextContentElement');
 
 debug('');
-debug('getCharNumAtPosition(optional DOMPointInit point)');
+debug('getCharNumAtPosition(SVGPoint point)');
 shouldNotThrow('text.getCharNumAtPosition(point)');
-shouldNotThrow('text.getCharNumAtPosition(undefined)');
-shouldNotThrow('text.getCharNumAtPosition(null)');
+shouldThrow('text.getCharNumAtPosition(undefined)');
+shouldThrow('text.getCharNumAtPosition(null)');
 
 </script>

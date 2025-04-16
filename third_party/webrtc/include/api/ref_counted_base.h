@@ -12,10 +12,9 @@
 
 #include <type_traits>
 
-#include "api/ref_count.h"
 #include "rtc_base/ref_counter.h"
 
-namespace webrtc {
+namespace rtc {
 
 class RefCountedBase {
  public:
@@ -94,14 +93,6 @@ class RefCountedNonVirtual {
   mutable webrtc::webrtc_impl::RefCounter ref_count_{0};
 };
 
-}  // namespace webrtc
-
-// Backwards compatibe aliases.
-// TODO: https://issues.webrtc.org/42225969 - deprecate and remove.
-namespace rtc {
-using RefCountedBase = webrtc::RefCountedBase;
-template <typename T>
-using RefCountedNonVirtual = webrtc::RefCountedNonVirtual<T>;
 }  // namespace rtc
 
 #endif  // API_REF_COUNTED_BASE_H_

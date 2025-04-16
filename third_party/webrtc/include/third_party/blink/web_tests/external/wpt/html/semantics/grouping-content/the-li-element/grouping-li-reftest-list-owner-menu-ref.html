@@ -2,15 +2,8 @@
 <meta charset="utf-8">
 <title>list owner is calculated to be narest ancestor menu if it exists</title>
 <link rel="author" title="Domenic Denicola" href="mailto:d@domenic.me">
-<link rel="author" title="Peng Zhou" href="mailto:zhoupeng.1996@bytedance.com">
 <link rel="help" href="https://html.spec.whatwg.org/multipage/semantics.html#ordinal-value">
 <link rel="help" href="https://html.spec.whatwg.org/multipage/semantics.html#list-owner">
-
-<style>
-  li {
-    list-style-type: decimal;
-  }
-</style>
 
 <p>This test matches if the list displays similar to the following</p>
 
@@ -29,25 +22,25 @@
 
 <hr>
 
-<menu>
+<ol>
   <li value="1">A</li>
   <li value="2">B</li>
   <li value="3">C</li>
   <li value="4">D</li>
   <li value="5">E</li>
-  <menu>
+  <ol>
     <li value="1">F</li>
     <li value="2">G</li>
-  </menu>
+  </ol>
   <li value="6">H</li>
-  <menu>
+  <ol>
     <li value="1">I</li>
     <li value="2">
       J
-      <menu>
+      <ol>
         <li value="1">K</li>
         <li value="2">L</li>
-      </menu>
+      </ol>
     </li>
-  </menu>
-</menu>
+  </ol>
+</ol>

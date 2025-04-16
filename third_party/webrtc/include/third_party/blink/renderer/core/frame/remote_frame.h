@@ -7,7 +7,6 @@
 
 #include "base/task/single_thread_task_runner.h"
 #include "components/viz/common/surfaces/parent_local_surface_id_allocator.h"
-#include "services/network/public/cpp/permissions_policy/permissions_policy_declaration.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom-blink-forward.h"
 #include "third_party/blink/public/common/frame/frame_visual_properties.h"
 #include "third_party/blink/public/mojom/frame/frame_owner_properties.mojom-blink-forward.h"
@@ -17,7 +16,6 @@
 #include "third_party/blink/public/mojom/security_context/insecure_request_policy.mojom-blink-forward.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/execution_context/remote_security_context.h"
-#include "third_party/blink/renderer/core/frame/child_frame_compositing_helper.h"
 #include "third_party/blink/renderer/core/frame/child_frame_compositor.h"
 #include "third_party/blink/renderer/core/frame/frame.h"
 #include "third_party/blink/renderer/core/frame/remote_frame_view.h"
@@ -122,7 +120,7 @@ class CORE_EXPORT RemoteFrame final : public Frame,
   void DidChangeVisibleToHitTesting() override;
 
   void SetReplicatedPermissionsPolicyHeader(
-      const network::ParsedPermissionsPolicy& parsed_header);
+      const ParsedPermissionsPolicy& parsed_header);
 
   void SetReplicatedSandboxFlags(network::mojom::blink::WebSandboxFlags);
   void SetInsecureRequestPolicy(mojom::blink::InsecureRequestPolicy);
@@ -131,13 +129,7 @@ class CORE_EXPORT RemoteFrame final : public Frame,
   void InitializeFrameVisualProperties(const FrameVisualProperties& properties);
   // If 'propagate' is true, updated properties will be sent to the browser.
   // Returns true if visual properties have changed.
-  // If 'allow_paint_holding' is yes, the remote frame will display stale paint
-  // (for a timeout) until a frame with the newly synchronized visual properties
-  // has been produced by the child.
-  bool SynchronizeVisualProperties(
-      bool propagate = true,
-      ChildFrameCompositingHelper::AllowPaintHolding allow_paint_holding =
-          ChildFrameCompositingHelper::AllowPaintHolding::kNo);
+  bool SynchronizeVisualProperties(bool propagate = true);
   void ResendVisualProperties();
   void SetViewportIntersection(const mojom::blink::ViewportIntersectionState&);
   void UpdateCompositedLayerBounds();
@@ -146,10 +138,10 @@ class CORE_EXPORT RemoteFrame final : public Frame,
   void DidChangeScreenInfos(const display::ScreenInfos& screen_info);
   // Called when the main frame's zoom level is changed and should be propagated
   // to the remote's associated view.
-  void ZoomFactorChanged(double zoom_factor);
-  // Called when the local root's viewport segments change.
-  void DidChangeRootViewportSegments(
-      const std::vector<gfx::Rect>& root_widget_viewport_segments);
+  void ZoomLevelChanged(double zoom_level);
+  // Called when the local root's window segments change.
+  void DidChangeRootWindowSegments(
+      const std::vector<gfx::Rect>& root_widget_window_segments);
   // Called when the local page scale factor changed.
   void PageScaleFactorChanged(float page_scale_factor,
                               bool is_pinch_gesture_active);
@@ -201,7 +193,7 @@ class CORE_EXPORT RemoteFrame final : public Frame,
       mojom::blink::IntrinsicSizingInfoPtr sizing_info) override;
   void DidSetFramePolicyHeaders(
       network::mojom::blink::WebSandboxFlags,
-      const WTF::Vector<network::ParsedPermissionsPolicyDeclaration>&) override;
+      const WTF::Vector<ParsedPermissionsPolicyDeclaration>&) override;
   // Updates the snapshotted policy attributes (sandbox flags and permissions
   // policy container policy) in the frame's FrameOwner. This is used when this
   // frame's parent is in another process and it dynamically updates this
@@ -209,19 +201,18 @@ class CORE_EXPORT RemoteFrame final : public Frame,
   // until the next navigation.
   void DidUpdateFramePolicy(const FramePolicy& frame_policy) override;
   void UpdateOpener(
-      const std::optional<blink::FrameToken>& opener_frame_token) override;
+      const absl::optional<blink::FrameToken>& opener_frame_token) override;
   void DetachAndDispose() override;
   void EnableAutoResize(const gfx::Size& min_size,
                         const gfx::Size& max_size) override;
   void DisableAutoResize() override;
   void DidUpdateVisualProperties(
       const cc::RenderFrameMetadata& metadata) override;
-  void SetFrameSinkId(const viz::FrameSinkId& frame_sink_id,
-                      bool allow_paint_holding) override;
+  void SetFrameSinkId(const viz::FrameSinkId& frame_sink_id) override;
   void ChildProcessGone() override;
   void CreateRemoteChild(
       const RemoteFrameToken& token,
-      const std::optional<FrameToken>& opener_frame_token,
+      const absl::optional<FrameToken>& opener_frame_token,
       mojom::blink::TreeScopeType tree_scope_type,
       mojom::blink::FrameReplicationStatePtr replication_state,
       mojom::blink::FrameOwnerPropertiesPtr owner_properties,
@@ -231,8 +222,6 @@ class CORE_EXPORT RemoteFrame final : public Frame,
       override;
   void CreateRemoteChildren(
       Vector<mojom::blink::CreateRemoteChildParamsPtr> params) override;
-  void ForwardFencedFrameEventToEmbedder(
-      const WTF::String& event_type) override;
 
   // Called only when this frame has a local frame owner.
   gfx::Size GetOutermostMainFrameSize() const override;
@@ -285,16 +274,13 @@ class CORE_EXPORT RemoteFrame final : public Frame,
   void ApplyReplicatedPermissionsPolicyHeader();
   void RecordSentVisualProperties();
 
-  void ResendVisualPropertiesInternal(
-      ChildFrameCompositingHelper::AllowPaintHolding allow_paint_holding);
-
   Member<RemoteFrameView> view_;
   RemoteSecurityContext security_context_;
-  std::optional<blink::FrameVisualProperties> sent_visual_properties_;
+  absl::optional<blink::FrameVisualProperties> sent_visual_properties_;
   blink::FrameVisualProperties pending_visual_properties_;
   scoped_refptr<cc::Layer> cc_layer_;
   bool is_surface_layer_ = false;
-  network::ParsedPermissionsPolicy permissions_policy_header_;
+  ParsedPermissionsPolicy permissions_policy_header_;
   String unique_name_;
 
   viz::FrameSinkId frame_sink_id_;

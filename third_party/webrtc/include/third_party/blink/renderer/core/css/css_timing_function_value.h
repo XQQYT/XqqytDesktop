@@ -26,10 +26,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSS_TIMING_FUNCTION_VALUE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSS_TIMING_FUNCTION_VALUE_H_
 
-#include <optional>
-
 #include "base/memory/scoped_refptr.h"
-#include "third_party/blink/renderer/core/css/css_primitive_value.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/css/css_value.h"
 #include "third_party/blink/renderer/platform/animation/timing_function.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
@@ -40,8 +38,8 @@ namespace cssvalue {
 
 struct CSSLinearStop {
   double number;
-  std::optional<double> length_a;
-  std::optional<double> length_b;
+  absl::optional<double> length_a;
+  absl::optional<double> length_b;
 };
 
 class CSSLinearTimingFunctionValue : public CSSValue {
@@ -96,13 +94,13 @@ class CSSCubicBezierTimingFunctionValue : public CSSValue {
 
 class CSSStepsTimingFunctionValue : public CSSValue {
  public:
-  CSSStepsTimingFunctionValue(const CSSPrimitiveValue* steps,
+  CSSStepsTimingFunctionValue(int steps,
                               StepsTimingFunction::StepPosition step_position)
       : CSSValue(kStepsTimingFunctionClass),
         steps_(steps),
         step_position_(step_position) {}
 
-  const CSSPrimitiveValue* NumberOfSteps() const { return steps_.Get(); }
+  int NumberOfSteps() const { return steps_; }
   StepsTimingFunction::StepPosition GetStepPosition() const {
     return step_position_;
   }
@@ -112,12 +110,11 @@ class CSSStepsTimingFunctionValue : public CSSValue {
   bool Equals(const CSSStepsTimingFunctionValue&) const;
 
   void TraceAfterDispatch(blink::Visitor* visitor) const {
-    visitor->Trace(steps_);
     CSSValue::TraceAfterDispatch(visitor);
   }
 
  private:
-  Member<const CSSPrimitiveValue> steps_;
+  int steps_;
   StepsTimingFunction::StepPosition step_position_;
 };
 

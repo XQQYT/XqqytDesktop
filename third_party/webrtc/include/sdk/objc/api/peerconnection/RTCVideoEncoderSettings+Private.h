@@ -18,8 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface RTC_OBJC_TYPE (RTCVideoEncoderSettings)
 (Private)
 
-    - (instancetype)initWithNativeVideoCodec
-    : (const webrtc::VideoCodec *__nullable)videoCodec;
+    - (instancetype)initWithNativeVideoCodec : (const webrtc::VideoCodec *__nullable)videoCodec;
 - (webrtc::VideoCodec)nativeVideoCodec;
 
 @end

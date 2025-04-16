@@ -3,7 +3,7 @@
 
 #if defined(HUNSPELL_STATIC)
 #  define LIBHUNSPELL_DLL_EXPORTED
-#elif defined(_WIN32)
+#elif defined(_MSC_VER)
 #  if defined(BUILDING_LIBHUNSPELL)
 #    define LIBHUNSPELL_DLL_EXPORTED __declspec(dllexport)
 #  else

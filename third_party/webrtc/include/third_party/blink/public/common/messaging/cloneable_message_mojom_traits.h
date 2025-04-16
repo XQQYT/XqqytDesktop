@@ -5,10 +5,9 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_COMMON_MESSAGING_CLONEABLE_MESSAGE_MOJOM_TRAITS_H_
 #define THIRD_PARTY_BLINK_PUBLIC_COMMON_MESSAGING_CLONEABLE_MESSAGE_MOJOM_TRAITS_H_
 
-#include <optional>
-
 #include "mojo/public/cpp/base/big_buffer.h"
 #include "mojo/public/cpp/base/unguessable_token_mojom_traits.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/common/messaging/cloneable_message.h"
 #include "third_party/blink/public/mojom/messaging/cloneable_message.mojom.h"
 #include "url/mojom/origin_mojom_traits.h"
@@ -27,7 +26,7 @@ struct BLINK_COMMON_EXPORT
     return input.blobs;
   }
 
-  static const std::optional<url::Origin>& sender_origin(
+  static const absl::optional<url::Origin>& sender_origin(
       const blink::CloneableMessage& input) {
     return input.sender_origin;
   }

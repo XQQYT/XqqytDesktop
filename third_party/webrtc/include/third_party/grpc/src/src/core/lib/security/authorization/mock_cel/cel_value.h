@@ -31,6 +31,7 @@
 //    CelValue value = CelValue::CreateString(msg);
 
 #include <grpc/support/port_platform.h>
+
 #include <stdint.h>
 
 #include <memory>
@@ -43,7 +44,7 @@
 namespace grpc_core {
 namespace mock_cel {
 
-// Break cyclic dependencies for container types.
+// Break cyclic depdendencies for container types.
 class CelMap {
  public:
   CelMap() = default;

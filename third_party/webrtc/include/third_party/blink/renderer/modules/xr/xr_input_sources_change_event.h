@@ -12,9 +12,6 @@
 
 namespace blink {
 
-template <typename IDLType>
-class FrozenArray;
-
 class XRInputSourcesChangeEvent final : public Event {
   DEFINE_WRAPPERTYPEINFO();
 
@@ -22,10 +19,10 @@ class XRInputSourcesChangeEvent final : public Event {
   static XRInputSourcesChangeEvent* Create(
       const AtomicString& type,
       XRSession* session,
-      HeapVector<Member<XRInputSource>> added,
-      HeapVector<Member<XRInputSource>> removed) {
-    return MakeGarbageCollected<XRInputSourcesChangeEvent>(
-        type, session, std::move(added), std::move(removed));
+      const HeapVector<Member<XRInputSource>>& added,
+      const HeapVector<Member<XRInputSource>>& removed) {
+    return MakeGarbageCollected<XRInputSourcesChangeEvent>(type, session, added,
+                                                           removed);
   }
 
   static XRInputSourcesChangeEvent* Create(
@@ -35,16 +32,16 @@ class XRInputSourcesChangeEvent final : public Event {
   }
 
   XRInputSourcesChangeEvent(const AtomicString& type,
-                            XRSession* session,
-                            HeapVector<Member<XRInputSource>> added,
-                            HeapVector<Member<XRInputSource>> removed);
-  XRInputSourcesChangeEvent(const AtomicString& type,
-                            const XRInputSourcesChangeEventInit* initializer);
+                            XRSession*,
+                            const HeapVector<Member<XRInputSource>>&,
+                            const HeapVector<Member<XRInputSource>>&);
+  XRInputSourcesChangeEvent(const AtomicString&,
+                            const XRInputSourcesChangeEventInit*);
   ~XRInputSourcesChangeEvent() override;
 
   XRSession* session() const { return session_.Get(); }
-  const FrozenArray<XRInputSource>& added() const { return *added_.Get(); }
-  const FrozenArray<XRInputSource>& removed() const { return *removed_.Get(); }
+  const HeapVector<Member<XRInputSource>>& added() const { return added_; }
+  const HeapVector<Member<XRInputSource>>& removed() const { return removed_; }
 
   const AtomicString& InterfaceName() const override;
 
@@ -52,8 +49,8 @@ class XRInputSourcesChangeEvent final : public Event {
 
  private:
   Member<XRSession> session_;
-  Member<FrozenArray<XRInputSource>> added_;
-  Member<FrozenArray<XRInputSource>> removed_;
+  HeapVector<Member<XRInputSource>> added_;
+  HeapVector<Member<XRInputSource>> removed_;
 };
 
 }  // namespace blink

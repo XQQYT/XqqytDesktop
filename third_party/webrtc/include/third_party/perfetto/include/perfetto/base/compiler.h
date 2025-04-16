@@ -17,23 +17,10 @@
 #ifndef INCLUDE_PERFETTO_BASE_COMPILER_H_
 #define INCLUDE_PERFETTO_BASE_COMPILER_H_
 
-#include <cstddef>
+#include <stddef.h>
 #include <type_traits>
-#include <variant>
 
 #include "perfetto/public/compiler.h"
-
-#if defined(_MSC_VER)
-#define PERFETTO_ASSUME(x) __assume(x)
-#elif defined(__clang__)
-#define PERFETTO_ASSUME(x) __builtin_assume(x)
-#else
-#define PERFETTO_ASSUME(x)     \
-  do {                         \
-    if (!x)                    \
-      __builtin_unreachable(); \
-  } while (0)
-#endif
 
 // __has_attribute is supported only by clang and recent versions of GCC.
 // Add a layer to wrap the __has_attribute macro.
@@ -53,6 +40,16 @@
 #define PERFETTO_UNUSED __attribute__((unused))
 #else
 #define PERFETTO_UNUSED
+#endif
+
+#if defined(__clang__)
+#define PERFETTO_ALWAYS_INLINE __attribute__((__always_inline__))
+#define PERFETTO_NO_INLINE __attribute__((__noinline__))
+#else
+// GCC is too pedantic and often fails with the error:
+// "always_inline function might not be inlinable"
+#define PERFETTO_ALWAYS_INLINE
+#define PERFETTO_NO_INLINE
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -120,6 +117,15 @@ extern "C" void __asan_unpoison_memory_region(void const volatile*, size_t);
 #define PERFETTO_EXPORT_ENTRYPOINT
 #endif
 
+// Disables thread safety analysis for functions where the compiler can't
+// accurate figure out which locks are being held.
+#if defined(__clang__)
+#define PERFETTO_NO_THREAD_SAFETY_ANALYSIS \
+  __attribute__((no_thread_safety_analysis))
+#else
+#define PERFETTO_NO_THREAD_SAFETY_ANALYSIS
+#endif
+
 // Disables undefined behavior analysis for a function.
 #if defined(__clang__)
 #define PERFETTO_NO_SANITIZE_UNDEFINED __attribute__((no_sanitize("undefined")))
@@ -137,63 +143,19 @@ extern "C" void __asan_unpoison_memory_region(void const volatile*, size_t);
 #endif
 
 // Macro for telling -Wimplicit-fallthrough that a fallthrough is intentional.
-#define PERFETTO_FALLTHROUGH [[fallthrough]]
-
-// Depending on the version of the compiler, __has_builtin can be provided or
-// not.
-#if defined(__has_builtin)
-#if __has_builtin(__builtin_stack_address)
-#define PERFETTO_HAS_BUILTIN_STACK_ADDRESS() 1
+#if defined(__clang__)
+#define PERFETTO_FALLTHROUGH [[clang::fallthrough]]
 #else
-#define PERFETTO_HAS_BUILTIN_STACK_ADDRESS() 0
-#endif
-#else
-#define PERFETTO_HAS_BUILTIN_STACK_ADDRESS() 0
+#define PERFETTO_FALLTHROUGH
 #endif
 
-namespace perfetto::base {
+namespace perfetto {
+namespace base {
 
 template <typename... T>
 inline void ignore_result(const T&...) {}
 
-// Given a std::variant and a type T, returns the index of the T in the variant.
-template <typename VariantType, typename T, size_t i = 0>
-constexpr size_t variant_index() {
-  static_assert(i < std::variant_size_v<VariantType>,
-                "Type not found in variant");
-  if constexpr (std::is_same_v<std::variant_alternative_t<i, VariantType>, T>) {
-    return i;
-  } else {
-    return variant_index<VariantType, T, i + 1>();
-  }
-}
-
-template <typename T, typename VariantType, size_t i = 0>
-constexpr T& unchecked_get(VariantType& variant) {
-  static_assert(i < std::variant_size_v<VariantType>,
-                "Type not found in variant");
-  if constexpr (std::is_same_v<std::variant_alternative_t<i, VariantType>, T>) {
-    auto* v = std::get_if<T>(&variant);
-    PERFETTO_ASSUME(v);
-    return *v;
-  } else {
-    return unchecked_get<T, VariantType, i + 1>(variant);
-  }
-}
-
-template <typename T, typename VariantType, size_t i = 0>
-constexpr const T& unchecked_get(const VariantType& variant) {
-  static_assert(i < std::variant_size_v<VariantType>,
-                "Type not found in variant");
-  if constexpr (std::is_same_v<std::variant_alternative_t<i, VariantType>, T>) {
-    const auto* v = std::get_if<T>(&variant);
-    PERFETTO_ASSUME(v != nullptr);
-    return *v;
-  } else {
-    return unchecked_get<T, VariantType, i + 1>(variant);
-  }
-}
-
-}  // namespace perfetto::base
+}  // namespace base
+}  // namespace perfetto
 
 #endif  // INCLUDE_PERFETTO_BASE_COMPILER_H_

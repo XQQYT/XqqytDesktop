@@ -35,10 +35,6 @@
 #include "third_party/blink/renderer/core/inspector/thread_debugger_common_impl.h"
 #include "third_party/blink/renderer/platform/wtf/hash_map.h"
 
-namespace WTF {
-class String;
-}  // namespace WTF
-
 namespace blink {
 
 class ErrorEvent;
@@ -71,7 +67,7 @@ class CORE_EXPORT WorkerThreadDebugger final : public ThreadDebuggerCommonImpl {
   void ReportConsoleMessage(ExecutionContext*,
                             mojom::ConsoleMessageSource,
                             mojom::ConsoleMessageLevel,
-                            const WTF::String& message,
+                            const String& message,
                             SourceLocation*) override;
 
   // V8InspectorClient implementation.

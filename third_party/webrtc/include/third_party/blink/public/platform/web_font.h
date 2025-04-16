@@ -5,9 +5,10 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_FONT_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_FONT_H_
 
+#include <memory>
+
 #include "third_party/blink/public/platform/web_common.h"
 #include "third_party/skia/include/core/SkColor.h"
-#include "v8/include/cppgc/persistent.h"
 
 // To avoid conflicts with the DrawText macro from the Windows SDK...
 #undef DrawText
@@ -52,7 +53,7 @@ class BLINK_PLATFORM_EXPORT WebFont {
   explicit WebFont(const WebFontDescription&);
 
   class Impl;
-  cppgc::Persistent<Impl> private_;
+  std::unique_ptr<Impl> private_;
 };
 
 }  // namespace blink

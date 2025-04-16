@@ -17,6 +17,8 @@
 #ifndef MEDIAPIPE_FRAMEWORK_THROTTLER_H_
 #define MEDIAPIPE_FRAMEWORK_THROTTLER_H_
 
+#include "base/integral_types.h"
+
 namespace mediapipe {
 
 class Throttler {

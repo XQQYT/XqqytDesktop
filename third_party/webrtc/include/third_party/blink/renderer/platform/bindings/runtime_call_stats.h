@@ -8,14 +8,13 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_BINDINGS_RUNTIME_CALL_STATS_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_BINDINGS_RUNTIME_CALL_STATS_H_
 
-#include <optional>
-
 #include "base/check_op.h"
-#include "base/compiler_specific.h"
 #include "base/memory/raw_ptr.h"
 #include "base/time/time.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/bindings/buildflags.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
+#include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
 #include "v8/include/v8.h"
@@ -32,11 +31,6 @@
 namespace base {
 class TickClock;
 }
-
-namespace WTF {
-class String;
-class StringBuilder;
-}  // namespace WTF
 
 namespace blink {
 
@@ -114,36 +108,36 @@ class PLATFORM_EXPORT RuntimeCallTimer {
 
   bool IsRunning() { return start_ticks_ != base::TimeTicks(); }
 
-  raw_ptr<RuntimeCallCounter> counter_;
-  raw_ptr<RuntimeCallTimer> parent_;
+  RuntimeCallCounter* counter_;
+  RuntimeCallTimer* parent_;
   base::TimeTicks start_ticks_;
   base::TimeDelta elapsed_time_;
-  raw_ptr<const base::TickClock> clock_ = nullptr;
+  const base::TickClock* clock_ = nullptr;
 };
 
 // Macros that take RuntimeCallStats as a parameter; used only in
 // RuntimeCallStatsTest.
-#define RUNTIME_CALL_STATS_ENTER_WITH_RCS(runtime_call_stats, timer, \
-                                          counterId)                 \
-  if (RuntimeCallStats::IsEnabled()) [[unlikely]] {                  \
-    (runtime_call_stats)->Enter(timer, counterId);                   \
+#define RUNTIME_CALL_STATS_ENTER_WITH_RCS(runtime_call_stats, timer,      \
+                                          counterId)                      \
+  if (UNLIKELY(RuntimeEnabledFeatures::BlinkRuntimeCallStatsEnabled())) { \
+    (runtime_call_stats)->Enter(timer, counterId);                        \
   }
 
-#define RUNTIME_CALL_STATS_LEAVE_WITH_RCS(runtime_call_stats, timer) \
-  if (RuntimeCallStats::IsEnabled()) [[unlikely]] {                  \
-    (runtime_call_stats)->Leave(timer);                              \
+#define RUNTIME_CALL_STATS_LEAVE_WITH_RCS(runtime_call_stats, timer)      \
+  if (UNLIKELY(RuntimeEnabledFeatures::BlinkRuntimeCallStatsEnabled())) { \
+    (runtime_call_stats)->Leave(timer);                                   \
   }
 
-#define RUNTIME_CALL_TIMER_SCOPE_WITH_RCS(runtime_call_stats, counterId) \
-  std::optional<RuntimeCallTimerScope> rcs_scope;                        \
-  if (RuntimeCallStats::IsEnabled()) [[unlikely]] {                      \
-    rcs_scope.emplace(runtime_call_stats, counterId);                    \
+#define RUNTIME_CALL_TIMER_SCOPE_WITH_RCS(runtime_call_stats, counterId)  \
+  absl::optional<RuntimeCallTimerScope> rcs_scope;                        \
+  if (UNLIKELY(RuntimeEnabledFeatures::BlinkRuntimeCallStatsEnabled())) { \
+    rcs_scope.emplace(runtime_call_stats, counterId);                     \
   }
 
-#define RUNTIME_CALL_TIMER_SCOPE_WITH_OPTIONAL_RCS(             \
-    optional_scope_name, runtime_call_stats, counterId)         \
-  if (RuntimeCallStats::IsEnabled()) [[unlikely]] {             \
-    optional_scope_name.emplace(runtime_call_stats, counterId); \
+#define RUNTIME_CALL_TIMER_SCOPE_WITH_OPTIONAL_RCS(                       \
+    optional_scope_name, runtime_call_stats, counterId)                   \
+  if (UNLIKELY(RuntimeEnabledFeatures::BlinkRuntimeCallStatsEnabled())) { \
+    optional_scope_name.emplace(runtime_call_stats, counterId);           \
   }
 
 // Use the macros below instead of directly using RuntimeCallStats::Enter,
@@ -160,7 +154,7 @@ class PLATFORM_EXPORT RuntimeCallTimer {
   RUNTIME_CALL_TIMER_SCOPE_WITH_RCS(RuntimeCallStats::From(isolate), counterId)
 
 #define RUNTIME_CALL_TIMER_SCOPE_IF_ISOLATE_EXISTS(isolate, counterId) \
-  std::optional<RuntimeCallTimerScope> rcs_scope;                      \
+  absl::optional<RuntimeCallTimerScope> rcs_scope;                     \
   if (isolate) {                                                       \
     RUNTIME_CALL_TIMER_SCOPE_WITH_OPTIONAL_RCS(                        \
         rcs_scope, RuntimeCallStats::From(isolate), counterId)         \
@@ -323,10 +317,10 @@ class PLATFORM_EXPORT RuntimeCallStats {
   void SetInUse(bool in_use) { in_use_ = in_use; }
 
   RuntimeCallCounter* GetCounter(CounterId id) {
-    return UNSAFE_TODO(&(counters_[static_cast<uint16_t>(id)]));
+    return &(counters_[static_cast<uint16_t>(id)]);
   }
 
-  WTF::String ToString() const;
+  String ToString() const;
 
   static void SetRuntimeCallStatsForTesting();
   static void ClearRuntimeCallStatsForTesting();
@@ -339,22 +333,20 @@ class PLATFORM_EXPORT RuntimeCallStats {
 
   const base::TickClock* clock() const { return clock_; }
 
-  static bool IsEnabled();
-
  private:
-  raw_ptr<RuntimeCallTimer> current_timer_ = nullptr;
+  raw_ptr<RuntimeCallTimer, ExperimentalRenderer> current_timer_ = nullptr;
   bool in_use_ = false;
   RuntimeCallCounter counters_[static_cast<int>(CounterId::kNumberOfCounters)];
   static const int number_of_counters_ =
       static_cast<int>(CounterId::kNumberOfCounters);
-  raw_ptr<const base::TickClock> clock_ = nullptr;
+  raw_ptr<const base::TickClock, ExperimentalRenderer> clock_ = nullptr;
 
 #if BUILDFLAG(RCS_COUNT_EVERYTHING)
   typedef HashMap<const char*, std::unique_ptr<RuntimeCallCounter>> CounterMap;
   CounterMap counter_map_;
 
   Vector<RuntimeCallCounter*> CounterMapToSortedArray() const;
-  void AddCounterMapStatsToBuilder(WTF::StringBuilder&) const;
+  void AddCounterMapStatsToBuilder(StringBuilder&) const;
 #endif
 };
 
@@ -394,9 +386,8 @@ class PLATFORM_EXPORT RuntimeCallStatsScopedTracer {
 
  public:
   explicit RuntimeCallStatsScopedTracer(v8::Isolate* isolate) {
-    if (RuntimeCallStats::IsEnabled()) [[unlikely]] {
+    if (UNLIKELY(RuntimeEnabledFeatures::BlinkRuntimeCallStatsEnabled()))
       AddBeginTraceEventIfEnabled(isolate);
-    }
   }
 
   ~RuntimeCallStatsScopedTracer() {

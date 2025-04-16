@@ -20,6 +20,7 @@
 #define GRPC_SRC_CPP_EXT_FILTERS_CENSUS_RPC_ENCODING_H
 
 #include <grpc/support/port_platform.h>
+
 #include <stdint.h>
 #include <string.h>
 

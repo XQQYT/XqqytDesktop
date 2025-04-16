@@ -2,16 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_MEMORY_SCOPED_REFPTR_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_MEMORY_SCOPED_REFPTR_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_MEMORY_SCOPED_REFPTR_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_MEMORY_SCOPED_REFPTR_H_
 
-#include <cstddef>
+#include <stddef.h>
+
 #include <iosfwd>
 #include <type_traits>
 #include <utility>
 
-#include "partition_alloc/partition_alloc_base/check.h"
-#include "partition_alloc/partition_alloc_base/compiler_specific.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/check.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/compiler_specific.h"
 
 namespace partition_alloc::internal {
 
@@ -369,4 +370,4 @@ void swap(scoped_refptr<T>& lhs, scoped_refptr<T>& rhs) noexcept {
 
 }  // namespace partition_alloc::internal
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_MEMORY_SCOPED_REFPTR_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_MEMORY_SCOPED_REFPTR_H_

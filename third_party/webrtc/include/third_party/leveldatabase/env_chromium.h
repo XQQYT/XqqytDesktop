@@ -7,7 +7,6 @@
 
 #include <memory>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "base/containers/linked_list.h"
@@ -134,11 +133,6 @@ LEVELDB_EXPORT std::string DatabaseNameForRewriteDB(
 // space. A value of -1 will return leveldb's default write buffer size.
 LEVELDB_EXPORT extern size_t WriteBufferSize(int64_t disk_space);
 
-// Thread safety: `ChromiumEnv` is safe to use from multiple threads as long as
-// it's created and destroyed safely. In Chromium, ChromiumEnv is created via a
-// NoDestructor singleton, so as a function-local static, construction is
-// thread-safe as of C++11. The NoDestructor-wrapped instance is never
-// destroyed.
 class LEVELDB_EXPORT ChromiumEnv : public leveldb::Env {
  public:
   using ScheduleFunc = void(void*);
@@ -147,11 +141,12 @@ class LEVELDB_EXPORT ChromiumEnv : public leveldb::Env {
   // instance that performs direct filesystem access.
   ChromiumEnv();
 
-  // Temporary debugging ctor.
-  explicit ChromiumEnv(bool log_lock_errors);
-
   // Constructs a ChromiumEnv instance with a custom FilesystemProxy instance.
   explicit ChromiumEnv(std::unique_ptr<storage::FilesystemProxy> filesystem);
+
+  // Constructs a ChromiumEnv instance with a local unrestricted FilesystemProxy
+  // instance that performs direct filesystem access.
+  explicit ChromiumEnv(const std::string& name);
 
   ~ChromiumEnv() override;
 
@@ -187,22 +182,21 @@ class LEVELDB_EXPORT ChromiumEnv : public leveldb::Env {
   void SetReadOnlyFileLimitForTesting(int max_open_files);
 
  protected:
+  // Constructs a ChromiumEnv instance with a custom FilesystemProxy instance.
+  ChromiumEnv(const std::string& name,
+              std::unique_ptr<storage::FilesystemProxy> filesystem);
+
   static const char* FileErrorString(base::File::Error error);
 
  private:
   void RemoveBackupFiles(const base::FilePath& dir);
 
-  // When `log_lock_errors_` is true, this env will emit extra metrics for
-  // locking failures. TODO(crbug.com/340398745): remove this.
-  bool log_lock_errors_ = false;
-
-  // `FilesystemProxy` is thread-safe.
   const std::unique_ptr<storage::FilesystemProxy> filesystem_;
 
   base::Lock mu_;
   base::FilePath test_directory_ GUARDED_BY(mu_);
 
-  // `leveldb::Cache` is thread-safe.
+  std::string name_;
   std::unique_ptr<leveldb::Cache> file_cache_;
 };
 
@@ -289,8 +283,8 @@ class LEVELDB_EXPORT DBTracker {
   // Checks if |db| is tracked.
   bool IsTrackedDB(const leveldb::DB* db) const;
 
-  void DatabaseOpened(TrackedDBImpl* database);
-  void DatabaseDestroyed(TrackedDBImpl* database);
+  void DatabaseOpened(TrackedDBImpl* database, SharedReadCacheUse cache_use);
+  void DatabaseDestroyed(TrackedDBImpl* database, SharedReadCacheUse cache_use);
 
   // Protect databases_ and mdp_ members.
   mutable base::Lock databases_lock_;
@@ -304,19 +298,12 @@ class LEVELDB_EXPORT DBTracker {
 //   1. |dbptr| is not touched on failure
 //   2. |dbptr| is not NULL on success
 //
-// Note that some `options` may not be honored, for example in the case of
-// in-memory databases, the block cache is disabled and a minimum write buffer
-// size is used to conserve memory.
+// Note: All |options| values are honored, except if options.env is an in-memory
+// Env. In this case the block cache is disabled and a minimum write buffer size
+// is used to conserve memory with all other values honored.
 LEVELDB_EXPORT leveldb::Status OpenDB(const leveldb_env::Options& options,
                                       const std::string& name,
                                       std::unique_ptr<leveldb::DB>* dbptr);
-
-// Overrides OpenDB with the given closure.
-using DBFactoryMethod =
-    base::RepeatingCallback<leveldb::Status(const leveldb_env::Options&,
-                                            const std::string&,
-                                            std::unique_ptr<leveldb::DB>*)>;
-LEVELDB_EXPORT void SetDBFactoryForTesting(DBFactoryMethod factory);
 
 // Copies the content of |dbptr| into a fresh database to remove traces of
 // deleted data. |options| and |name| of the old database are required to create
@@ -327,8 +314,8 @@ LEVELDB_EXPORT leveldb::Status RewriteDB(const leveldb_env::Options& options,
                                          const std::string& name,
                                          std::unique_ptr<leveldb::DB>* dbptr);
 
-LEVELDB_EXPORT std::string_view MakeStringView(const leveldb::Slice& s);
-LEVELDB_EXPORT leveldb::Slice MakeSlice(std::string_view s);
+LEVELDB_EXPORT base::StringPiece MakeStringPiece(const leveldb::Slice& s);
+LEVELDB_EXPORT leveldb::Slice MakeSlice(const base::StringPiece& s);
 LEVELDB_EXPORT leveldb::Slice MakeSlice(base::span<const uint8_t> s);
 
 }  // namespace leveldb_env

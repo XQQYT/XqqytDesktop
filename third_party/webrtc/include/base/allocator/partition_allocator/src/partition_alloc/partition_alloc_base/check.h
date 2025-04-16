@@ -2,17 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_CHECK_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_CHECK_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_CHECK_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_CHECK_H_
 
 #include <iosfwd>
 
-#include "partition_alloc/buildflags.h"
-#include "partition_alloc/partition_alloc_base/compiler_specific.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_base/immediate_crash.h"
-#include "partition_alloc/partition_alloc_base/log_message.h"
-#include "partition_alloc/partition_alloc_base/strings/cstring_builder.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/compiler_specific.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/debugging_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/immediate_crash.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/log_message.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/strings/cstring_builder.h"
 
 #define PA_STRINGIFY_IMPL(s) #s
 #define PA_STRINGIFY(s) PA_STRINGIFY_IMPL(s)
@@ -20,12 +20,11 @@
 // This header defines the CHECK, DCHECK, and DPCHECK macros.
 //
 // CHECK dies with a fatal error if its condition is not true. It is not
-// controlled by PA_BUILDFLAG(IS_DEBUG), so the check will be executed
-// regardless of compilation mode.
+// controlled by NDEBUG, so the check will be executed regardless of compilation
+// mode.
 //
-// DCHECK, the "debug mode" check, is enabled depending on
-// PA_BUILDFLAG(IS_DEBUG) and PA_BUILDFLAG(DCHECK_ALWAYS_ON), and its severity
-// depends on PA_BUILDFLAG(DCHECK_IS_CONFIGURABLE).
+// DCHECK, the "debug mode" check, is enabled depending on NDEBUG and
+// DCHECK_ALWAYS_ON, and its severity depends on DCHECK_IS_CONFIGURABLE.
 //
 // (D)PCHECK is like (D)CHECK, but includes the system error code (c.f.
 // perror(3)).
@@ -68,13 +67,13 @@ class VoidifyStream {
   true ? (void)0                                                     \
        : ::partition_alloc::internal::logging::VoidifyStream(expr) & \
              (*::partition_alloc::internal::logging::g_swallow_stream)
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 extern base::strings::CStringBuilder* g_swallow_stream;
 
 class LogMessage;
 
 // Class used for raising a check error upon destruction.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) CheckError {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) CheckError {
  public:
   // Stream for adding optional details to the error message.
   base::strings::CStringBuilder& stream();
@@ -94,7 +93,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) CheckError {
 
   union {
     LogMessage log_message_;
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
     Win32ErrorLogMessage errno_log_message_;
 #else
     ErrnoLogMessage errno_log_message_;
@@ -113,66 +112,57 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) CheckError {
 namespace check_error {
 
 // Class used for raising a check error upon destruction.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Check : public CheckError {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) Check : public CheckError {
  public:
   Check(const char* file, int line, const char* condition);
 };
 
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) DCheck : public CheckError {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) DCheck : public CheckError {
  public:
   DCheck(const char* file, int line, const char* condition);
 };
 
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) PCheck : public CheckError {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) PCheck : public CheckError {
  public:
   PCheck(const char* file, int line, const char* condition);
   PCheck(const char* file, int line);
 };
 
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) DPCheck : public CheckError {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) DPCheck : public CheckError {
  public:
   DPCheck(const char* file, int line, const char* condition);
 };
 
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) NotImplemented
-    : public CheckError {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) NotImplemented : public CheckError {
  public:
   NotImplemented(const char* file, int line, const char* function);
 };
 
 }  // namespace check_error
 
-#if defined(OFFICIAL_BUILD) && PA_BUILDFLAG(IS_DEBUG)
+#if defined(OFFICIAL_BUILD) && !defined(NDEBUG)
 #error "Debug builds are not expected to be optimized as official builds."
-#endif  // defined(OFFICIAL_BUILD) && BUILDFLAG(IS_DEBUG)
+#endif  // defined(OFFICIAL_BUILD) && !defined(NDEBUG)
 
-#if defined(OFFICIAL_BUILD) && !PA_BUILDFLAG(DCHECKS_ARE_ON)
+#if defined(OFFICIAL_BUILD) && !BUILDFLAG(PA_DCHECK_IS_ON)
 
-// TODO(crbug.com/357081797): Use `[[unlikely]]` instead when there's a way to
-// switch the expression below to a statement without breaking
-// -Wthread-safety-analysis.
-#if PA_HAS_BUILTIN(__builtin_expect)
-#define PA_BASE_INTERNAL_EXPECT_FALSE(cond) __builtin_expect(!(cond), 0)
-#else
-#define PA_BASE_INTERNAL_EXPECT_FALSE(cond) !(cond)
-#endif
 // Discard log strings to reduce code bloat.
 //
 // This is not calling BreakDebugger since this is called frequently, and
 // calling an out-of-line function instead of a noreturn inline macro prevents
 // compiler optimizations.
-#define PA_BASE_CHECK(cond)                                  \
-  PA_BASE_INTERNAL_EXPECT_FALSE(cond) ? PA_IMMEDIATE_CRASH() \
-                                      : PA_EAT_CHECK_STREAM_PARAMS()
+#define PA_BASE_CHECK(condition)                   \
+  PA_UNLIKELY(!(condition)) ? PA_IMMEDIATE_CRASH() \
+                            : PA_EAT_CHECK_STREAM_PARAMS()
 
 #define PA_BASE_CHECK_WILL_STREAM() false
 
-#define PA_BASE_PCHECK(cond)                                              \
+#define PA_BASE_PCHECK(condition)                                         \
   PA_LAZY_CHECK_STREAM(                                                   \
       ::partition_alloc::internal::logging::check_error::PCheck(__FILE__, \
                                                                 __LINE__) \
           .stream(),                                                      \
-      PA_BASE_INTERNAL_EXPECT_FALSE(cond))
+      PA_UNLIKELY(!(condition)))
 
 #else
 
@@ -194,7 +184,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) NotImplemented
 
 #endif
 
-#if PA_BUILDFLAG(DCHECKS_ARE_ON)
+#if BUILDFLAG(PA_DCHECK_IS_ON)
 
 #define PA_BASE_DCHECK(condition)                                \
   PA_LAZY_CHECK_STREAM(                                          \
@@ -218,7 +208,7 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) NotImplemented
 #endif
 
 // Async signal safe checking mechanism.
-[[noreturn]] PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) void RawCheckFailure(
+[[noreturn]] PA_COMPONENT_EXPORT(PARTITION_ALLOC) void RawCheckFailure(
     const char* message);
 #define PA_RAW_CHECK(condition)                              \
   do {                                                       \
@@ -229,4 +219,4 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) NotImplemented
 
 }  // namespace partition_alloc::internal::logging
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_CHECK_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_CHECK_H_

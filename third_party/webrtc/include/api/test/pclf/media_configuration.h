@@ -16,17 +16,44 @@
 #include <functional>
 #include <map>
 #include <memory>
-#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "absl/memory/memory.h"
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "api/array_view.h"
+#include "api/async_resolver_factory.h"
+#include "api/audio/audio_mixer.h"
 #include "api/audio_options.h"
+#include "api/call/call_factory_interface.h"
+#include "api/fec_controller.h"
+#include "api/function_view.h"
 #include "api/media_stream_interface.h"
+#include "api/peer_connection_interface.h"
+#include "api/rtc_event_log/rtc_event_log_factory_interface.h"
 #include "api/rtp_parameters.h"
+#include "api/task_queue/task_queue_factory.h"
+#include "api/test/audio_quality_analyzer_interface.h"
+#include "api/test/frame_generator_interface.h"
+#include "api/test/peer_network_dependencies.h"
+#include "api/test/simulated_network.h"
+#include "api/test/stats_observer_interface.h"
+#include "api/test/track_id_stream_info_map.h"
 #include "api/test/video/video_frame_writer.h"
+#include "api/test/video_quality_analyzer_interface.h"
+#include "api/transport/network_control.h"
 #include "api/units/time_delta.h"
+#include "api/video_codecs/video_decoder_factory.h"
+#include "api/video_codecs/video_encoder.h"
+#include "api/video_codecs/video_encoder_factory.h"
+#include "modules/audio_processing/include/audio_processing.h"
+#include "rtc_base/checks.h"
+#include "rtc_base/network.h"
+#include "rtc_base/rtc_certificate_generator.h"
+#include "rtc_base/ssl_certificate.h"
+#include "rtc_base/thread.h"
 
 namespace webrtc {
 namespace webrtc_pc_e2e {
@@ -79,7 +106,7 @@ struct ScreenShareConfig {
   bool generate_slides = false;
   // If present scrolling will be applied. Please read extra requirement on
   // `slides_yuv_file_names` for scrolling.
-  std::optional<ScrollingParams> scrolling_params;
+  absl::optional<ScrollingParams> scrolling_params;
   // Contains list of yuv files with slides.
   //
   // If empty, default set of slides will be used. In such case
@@ -130,8 +157,8 @@ struct VideoSimulcastConfig {
 struct EmulatedSFUConfig {
   EmulatedSFUConfig() = default;
   explicit EmulatedSFUConfig(int target_layer_index);
-  EmulatedSFUConfig(std::optional<int> target_layer_index,
-                    std::optional<int> target_temporal_index);
+  EmulatedSFUConfig(absl::optional<int> target_layer_index,
+                    absl::optional<int> target_temporal_index);
 
   // Specifies simulcast or spatial index of the video stream to analyze.
   // There are 2 cases:
@@ -146,12 +173,12 @@ struct EmulatedSFUConfig {
   // If not specified then all streams will be received and analyzed.
   // When set, it instructs the framework to create an emulated Selective
   // Forwarding Unit (SFU) that will propagate only the requested layers.
-  std::optional<int> target_layer_index;
+  absl::optional<int> target_layer_index;
   // Specifies the index of the maximum temporal unit to keep.
   // If not specified then all temporal layers will be received and analyzed.
   // When set, it instructs the framework to create an emulated Selective
   // Forwarding Unit (SFU) that will propagate only up to the requested layer.
-  std::optional<int> target_temporal_index;
+  absl::optional<int> target_temporal_index;
 };
 
 class VideoResolution {
@@ -252,16 +279,16 @@ class VideoDumpOptions {
   std::string GetInputDumpFileName(absl::string_view stream_label,
                                    const VideoResolution& resolution) const;
   // Returns file name for input frame ids dump if `export_frame_ids()` is
-  // true, std::nullopt otherwise.
-  std::optional<std::string> GetInputFrameIdsDumpFileName(
+  // true, absl::nullopt otherwise.
+  absl::optional<std::string> GetInputFrameIdsDumpFileName(
       absl::string_view stream_label,
       const VideoResolution& resolution) const;
   std::string GetOutputDumpFileName(absl::string_view stream_label,
                                     absl::string_view receiver,
                                     const VideoResolution& resolution) const;
   // Returns file name for output frame ids dump if `export_frame_ids()` is
-  // true, std::nullopt otherwise.
-  std::optional<std::string> GetOutputFrameIdsDumpFileName(
+  // true, absl::nullopt otherwise.
+  absl::optional<std::string> GetOutputFrameIdsDumpFileName(
       absl::string_view stream_label,
       absl::string_view receiver,
       const VideoResolution& resolution) const;
@@ -295,10 +322,10 @@ struct VideoConfig {
 
   // Have to be unique among all specified configs for all peers in the call.
   // Will be auto generated if omitted.
-  std::optional<std::string> stream_label;
+  absl::optional<std::string> stream_label;
   // Will be set for current video track. If equals to kText or kDetailed -
   // screencast in on.
-  std::optional<VideoTrackInterface::ContentHint> content_hint;
+  absl::optional<VideoTrackInterface::ContentHint> content_hint;
   // If presented video will be transfered in simulcast/SVC mode depending on
   // which encoder is used.
   //
@@ -307,9 +334,9 @@ struct VideoConfig {
   // simulcast tracks. For VP9 simulcast enables VP9 SVC mode and support RTX,
   // but only on non-lossy networks. See more in documentation to
   // VideoSimulcastConfig.
-  std::optional<VideoSimulcastConfig> simulcast_config;
+  absl::optional<VideoSimulcastConfig> simulcast_config;
   // Configuration for the emulated Selective Forward Unit (SFU).
-  std::optional<EmulatedSFUConfig> emulated_sfu_config;
+  absl::optional<EmulatedSFUConfig> emulated_sfu_config;
   // Encoding parameters for both singlecast and per simulcast layer.
   // If singlecast is used, if not empty, a single value can be provided.
   // If simulcast is used, if not empty, `encoding_params` size have to be
@@ -321,16 +348,16 @@ struct VideoConfig {
   // Count of temporal layers for video stream. This value will be set into
   // each RtpEncodingParameters of RtpParameters of corresponding
   // RtpSenderInterface for this video stream.
-  std::optional<int> temporal_layers_count;
+  absl::optional<int> temporal_layers_count;
   // If specified defines how input should be dumped. It is actually one of
   // the test's output file, which contains copy of what was captured during
   // the test for this video stream on sender side. It is useful when
   // generator is used as input.
-  std::optional<VideoDumpOptions> input_dump_options;
+  absl::optional<VideoDumpOptions> input_dump_options;
   // If specified defines how output should be dumped on the receiver side for
   // this stream. The produced files contain what was rendered for this video
   // stream on receiver side per each receiver.
-  std::optional<VideoDumpOptions> output_dump_options;
+  absl::optional<VideoDumpOptions> output_dump_options;
   // If set to true uses fixed frame rate while dumping output video to the
   // file. Requested `VideoSubscription::fps()` will be used as frame rate.
   bool output_dump_use_fixed_framerate = false;
@@ -339,24 +366,27 @@ struct VideoConfig {
   // If specified, determines a sync group to which this video stream belongs.
   // According to bugs.webrtc.org/4762 WebRTC supports synchronization only
   // for pair of single audio and single video stream.
-  std::optional<std::string> sync_group;
+  absl::optional<std::string> sync_group;
   // If specified, it will be set into RtpParameters of corresponding
   // RtpSenderInterface for this video stream.
   // Note that this setting takes precedence over `content_hint`.
-  std::optional<DegradationPreference> degradation_preference;
+  absl::optional<DegradationPreference> degradation_preference;
 };
 
 // Contains properties for audio in the call.
 struct AudioConfig {
+  AudioConfig() = default;
+  explicit AudioConfig(absl::string_view stream_label);
+
   // Have to be unique among all specified configs for all peers in the call.
   // Will be auto generated if omitted.
-  std::optional<std::string> stream_label;
+  absl::optional<std::string> stream_label;
   // If no file is specified an audio will be generated.
-  std::optional<std::string> input_file_name;
+  absl::optional<std::string> input_file_name;
   // If specified the input stream will be also copied to specified file.
-  std::optional<std::string> input_dump_file_name;
+  absl::optional<std::string> input_dump_file_name;
   // If specified the output stream will be copied to specified file.
-  std::optional<std::string> output_dump_file_name;
+  absl::optional<std::string> output_dump_file_name;
 
   // Audio options to use.
   cricket::AudioOptions audio_options;
@@ -365,7 +395,7 @@ struct AudioConfig {
   // If specified, determines a sync group to which this audio stream belongs.
   // According to bugs.webrtc.org/4762 WebRTC supports synchronization only
   // for pair of single audio and single video stream.
-  std::optional<std::string> sync_group;
+  absl::optional<std::string> sync_group;
 };
 
 struct VideoCodecConfig {
@@ -393,9 +423,9 @@ class VideoSubscription {
  public:
   // Returns the resolution constructed as maximum from all resolution
   // dimensions: width, height and fps.
-  static std::optional<VideoResolution> GetMaxResolution(
+  static absl::optional<VideoResolution> GetMaxResolution(
       rtc::ArrayView<const VideoConfig> video_configs);
-  static std::optional<VideoResolution> GetMaxResolution(
+  static absl::optional<VideoResolution> GetMaxResolution(
       rtc::ArrayView<const VideoResolution> resolutions);
 
   bool operator==(const VideoSubscription& other) const;
@@ -419,9 +449,9 @@ class VideoSubscription {
 
   // Returns resolution for specific sender. If no specific resolution was
   // set for this sender, then will return resolution used for all streams.
-  // If subscription doesn't subscribe to all streams, `std::nullopt` will be
+  // If subscription doesn't subscribe to all streams, `absl::nullopt` will be
   // returned.
-  std::optional<VideoResolution> GetResolutionForPeer(
+  absl::optional<VideoResolution> GetResolutionForPeer(
       absl::string_view peer_name) const;
 
   // Returns a maybe empty list of senders for which peer explicitly
@@ -431,7 +461,7 @@ class VideoSubscription {
   std::string ToString() const;
 
  private:
-  std::optional<VideoResolution> default_resolution_ = std::nullopt;
+  absl::optional<VideoResolution> default_resolution_ = absl::nullopt;
   std::map<std::string, VideoResolution> peers_resolution_;
 };
 

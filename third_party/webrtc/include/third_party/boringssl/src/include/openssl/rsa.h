@@ -1,21 +1,63 @@
-// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
+ * All rights reserved.
+ *
+ * This package is an SSL implementation written
+ * by Eric Young (eay@cryptsoft.com).
+ * The implementation was written so as to conform with Netscapes SSL.
+ *
+ * This library is free for commercial and non-commercial use as long as
+ * the following conditions are aheared to.  The following conditions
+ * apply to all code found in this distribution, be it the RC4, RSA,
+ * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
+ * included with this distribution is covered by the same copyright terms
+ * except that the holder is Tim Hudson (tjh@cryptsoft.com).
+ *
+ * Copyright remains Eric Young's, and as such any Copyright notices in
+ * the code are not to be removed.
+ * If this package is used in a product, Eric Young should be given attribution
+ * as the author of the parts of the library used.
+ * This can be in the form of a textual message at program startup or
+ * in documentation (online or textual) provided with the package.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    "This product includes cryptographic software written by
+ *     Eric Young (eay@cryptsoft.com)"
+ *    The word 'cryptographic' can be left out if the rouines from the library
+ *    being used are not cryptographic related :-).
+ * 4. If you include any Windows specific code (or a derivative thereof) from
+ *    the apps directory (application code) you must include an acknowledgement:
+ *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * The licence and distribution terms for any publically available version or
+ * derivative of this code cannot be changed.  i.e. this code cannot simply be
+ * copied and put under another distribution licence
+ * [including the GNU Public Licence.] */
 
 #ifndef OPENSSL_HEADER_RSA_H
 #define OPENSSL_HEADER_RSA_H
 
-#include <openssl/base.h>   // IWYU pragma: export
+#include <openssl/base.h>
 
 #include <openssl/engine.h>
 #include <openssl/ex_data.h>
@@ -68,11 +110,6 @@ OPENSSL_EXPORT int RSA_up_ref(RSA *rsa);
 
 
 // Properties.
-
-// OPENSSL_RSA_MAX_MODULUS_BITS is the maximum supported RSA modulus, in bits.
-//
-// TODO(crbug.com/402677800): Reduce this to 8192.
-#define OPENSSL_RSA_MAX_MODULUS_BITS 16384
 
 // RSA_bits returns the size of |rsa|, in bits.
 OPENSSL_EXPORT unsigned RSA_bits(const RSA *rsa);
@@ -199,13 +236,6 @@ OPENSSL_EXPORT int RSA_generate_key_fips(RSA *rsa, int bits, BN_GENCB *cb);
 
 // RSA_PKCS1_PADDING denotes PKCS#1 v1.5 padding. When used with encryption,
 // this is RSAES-PKCS1-v1_5. When used with signing, this is RSASSA-PKCS1-v1_5.
-//
-// WARNING: The RSAES-PKCS1-v1_5 encryption scheme is vulnerable to a
-// chosen-ciphertext attack. Decrypting attacker-supplied ciphertext with
-// RSAES-PKCS1-v1_5 may give the attacker control over your private key. This
-// does not impact the RSASSA-PKCS1-v1_5 signature scheme. See "Chosen
-// Ciphertext Attacks Against Protocols Based on the RSA Encryption Standard
-// PKCS #1", Daniel Bleichenbacher, Advances in Cryptology (Crypto '98).
 #define RSA_PKCS1_PADDING 1
 
 // RSA_NO_PADDING denotes a raw RSA operation.
@@ -226,7 +256,8 @@ OPENSSL_EXPORT int RSA_generate_key_fips(RSA *rsa, int bits, BN_GENCB *cb);
 // It returns 1 on success or zero on error.
 //
 // The |padding| argument must be one of the |RSA_*_PADDING| values. If in
-// doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols.
+// doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols but
+// |RSA_PKCS1_PADDING| is most common.
 OPENSSL_EXPORT int RSA_encrypt(RSA *rsa, size_t *out_len, uint8_t *out,
                                size_t max_out, const uint8_t *in, size_t in_len,
                                int padding);
@@ -240,16 +271,12 @@ OPENSSL_EXPORT int RSA_encrypt(RSA *rsa, size_t *out_len, uint8_t *out,
 // The |padding| argument must be one of the |RSA_*_PADDING| values. If in
 // doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols.
 //
-// WARNING: Passing |RSA_PKCS1_PADDING| into this function is deprecated and
-// insecure. RSAES-PKCS1-v1_5 is vulnerable to a chosen-ciphertext attack.
-// Decrypting attacker-supplied ciphertext with RSAES-PKCS1-v1_5 may give the
-// attacker control over your private key. See "Chosen Ciphertext Attacks
-// Against Protocols Based on the RSA Encryption Standard PKCS #1", Daniel
-// Bleichenbacher, Advances in Cryptology (Crypto '98).
-//
-// In some limited cases, such as TLS RSA key exchange, it is possible to
-// mitigate this flaw with custom, protocol-specific padding logic. This
-// should be implemented with |RSA_NO_PADDING|, not |RSA_PKCS1_PADDING|.
+// Passing |RSA_PKCS1_PADDING| into this function is deprecated and insecure. If
+// implementing a protocol using RSAES-PKCS1-V1_5, use |RSA_NO_PADDING| and then
+// check padding in constant-time combined with a swap to a random session key
+// or other mitigation. See "Chosen Ciphertext Attacks Against Protocols Based
+// on the RSA Encryption Standard PKCS #1", Daniel Bleichenbacher, Advances in
+// Cryptology (Crypto '98).
 OPENSSL_EXPORT int RSA_decrypt(RSA *rsa, size_t *out_len, uint8_t *out,
                                size_t max_out, const uint8_t *in, size_t in_len,
                                int padding);
@@ -258,7 +285,8 @@ OPENSSL_EXPORT int RSA_decrypt(RSA *rsa, size_t *out_len, uint8_t *out,
 // |rsa| and writes the encrypted data to |to|. The |to| buffer must have at
 // least |RSA_size| bytes of space. It returns the number of bytes written, or
 // -1 on error. The |padding| argument must be one of the |RSA_*_PADDING|
-// values. If in doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols.
+// values. If in doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols but
+// |RSA_PKCS1_PADDING| is most common.
 //
 // WARNING: this function is dangerous because it breaks the usual return value
 // convention. Use |RSA_encrypt| instead.
@@ -633,8 +661,11 @@ OPENSSL_EXPORT void *RSA_get_ex_data(const RSA *rsa, int idx);
 #define RSA_FLAG_OPAQUE 1
 
 // RSA_FLAG_NO_BLINDING disables blinding of private operations, which is a
-// dangerous thing to do. This flag is set internally as part of self-tests but
-// is otherwise impossible to set externally.
+// dangerous thing to do. It is deprecated and should not be used. It will
+// be ignored whenever possible.
+//
+// This flag must be used if a key without the public exponent |e| is used for
+// private key operations; avoid using such keys whenever possible.
 #define RSA_FLAG_NO_BLINDING 8
 
 // RSA_FLAG_EXT_PKEY is deprecated and ignored.
@@ -671,9 +702,6 @@ OPENSSL_EXPORT int RSA_test_flags(const RSA *rsa, int flags);
 
 // RSA_blinding_on returns one.
 OPENSSL_EXPORT int RSA_blinding_on(RSA *rsa, BN_CTX *ctx);
-
-// RSA_blinding_off does nothing.
-OPENSSL_EXPORT void RSA_blinding_off(RSA *rsa);
 
 // RSA_generate_key behaves like |RSA_generate_key_ex|, which is what you
 // should use instead. It returns NULL on error, or a newly-allocated |RSA| on
@@ -758,6 +786,9 @@ struct rsa_meth_st {
 
   int (*init)(RSA *rsa);
   int (*finish)(RSA *rsa);
+
+  // size returns the size of the RSA modulus in bytes.
+  size_t (*size)(const RSA *rsa);
 
   int (*sign)(int type, const uint8_t *m, unsigned int m_length,
               uint8_t *sigret, unsigned int *siglen, const RSA *rsa);

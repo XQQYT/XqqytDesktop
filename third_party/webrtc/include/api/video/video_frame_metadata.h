@@ -12,11 +12,11 @@
 #define API_VIDEO_VIDEO_FRAME_METADATA_H_
 
 #include <cstdint>
-#include <optional>
-#include <variant>
 #include <vector>
 
 #include "absl/container/inlined_vector.h"
+#include "absl/types/optional.h"
+#include "absl/types/variant.h"
 #include "api/array_view.h"
 #include "api/transport/rtp/dependency_descriptor.h"
 #include "api/video/video_codec_type.h"
@@ -30,10 +30,10 @@
 
 namespace webrtc {
 
-using RTPVideoHeaderCodecSpecifics = std::variant<std::monostate,
-                                                  RTPVideoHeaderVP8,
-                                                  RTPVideoHeaderVP9,
-                                                  RTPVideoHeaderH264>;
+using RTPVideoHeaderCodecSpecifics = absl::variant<absl::monostate,
+                                                   RTPVideoHeaderVP8,
+                                                   RTPVideoHeaderVP9,
+                                                   RTPVideoHeaderH264>;
 
 // A subset of metadata from the RTP video header, exposed in insertable streams
 // API.
@@ -58,8 +58,8 @@ class RTC_EXPORT VideoFrameMetadata {
   VideoContentType GetContentType() const;
   void SetContentType(VideoContentType content_type);
 
-  std::optional<int64_t> GetFrameId() const;
-  void SetFrameId(std::optional<int64_t> frame_id);
+  absl::optional<int64_t> GetFrameId() const;
+  void SetFrameId(absl::optional<int64_t> frame_id);
 
   int GetSpatialIndex() const;
   void SetSpatialIndex(int spatial_index);
@@ -107,7 +107,7 @@ class RTC_EXPORT VideoFrameMetadata {
   VideoContentType content_type_ = VideoContentType::UNSPECIFIED;
 
   // Corresponding to GenericDescriptorInfo.
-  std::optional<int64_t> frame_id_;
+  absl::optional<int64_t> frame_id_;
   int spatial_index_ = 0;
   int temporal_index_ = 0;
   absl::InlinedVector<int64_t, 5> frame_dependencies_;

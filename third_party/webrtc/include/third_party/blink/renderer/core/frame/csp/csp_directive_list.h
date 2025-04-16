@@ -7,7 +7,6 @@
 
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/frame/csp/content_security_policy.h"
-#include "third_party/blink/renderer/platform/crypto.h"
 #include "third_party/blink/renderer/platform/loader/fetch/resource_request.h"
 #include "third_party/blink/renderer/platform/weborigin/reporting_disposition.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
@@ -37,7 +36,7 @@ CSPCheckResult CSPDirectiveListAllowFromSource(
     ResourceRequest::RedirectStatus redirect_status,
     ReportingDisposition reporting_disposition,
     const String& nonce = String(),
-    const IntegrityMetadataSet& integrity_metadata = IntegrityMetadataSet(),
+    const IntegrityMetadataSet& hashes = IntegrityMetadataSet(),
     ParserDisposition parser_disposition = kParserInserted);
 
 CORE_EXPORT
@@ -47,7 +46,7 @@ bool CSPDirectiveListAllowTrustedTypeAssignmentFailure(
     const String& message,
     const String& sample,
     const String& sample_prefix,
-    std::optional<base::UnguessableToken> issue_id);
+    absl::optional<base::UnguessableToken> issue_id);
 
 CORE_EXPORT
 bool CSPDirectiveListAllowTrustedTypePolicy(
@@ -56,14 +55,10 @@ bool CSPDirectiveListAllowTrustedTypePolicy(
     const String& policy_name,
     bool is_duplicate,
     ContentSecurityPolicy::AllowTrustedTypePolicyDetails& violation_details,
-    std::optional<base::UnguessableToken> issue_id);
+    absl::optional<base::UnguessableToken> issue_id);
 
 CORE_EXPORT
 bool CSPDirectiveListRequiresTrustedTypes(
-    const network::mojom::blink::ContentSecurityPolicy& csp);
-
-CORE_EXPORT
-std::optional<HashAlgorithm> CSPDirectiveListHashToReport(
     const network::mojom::blink::ContentSecurityPolicy& csp);
 
 CORE_EXPORT

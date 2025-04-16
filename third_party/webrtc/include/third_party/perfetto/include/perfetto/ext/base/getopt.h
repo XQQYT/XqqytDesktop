@@ -45,7 +45,7 @@ constexpr auto required_argument =
     ::perfetto::base::getopt_compat::required_argument;
 
 #else
-#include <getopt.h>  // IWYU pragma: export
+#include <getopt.h>
 #endif
 
 #endif  // INCLUDE_PERFETTO_EXT_BASE_GETOPT_H_

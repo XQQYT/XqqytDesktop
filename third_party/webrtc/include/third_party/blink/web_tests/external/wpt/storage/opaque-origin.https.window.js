@@ -1,7 +1,4 @@
 // META: title=StorageManager API and opaque origins
-// META: script=/resources/testdriver.js
-// META: script=/resources/testdriver-vendor.js
-// META: script=resources/helpers.js
 
 function load_iframe(src, sandbox) {
   return new Promise(resolve => {
@@ -51,10 +48,6 @@ function make_script(snippet) {
          '  };' +
          '<\/script>';
 }
-
-promise_setup(async () => {
-  await tryDenyingPermission();
-});
 
 ['navigator.storage.persisted()',
  'navigator.storage.estimate()',

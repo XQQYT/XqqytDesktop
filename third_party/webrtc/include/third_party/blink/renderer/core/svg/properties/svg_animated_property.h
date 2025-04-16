@@ -42,7 +42,6 @@
 
 namespace blink {
 
-class CSSValue;
 class ExceptionState;
 class SVGElement;
 
@@ -58,8 +57,6 @@ class SVGAnimatedPropertyBase : public GarbageCollectedMixin {
   virtual void SetAnimatedValue(SVGPropertyBase*) = 0;
 
   virtual SVGParsingError AttributeChanged(const String&) = 0;
-  virtual const CSSValue* CssValue() const;
-
   virtual bool NeedsSynchronizeAttribute() const;
   virtual void SynchronizeAttribute();
 
@@ -78,19 +75,12 @@ class SVGAnimatedPropertyBase : public GarbageCollectedMixin {
   bool HasPresentationAttributeMapping() const {
     return CssPropertyId() != CSSPropertyID::kInvalid;
   }
-  bool HasContentAttribute() const {
-    return content_attribute_state_ == kHasValue ||
-           content_attribute_state_ == kUnsynchronizedValue;
-  }
+
   bool IsSpecified() const;
 
   void Trace(Visitor*) const override;
 
-  enum class BaseValueChangeType {
-    kUpdated,
-    kRemoved,
-  };
-  void BaseValueChanged(BaseValueChangeType);
+  void BaseValueChanged();
   void EnsureAnimValUpdated();
 
  protected:
@@ -103,25 +93,8 @@ class SVGAnimatedPropertyBase : public GarbageCollectedMixin {
   static constexpr int kInitialValueStorageBits = 3;
   unsigned InitialValueStorage() const { return initial_value_storage_; }
 
-  enum ContentAttributeState : unsigned {
-    // The content attribute is not set (hasAttribute(...) === false).
-    kNotSet,
-
-    // The content attribute is set (hasAttribute(...) === true).
-    kHasValue,
-
-    // The SVG DOM base value has been changed and is waiting to be
-    // synchronized to content attribute storage.
-    kUnsynchronizedValue,
-
-    // The SVG DOM base value has been changed such that the content attribute
-    // would be removed, and is waiting to be synchronized to content attribute
-    // storage.
-    kUnsynchronizedRemoval,
-  };
-
-  void SetContentAttributeState(ContentAttributeState content_attribute_state) {
-    content_attribute_state_ = content_attribute_state;
+  void ClearBaseValueNeedsSynchronization() {
+    base_value_needs_synchronization_ = false;
   }
 
  private:
@@ -132,19 +105,9 @@ class SVGAnimatedPropertyBase : public GarbageCollectedMixin {
   const unsigned css_property_id_ : kCSSPropertyIDBitLength;
   const unsigned initial_value_storage_ : kInitialValueStorageBits;
 
-  // Tracks the state of the associated content attribute. See
-  // ContentAttributeState above for details.
-  unsigned content_attribute_state_ : 2;
-
+  unsigned base_value_needs_synchronization_ : 1;
   Member<SVGElement> context_element_;
   const QualifiedName& attribute_name_;
-};
-
-template <typename T>
-struct ThreadingTrait<
-    T,
-    std::enable_if_t<std::is_base_of_v<SVGAnimatedPropertyBase, T>>> {
-  static constexpr ThreadAffinity kAffinity = kMainThreadOnly;
 };
 
 template <typename Property>
@@ -165,9 +128,9 @@ class SVGAnimatedPropertyCommon : public SVGAnimatedPropertyBase {
     static_assert(Property::kInitialValueBits <= kInitialValueStorageBits,
                   "enough bits for the initial value");
 
+    ClearBaseValueNeedsSynchronization();
     const bool has_initial_value = Property::kInitialValueBits > 0;
     const bool is_attr_removal = value.IsNull();
-    SetContentAttributeState(is_attr_removal ? kNotSet : kHasValue);
     SVGParsingError parse_status = SVGParseStatus::kNoError;
     if (!has_initial_value || !is_attr_removal)
       parse_status = base_value_->SetValueAsString(value);
@@ -224,8 +187,7 @@ class SVGAnimatedProperty : public SVGAnimatedPropertyCommon<Property> {
 
   void setBaseVal(PrimitiveType value, ExceptionState&) {
     this->BaseValue()->SetValue(value);
-    this->BaseValueChanged(
-        SVGAnimatedPropertyBase::BaseValueChangeType::kUpdated);
+    this->BaseValueChanged();
   }
 
   PrimitiveType animVal() {

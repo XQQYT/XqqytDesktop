@@ -1,4 +1,4 @@
-(async function(/** @type {import('test_runner').TestRunner} */ testRunner) {
+(async function(testRunner) {
   const {session, dp} = await testRunner.startURL(
       'resources/page-with-fenced-frame.php',
       'Tests that fenced frame target does not support ' +

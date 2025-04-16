@@ -7,10 +7,11 @@
 
 #include <stdint.h>
 
-#include <optional>
 #include <ostream>
 
 #include "base/dcheck_is_on.h"
+#include "base/logging.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/dom/document.h"
 #include "third_party/blink/renderer/core/editing/forward.h"
 #include "third_party/blink/renderer/core/html/forms/text_control_element.h"
@@ -54,8 +55,8 @@ class MODULES_EXPORT AXSelection final {
   AXSelection& operator=(const AXSelection&) = default;
   ~AXSelection() = default;
 
-  const AXPosition Anchor() const { return anchor_; }
-  const AXPosition Focus() const { return focus_; }
+  const AXPosition Base() const { return base_; }
+  const AXPosition Extent() const { return extent_; }
 
   // The selection is invalid if either the anchor or the focus position is
   // invalid, or if the positions are in two separate documents.
@@ -101,13 +102,13 @@ class MODULES_EXPORT AXSelection final {
   // Determines whether this selection is targeted to the contents of a text
   // field, and returns the start and end text offsets, as well as its
   // direction. |start| should always be less than equal to |end|.
-  std::optional<TextControlSelection> AsTextControlSelection() const;
+  absl::optional<TextControlSelection> AsTextControlSelection() const;
 
   // The |AXPosition| where the selection starts.
-  AXPosition anchor_;
+  AXPosition base_;
 
   // The |AXPosition| where the selection ends.
-  AXPosition focus_;
+  AXPosition extent_;
 
 #if DCHECK_IS_ON()
   // TODO(accessibility): Use layout tree version in place of DOM and style
@@ -125,10 +126,10 @@ class MODULES_EXPORT AXSelection::Builder final {
  public:
   Builder() = default;
   ~Builder() = default;
-  Builder& SetAnchor(const AXPosition&);
-  Builder& SetAnchor(const Position&);
-  Builder& SetFocus(const AXPosition&);
-  Builder& SetFocus(const Position&);
+  Builder& SetBase(const AXPosition&);
+  Builder& SetBase(const Position&);
+  Builder& SetExtent(const AXPosition&);
+  Builder& SetExtent(const Position&);
   Builder& SetSelection(const SelectionInDOMTree&);
   const AXSelection Build();
 

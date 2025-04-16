@@ -28,7 +28,7 @@
           eventSender.keyDown("Backspace", []);
           eventSender.keyDown("Backspace", []);
           eventSender.keyDown("Backspace", []);
-          shouldBeEqualToString("targetDiv.innerHTML", "<br>");
+          shouldBeEmptyString("targetDiv.innerText");
 
           eventSender.keyDown('T');
           eventSender.keyDown('E');

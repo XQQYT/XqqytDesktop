@@ -113,7 +113,7 @@ inline ThreadSpecific<T>::operator T*() {
 #else
   const bool kMainThreadAlwaysChecksTLS = false;
   T** ptr = &main_thread_storage_;
-  if (MayNotBeMainThread()) [[unlikely]] {
+  if (UNLIKELY(MayNotBeMainThread())) {
     off_thread_ptr = static_cast<T*>(Get());
     ptr = &off_thread_ptr;
   }
@@ -121,14 +121,14 @@ inline ThreadSpecific<T>::operator T*() {
   // Set up thread-specific value's memory pointer before invoking constructor,
   // in case any function it calls needs to access the value, to avoid
   // recursion.
-  if (!*ptr) [[unlikely]] {
+  if (UNLIKELY(!*ptr)) {
     *ptr = static_cast<T*>(Partitions::FastZeroedMalloc(
         sizeof(T), WTF_HEAP_PROFILER_TYPE_NAME(T)));
 
     // Even if we didn't realize we're on the main thread, we might still be.
     // We need to double-check so that |main_thread_storage_| is populated.
-    if (!kMainThreadAlwaysChecksTLS && ptr != &main_thread_storage_ &&
-        IsMainThread()) [[unlikely]] {
+    if (!kMainThreadAlwaysChecksTLS && UNLIKELY(ptr != &main_thread_storage_) &&
+        IsMainThread()) {
       main_thread_storage_ = *ptr;
     }
 

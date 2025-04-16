@@ -7,7 +7,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <optional>
 #include <type_traits>
 
 #include "base/base_export.h"
@@ -21,6 +20,7 @@
 #include "base/time/time.h"
 #include "base/trace_event/base_tracing.h"
 #include "base/trace_event/base_tracing_forward.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace perfetto {
 class EventContext;
@@ -88,9 +88,9 @@ class BASE_EXPORT TaskQueue {
     // tasks or ripe delayed tasks. The implementation should return the next
     // allowed wake up, or nullopt if no future wake-up is necessary.
     // This is always called on the thread this TaskQueue is associated with.
-    virtual std::optional<WakeUp> GetNextAllowedWakeUp(
+    virtual absl::optional<WakeUp> GetNextAllowedWakeUp(
         LazyNow* lazy_now,
-        std::optional<WakeUp> next_desired_wake_up,
+        absl::optional<WakeUp> next_desired_wake_up,
         bool has_ready_task) = 0;
 
    protected:
@@ -178,6 +178,8 @@ class BASE_EXPORT TaskQueue {
   //
   // Wall-time related methods (start_time, end_time, wall_duration) can be
   // called only when |has_wall_time()| is true.
+  // Thread-time related mehtods (start_thread_time, end_thread_time,
+  // thread_duration) can be called only when |has_thread_time()| is true.
   //
   // start_* should be called after RecordTaskStart.
   // end_* and *_duration should be called after RecordTaskEnd.
@@ -186,7 +188,7 @@ class BASE_EXPORT TaskQueue {
     enum class State { NotStarted, Running, Finished };
     enum class TimeRecordingPolicy { DoRecord, DoNotRecord };
 
-    explicit TaskTiming(bool has_wall_time);
+    TaskTiming(bool has_wall_time, bool has_thread_time);
 
     bool has_wall_time() const { return has_wall_time_; }
     bool has_thread_time() const { return has_thread_time_; }
@@ -203,6 +205,18 @@ class BASE_EXPORT TaskQueue {
       DCHECK(has_wall_time());
       return end_time_ - start_time_;
     }
+    base::ThreadTicks start_thread_time() const {
+      DCHECK(has_thread_time());
+      return start_thread_time_;
+    }
+    base::ThreadTicks end_thread_time() const {
+      DCHECK(has_thread_time());
+      return end_thread_time_;
+    }
+    base::TimeDelta thread_duration() const {
+      DCHECK(has_thread_time());
+      return end_thread_time_ - start_thread_time_;
+    }
 
     State state() const { return state_; }
 
@@ -218,6 +232,8 @@ class BASE_EXPORT TaskQueue {
 
     base::TimeTicks start_time_;
     base::TimeTicks end_time_;
+    base::ThreadTicks start_thread_time_;
+    base::ThreadTicks end_thread_time_;
   };
 
   // An interface that lets the owner vote on whether or not the associated
@@ -276,7 +292,7 @@ class BASE_EXPORT TaskQueue {
   // such tasks (immediate tasks don't count) or the queue is disabled it
   // returns nullopt.
   // NOTE: this must be called on the thread this TaskQueue was created by.
-  virtual std::optional<WakeUp> GetNextDesiredWakeUp() = 0;
+  virtual absl::optional<WakeUp> GetNextDesiredWakeUp() = 0;
 
   // Can be called on any thread.
   virtual const char* GetName() const = 0;
@@ -419,12 +435,6 @@ class BASE_EXPORT TaskQueue {
   // Set a callback to fill trace event arguments associated with the task
   // execution.
   virtual void SetTaskExecutionTraceLogger(TaskExecutionTraceLogger logger) = 0;
-
-  // Removes immediate cancelled tasks from the queue. Call this method when the
-  // queue is expected to contain a significant number of canceled tasks
-  // (>1000), making it worthwhile to traverse it to reclaim memory. Should only
-  // be called in a context where it's safe to call the destructor of tasks.
-  virtual void RemoveCancelledTasks() = 0;
 
  protected:
   TaskQueue() = default;

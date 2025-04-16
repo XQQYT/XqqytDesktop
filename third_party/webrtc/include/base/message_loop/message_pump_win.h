@@ -5,22 +5,23 @@
 #ifndef BASE_MESSAGE_LOOP_MESSAGE_PUMP_WIN_H_
 #define BASE_MESSAGE_LOOP_MESSAGE_PUMP_WIN_H_
 
+#include <windows.h>
+
 #include <atomic>
 #include <memory>
-#include <optional>
 
 #include "base/base_export.h"
 #include "base/compiler_specific.h"
 #include "base/location.h"
 #include "base/memory/raw_ptr.h"
+#include "base/memory/raw_ptr_exclusion.h"
 #include "base/message_loop/message_pump.h"
 #include "base/observer_list.h"
-#include "base/synchronization/waitable_event.h"
 #include "base/threading/thread_checker.h"
 #include "base/time/time.h"
 #include "base/win/message_window.h"
 #include "base/win/scoped_handle.h"
-#include "base/win/windows_types.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base {
 
@@ -35,8 +36,6 @@ class BASE_EXPORT MessagePumpWin : public MessagePump {
   // MessagePump methods:
   void Run(Delegate* delegate) override;
   void Quit() override;
-
-  static void InitializeFeatures();
 
  protected:
   struct RunState {
@@ -56,12 +55,11 @@ class BASE_EXPORT MessagePumpWin : public MessagePump {
   // True iff:
   //   * MessagePumpForUI: there's a kMsgDoWork message pending in the Windows
   //     Message queue. i.e. when:
-  //      a. The pump is about to wakeup from idle and kUIPumpImprovementsWin
-  //         is not enabled.
+  //      a. The pump is about to wakeup from idle.
   //      b. The pump is about to enter a nested native loop and a
-  //         `ScopedAllowApplicationTasksInNativeNestedLoop` was instantiated to
+  //         ScopedAllowApplicationTasksInNativeNestedLoop was instantiated to
   //         allow application tasks to execute in that nested loop
-  //         (`ScopedAllowApplicationTasksInNativeNestedLoop` invokes
+  //         (ScopedAllowApplicationTasksInNativeNestedLoop invokes
   //         ScheduleWork()).
   //      c. While in a native (nested) loop : HandleWorkMessage() =>
   //         ProcessPumpReplacementMessage() invokes ScheduleWork() before
@@ -70,18 +68,18 @@ class BASE_EXPORT MessagePumpWin : public MessagePump {
   //         nested loop. This is different from (b.) because we're not yet
   //         processing an application task at the current run level and
   //         therefore are expected to keep pumping application tasks without
-  //         necessitating a `ScopedAllowApplicationTasksInNativeNestedLoop`.
+  //         necessitating a ScopedAllowApplicationTasksInNativeNestedLoop.
   //
-  //   * MessagePumpforIO: there's a dummy IO completion item with `this` as an
+  //   * MessagePumpforIO: there's a dummy IO completion item with |this| as an
   //     lpCompletionKey in the queue which is about to wakeup
   //     WaitForIOCompletion(). MessagePumpForIO doesn't support nesting so
   //     this is simpler than MessagePumpForUI.
-  //
-  // Note that this should not be used for memory ordering. It is accessed via
-  // `memory_order_relaxed` in all cases.
-  std::atomic_bool native_msg_scheduled_{false};
+  std::atomic_bool work_scheduled_{false};
 
-  raw_ptr<RunState> run_state_ = nullptr;
+  // State for the current invocation of Run(). null if not running.
+  // This field is not a raw_ptr<> because it was filtered by the rewriter for:
+  // #addr-of
+  RAW_PTR_EXCLUSION RunState* run_state_ = nullptr;
 
   THREAD_CHECKER(bound_thread_);
 };
@@ -141,8 +139,6 @@ class BASE_EXPORT MessagePumpForUI : public MessagePumpWin {
   void ScheduleWork() override;
   void ScheduleDelayedWork(
       const Delegate::NextWorkInfo& next_work_info) override;
-  bool HandleNestedNativeLoopWithApplicationTasks(
-      bool application_tasks_desired) override;
 
   // An observer interface to give the scheduler an opportunity to log
   // information about MSGs before and after they are dispatched.
@@ -176,36 +172,12 @@ class BASE_EXPORT MessagePumpForUI : public MessagePumpWin {
   // Non-nullopt if there's currently a native timer installed. If so, it
   // indicates when the timer is set to fire and can be used to avoid setting
   // redundant timers.
-  std::optional<TimeTicks> installed_native_timer_;
+  absl::optional<TimeTicks> installed_native_timer_;
 
-  // This is used to wake up the pump when the UIPumpImprovementsWin experiment
-  // is enabled.
-  WaitableEvent event_{WaitableEvent::ResetPolicy::AUTOMATIC};
-
-  // This is set when HandleNestedNativeLoopWithApplicationTasks(true) was
-  // called (when a `ScopedAllowApplicationTasksInNativeNestedLoop` is
-  // instantiated).
-  //
-  // When running with `event_`, switches to pumping
-  // `kMsgHaveWork` MSGs when there are application tasks to be done during
-  // native runloops. In this state, ScheduleDelayedWork() will start a native
-  // timer.
-  //
-  // It is reset when:
-  //   - DoRunLoop() gets control back after ProcessNextWindowsMessage().
-  //   - HandleNestedNativeLoopWithApplicationTasks(false) is called.
-  bool in_nested_native_loop_with_application_tasks_ = false;
-
-  enum class WakeupState {
-    kApplicationTask,
-    kNative,
-    kRunning,
-    kInactive,
-  };
-  // Used to keep track of what the pump knows about the state of its work
-  // sources at wakeup for the experiment 'UIPumpImprovementsWin'. Its value is
-  // `kInactive` at construction, but set to `kRunning` on entry to DoRunLoop().
-  WakeupState wakeup_state_ = WakeupState::kInactive;
+  // This will become true when a native loop takes our kMsgHaveWork out of the
+  // system queue. It will be reset to false whenever DoRunLoop regains control.
+  // Used to decide whether ScheduleDelayedWork() should start a native timer.
+  bool in_native_loop_ = false;
 
   ObserverList<Observer>::Unchecked observers_;
 };
@@ -218,35 +190,9 @@ class BASE_EXPORT MessagePumpForUI : public MessagePumpWin {
 //
 class BASE_EXPORT MessagePumpForIO : public MessagePumpWin {
  public:
-  class BASE_EXPORT IOContext {
-   public:
+  struct BASE_EXPORT IOContext {
     IOContext();
-    ~IOContext();
-
-    OVERLAPPED* GetOverlapped();
-
-   private:
-    // Hack: This header needs to be pulled in by files that should not
-    // `#include <windows.h>`, yet wants to store an `OVERLAPPED` inline.
-    // We can't simply define `OVERLAPPED` ourselves, or the compiler will
-    // complain about type redefinitions in files that _do_ see the real
-    // definition. Instead, define an identical struct, but use it only to
-    // align/size storage that we will construct a real `OVERLAPPED` in in the
-    // constructor.
-    struct Sizer {
-      ULONG_PTR Internal;
-      ULONG_PTR InternalHigh;
-      union {
-        struct {
-          DWORD Offset;
-          DWORD OffsetHigh;
-        } DUMMYSTRUCTNAME;
-        PVOID Pointer;
-      } DUMMYUNIONNAME;
-      HANDLE hEvent;
-    };
-
-    alignas(Sizer) unsigned char storage_[sizeof(Sizer)];
+    OVERLAPPED overlapped;
   };
 
   // Clients interested in receiving OS notifications when asynchronous IO
@@ -318,8 +264,7 @@ class BASE_EXPORT MessagePumpForIO : public MessagePumpWin {
   // Register the handler to be used when asynchronous IO for the given file
   // completes. The registration persists as long as |file_handle| is valid, so
   // |handler| must be valid as long as there is pending IO for the given file.
-  // Returns true iff the registration succeeds.
-  [[nodiscard]] bool RegisterIOHandler(HANDLE file_handle, IOHandler* handler);
+  HRESULT RegisterIOHandler(HANDLE file_handle, IOHandler* handler);
 
   // Register the handler to be used to process job events. The registration
   // persists as long as the job object is live, so |handler| must be valid

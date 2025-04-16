@@ -26,11 +26,9 @@ typedef NS_ENUM(NSInteger, ARDSignalingChannelState) {
 @protocol ARDSignalingChannel;
 @protocol ARDSignalingChannelDelegate <NSObject>
 
-- (void)channel:(id<ARDSignalingChannel>)channel
-    didChangeState:(ARDSignalingChannelState)state;
+- (void)channel:(id<ARDSignalingChannel>)channel didChangeState:(ARDSignalingChannelState)state;
 
-- (void)channel:(id<ARDSignalingChannel>)channel
-    didReceiveMessage:(ARDSignalingMessage *)message;
+- (void)channel:(id<ARDSignalingChannel>)channel didReceiveMessage:(ARDSignalingMessage *)message;
 
 @end
 

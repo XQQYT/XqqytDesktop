@@ -22,7 +22,7 @@ class DocumentParserTiming;
 class DocumentTiming;
 class InteractiveDetector;
 class PaintTiming;
-struct LargestContentfulPaintDetails;
+class PaintTimingDetector;
 
 // This class is only used for non-web-exposed reporting purposes (e.g. UKM).
 class CORE_EXPORT PerformanceTimingForReporting final
@@ -36,7 +36,7 @@ class CORE_EXPORT PerformanceTimingForReporting final
                WebPerformanceMetricsForReporting::
                    kRequestAnimationFramesToRecordAfterBackForwardCacheRestore>
         request_animation_frames;
-    std::optional<base::TimeDelta> first_input_delay;
+    absl::optional<base::TimeDelta> first_input_delay;
   };
 
   using BackForwardCacheRestoreTimings =
@@ -98,6 +98,10 @@ class CORE_EXPORT PerformanceTimingForReporting final
   LargestContentfulPaintDetailsForReporting
   SoftNavigationLargestContentfulPaintDetailsForMetrics() const;
 
+  LargestContentfulPaintDetailsForReporting
+  PopulateLargestContentfulPaintDetailsForReporting(
+      PaintTimingDetector::LargestContentfulPaintDetails timing) const;
+
   // The time at which the frame is first eligible for painting due to not
   // being throttled. A zero value indicates throttling.
   uint64_t FirstEligibleToPaint() const;
@@ -109,54 +113,50 @@ class CORE_EXPORT PerformanceTimingForReporting final
   // The duration between the hardware timestamp and being queued on the main
   // thread for the first click, tap, key press, cancellable touchstart, or
   // pointer down followed by a pointer up.
-  std::optional<base::TimeDelta> FirstInputDelay() const;
+  absl::optional<base::TimeDelta> FirstInputDelay() const;
 
   // The timestamp of the event whose delay is reported by FirstInputDelay().
-  std::optional<base::TimeDelta> FirstInputTimestamp() const;
+  absl::optional<base::TimeDelta> FirstInputTimestamp() const;
 
   // The timestamp of the event whose delay is reported by FirstInputDelay().
   // Intended to be used for correlation with other events internal to blink.
-  std::optional<base::TimeTicks> FirstInputTimestampAsMonotonicTime() const;
+  absl::optional<base::TimeTicks> FirstInputTimestampAsMonotonicTime() const;
 
   // The longest duration between the hardware timestamp and being queued on the
   // main thread for the click, tap, key press, cancellable touchstart, or
   // pointer down followed by a pointer up.
-  std::optional<base::TimeDelta> LongestInputDelay() const;
+  absl::optional<base::TimeDelta> LongestInputDelay() const;
 
   // The timestamp of the event whose delay is reported by LongestInputDelay().
-  std::optional<base::TimeDelta> LongestInputTimestamp() const;
+  absl::optional<base::TimeDelta> LongestInputTimestamp() const;
 
   // The duration of event handlers processing the first input event.
-  std::optional<base::TimeDelta> FirstInputProcessingTime() const;
+  absl::optional<base::TimeDelta> FirstInputProcessingTime() const;
 
   // The duration between the user's first scroll and display update.
-  std::optional<base::TimeDelta> FirstScrollDelay() const;
+  absl::optional<base::TimeDelta> FirstScrollDelay() const;
 
   // The hardware timestamp of the first scroll.
-  std::optional<base::TimeDelta> FirstScrollTimestamp() const;
+  absl::optional<base::TimeDelta> FirstScrollTimestamp() const;
 
   // TimeTicks for unload start and end.
-  std::optional<base::TimeTicks> UnloadStart() const;
-  std::optional<base::TimeTicks> UnloadEnd() const;
+  absl::optional<base::TimeTicks> UnloadStart() const;
+  absl::optional<base::TimeTicks> UnloadEnd() const;
 
   // The timestamp of when the commit navigation finished in the frame loader.
-  std::optional<base::TimeTicks> CommitNavigationEnd() const;
+  absl::optional<base::TimeTicks> CommitNavigationEnd() const;
 
   // The timestamp of the user timing mark 'mark_fully_loaded', if
   // available.
-  std::optional<base::TimeDelta> UserTimingMarkFullyLoaded() const;
+  absl::optional<base::TimeDelta> UserTimingMarkFullyLoaded() const;
 
   // The timestamp of the user timing mark 'mark_fully_visible', if
   // available.
-  std::optional<base::TimeDelta> UserTimingMarkFullyVisible() const;
+  absl::optional<base::TimeDelta> UserTimingMarkFullyVisible() const;
 
   // The timestamp of the user timing mark 'mark_interactive', if
   // available.
-  std::optional<base::TimeDelta> UserTimingMarkInteractive() const;
-
-  // The name and startTime of the user timing mark.
-  std::optional<std::tuple<AtomicString, base::TimeDelta>>
-  CustomUserTimingMark() const;
+  absl::optional<base::TimeDelta> UserTimingMarkInteractive() const;
 
   uint64_t ParseStart() const;
   uint64_t ParseStop() const;
@@ -165,8 +165,11 @@ class CORE_EXPORT PerformanceTimingForReporting final
   uint64_t ParseBlockedOnScriptExecutionDuration() const;
   uint64_t ParseBlockedOnScriptExecutionFromDocumentWriteDuration() const;
 
+  // The time of the first paint after a portal activation.
+  absl::optional<base::TimeTicks> LastPortalActivatedPaint() const;
+
   // The start time of the prerender activation navigation.
-  std::optional<base::TimeDelta> PrerenderActivationStart() const;
+  absl::optional<base::TimeDelta> PrerenderActivationStart() const;
 
   void Trace(Visitor*) const override;
 
@@ -182,11 +185,8 @@ class CORE_EXPORT PerformanceTimingForReporting final
   DocumentLoader* GetDocumentLoader() const;
   DocumentLoadTiming* GetDocumentLoadTiming() const;
   InteractiveDetector* GetInteractiveDetector() const;
-  std::optional<base::TimeDelta> MonotonicTimeToPseudoWallTime(
-      const std::optional<base::TimeTicks>&) const;
-  LargestContentfulPaintDetailsForReporting
-  PopulateLargestContentfulPaintDetailsForReporting(
-      const LargestContentfulPaintDetails& timing) const;
+  absl::optional<base::TimeDelta> MonotonicTimeToPseudoWallTime(
+      const absl::optional<base::TimeTicks>&) const;
 
   bool cross_origin_isolated_capability_;
 };

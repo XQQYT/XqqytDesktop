@@ -11,11 +11,10 @@
 #ifndef API_TEST_MOCK_ASYNC_DNS_RESOLVER_H_
 #define API_TEST_MOCK_ASYNC_DNS_RESOLVER_H_
 
+#include <functional>
 #include <memory>
 
-#include "absl/functional/any_invocable.h"
 #include "api/async_dns_resolver.h"
-#include "rtc_base/socket_address.h"
 #include "test/gmock.h"
 
 namespace webrtc {
@@ -24,7 +23,7 @@ class MockAsyncDnsResolverResult : public AsyncDnsResolverResult {
  public:
   MOCK_METHOD(bool,
               GetResolvedAddress,
-              (int, webrtc::SocketAddress*),
+              (int, rtc::SocketAddress*),
               (const, override));
   MOCK_METHOD(int, GetError, (), (const, override));
 };
@@ -33,11 +32,11 @@ class MockAsyncDnsResolver : public AsyncDnsResolverInterface {
  public:
   MOCK_METHOD(void,
               Start,
-              (const webrtc::SocketAddress&, absl::AnyInvocable<void()>),
+              (const rtc::SocketAddress&, absl::AnyInvocable<void()>),
               (override));
   MOCK_METHOD(void,
               Start,
-              (const webrtc::SocketAddress&,
+              (const rtc::SocketAddress&,
                int family,
                absl::AnyInvocable<void()>),
               (override));
@@ -48,11 +47,11 @@ class MockAsyncDnsResolverFactory : public AsyncDnsResolverFactoryInterface {
  public:
   MOCK_METHOD(std::unique_ptr<webrtc::AsyncDnsResolverInterface>,
               CreateAndResolve,
-              (const webrtc::SocketAddress&, absl::AnyInvocable<void()>),
+              (const rtc::SocketAddress&, absl::AnyInvocable<void()>),
               (override));
   MOCK_METHOD(std::unique_ptr<webrtc::AsyncDnsResolverInterface>,
               CreateAndResolve,
-              (const webrtc::SocketAddress&, int, absl::AnyInvocable<void()>),
+              (const rtc::SocketAddress&, int, absl::AnyInvocable<void()>),
               (override));
   MOCK_METHOD(std::unique_ptr<webrtc::AsyncDnsResolverInterface>,
               Create,

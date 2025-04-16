@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_REVERSE_BYTES_H_
-#define PARTITION_ALLOC_REVERSE_BYTES_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_REVERSE_BYTES_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_REVERSE_BYTES_H_
 
 // This header defines drop-in constexpr replacements for the
 // byte-reversing routines that we used from `//base/sys_byteorder.h`.
@@ -12,8 +12,8 @@
 
 #include <cstdint>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_config.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_config.h"
+#include "build/build_config.h"
 
 namespace partition_alloc::internal {
 
@@ -46,4 +46,4 @@ constexpr uintptr_t ReverseBytes(uintptr_t value) {
 
 }  // namespace partition_alloc::internal
 
-#endif  // PARTITION_ALLOC_REVERSE_BYTES_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_REVERSE_BYTES_H_

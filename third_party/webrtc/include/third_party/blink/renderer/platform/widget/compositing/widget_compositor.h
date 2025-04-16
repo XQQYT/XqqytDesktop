@@ -6,13 +6,11 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WIDGET_COMPOSITING_WIDGET_COMPOSITOR_H_
 
 #include "base/task/single_thread_task_runner.h"
-#include "base/types/pass_key.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "third_party/blink/public/mojom/widget/platform_widget.mojom-blink.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/widget/compositing/widget_swap_queue.h"
-#include "third_party/blink/renderer/platform/wtf/thread_safe_ref_counted.h"
 
 namespace cc {
 class LayerTreeHost;
@@ -22,31 +20,16 @@ namespace blink {
 
 class WidgetBase;
 
-class WidgetCompositorPassKeyProvider {
- public:
-  using PassKey = base::PassKey<WidgetCompositorPassKeyProvider>;
-
- private:
-  static PassKey GetPassKey() { return PassKey(); }
-  friend class FakeWidgetCompositor;
-  friend class WidgetCompositor;
-};
-
 class PLATFORM_EXPORT WidgetCompositor
-    : public ThreadSafeRefCounted<WidgetCompositor>,
+    : public base::RefCountedThreadSafe<WidgetCompositor>,
       public mojom::blink::WidgetCompositor {
  public:
-  static scoped_refptr<WidgetCompositor> Create(
+  WidgetCompositor(
       base::WeakPtr<WidgetBase> widget_base,
       scoped_refptr<base::SingleThreadTaskRunner> main_task_runner,
       scoped_refptr<base::SingleThreadTaskRunner> compositor_task_runner,
       mojo::PendingReceiver<mojom::blink::WidgetCompositor> receiver);
-
-  WidgetCompositor(
-      base::PassKey<WidgetCompositorPassKeyProvider>,
-      base::WeakPtr<WidgetBase> widget_base,
-      scoped_refptr<base::SingleThreadTaskRunner> main_task_runner,
-      scoped_refptr<base::SingleThreadTaskRunner> compositor_task_runner);
+  ~WidgetCompositor() override = default;
   WidgetCompositor(const WidgetCompositor&) = delete;
   WidgetCompositor& operator=(const WidgetCompositor&) = delete;
 
@@ -57,14 +40,9 @@ class PLATFORM_EXPORT WidgetCompositor
 
   virtual cc::LayerTreeHost* LayerTreeHost() const;
 
- protected:
-  friend ThreadSafeRefCounted<WidgetCompositor>;
-  ~WidgetCompositor() override = default;
-
+ private:
   void BindOnThread(
       mojo::PendingReceiver<mojom::blink::WidgetCompositor> receiver);
-
- private:
   void ResetOnThread();
   void CreateQueueSwapPromise(base::OnceCallback<void(int)> drain_callback,
                               base::OnceClosure swap_callback,

@@ -33,7 +33,10 @@ class PLATFORM_EXPORT NullResourceFetcherProperties final
   ControllerServiceWorkerMode GetControllerServiceWorkerMode() const override {
     return ControllerServiceWorkerMode::kNoController;
   }
-  int64_t ServiceWorkerId() const override { NOTREACHED(); }
+  int64_t ServiceWorkerId() const override {
+    NOTREACHED();
+    return 0;
+  }
   bool IsPaused() const override { return false; }
   LoaderFreezeMode FreezeMode() const override {
     return LoaderFreezeMode::kNone;

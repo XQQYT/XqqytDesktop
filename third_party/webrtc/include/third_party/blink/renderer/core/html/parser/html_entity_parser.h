@@ -27,8 +27,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_HTML_PARSER_HTML_ENTITY_PARSER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_HTML_PARSER_HTML_ENTITY_PARSER_H_
 
-#include <string_view>
-
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/platform/text/segmented_string.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
@@ -43,6 +41,8 @@ class DecodedHTMLEntity {
   static const unsigned kMaxLength = 4;
 
  public:
+  DecodedHTMLEntity() : length(0) {}
+
   bool IsEmpty() const { return !length; }
 
   void Append(UChar c) {
@@ -59,8 +59,8 @@ class DecodedHTMLEntity {
     Append(U16_TRAIL(c));
   }
 
-  unsigned length = 0;
-  std::array<UChar, kMaxLength> data;
+  unsigned length;
+  UChar data[kMaxLength];
 };
 
 void AppendLegalEntityFor(UChar32 c, DecodedHTMLEntity& decoded_entity);
@@ -72,7 +72,7 @@ CORE_EXPORT bool ConsumeHTMLEntity(SegmentedString&,
 
 // Used by the XML parser.  Not suitable for use in HTML parsing.  Use
 // consumeHTMLEntity instead.
-std::optional<DecodedHTMLEntity> DecodeNamedEntity(std::string_view);
+size_t DecodeNamedEntityToUCharArray(const char*, UChar result[4]);
 
 }  // namespace blink
 

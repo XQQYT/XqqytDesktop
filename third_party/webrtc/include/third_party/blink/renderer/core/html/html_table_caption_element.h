@@ -42,7 +42,7 @@ class HTMLTableCaptionElement final : public HTMLElement {
   void CollectStyleForPresentationAttribute(
       const QualifiedName&,
       const AtomicString&,
-      HeapVector<CSSPropertyValue, 8>&) override;
+      MutableCSSPropertyValueSet*) override;
 };
 
 }  // namespace blink

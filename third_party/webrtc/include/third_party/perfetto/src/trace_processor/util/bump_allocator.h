@@ -17,16 +17,19 @@
 #ifndef SRC_TRACE_PROCESSOR_UTIL_BUMP_ALLOCATOR_H_
 #define SRC_TRACE_PROCESSOR_UTIL_BUMP_ALLOCATOR_H_
 
+#include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <limits>
+#include <memory>
 #include <optional>
 #include <tuple>
 
-#include "perfetto/base/logging.h"
 #include "perfetto/ext/base/circular_queue.h"
 #include "perfetto/ext/base/utils.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 // A simple memory allocator which "bumps" a pointer to service allocations.
 // See [1] for more details for an overview of bump allocators.
@@ -51,7 +54,7 @@ class BumpAllocator {
  public:
   // The limit on the total number of bits which can be used to represent
   // the chunk id.
-  static constexpr uint64_t kMaxIdBits = 58;
+  static constexpr uint64_t kMaxIdBits = 60;
 
   // The limit on the total amount of memory which can be allocated.
   static constexpr uint64_t kAllocLimit = 1ull << kMaxIdBits;
@@ -181,6 +184,7 @@ class BumpAllocator {
   uint64_t erased_front_chunks_count_ = 0;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_UTIL_BUMP_ALLOCATOR_H_

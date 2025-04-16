@@ -5,9 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSSOM_CSS_UNSUPPORTED_STYLE_VALUE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSSOM_CSS_UNSUPPORTED_STYLE_VALUE_H_
 
-#include <optional>
-
 #include "base/notreached.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/css/css_property_name.h"
 #include "third_party/blink/renderer/core/css/cssom/css_style_value.h"
@@ -47,12 +46,15 @@ class CORE_EXPORT CSSUnsupportedStyleValue : public CSSStyleValue {
     return name_ && *name_ == name;
   }
 
-  const CSSValue* ToCSSValue() const override { NOTREACHED(); }
+  const CSSValue* ToCSSValue() const override {
+    NOTREACHED();
+    return nullptr;
+  }
 
   String toString() const final { return CSSText(); }
 
  private:
-  std::optional<CSSPropertyName> name_;
+  absl::optional<CSSPropertyName> name_;
 };
 
 template <>

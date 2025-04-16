@@ -8,11 +8,7 @@
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/geometry/logical_offset.h"
 #include "third_party/blink/renderer/core/layout/geometry/logical_size.h"
-#include "ui/gfx/geometry/rect_f.h"
-
-namespace WTF {
-class String;
-}  // namespace WTF
+#include "third_party/blink/renderer/platform/geometry/layout_rect.h"
 
 namespace blink {
 
@@ -41,18 +37,19 @@ struct CORE_EXPORT LogicalRect {
                         int block_offset,
                         int inline_size,
                         int block_size);
+  constexpr explicit LogicalRect(const DeprecatedLayoutRect& source)
+      : LogicalRect({source.X(), source.Y()},
+                    {source.Width(), source.Height()}) {}
+
+  constexpr DeprecatedLayoutRect ToLayoutRect() const {
+    return {offset.inline_offset, offset.block_offset, size.inline_size,
+            size.block_size};
+  }
 
   LogicalOffset offset;
   LogicalSize size;
 
   constexpr bool IsEmpty() const { return size.IsEmpty(); }
-
-  constexpr LayoutUnit InlineStartOffset() const {
-    return offset.inline_offset;
-  }
-  constexpr LayoutUnit BlockStartOffset() const { return offset.block_offset; }
-  constexpr LayoutUnit InlineSize() const { return size.inline_size; }
-  constexpr LayoutUnit BlockSize() const { return size.block_size; }
 
   LayoutUnit InlineEndOffset() const {
     return offset.inline_offset + size.inline_size;
@@ -95,13 +92,6 @@ struct CORE_EXPORT LogicalRect {
     size.block_size += block_start + block_end;
   }
 
-  void ContractEdges(LayoutUnit block_start,
-                     LayoutUnit inline_end,
-                     LayoutUnit block_end,
-                     LayoutUnit inline_start) {
-    ExpandEdges(-block_start, -inline_end, -block_end, -inline_start);
-  }
-
   // Update inline-start offset without changing the inline-end offset.
   void ShiftInlineStartEdgeTo(LayoutUnit edge) {
     LayoutUnit new_size = (InlineEndOffset() - edge).ClampNegativeToZero();
@@ -122,6 +112,7 @@ struct CORE_EXPORT LogicalRect {
   }
 
   // You can use this function only if we know `rect` is logical. See also:
+  //  * `EnclosingLayoutRect() -> LayoutRect`
   //  * `PhysicalRect::EnclosingRect() -> PhysicalRect`
   static LogicalRect EnclosingRect(const gfx::RectF& rect) {
     const LogicalOffset offset(LayoutUnit::FromFloatFloor(rect.x()),
@@ -136,7 +127,7 @@ struct CORE_EXPORT LogicalRect {
       : offset(LayoutUnit(r.x()), LayoutUnit(r.y())),
         size(LayoutUnit(r.width()), LayoutUnit(r.height())) {}
 
-  WTF::String ToString() const;
+  String ToString() const;
 };
 
 CORE_EXPORT std::ostream& operator<<(std::ostream&, const LogicalRect&);

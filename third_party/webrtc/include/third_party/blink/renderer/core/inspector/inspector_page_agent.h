@@ -31,9 +31,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_INSPECTOR_INSPECTOR_PAGE_AGENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_INSPECTOR_INSPECTOR_PAGE_AGENT_H_
 
-#include <optional>
-
-#include "third_party/blink/public/mojom/loader/same_document_navigation_type.mojom-blink.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/frame/ad_tracker.h"
 #include "third_party/blink/renderer/core/inspector/inspector_base_agent.h"
@@ -63,6 +61,8 @@ class InspectorResourceContentLoader;
 class LocalFrame;
 class ClassicScript;
 enum class ResourceType : uint8_t;
+
+using blink::protocol::Maybe;
 
 class CORE_EXPORT InspectorPageAgent final
     : public InspectorBaseAgent<protocol::Page::Metainfo> {
@@ -95,13 +95,12 @@ class CORE_EXPORT InspectorPageAgent final
 
   static bool CachedResourceContent(const Resource*,
                                     String* result,
-                                    bool* base64_encoded,
-                                    bool* was_cached);
-  static bool SegmentedBufferContent(const SegmentedBuffer*,
-                                     const String& mime_type,
-                                     const String& text_encoding_name,
-                                     String* result,
-                                     bool* base64_encoded);
+                                    bool* base64_encoded);
+  static bool SharedBufferContent(scoped_refptr<const SharedBuffer>,
+                                  const String& mime_type,
+                                  const String& text_encoding_name,
+                                  String* result,
+                                  bool* base64_encoded);
 
   static String ResourceTypeJson(ResourceType);
   static ResourceType ToResourceType(const blink::ResourceType);
@@ -110,14 +109,12 @@ class CORE_EXPORT InspectorPageAgent final
   InspectorPageAgent(InspectedFrames*,
                      Client*,
                      InspectorResourceContentLoader*,
-                     v8_inspector::V8InspectorSession*,
-                     const String& script_to_evaluate_on_load);
+                     v8_inspector::V8InspectorSession*);
   InspectorPageAgent(const InspectorPageAgent&) = delete;
   InspectorPageAgent& operator=(const InspectorPageAgent&) = delete;
 
   // Page API for frontend
-  protocol::Response enable(
-      std::optional<bool> enable_file_chooser_opened_event) override;
+  protocol::Response enable() override;
   protocol::Response disable() override;
   protocol::Response addScriptToEvaluateOnLoad(const String& script_source,
                                                String* identifier) override;
@@ -125,16 +122,15 @@ class CORE_EXPORT InspectorPageAgent final
       const String& identifier) override;
   protocol::Response addScriptToEvaluateOnNewDocument(
       const String& source,
-      std::optional<String> world_name,
-      std::optional<bool> include_command_line_api,
-      std::optional<bool> runImmediately,
+      Maybe<String> world_name,
+      Maybe<bool> include_command_line_api,
+      Maybe<bool> runImmediately,
       String* identifier) override;
   protocol::Response removeScriptToEvaluateOnNewDocument(
       const String& identifier) override;
   protocol::Response setLifecycleEventsEnabled(bool) override;
-  protocol::Response reload(std::optional<bool> bypass_cache,
-                            std::optional<String> script_to_evaluate_on_load,
-                            std::optional<String> loader_id) override;
+  protocol::Response reload(Maybe<bool> bypass_cache,
+                            Maybe<String> script_to_evaluate_on_load) override;
   protocol::Response stopLoading() override;
   protocol::Response setAdBlockingEnabled(bool) override;
   protocol::Response getResourceTree(
@@ -146,12 +142,12 @@ class CORE_EXPORT InspectorPageAgent final
                           std::unique_ptr<GetResourceContentCallback>) override;
   protocol::Response getAdScriptId(
       const String& frame_id,
-      std::unique_ptr<protocol::Page::AdScriptId>* ad_script_id) override;
+      Maybe<protocol::Page::AdScriptId>* ad_script_id) override;
   void searchInResource(const String& frame_id,
                         const String& url,
                         const String& query,
-                        std::optional<bool> case_sensitive,
-                        std::optional<bool> is_regex,
+                        Maybe<bool> case_sensitive,
+                        Maybe<bool> is_regex,
                         std::unique_ptr<SearchInResourceCallback>) override;
   protocol::Response setDocumentContent(const String& frame_id,
                                         const String& html) override;
@@ -166,12 +162,11 @@ class CORE_EXPORT InspectorPageAgent final
       const String& frame_id,
       std::unique_ptr<protocol::Array<protocol::Page::OriginTrial>>*) override;
 
-  protocol::Response startScreencast(
-      std::optional<String> format,
-      std::optional<int> quality,
-      std::optional<int> max_width,
-      std::optional<int> max_height,
-      std::optional<int> every_nth_frame) override;
+  protocol::Response startScreencast(Maybe<String> format,
+                                     Maybe<int> quality,
+                                     Maybe<int> max_width,
+                                     Maybe<int> max_height,
+                                     Maybe<int> every_nth_frame) override;
   protocol::Response stopScreencast() override;
   protocol::Response getLayoutMetrics(
       std::unique_ptr<protocol::Page::LayoutViewport>* out_layout_viewport,
@@ -182,17 +177,17 @@ class CORE_EXPORT InspectorPageAgent final
       std::unique_ptr<protocol::DOM::Rect>* out_css_content_size) override;
   void createIsolatedWorld(
       const String& frame_id,
-      std::optional<String> world_name,
-      std::optional<bool> grant_universal_access,
+      Maybe<String> world_name,
+      Maybe<bool> grant_universal_access,
       std::unique_ptr<CreateIsolatedWorldCallback>) override;
   protocol::Response setFontFamilies(
       std::unique_ptr<protocol::Page::FontFamilies>,
-      std::unique_ptr<protocol::Array<protocol::Page::ScriptFontFamilies>>
-          forScripts) override;
+      Maybe<protocol::Array<protocol::Page::ScriptFontFamilies>> forScripts)
+      override;
   protocol::Response setFontSizes(
       std::unique_ptr<protocol::Page::FontSizes>) override;
   protocol::Response generateTestReport(const String& message,
-                                        std::optional<String> group) override;
+                                        Maybe<String> group) override;
 
   protocol::Response produceCompilationCache(
       std::unique_ptr<protocol::Array<protocol::Page::CompilationCacheParams>>
@@ -201,14 +196,11 @@ class CORE_EXPORT InspectorPageAgent final
                                          const protocol::Binary& data) override;
   protocol::Response clearCompilationCache() override;
   protocol::Response waitForDebugger() override;
-  protocol::Response setInterceptFileChooserDialog(
-      bool enabled,
-      std::optional<bool> cancel) override;
+  protocol::Response setInterceptFileChooserDialog(bool enabled) override;
 
   // InspectorInstrumentation API
   void DidCreateMainWorldContext(LocalFrame*);
-  void DidNavigateWithinDocument(LocalFrame*,
-                                 mojom::blink::SameDocumentNavigationType);
+  void DidNavigateWithinDocument(LocalFrame*);
   void DomContentLoadedEventFired(LocalFrame*);
   void LoadEventFired(LocalFrame*);
   void WillCommitLoad(LocalFrame*, DocumentLoader*);
@@ -216,9 +208,8 @@ class CORE_EXPORT InspectorPageAgent final
   void DidOpenDocument(LocalFrame*, DocumentLoader*);
   void FrameAttachedToParent(
       LocalFrame*,
-      const std::optional<AdScriptIdentifier>& ad_script_on_stack);
+      const absl::optional<AdScriptIdentifier>& ad_script_on_stack);
   void FrameDetachedFromParent(LocalFrame*, FrameDetachType);
-  void FrameSubtreeWillBeDetached(Frame* frame);
   void FrameStoppedLoading(LocalFrame*);
   void FrameRequestedNavigation(Frame* target_frame,
                                 const KURL&,
@@ -254,30 +245,16 @@ class CORE_EXPORT InspectorPageAgent final
   void FileChooserOpened(LocalFrame* frame,
                          HTMLInputElement* element,
                          bool multiple,
-                         bool* suppressed,
-                         bool* canceled);
+                         bool* intercepted);
 
   // Inspector Controller API
   void Restore() override;
   bool ScreencastEnabled();
 
   void Trace(Visitor*) const override;
-  void Dispose() override;
 
  private:
-  struct IsolatedWorldRequest {
-    IsolatedWorldRequest() = delete;
-    IsolatedWorldRequest(String world_name,
-                         bool grant_universal_access,
-                         std::unique_ptr<CreateIsolatedWorldCallback> callback)
-        : world_name(world_name),
-          grant_universal_access(grant_universal_access),
-          callback(std::move(callback)) {}
-
-    const String world_name;
-    const bool grant_universal_access;
-    std::unique_ptr<CreateIsolatedWorldCallback> callback;
-  };
+  struct IsolatedWorldRequest;
 
   void GetResourceContentAfterResourcesContentLoaded(
       const String& frame_id,
@@ -290,9 +267,10 @@ class CORE_EXPORT InspectorPageAgent final
       bool case_sensitive,
       bool is_regex,
       std::unique_ptr<SearchInResourceCallback>);
-  DOMWrapperWorld* EnsureDOMWrapperWorld(LocalFrame* frame,
-                                         const String& world_name,
-                                         bool grant_universal_access);
+  scoped_refptr<DOMWrapperWorld> EnsureDOMWrapperWorld(
+      LocalFrame* frame,
+      const String& world_name,
+      bool grant_universal_access);
 
   static KURL UrlWithoutFragment(const KURL&);
 
@@ -322,22 +300,21 @@ class CORE_EXPORT InspectorPageAgent final
 
   HeapHashMap<WeakMember<LocalFrame>, Vector<IsolatedWorldRequest>>
       pending_isolated_worlds_;
-  using FrameIsolatedWorlds = GCedHeapHashMap<String, Member<DOMWrapperWorld>>;
-  HeapHashMap<WeakMember<LocalFrame>, Member<FrameIsolatedWorlds>>
-      isolated_worlds_;
+  using FrameIsolatedWorlds = HashMap<String, scoped_refptr<DOMWrapperWorld>>;
+  HeapHashMap<WeakMember<LocalFrame>, FrameIsolatedWorlds> isolated_worlds_;
   HashMap<String, std::unique_ptr<blink::AdScriptIdentifier>>
       ad_script_identifiers_;
   v8_inspector::V8InspectorSession* v8_session_;
   Client* client_;
+  String script_to_evaluate_on_load_once_;
   Member<InspectorResourceContentLoader> inspector_resource_content_loader_;
   int resource_content_loader_client_id_;
-  InspectorAgentState::Boolean suppress_file_chooser_;
-  InspectorAgentState::Boolean cancel_file_chooser_;
+  InspectorAgentState::Boolean intercept_file_chooser_;
   InspectorAgentState::Boolean enabled_;
-  InspectorAgentState::Boolean enable_file_chooser_opened_event_;
   InspectorAgentState::Boolean screencast_enabled_;
   InspectorAgentState::Boolean lifecycle_events_enabled_;
   InspectorAgentState::Boolean bypass_csp_enabled_;
+  InspectorAgentState::String pending_script_to_evaluate_on_load_once_;
   InspectorAgentState::StringMap scripts_to_evaluate_on_load_;
   InspectorAgentState::StringMap worlds_to_evaluate_on_load_;
   InspectorAgentState::BooleanMap
@@ -345,8 +322,6 @@ class CORE_EXPORT InspectorPageAgent final
   InspectorAgentState::Integer standard_font_size_;
   InspectorAgentState::Integer fixed_font_size_;
   InspectorAgentState::Bytes script_font_families_cbor_;
-  String script_injection_on_load_once_;
-  String pending_script_injection_on_load_;
 };
 
 }  // namespace blink

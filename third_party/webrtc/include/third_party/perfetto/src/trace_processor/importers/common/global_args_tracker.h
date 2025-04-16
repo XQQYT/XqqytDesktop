@@ -17,16 +17,10 @@
 #ifndef SRC_TRACE_PROCESSOR_IMPORTERS_COMMON_GLOBAL_ARGS_TRACKER_H_
 #define SRC_TRACE_PROCESSOR_IMPORTERS_COMMON_GLOBAL_ARGS_TRACKER_H_
 
-#include <cstdint>
-#include <type_traits>
-#include <vector>
-#include "perfetto/base/logging.h"
 #include "perfetto/ext/base/flat_hash_map.h"
 #include "perfetto/ext/base/hash.h"
 #include "perfetto/ext/base/small_vector.h"
-#include "src/trace_processor/db/column.h"
 #include "src/trace_processor/storage/trace_storage.h"
-#include "src/trace_processor/tables/metadata_tables_py.h"
 #include "src/trace_processor/types/variadic.h"
 
 namespace perfetto {
@@ -54,7 +48,7 @@ class GlobalArgsTracker {
                 "Args must be trivially destructible");
 
   struct Arg : public CompactArg {
-    ColumnLegacy* column;
+    Column* column;
     uint32_t row;
 
     // Object slices this Arg to become a CompactArg.
@@ -64,7 +58,7 @@ class GlobalArgsTracker {
                 "Args must be trivially destructible");
 
   struct ArgHasher {
-    uint64_t operator()(const CompactArg& arg) const noexcept {
+    uint64_t operator()(const Arg& arg) const noexcept {
       base::Hasher hash;
       hash.Update(arg.key.raw_id());
       // We don't hash arg.flat_key because it's a subsequence of arg.key.
@@ -100,63 +94,52 @@ class GlobalArgsTracker {
 
   explicit GlobalArgsTracker(TraceStorage* storage);
 
-  ArgSetId AddArgSet(const std::vector<Arg>& args,
-                     uint32_t begin,
-                     uint32_t end) {
-    return AddArgSet(args.data() + begin, args.data() + end, sizeof(Arg));
-  }
-  ArgSetId AddArgSet(Arg* args, uint32_t begin, uint32_t end) {
-    return AddArgSet(args + begin, args + end, sizeof(Arg));
-  }
-  ArgSetId AddArgSet(CompactArg* args, uint32_t begin, uint32_t end) {
-    return AddArgSet(args + begin, args + end, sizeof(CompactArg));
-  }
-
- private:
-  using ArgSetHash = uint64_t;
-
-  // Assumes that the interval [begin, end) of |args| has args with the same key
-  // grouped together.
-  ArgSetId AddArgSet(const void* start, const void* end, uint32_t stride) {
-    base::SmallVector<const CompactArg*, 64> valid;
+  // Assumes that the interval [begin, end) of |args| is sorted by keys.
+  ArgSetId AddArgSet(const Arg* args, uint32_t begin, uint32_t end) {
+    base::SmallVector<uint32_t, 64> valid_indexes;
 
     // TODO(eseckler): Also detect "invalid" key combinations in args sets (e.g.
     // "foo" and "foo.bar" in the same arg set)?
-    for (const void* ptr = start; ptr != end;
-         ptr = reinterpret_cast<const uint8_t*>(ptr) + stride) {
-      const auto& arg = *reinterpret_cast<const CompactArg*>(ptr);
-      if (!valid.empty() && valid.back()->key == arg.key) {
+    for (uint32_t i = begin; i < end; i++) {
+      if (!valid_indexes.empty() &&
+          args[valid_indexes.back()].key == args[i].key) {
         // Last arg had the same key as this one. In case of kSkipIfExists, skip
         // this arg. In case of kAddOrUpdate, remove the last arg and add this
         // arg instead.
-        if (arg.update_policy == UpdatePolicy::kSkipIfExists) {
+        if (args[i].update_policy == UpdatePolicy::kSkipIfExists) {
           continue;
+        } else {
+          PERFETTO_DCHECK(args[i].update_policy == UpdatePolicy::kAddOrUpdate);
+          valid_indexes.pop_back();
         }
-        PERFETTO_DCHECK(arg.update_policy == UpdatePolicy::kAddOrUpdate);
-        valid.pop_back();
       }
-      valid.emplace_back(&arg);
+
+      valid_indexes.emplace_back(i);
     }
 
     base::Hasher hash;
-    for (const auto* it : valid) {
-      hash.Update(ArgHasher()(*it));
+    for (uint32_t i : valid_indexes) {
+      hash.Update(ArgHasher()(args[i]));
     }
 
-    auto& arg_table = *storage_->mutable_arg_table();
+    auto* arg_table = storage_->mutable_arg_table();
 
-    uint32_t arg_set_id = arg_table.row_count();
     ArgSetHash digest = hash.digest();
-    auto [it, inserted] = arg_row_for_hash_.Insert(digest, arg_set_id);
-    if (!inserted) {
+    auto it_and_inserted =
+        arg_row_for_hash_.Insert(digest, arg_table->row_count());
+    if (!it_and_inserted.second) {
       // Already inserted.
-      return *it;
+      return arg_table->arg_set_id()[*it_and_inserted.first];
     }
 
-    for (const CompactArg* ptr : valid) {
-      const auto& arg = *ptr;
+    // Taking size() after the Insert() ensures that nothing has an id == 0
+    // (0 == kInvalidArgSetId).
+    ArgSetId id = static_cast<uint32_t>(arg_row_for_hash_.size());
+    for (uint32_t i : valid_indexes) {
+      const auto& arg = args[i];
+
       tables::ArgTable::Row row;
-      row.arg_set_id = arg_set_id;
+      row.arg_set_id = id;
       row.flat_key = arg.flat_key;
       row.key = arg.key;
       switch (arg.value.type) {
@@ -185,10 +168,20 @@ class GlobalArgsTracker {
           break;
       }
       row.value_type = storage_->GetIdForVariadicType(arg.value.type);
-      arg_table.Insert(row);
+      arg_table->Insert(row);
     }
-    return arg_set_id;
+    return id;
   }
+
+  // Exposed for making tests easier to write.
+  ArgSetId AddArgSet(const std::vector<Arg>& args,
+                     uint32_t begin,
+                     uint32_t end) {
+    return AddArgSet(args.data(), begin, end);
+  }
+
+ private:
+  using ArgSetHash = uint64_t;
 
   base::FlatHashMap<ArgSetHash, uint32_t, base::AlreadyHashed<ArgSetHash>>
       arg_row_for_hash_;

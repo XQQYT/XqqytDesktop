@@ -40,7 +40,7 @@ RobinHoodMap<Key, Value>::InsertInternal(
       swap(to_insert, *bucket);
       distance = other_distance;
     }
-    UNSAFE_TODO(++bucket);
+    ++bucket;
     ++distance;
     if (static_cast<unsigned>(distance) >= kPossibleBucketsPerKey) {
       // Insertion failed. Stick it in the spare bucket at the very bottom,
@@ -60,10 +60,6 @@ RobinHoodMap<Key, Value>::InsertInternal(
 template <class Key, class Value>
 typename RobinHoodMap<Key, Value>::Bucket* RobinHoodMap<Key, Value>::Insert(
     const Key& key) {
-  unsigned hash = key.Hash();
-  pre_filter_ |= 1ULL << (hash & 63);
-  pre_filter_ |= 1ULL << ((hash >> 6) & 63);
-
   Bucket* bucket = InsertInternal({key, {}});
   if (bucket != nullptr) {
     // Normal, happy path.
@@ -90,7 +86,6 @@ RobinHoodMap<Key, Value> RobinHoodMap<Key, Value>::Grow() {
       new_ht = new_ht.Grow();
     }
   }
-  new_ht.pre_filter_ = pre_filter_;
   return new_ht;
 }
 
@@ -109,8 +104,7 @@ RobinHoodMap<Key, Value>::InsertWithRehashing(const Key& key) {
   {
     Bucket* bucket = FindBucket(key);
     bool rehashing_would_help = false;
-    for (unsigned i = 0; i < kPossibleBucketsPerKey;
-         ++i, UNSAFE_TODO(++bucket)) {
+    for (unsigned i = 0; i < kPossibleBucketsPerKey; ++i, ++bucket) {
       if (bucket->key.Hash() != key.Hash()) {
         rehashing_would_help = true;
         break;
@@ -138,12 +132,13 @@ RobinHoodMap<Key, Value>::InsertWithRehashing(const Key& key) {
   // Find out where the element ended up (it's hard to keep track of where
   // everything moved during the rehashing).
   Bucket* bucket = FindBucket(key);
-  for (unsigned i = 0; i < kPossibleBucketsPerKey; ++i, UNSAFE_TODO(++bucket)) {
+  for (unsigned i = 0; i < kPossibleBucketsPerKey; ++i, ++bucket) {
     if (bucket->key == key) {
       return bucket;
     }
   }
   NOTREACHED();
+  return nullptr;
 }
 
 }  // namespace blink

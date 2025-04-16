@@ -41,7 +41,7 @@ class VideoCaptureModuleV4L2 : public VideoCaptureImpl {
   bool AllocateVideoBuffers() RTC_EXCLUSIVE_LOCKS_REQUIRED(capture_lock_);
   bool DeAllocateVideoBuffers() RTC_EXCLUSIVE_LOCKS_REQUIRED(capture_lock_);
 
-  PlatformThread _captureThread RTC_GUARDED_BY(api_checker_);
+  rtc::PlatformThread _captureThread RTC_GUARDED_BY(api_checker_);
   Mutex capture_lock_ RTC_ACQUIRED_BEFORE(api_lock_);
   bool quit_ RTC_GUARDED_BY(capture_lock_);
   int32_t _deviceId RTC_GUARDED_BY(api_checker_);
@@ -50,8 +50,7 @@ class VideoCaptureModuleV4L2 : public VideoCaptureImpl {
   int32_t _buffersAllocatedByDevice RTC_GUARDED_BY(capture_lock_);
   VideoCaptureCapability configured_capability_
       RTC_GUARDED_BY(capture_checker_);
-  bool _streaming RTC_GUARDED_BY(capture_checker_);
-  bool _captureStarted RTC_GUARDED_BY(api_checker_);
+  bool _captureStarted RTC_GUARDED_BY(capture_checker_);
   struct Buffer {
     void* start;
     size_t length;

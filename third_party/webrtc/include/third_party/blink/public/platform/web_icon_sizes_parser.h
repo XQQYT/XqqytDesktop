@@ -5,9 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_ICON_SIZES_PARSER_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_ICON_SIZES_PARSER_H_
 
-#include <vector>
-
 #include "third_party/blink/public/platform/web_common.h"
+#include "third_party/blink/public/platform/web_vector.h"
 
 namespace gfx {
 class Size;
@@ -22,7 +21,7 @@ class WebString;
 // TODO(zqzhang): merge with WebIconURL, and rename it "WebIcon"?
 class BLINK_PLATFORM_EXPORT WebIconSizesParser {
  public:
-  static std::vector<gfx::Size> ParseIconSizes(const WebString& sizes_string);
+  static WebVector<gfx::Size> ParseIconSizes(const WebString& sizes_string);
 };
 
 }  // namespace blink

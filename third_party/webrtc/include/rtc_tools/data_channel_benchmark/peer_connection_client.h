@@ -12,12 +12,10 @@
 
 #include <stdint.h>
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "api/data_channel_interface.h"
 #include "api/jsep.h"
 #include "api/peer_connection_interface.h"
 #include "api/rtp_receiver_interface.h"
@@ -67,7 +65,7 @@ class PeerConnectionClient : public webrtc::PeerConnectionObserver {
 
   // Creates a default PeerConnectionFactory object.
   static rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface>
-  CreateDefaultFactory(Thread* signaling_thread);
+  CreateDefaultFactory(rtc::Thread* signaling_thread);
 
  private:
   void AddIceCandidate(

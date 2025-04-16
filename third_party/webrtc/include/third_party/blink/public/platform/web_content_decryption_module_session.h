@@ -31,12 +31,11 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_CONTENT_DECRYPTION_MODULE_SESSION_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_CONTENT_DECRYPTION_MODULE_SESSION_H_
 
-#include <vector>
-
 #include "third_party/blink/public/platform/web_common.h"
 #include "third_party/blink/public/platform/web_content_decryption_module_exception.h"
 #include "third_party/blink/public/platform/web_content_decryption_module_result.h"
 #include "third_party/blink/public/platform/web_encrypted_media_types.h"
+#include "third_party/blink/public/platform/web_vector.h"
 
 namespace media {
 enum class CdmMessageType;
@@ -70,7 +69,7 @@ class BLINK_PLATFORM_EXPORT WebContentDecryptionModuleSession {
     // renewed, etc.) and the browser should attempt to resume playback
     // if necessary.
     virtual void OnSessionKeysChange(
-        const std::vector<WebEncryptedMediaKeyInformation>&,
+        const WebVector<WebEncryptedMediaKeyInformation>&,
         bool has_additional_usable_key) = 0;
 
    protected:

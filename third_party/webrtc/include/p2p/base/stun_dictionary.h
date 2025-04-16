@@ -11,12 +11,9 @@
 #ifndef P2P_BASE_STUN_DICTIONARY_H_
 #define P2P_BASE_STUN_DICTIONARY_H_
 
-#include <cstddef>
-#include <cstdint>
 #include <deque>
 #include <map>
 #include <memory>
-#include <optional>
 #include <utility>
 #include <vector>
 
@@ -84,7 +81,7 @@ class StunDictionaryView {
 
   const StunAttribute* GetOrNull(
       int key,
-      std::optional<StunAttributeValueType> = std::nullopt) const;
+      absl::optional<StunAttributeValueType> = absl::nullopt) const;
   size_t GetLength(int key) const;
   static webrtc::RTCErrorOr<
       std::pair<uint64_t, std::deque<std::unique_ptr<StunAttribute>>>>

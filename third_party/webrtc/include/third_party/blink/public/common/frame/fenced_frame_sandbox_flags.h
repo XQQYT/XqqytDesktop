@@ -21,8 +21,7 @@ constexpr network::mojom::WebSandboxFlags kFencedFrameForcedSandboxFlags =
     network::mojom::WebSandboxFlags::kPointerLock |
     network::mojom::WebSandboxFlags::kPresentationController |
     network::mojom::WebSandboxFlags::kStorageAccessByUserActivation |
-    network::mojom::WebSandboxFlags::kTopNavigation |
-    network::mojom::WebSandboxFlags::kAllowSameSiteNoneCookies;
+    network::mojom::WebSandboxFlags::kTopNavigation;
 
 // In fenced frame trees, the features of the following flags are allowed.
 // Sandboxed frames that do not allow these features can't load fenced frames.

@@ -15,7 +15,6 @@
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_vector.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
-#include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 
 namespace blink {
 
@@ -46,7 +45,7 @@ class CORE_EXPORT ChildNodePart : public Part, public PartRoot {
   ChildNodePart(PartRoot& root,
                 Node& previous_sibling,
                 Node& next_sibling,
-                Vector<String> metadata);
+                const Vector<String> metadata);
   ChildNodePart(const ChildNodePart&) = delete;
   ~ChildNodePart() override = default;
 
@@ -67,15 +66,19 @@ class CORE_EXPORT ChildNodePart : public Part, public PartRoot {
 
   // ChildNodePart API
   void disconnect() override;
-  PartRootUnion* clone(ExceptionState&);
+  PartRootUnion* clone(ExceptionState& exception_state) {
+    return clone(nullptr, exception_state);
+  }
+  PartRootUnion* clone(PartRootCloneOptions*, ExceptionState&);
   ContainerNode* rootContainer() const override;
   ContainerNode* parentNode() const { return previous_sibling_->parentNode(); }
   Node* previousSibling() const { return previous_sibling_.Get(); }
   Node* nextSibling() const { return next_sibling_.Get(); }
   void setNextSibling(Node& next_sibling);
   HeapVector<Member<Node>> children() const;
-  void replaceChildren(const HeapVector<Member<V8UnionNodeOrString>>& nodes,
-                       ExceptionState& exception_state);
+  void replaceChildren(
+      const HeapVector<Member<V8UnionNodeOrStringOrTrustedScript>>& nodes,
+      ExceptionState& exception_state);
 
  protected:
   const PartRoot* GetParentPartRoot() const override { return root(); }
@@ -101,8 +104,6 @@ inline bool ChildNodePart::IsValid() const {
   if (!previous_sibling_ || !next_sibling_) {
     return false;
   }
-  DCHECK(!RuntimeEnabledFeatures::DOMPartsAPIMinimalEnabled() ||
-         (previous_sibling_->HasNodePart() && next_sibling_->HasNodePart()));
   ContainerNode* parent = parentNode();
   if (!parent) {
     return false;

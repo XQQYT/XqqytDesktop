@@ -14,8 +14,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/array_view.h"
 
 namespace webrtc {
@@ -70,7 +69,7 @@ class RmsLevel {
   float sum_square_;
   size_t sample_count_;
   float max_sum_square_;
-  std::optional<size_t> block_size_;
+  absl::optional<size_t> block_size_;
 };
 
 }  // namespace webrtc

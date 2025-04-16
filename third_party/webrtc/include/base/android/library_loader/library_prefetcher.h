@@ -6,6 +6,7 @@
 #define BASE_ANDROID_LIBRARY_LOADER_LIBRARY_PREFETCHER_H_
 
 #include <jni.h>
+
 #include <stdint.h>
 
 #include "base/android/library_loader/anchor_functions_buildflags.h"

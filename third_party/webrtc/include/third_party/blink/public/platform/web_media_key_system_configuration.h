@@ -5,11 +5,10 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_MEDIA_KEY_SYSTEM_CONFIGURATION_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_MEDIA_KEY_SYSTEM_CONFIGURATION_H_
 
-#include <vector>
-
 #include "media/base/eme_constants.h"
 #include "third_party/blink/public/platform/web_encrypted_media_types.h"
 #include "third_party/blink/public/platform/web_media_key_system_media_capability.h"
+#include "third_party/blink/public/platform/web_vector.h"
 
 namespace blink {
 
@@ -21,12 +20,12 @@ struct WebMediaKeySystemConfiguration {
   };
 
   WebString label;
-  std::vector<media::EmeInitDataType> init_data_types;
-  std::vector<WebMediaKeySystemMediaCapability> audio_capabilities;
-  std::vector<WebMediaKeySystemMediaCapability> video_capabilities;
+  WebVector<media::EmeInitDataType> init_data_types;
+  WebVector<WebMediaKeySystemMediaCapability> audio_capabilities;
+  WebVector<WebMediaKeySystemMediaCapability> video_capabilities;
   Requirement distinctive_identifier = Requirement::kOptional;
   Requirement persistent_state = Requirement::kOptional;
-  std::vector<WebEncryptedMediaSessionType> session_types;
+  WebVector<WebEncryptedMediaSessionType> session_types;
 };
 
 }  // namespace blink

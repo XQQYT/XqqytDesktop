@@ -2,14 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_H_
 
-#include <cstddef>
+#include <stddef.h>
+
 #include <limits>
 #include <type_traits>
 
-#include "partition_alloc/partition_alloc_base/numerics/checked_math_impl.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/numerics/checked_math_impl.h"
 
 namespace partition_alloc::internal::base {
 namespace internal {
@@ -67,11 +68,9 @@ class CheckedNumeric {
 #endif
   constexpr bool
   AssignIfValid(Dst* result) const {
-    if (IsValid<Dst>()) [[likely]] {
-      *result = static_cast<Dst>(state_.value());
-      return true;
-    }
-    return false;
+    return PA_BASE_NUMERICS_LIKELY(IsValid<Dst>())
+               ? ((*result = static_cast<Dst>(state_.value())), true)
+               : false;
   }
 
   // ValueOrDie() - The primary accessor for the underlying value. If the
@@ -84,10 +83,9 @@ class CheckedNumeric {
   // the underlying value, and it is not available through other means.
   template <typename Dst = T, class CheckHandler = CheckOnFailure>
   constexpr StrictNumeric<Dst> ValueOrDie() const {
-    if (IsValid<Dst>()) [[likely]] {
-      return static_cast<Dst>(state_.value());
-    }
-    return CheckHandler::template HandleFailure<Dst>();
+    return PA_BASE_NUMERICS_LIKELY(IsValid<Dst>())
+               ? static_cast<Dst>(state_.value())
+               : CheckHandler::template HandleFailure<Dst>();
   }
 
   // ValueOrDefault(T default_value) - A convenience method that returns the
@@ -98,10 +96,9 @@ class CheckedNumeric {
   // if the supplied default_value is not within range of the destination type.
   template <typename Dst = T, typename Src>
   constexpr StrictNumeric<Dst> ValueOrDefault(const Src default_value) const {
-    if (IsValid<Dst>()) [[likely]] {
-      return static_cast<Dst>(state_.value());
-    }
-    return checked_cast<Dst>(default_value);
+    return PA_BASE_NUMERICS_LIKELY(IsValid<Dst>())
+               ? static_cast<Dst>(state_.value())
+               : checked_cast<Dst>(default_value);
   }
 
   // Returns a checked numeric of the specified type, cast from the current
@@ -375,4 +372,4 @@ using internal::ValueOrDieForType;
 
 }  // namespace partition_alloc::internal::base
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_H_

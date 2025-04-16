@@ -11,20 +11,10 @@
 #ifndef PC_TEST_MOCK_RTP_RECEIVER_INTERNAL_H_
 #define PC_TEST_MOCK_RTP_RECEIVER_INTERNAL_H_
 
-#include <cstdint>
-#include <optional>
 #include <string>
 #include <vector>
 
-#include "api/crypto/frame_decryptor_interface.h"
-#include "api/dtls_transport_interface.h"
-#include "api/media_stream_interface.h"
-#include "api/media_types.h"
-#include "api/rtp_parameters.h"
-#include "api/rtp_receiver_interface.h"
-#include "api/scoped_refptr.h"
-#include "api/transport/rtp/rtp_source.h"
-#include "media/base/media_channel.h"
+#include "absl/types/optional.h"
 #include "pc/rtp_receiver.h"
 #include "test/gmock.h"
 
@@ -47,13 +37,13 @@ class MockRtpReceiverInternal : public RtpReceiverInternal {
               streams,
               (),
               (const, override));
-  MOCK_METHOD(webrtc::MediaType, media_type, (), (const, override));
+  MOCK_METHOD(cricket::MediaType, media_type, (), (const, override));
   MOCK_METHOD(std::string, id, (), (const, override));
   MOCK_METHOD(RtpParameters, GetParameters, (), (const, override));
   MOCK_METHOD(void, SetObserver, (RtpReceiverObserverInterface*), (override));
   MOCK_METHOD(void,
               SetJitterBufferMinimumDelay,
-              (std::optional<double>),
+              (absl::optional<double>),
               (override));
   MOCK_METHOD(std::vector<RtpSource>, GetSources, (), (const, override));
   MOCK_METHOD(void,
@@ -73,7 +63,7 @@ class MockRtpReceiverInternal : public RtpReceiverInternal {
               (override));
   MOCK_METHOD(void, SetupMediaChannel, (uint32_t), (override));
   MOCK_METHOD(void, SetupUnsignaledMediaChannel, (), (override));
-  MOCK_METHOD(std::optional<uint32_t>, ssrc, (), (const, override));
+  MOCK_METHOD(absl::optional<uint32_t>, ssrc, (), (const, override));
   MOCK_METHOD(void, NotifyFirstPacketReceived, (), (override));
   MOCK_METHOD(void, set_stream_ids, (std::vector<std::string>), (override));
   MOCK_METHOD(void,

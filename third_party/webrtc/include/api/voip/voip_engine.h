@@ -35,8 +35,7 @@ class VoipVolumeControl;
 //   config.audio_device =
 //       AudioDeviceModule::Create(AudioDeviceModule::kPlatformDefaultAudio,
 //                                 config.task_queue_factory.get());
-//   config.audio_processing_builder =
-//       std::make_unique<BuiltinAudioProcessingBuilder>();
+//   config.audio_processing = AudioProcessingBuilder().Create();
 //
 //   auto voip_engine = CreateVoipEngine(std::move(config));
 //

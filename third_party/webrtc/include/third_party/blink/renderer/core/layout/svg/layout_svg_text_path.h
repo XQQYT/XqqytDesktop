@@ -64,9 +64,9 @@ class LayoutSVGTextPath final : public LayoutSVGInline {
 
   bool IsChildAllowed(LayoutObject*, const ComputedStyle&) const override;
 
-  bool IsSVGTextPath() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectSVGTextPath || LayoutSVGInline::IsOfType(type);
   }
 
   const char* GetName() const override {

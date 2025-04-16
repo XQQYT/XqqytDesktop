@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_GLIBC_WEAK_SYMBOLS_H_
+#ifdef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_GLIBC_WEAK_SYMBOLS_H_
 #error This header is meant to be included only once by allocator_shim.cc
 #endif
 
-#ifndef PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_GLIBC_WEAK_SYMBOLS_H_
-#define PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_GLIBC_WEAK_SYMBOLS_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_GLIBC_WEAK_SYMBOLS_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_GLIBC_WEAK_SYMBOLS_H_
 
 // Alias the internal Glibc symbols to the shim entry points.
 // This file is strongly inspired by tcmalloc's libc_override_glibc.h.
@@ -20,16 +20,13 @@
 //     allocating via malloc() and freeing using __libc_free().
 //     See tcmalloc's libc_override_glibc.h for more context.
 
-#include "partition_alloc/buildflags.h"
-
-#if PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
 #include <features.h>  // for __GLIBC__
 #include <malloc.h>
 #include <unistd.h>
 
 #include <new>
 
-#include "partition_alloc/shim/allocator_shim_internals.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_internals.h"
 
 // __MALLOC_HOOK_VOLATILE not defined in all Glibc headers.
 #if !defined(__MALLOC_HOOK_VOLATILE)
@@ -41,14 +38,6 @@
 extern "C" {
 
 // 1) Re-define malloc_hook weak symbols.
-
-// This ".h" file is not a header, but a source file meant to be included only
-// once, exclusively from allocator_shim.cc. See the top-level check.
-//
-// A possible alternative: rename this file to .inc, at the expense of losing
-// syntax highlighting in text editors.
-//
-// NOLINTNEXTLINE(google-build-namespaces)
 namespace {
 
 void* GlibcMallocHook(size_t size, const void* caller) {
@@ -131,6 +120,4 @@ SHIM_ALWAYS_EXPORT int __posix_memalign(void** r, size_t a, size_t s) {
 shim by setting use_allocator_shim=false in GN args.
 #endif
 
-#endif  // PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
-
-#endif  // PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_GLIBC_WEAK_SYMBOLS_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_GLIBC_WEAK_SYMBOLS_H_

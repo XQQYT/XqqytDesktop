@@ -5,17 +5,16 @@
 <title>Verify that setInterval tasks can be properly tracked.</title>
 <script src="/resources/testharness.js"></script>
 <script src="/resources/testharnessreport.js"></script>
-<script src="resources/task-ids.js"></script>
 </head>
 <body>
 <script>
 promise_test(() => {
   return new Promise(async (resolve, reject) => {
-    const initialId = initializeTaskId();
+    const initialId = scheduler.taskId;
     await new Promise(resolve => setInterval(resolve, 0));
     queueMicrotask(() => {
       try {
-        assert_equals(scheduler.taskId, initialId);
+        assert_equals(scheduler.isAncestor(initialId), "ancestor");
         resolve();
       } catch {
         reject("Not an ancestor");
@@ -26,11 +25,11 @@ promise_test(() => {
 
 promise_test(() => {
   return new Promise(async (resolve, reject) => {
-    const initialId = initializeTaskId();
+    const initialId = scheduler.taskId;
     await new Promise(resolve => setInterval(resolve, 100));
     queueMicrotask(() => {
       try {
-        assert_equals(scheduler.taskId, initialId);
+        assert_equals(scheduler.isAncestor(initialId), "ancestor");
         resolve();
       } catch {
         reject("Not an ancestor");
@@ -41,7 +40,7 @@ promise_test(() => {
 
 promise_test(() => {
   return new Promise(async (resolve, reject) => {
-    const initialId = initializeTaskId();
+    const initialId = scheduler.taskId;
     let counter = 0;
     await new Promise(resolve => setInterval(() => {
       ++counter;
@@ -51,7 +50,7 @@ promise_test(() => {
     }, 100));
     queueMicrotask(() => {
       try {
-        assert_equals(scheduler.taskId, initialId);
+        assert_equals(scheduler.isAncestor(initialId), "ancestor");
         resolve();
       } catch {
         reject("Not an ancestor");

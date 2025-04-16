@@ -35,7 +35,7 @@ class ServiceWorkerRegistrationSync final
   ServiceWorkerRegistrationSync& operator=(
       const ServiceWorkerRegistrationSync&) = delete;
 
-  ~ServiceWorkerRegistrationSync();
+  virtual ~ServiceWorkerRegistrationSync();
 
   PeriodicSyncManager* periodicSync();
   SyncManager* sync();

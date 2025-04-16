@@ -7,22 +7,18 @@
 
 #include "base/metrics/histogram_functions.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
-#include "third_party/blink/renderer/core/execution_context/execution_context.h"
-#include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 
 namespace blink {
 
-// ScriptPromiseResolverWithTracker is a wrapper around
-// ScriptPromiseResolverBase which simplifies recording UMA metric and latency
-// for APIs.
+// ScriptPromiseResolverWithTracker is a wrapper around ScriptPromiseResolver
+// which simplifies recording UMA metric and latency for APIs.
 
 // Callers should ensure that the ResultEnumType has kOk and kTimedOut as
 // values. This is a sample usage CL: http://crrev.com/c/4053546.
-template <typename ResultEnumType, typename IDLResolvedType>
+template <typename ResultEnumType>
 class CORE_EXPORT ScriptPromiseResolverWithTracker
     : public GarbageCollected<
-          ScriptPromiseResolverWithTracker<ResultEnumType, IDLResolvedType>>,
-      public ExecutionContextLifecycleObserver {
+          ScriptPromiseResolverWithTracker<ResultEnumType>> {
  public:
   // For a given metric |metric_name_prefix|, this class will record
   // "|metric_name_prefix|.Result" and "|metric_name_prefix|.Latency",
@@ -46,22 +42,16 @@ class CORE_EXPORT ScriptPromiseResolverWithTracker
       base::TimeDelta min_latency_bucket = base::Milliseconds(1),
       base::TimeDelta max_latency_bucket = base::Seconds(10),
       size_t n_buckets = 50)
-      : ExecutionContextLifecycleObserver(nullptr),
-        metric_name_prefix_(std::move(metric_name_prefix)),
+      : metric_name_prefix_(std::move(metric_name_prefix)),
         start_time_(base::TimeTicks::Now()),
         min_latency_bucket_(min_latency_bucket),
         max_latency_bucket_(max_latency_bucket),
         n_buckets_(n_buckets) {
     DCHECK(!metric_name_prefix_.empty());
-    resolver_ = MakeGarbageCollected<ScriptPromiseResolver<IDLResolvedType>>(
-        script_state);
+    resolver_ = MakeGarbageCollected<ScriptPromiseResolver>(script_state);
     if (timeout_interval.is_positive()) {
-      auto* execution_context = ExecutionContext::From(script_state);
-      // We're goging to keep this class alive for the duration of timeout,
-      // so observe execution context to detach the underlying resolver when
-      // context is gone.
-      SetExecutionContext(execution_context);
-      execution_context->GetTaskRunner(TaskType::kInternalDefault)
+      ExecutionContext::From(script_state)
+          ->GetTaskRunner(TaskType::kInternalDefault)
           ->PostDelayedTask(
               FROM_HERE,
               WTF::BindOnce(&ScriptPromiseResolverWithTracker::RecordResult,
@@ -74,7 +64,7 @@ class CORE_EXPORT ScriptPromiseResolverWithTracker
       delete;
   ScriptPromiseResolverWithTracker& operator=(
       const ScriptPromiseResolverWithTracker&) = delete;
-  ~ScriptPromiseResolverWithTracker() override = default;
+  ~ScriptPromiseResolverWithTracker() = default;
 
   template <typename T>
   void Resolve(T value, ResultEnumType result = ResultEnumType::kOk) {
@@ -82,10 +72,10 @@ class CORE_EXPORT ScriptPromiseResolverWithTracker
     resolver_->Resolve(value);
   }
 
-  template <typename IDLRejectType, typename T>
+  template <typename T>
   void Reject(T value, ResultEnumType result) {
     RecordResultAndLatency(result);
-    resolver_->template Reject<IDLRejectType>(value);
+    resolver_->Reject(value);
   }
 
   void SetResultSuffix(std::string result_suffix) {
@@ -99,7 +89,6 @@ class CORE_EXPORT ScriptPromiseResolverWithTracker
                                   ResultEnumType result) {
     RecordResultAndLatency(result);
     exception_state.ThrowDOMException(exception_code, message);
-    resolver_->Detach();
   }
 
   void RecordAndThrowTypeError(ExceptionState& exception_state,
@@ -107,12 +96,6 @@ class CORE_EXPORT ScriptPromiseResolverWithTracker
                                ResultEnumType result) {
     RecordResultAndLatency(result);
     exception_state.ThrowTypeError(message);
-    resolver_->Detach();
-  }
-
-  void RecordAndDetach(ResultEnumType result) {
-    RecordResultAndLatency(result);
-    resolver_->Detach();
   }
 
   void Resolve() { Resolve(ToV8UndefinedGenerator()); }
@@ -144,17 +127,12 @@ class CORE_EXPORT ScriptPromiseResolverWithTracker
 
   ScriptState* GetScriptState() const { return resolver_->GetScriptState(); }
 
-  ScriptPromise<IDLResolvedType> Promise() { return resolver_->Promise(); }
+  ScriptPromise Promise() { return resolver_->Promise(); }
 
-  void Trace(Visitor* visitor) const override {
-    ExecutionContextLifecycleObserver::Trace(visitor);
-    visitor->Trace(resolver_);
-  }
+  void Trace(Visitor* visitor) const { visitor->Trace(resolver_); }
 
  private:
-  void ContextDestroyed() override { resolver_->Detach(); }
-
-  Member<ScriptPromiseResolver<IDLResolvedType>> resolver_;
+  Member<ScriptPromiseResolver> resolver_;
   const std::string metric_name_prefix_;
   const base::TimeTicks start_time_;
   const base::TimeDelta min_latency_bucket_;

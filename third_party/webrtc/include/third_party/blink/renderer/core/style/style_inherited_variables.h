@@ -19,53 +19,57 @@
 namespace blink {
 
 class CORE_EXPORT StyleInheritedVariables
-    : public GarbageCollected<StyleInheritedVariables> {
+    : public RefCounted<StyleInheritedVariables> {
  public:
-  StyleInheritedVariables() = default;
-  StyleInheritedVariables(StyleInheritedVariables& other) {
-    variables_ = other.variables_;
+  static scoped_refptr<StyleInheritedVariables> Create() {
+    return base::AdoptRef(new StyleInheritedVariables());
   }
 
-  void Trace(Visitor* visitor) const { visitor->Trace(variables_); }
-
-  bool operator==(const StyleInheritedVariables& other) const {
-    return variables_ == other.variables_;
+  scoped_refptr<StyleInheritedVariables> Copy() {
+    return base::AdoptRef(new StyleInheritedVariables(*this));
   }
+
+  bool operator==(const StyleInheritedVariables& other) const;
   bool operator!=(const StyleInheritedVariables& other) const {
     return !(*this == other);
   }
 
-  void SetData(const AtomicString& name, CSSVariableData* value) {
+  void SetData(const AtomicString& name, scoped_refptr<CSSVariableData> value) {
     DCHECK(!value || !value->NeedsVariableResolution());
-    variables_.SetData(name, value);
+    variables_.SetData(name, std::move(value));
   }
-  std::optional<CSSVariableData*> GetData(const AtomicString& name) const {
-    return variables_.GetData(name);
-  }
+  StyleVariables::OptionalData GetData(const AtomicString&) const;
 
   void SetValue(const AtomicString& name, const CSSValue* value) {
     variables_.SetValue(name, value);
   }
-  std::optional<const CSSValue*> GetValue(const AtomicString& name) const {
-    return variables_.GetValue(name);
-  }
+  StyleVariables::OptionalValue GetValue(const AtomicString&) const;
 
   // Note that not all custom property names returned here necessarily have
   // valid values, due to cycles or references to invalid variables without
   // using a fallback.
-  void CollectNames(HashSet<AtomicString>& names) const {
-    variables_.CollectNames(names);
-  }
+  void CollectNames(HashSet<AtomicString>&) const;
 
-  // For debugging/logging.
-  friend std::ostream& operator<<(std::ostream& stream,
-                                  const StyleInheritedVariables& variables) {
-    return stream << variables.variables_;
-  }
+  const StyleVariables::DataMap& Data() const { return variables_.Data(); }
+  const StyleVariables::ValueMap& Values() const { return variables_.Values(); }
 
  private:
+  StyleInheritedVariables();
+  StyleInheritedVariables(StyleInheritedVariables& other);
+
+  bool HasEquivalentRoots(const StyleInheritedVariables& other) const;
+
   StyleVariables variables_;
+  scoped_refptr<StyleInheritedVariables> root_;
+
+  friend CORE_EXPORT std::ostream& operator<<(
+      std::ostream& stream,
+      const StyleInheritedVariables& variables);
 };
+
+// For debugging/logging.
+CORE_EXPORT std::ostream& operator<<(std::ostream& stream,
+                                     const StyleInheritedVariables& variables);
 
 }  // namespace blink
 

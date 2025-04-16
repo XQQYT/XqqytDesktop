@@ -5,11 +5,10 @@
 #ifndef BASE_TYPES_ID_TYPE_H_
 #define BASE_TYPES_ID_TYPE_H_
 
-#include <algorithm>
 #include <cstdint>
-#include <functional>
 #include <type_traits>
 
+#include "base/ranges/algorithm.h"
 #include "base/types/strong_alias.h"
 
 namespace base {
@@ -38,7 +37,7 @@ namespace base {
 //
 // IdType32<Foo> behaves just like an int32_t in the following aspects:
 // - it can be used as a key in std::map;
-// - it can be used as a key in std::unordered_map
+// - it can be used as a key in std::unordered_map (see StrongAlias::Hasher);
 // - it can be used as an argument to DCHECK_EQ or streamed to LOG(ERROR);
 // - it has the same memory footprint and runtime overhead as int32_t;
 // - it can be copied by memcpy.
@@ -62,22 +61,22 @@ class IdType : public StrongAlias<TypeMarker, WrappedType> {
                                                       kExtraInvalidValues...};
 
   static_assert(std::is_unsigned_v<WrappedType> ||
-                    std::ranges::all_of(kAllInvalidValues,
-                                        [](WrappedType v) { return v <= 0; }),
+                    base::ranges::all_of(kAllInvalidValues,
+                                         [](WrappedType v) { return v <= 0; }),
                 "If signed, invalid values should be negative or equal to zero "
                 "to avoid overflow issues.");
 
-  static_assert(std::ranges::all_of(kAllInvalidValues,
-                                    [](WrappedType v) {
-                                      return kFirstGeneratedId != v;
-                                    }),
+  static_assert(base::ranges::all_of(kAllInvalidValues,
+                                     [](WrappedType v) {
+                                       return kFirstGeneratedId != v;
+                                     }),
                 "The first generated ID cannot be invalid.");
 
   static_assert(std::is_unsigned_v<WrappedType> ||
-                    std::ranges::all_of(kAllInvalidValues,
-                                        [](WrappedType v) {
-                                          return kFirstGeneratedId > v;
-                                        }),
+                    base::ranges::all_of(kAllInvalidValues,
+                                         [](WrappedType v) {
+                                           return kFirstGeneratedId > v;
+                                         }),
                 "If signed, the first generated ID must be greater than all "
                 "invalid values so that the monotonically increasing "
                 "GenerateNextId method will never return an invalid value.");
@@ -106,7 +105,7 @@ class IdType : public StrongAlias<TypeMarker, WrappedType> {
       : StrongAlias<TypeMarker, WrappedType>::StrongAlias(kInvalidValue) {}
 
   constexpr bool is_null() const {
-    return std::ranges::any_of(kAllInvalidValues, [this](WrappedType value) {
+    return base::ranges::any_of(kAllInvalidValues, [this](WrappedType value) {
       return this->value() == value;
     });
   }
@@ -133,24 +132,5 @@ template <typename TypeMarker>
 using IdTypeU64 = IdType<TypeMarker, std::uint64_t, 0>;
 
 }  // namespace base
-
-template <typename TypeMarker,
-          typename WrappedType,
-          WrappedType kInvalidValue,
-          WrappedType kFirstGeneratedId,
-          WrappedType... kExtraInvalidValues>
-struct std::hash<base::IdType<TypeMarker,
-                              WrappedType,
-                              kInvalidValue,
-                              kFirstGeneratedId,
-                              kExtraInvalidValues...>> {
-  size_t operator()(const base::IdType<TypeMarker,
-                                       WrappedType,
-                                       kInvalidValue,
-                                       kFirstGeneratedId,
-                                       kExtraInvalidValues...>& id) const {
-    return std::hash<WrappedType>()(id.value());
-  }
-};
 
 #endif  // BASE_TYPES_ID_TYPE_H_

@@ -27,13 +27,14 @@ class ServiceWorkerScriptCachedMetadataHandler : public CachedMetadataHandler {
   void Trace(Visitor*) const override;
   void SetCachedMetadata(CodeCacheHost*,
                          uint32_t data_type_id,
-                         base::span<const uint8_t>) override;
-  void SetSerializedCachedMetadata(mojo_base::BigBuffer data) override;
+                         const uint8_t*,
+                         size_t) override;
   void ClearCachedMetadata(CodeCacheHost*, ClearCacheType) override;
   scoped_refptr<CachedMetadata> GetCachedMetadata(
       uint32_t data_type_id,
       GetCachedMetadataBehavior behavior = kCrashIfUnchecked) const override;
   String Encoding() const override;
+  bool IsServedFromCacheStorage() const override;
   void OnMemoryDump(WebProcessMemoryDump* pmd,
                     const String& dump_prefix) const override;
   size_t GetCodeCacheSize() const override;

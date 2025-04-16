@@ -26,7 +26,9 @@ namespace trace_event {
 template <const char* category>
 class AutoOpenCloseEvent : public TraceLog::AsyncEnabledStateObserver {
  public:
-  enum Type { kAsync };
+  enum Type {
+    ASYNC
+  };
 
   // As in the rest of the tracing macros, the const char* arguments here
   // must be pointers to indefinitely lived strings (e.g. hard-coded string

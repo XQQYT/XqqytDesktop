@@ -20,8 +20,7 @@ idl_test(
       MIDIConnectionEvent: ['new MIDIConnectionEvent("type")'],
     })
 
-    // Chromium requires the sysex permission to allow any type of MIDI
-    await test_driver.set_permission({name: 'midi', sysex: true}, 'granted');
+    await test_driver.set_permission({name: 'midi'}, 'granted');
 
     self.access = await navigator.requestMIDIAccess();
     self.inputs = access.inputs;

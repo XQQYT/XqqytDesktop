@@ -2,16 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOG_MESSAGE_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOG_MESSAGE_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOG_MESSAGE_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOG_MESSAGE_H_
 
-#include <cstddef>
+#include <stddef.h>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/buildflags.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_base/scoped_clear_last_error.h"
-#include "partition_alloc/partition_alloc_base/strings/cstring_builder.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/debug/debugging_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/scoped_clear_last_error.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/strings/cstring_builder.h"
+#include "build/build_config.h"
 
 namespace partition_alloc::internal::logging {
 
@@ -24,9 +24,9 @@ typedef bool (*LogMessageHandlerFunction)(int severity,
                                           int line,
                                           size_t message_start,
                                           const char* str);
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void SetLogMessageHandler(LogMessageHandlerFunction handler);
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 LogMessageHandlerFunction GetLogMessageHandler();
 
 using LogSeverity = int;
@@ -41,13 +41,13 @@ constexpr LogSeverity LOGGING_NUM_SEVERITIES = 4;
 
 // LOGGING_DFATAL is LOGGING_FATAL in DCHECK-enabled builds, ERROR in normal
 // mode.
-#if PA_BUILDFLAG(DCHECKS_ARE_ON)
+#if BUILDFLAG(PA_DCHECK_IS_ON)
 constexpr LogSeverity LOGGING_DFATAL = LOGGING_FATAL;
 #else
 constexpr LogSeverity LOGGING_DFATAL = LOGGING_ERROR;
 #endif
 
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 extern base::strings::CStringBuilder* g_swallow_stream;
 
 // This class more or less represents a particular log message.  You
@@ -58,7 +58,7 @@ extern base::strings::CStringBuilder* g_swallow_stream;
 // You shouldn't actually use LogMessage's constructor to log things,
 // though.  You should use the PA_LOG() macro (and variants thereof)
 // above.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) LogMessage {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) LogMessage {
  public:
   // Used for PA_LOG(severity).
   LogMessage(const char* file, int line, LogSeverity severity);
@@ -102,20 +102,19 @@ class LogMessageVoidify {
   void operator&(base::strings::CStringBuilder&) {}
 };
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 typedef unsigned long SystemErrorCode;
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
 typedef int SystemErrorCode;
 #endif
 
 // Alias for ::GetLastError() on Windows and errno on POSIX. Avoids having to
 // pull in windows.h just for GetLastError() and DWORD.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
-SystemErrorCode GetLastSystemErrorCode();
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) SystemErrorCode GetLastSystemErrorCode();
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 // Appends a formatted system message of the GetLastError() type.
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Win32ErrorLogMessage
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) Win32ErrorLogMessage
     : public LogMessage {
  public:
   Win32ErrorLogMessage(const char* file,
@@ -130,10 +129,9 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) Win32ErrorLogMessage
  private:
   SystemErrorCode err_;
 };
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
 // Appends a formatted system message of the errno type
-class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ErrnoLogMessage
-    : public LogMessage {
+class PA_COMPONENT_EXPORT(PARTITION_ALLOC) ErrnoLogMessage : public LogMessage {
  public:
   ErrnoLogMessage(const char* file,
                   int line,
@@ -147,8 +145,8 @@ class PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) ErrnoLogMessage
  private:
   SystemErrorCode err_;
 };
-#endif  // PA_BUILDFLAG(IS_WIN)
+#endif  // BUILDFLAG(IS_WIN)
 
 }  // namespace partition_alloc::internal::logging
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOG_MESSAGE_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_LOG_MESSAGE_H_

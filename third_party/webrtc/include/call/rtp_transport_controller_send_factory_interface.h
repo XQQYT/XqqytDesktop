@@ -20,10 +20,11 @@ namespace webrtc {
 // controller.
 class RtpTransportControllerSendFactoryInterface {
  public:
-  virtual ~RtpTransportControllerSendFactoryInterface() = default;
-
   virtual std::unique_ptr<RtpTransportControllerSendInterface> Create(
-      const RtpTransportConfig& config) = 0;
+      const RtpTransportConfig& config,
+      Clock* clock) = 0;
+
+  virtual ~RtpTransportControllerSendFactoryInterface() {}
 };
 }  // namespace webrtc
 #endif  // CALL_RTP_TRANSPORT_CONTROLLER_SEND_FACTORY_INTERFACE_H_

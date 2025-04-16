@@ -14,13 +14,13 @@ class GPUBindGroupLayout;
 class GPUComputePipelineDescriptor;
 struct OwnedProgrammableStage;
 
-wgpu::ComputePipelineDescriptor AsDawnType(
+WGPUComputePipelineDescriptor AsDawnType(
     GPUDevice* device,
     const GPUComputePipelineDescriptor* webgpu_desc,
     std::string* label,
     OwnedProgrammableStage* computeStage);
 
-class GPUComputePipeline : public DawnObject<wgpu::ComputePipeline> {
+class GPUComputePipeline : public DawnObject<WGPUComputePipeline> {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
@@ -28,8 +28,7 @@ class GPUComputePipeline : public DawnObject<wgpu::ComputePipeline> {
       GPUDevice* device,
       const GPUComputePipelineDescriptor* webgpu_desc);
   explicit GPUComputePipeline(GPUDevice* device,
-                              wgpu::ComputePipeline compute_pipeline,
-                              const String& label);
+                              WGPUComputePipeline compute_pipeline);
 
   GPUComputePipeline(const GPUComputePipeline&) = delete;
   GPUComputePipeline& operator=(const GPUComputePipeline&) = delete;
@@ -38,7 +37,7 @@ class GPUComputePipeline : public DawnObject<wgpu::ComputePipeline> {
 
   void setLabelImpl(const String& value) override {
     std::string utf8_label = value.Utf8();
-    GetHandle().SetLabel(utf8_label.c_str());
+    GetProcs().computePipelineSetLabel(GetHandle(), utf8_label.c_str());
   }
 };
 

@@ -6,7 +6,6 @@
 #define IPCZ_SRC_IPCZ_SEQUENCE_NUMBER_H_
 
 #include <cstdint>
-#include <ostream>
 
 #include "util/strong_alias.h"
 
@@ -21,10 +20,6 @@ using SequenceNumber = StrongAlias<class SequenceNumberTag, uint64_t>;
 
 constexpr SequenceNumber NextSequenceNumber(SequenceNumber n) {
   return SequenceNumber{n.value() + 1};
-}
-
-inline std::ostream& operator<<(std::ostream& stream, const SequenceNumber& n) {
-  return stream << n.value();
 }
 
 }  // namespace ipcz

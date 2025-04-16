@@ -52,8 +52,7 @@ class SharedMemoryWindows : public SharedMemory {
   const base::ScopedPlatformHandle& handle() const { return handle_; }
 
   // SharedMemory implementation.
-  using SharedMemory::start;  // Equal priority to const and non-const versions
-  const void* start() const override { return start_; }
+  void* start() const override { return start_; }
   size_t size() const override { return size_; }
 
  private:

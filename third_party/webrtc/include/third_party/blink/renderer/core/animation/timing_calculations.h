@@ -31,10 +31,10 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_TIMING_CALCULATIONS_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_TIMING_CALCULATIONS_H_
 
-#include <optional>
-
 #include "base/debug/dump_without_crashing.h"
+#include "base/metrics/histogram_macros.h"
 #include "base/notreached.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/animation/timing.h"
 #include "third_party/blink/renderer/platform/wtf/math_extras.h"
 
@@ -72,22 +72,22 @@ class CORE_EXPORT TimingCalculations {
   // https://w3.org/TR/web-animations-1/#animation-effect-phases-and-states
   static Timing::Phase CalculatePhase(
       const Timing::NormalizedTiming& normalized,
-      std::optional<AnimationTimeDelta>& local_time,
+      absl::optional<AnimationTimeDelta>& local_time,
       Timing::AnimationDirection direction);
 
   // https://w3.org/TR/web-animations-1/#calculating-the-active-time
-  static std::optional<AnimationTimeDelta> CalculateActiveTime(
+  static absl::optional<AnimationTimeDelta> CalculateActiveTime(
       const Timing::NormalizedTiming& normalized,
       Timing::FillMode fill_mode,
-      std::optional<AnimationTimeDelta> local_time,
+      absl::optional<AnimationTimeDelta> local_time,
       Timing::Phase phase);
 
   // Calculates the overall progress, which describes the number of iterations
   // that have completed (including partial iterations).
   // https://w3.org/TR/web-animations-1/#calculating-the-overall-progress
-  static std::optional<double> CalculateOverallProgress(
+  static absl::optional<double> CalculateOverallProgress(
       Timing::Phase phase,
-      std::optional<AnimationTimeDelta> active_time,
+      absl::optional<AnimationTimeDelta> active_time,
       AnimationTimeDelta iteration_duration,
       double iteration_count,
       double iteration_start);
@@ -97,37 +97,37 @@ class CORE_EXPORT TimingCalculations {
   // time introduced by the playback direction or timing functions applied to
   // the effect.
   // https://w3.org/TR/web-animations-1/#calculating-the-simple-iteration-progress
-  static std::optional<double> CalculateSimpleIterationProgress(
+  static absl::optional<double> CalculateSimpleIterationProgress(
       Timing::Phase phase,
-      std::optional<double> overall_progress,
+      absl::optional<double> overall_progress,
       double iteration_start,
-      std::optional<AnimationTimeDelta> active_time,
+      absl::optional<AnimationTimeDelta> active_time,
       AnimationTimeDelta active_duration,
       double iteration_count);
 
   // https://w3.org/TR/web-animations-1/#calculating-the-current-iteration
-  static std::optional<double> CalculateCurrentIteration(
+  static absl::optional<double> CalculateCurrentIteration(
       Timing::Phase phase,
-      std::optional<AnimationTimeDelta> active_time,
+      absl::optional<AnimationTimeDelta> active_time,
       double iteration_count,
-      std::optional<double> overall_progress,
-      std::optional<double> simple_iteration_progress);
+      absl::optional<double> overall_progress,
+      absl::optional<double> simple_iteration_progress);
 
   // https://w3.org/TR/web-animations-1/#calculating-the-directed-progress
   static bool IsCurrentDirectionForwards(
-      std::optional<double> current_iteration,
+      absl::optional<double> current_iteration,
       Timing::PlaybackDirection direction);
 
   // https://w3.org/TR/web-animations-1/#calculating-the-directed-progress
-  static std::optional<double> CalculateDirectedProgress(
-      std::optional<double> simple_iteration_progress,
-      std::optional<double> current_iteration,
+  static absl::optional<double> CalculateDirectedProgress(
+      absl::optional<double> simple_iteration_progress,
+      absl::optional<double> current_iteration,
       Timing::PlaybackDirection direction);
 
   // https://w3.org/TR/web-animations-1/#calculating-the-transformed-progress
-  static std::optional<double> CalculateTransformedProgress(
+  static absl::optional<double> CalculateTransformedProgress(
       Timing::Phase phase,
-      std::optional<double> directed_progress,
+      absl::optional<double> directed_progress,
       bool is_current_direction_forward,
       scoped_refptr<TimingFunction> timing_function);
 
@@ -135,9 +135,9 @@ class CORE_EXPORT TimingCalculations {
   // product of the iteration start and iteration duration). This is not part of
   // the Web Animations spec; it is used for calculating the time until the next
   // iteration to optimize scheduling.
-  static std::optional<AnimationTimeDelta> CalculateOffsetActiveTime(
+  static absl::optional<AnimationTimeDelta> CalculateOffsetActiveTime(
       AnimationTimeDelta active_duration,
-      std::optional<AnimationTimeDelta> active_time,
+      absl::optional<AnimationTimeDelta> active_time,
       AnimationTimeDelta start_offset);
 
   // Maps the offset active time into 'iteration time space'[0], aka the offset
@@ -146,10 +146,10 @@ class CORE_EXPORT TimingCalculations {
   // calculating the time until the next iteration to optimize scheduling.
   //
   // [0] https://w3.org/TR/web-animations-1/#iteration-time-space
-  static std::optional<AnimationTimeDelta> CalculateIterationTime(
+  static absl::optional<AnimationTimeDelta> CalculateIterationTime(
       AnimationTimeDelta iteration_duration,
       AnimationTimeDelta active_duration,
-      std::optional<AnimationTimeDelta> offset_active_time,
+      absl::optional<AnimationTimeDelta> offset_active_time,
       AnimationTimeDelta start_offset,
       Timing::Phase phase,
       const Timing& specified);

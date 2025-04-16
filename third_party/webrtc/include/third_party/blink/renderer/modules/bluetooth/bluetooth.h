@@ -7,7 +7,6 @@
 
 #include "third_party/blink/public/mojom/bluetooth/web_bluetooth.mojom-blink-forward.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/core/page/page_visibility_observer.h"
 #include "third_party/blink/renderer/modules/bluetooth/bluetooth_advertising_event.h"
 #include "third_party/blink/renderer/modules/bluetooth/bluetooth_device.h"
@@ -20,12 +19,12 @@
 #include "third_party/blink/renderer/platform/supplementable.h"
 
 namespace blink {
-class BluetoothDevice;
-class BluetoothLEScan;
+
 class BluetoothLEScanOptions;
 class ExceptionState;
 class RequestDeviceOptions;
 class Navigator;
+class ScriptPromise;
 class ScriptState;
 
 class Bluetooth final : public EventTarget,
@@ -44,16 +43,15 @@ class Bluetooth final : public EventTarget,
   ~Bluetooth() override;
 
   // IDL exposed bluetooth interface:
-  ScriptPromise<IDLBoolean> getAvailability(ScriptState*, ExceptionState&);
-  ScriptPromise<IDLSequence<BluetoothDevice>> getDevices(ScriptState*,
-                                                         ExceptionState&);
-  ScriptPromise<BluetoothDevice> requestDevice(ScriptState*,
-                                               const RequestDeviceOptions*,
-                                               ExceptionState&);
+  ScriptPromise getAvailability(ScriptState*, ExceptionState&);
+  ScriptPromise getDevices(ScriptState*, ExceptionState&);
+  ScriptPromise requestDevice(ScriptState*,
+                              const RequestDeviceOptions*,
+                              ExceptionState&);
 
-  ScriptPromise<BluetoothLEScan> requestLEScan(ScriptState*,
-                                               const BluetoothLEScanOptions*,
-                                               ExceptionState&);
+  ScriptPromise requestLEScan(ScriptState*,
+                              const BluetoothLEScanOptions*,
+                              ExceptionState&);
 
   bool IsServiceBound() const { return service_.is_bound(); }
   mojom::blink::WebBluetoothService* Service() { return service_.get(); }
@@ -84,15 +82,15 @@ class Bluetooth final : public EventTarget,
       mojom::blink::WebBluetoothDevicePtr,
       ExecutionContext*);
 
-  void GetDevicesCallback(ScriptPromiseResolver<IDLSequence<BluetoothDevice>>*,
+  void GetDevicesCallback(ScriptPromiseResolver*,
                           Vector<mojom::blink::WebBluetoothDevicePtr>);
 
-  void RequestDeviceCallback(ScriptPromiseResolver<BluetoothDevice>*,
+  void RequestDeviceCallback(ScriptPromiseResolver*,
                              mojom::blink::WebBluetoothResult,
                              mojom::blink::WebBluetoothDevicePtr);
 
   void RequestScanningCallback(
-      ScriptPromiseResolver<BluetoothLEScan>*,
+      ScriptPromiseResolver*,
       mojo::ReceiverId,
       mojom::blink::WebBluetoothRequestLEScanOptionsPtr,
       mojom::blink::WebBluetoothResult);

@@ -27,7 +27,6 @@ class CORE_EXPORT LCPScriptObserver
   LCPScriptObserver(const LCPScriptObserver&) = delete;
   LCPScriptObserver& operator=(const LCPScriptObserver&) = delete;
   virtual ~LCPScriptObserver();
-  void Shutdown();
 
   virtual void Trace(Visitor*) const;
 

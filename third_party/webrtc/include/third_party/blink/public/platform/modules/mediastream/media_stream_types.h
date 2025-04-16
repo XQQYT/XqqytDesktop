@@ -10,10 +10,7 @@
 namespace blink {
 
 using VideoTrackSettingsCallback =
-    base::RepeatingCallback<void(gfx::Size frame_size,
-                                 double frame_rate,
-                                 std::optional<gfx::Size> metadata_source_size,
-                                 std::optional<float> device_scale_factor)>;
+    base::RepeatingCallback<void(gfx::Size frame_size, double frame_rate)>;
 
 using VideoTrackFormatCallback =
     base::RepeatingCallback<void(const media::VideoCaptureFormat&)>;

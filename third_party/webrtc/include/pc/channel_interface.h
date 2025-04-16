@@ -11,7 +11,6 @@
 #ifndef PC_CHANNEL_INTERFACE_H_
 #define PC_CHANNEL_INTERFACE_H_
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -21,7 +20,6 @@
 #include "api/media_types.h"
 #include "media/base/media_channel.h"
 #include "pc/rtp_transport_internal.h"
-#include "pc/session_description.h"
 
 namespace webrtc {
 class Call;
@@ -32,7 +30,7 @@ namespace cricket {
 
 class VoiceChannel;
 class VideoChannel;
-
+class MediaContentDescription;
 struct MediaConfig;
 
 // A Channel is a construct that groups media streams of the same type
@@ -49,7 +47,7 @@ struct MediaConfig;
 class ChannelInterface {
  public:
   virtual ~ChannelInterface() = default;
-  virtual webrtc::MediaType media_type() const = 0;
+  virtual cricket::MediaType media_type() const = 0;
 
   virtual VideoChannel* AsVideoChannel() = 0;
   virtual VoiceChannel* AsVoiceChannel() = 0;
@@ -80,13 +78,12 @@ class ChannelInterface {
   // Used for latency measurements.
   virtual void SetFirstPacketReceivedCallback(
       std::function<void()> callback) = 0;
-  virtual void SetFirstPacketSentCallback(std::function<void()> callback) = 0;
 
   // Channel control
-  virtual bool SetLocalContent(const webrtc::MediaContentDescription* content,
+  virtual bool SetLocalContent(const MediaContentDescription* content,
                                webrtc::SdpType type,
                                std::string& error_desc) = 0;
-  virtual bool SetRemoteContent(const webrtc::MediaContentDescription* content,
+  virtual bool SetRemoteContent(const MediaContentDescription* content,
                                 webrtc::SdpType type,
                                 std::string& error_desc) = 0;
   virtual bool SetPayloadTypeDemuxingEnabled(bool enabled) = 0;

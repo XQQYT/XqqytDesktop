@@ -7,7 +7,7 @@
 
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/html/table_constants.h"
-#include "third_party/blink/renderer/core/layout/layout_block_flow.h"
+#include "third_party/blink/renderer/core/layout/ng/layout_ng_block_flow.h"
 
 namespace blink {
 
@@ -15,7 +15,7 @@ class LayoutTable;
 class LayoutTableRow;
 class LayoutTableSection;
 
-class CORE_EXPORT LayoutTableCell : public LayoutBlockFlow {
+class CORE_EXPORT LayoutTableCell : public LayoutNGBlockFlow {
  public:
   explicit LayoutTableCell(Element*);
 
@@ -101,9 +101,9 @@ class CORE_EXPORT LayoutTableCell : public LayoutBlockFlow {
   unsigned ColSpan() const;
 
  protected:
-  bool IsTableCell() const final {
+  bool IsOfType(LayoutObjectType type) const final {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectTableCell || LayoutNGBlockFlow::IsOfType(type);
   }
 
   // Table cell applies a special clip to its background.

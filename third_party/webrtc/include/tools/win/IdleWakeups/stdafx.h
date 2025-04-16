@@ -9,10 +9,9 @@
 // or project specific include files that are used frequently, but
 // are changed infrequently
 
-#include <tchar.h>
-#include <windows.h>
-
 #include <inttypes.h>
 #include <stdio.h>
+#include <tchar.h>
+#include <windows.h>
 
 #endif  // TOOLS_WIN_IDLEWAKEUPS_STDAFX_H_

@@ -27,9 +27,6 @@
 
 /*
 #include "hb.h"
-
-HB_BEGIN_DECLS
-HB_END_DECLS
 */
 
 #include <stdint.h>

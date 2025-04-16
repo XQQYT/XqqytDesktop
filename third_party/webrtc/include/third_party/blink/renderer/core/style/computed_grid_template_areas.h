@@ -34,10 +34,6 @@ class CORE_EXPORT ComputedGridTemplateAreas
     return !(*this == other);
   }
 
-  static NamedGridLinesMap CreateImplicitNamedGridLinesFromGridArea(
-      const NamedGridAreaMap& named_areas,
-      GridTrackSizingDirection direction);
-
   NamedGridAreaMap named_areas;
 
   NamedGridLinesMap implicit_named_grid_row_lines;

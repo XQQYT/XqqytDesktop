@@ -7,16 +7,14 @@
 
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
 #include "third_party/blink/renderer/core/css/cssom/prepopulated_computed_style_property_map.h"
-#include "third_party/blink/renderer/core/layout/layout_input_node.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_layout_input_node.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 
 namespace blink {
 
 class CSSLayoutDefinition;
-class CustomIntrinsicSizes;
 class CustomLayoutConstraintsOptions;
-class CustomLayoutFragment;
 class CustomLayoutToken;
 class ExceptionState;
 
@@ -30,7 +28,7 @@ class CustomLayoutChild : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
-  CustomLayoutChild(const CSSLayoutDefinition&, LayoutInputNode);
+  CustomLayoutChild(const CSSLayoutDefinition&, NGLayoutInputNode);
   CustomLayoutChild(const CustomLayoutChild&) = delete;
   CustomLayoutChild& operator=(const CustomLayoutChild&) = delete;
   ~CustomLayoutChild() override = default;
@@ -39,14 +37,12 @@ class CustomLayoutChild : public ScriptWrappable {
   PrepopulatedComputedStylePropertyMap* styleMap() const {
     return style_map_.Get();
   }
-  ScriptPromise<CustomIntrinsicSizes> intrinsicSizes(ScriptState*,
-                                                     ExceptionState&);
-  ScriptPromise<CustomLayoutFragment> layoutNextFragment(
-      ScriptState*,
-      const CustomLayoutConstraintsOptions*,
-      ExceptionState&);
+  ScriptPromise intrinsicSizes(ScriptState*, ExceptionState&);
+  ScriptPromise layoutNextFragment(ScriptState*,
+                                   const CustomLayoutConstraintsOptions*,
+                                   ExceptionState&);
 
-  const LayoutInputNode& GetLayoutNode() const {
+  const NGLayoutInputNode& GetLayoutNode() const {
     DCHECK(node_);
     return node_;
   }
@@ -57,7 +53,7 @@ class CustomLayoutChild : public ScriptWrappable {
   void Trace(Visitor*) const override;
 
  private:
-  LayoutInputNode node_;
+  NGLayoutInputNode node_;
   Member<PrepopulatedComputedStylePropertyMap> style_map_;
   Member<CustomLayoutToken> token_;
 };

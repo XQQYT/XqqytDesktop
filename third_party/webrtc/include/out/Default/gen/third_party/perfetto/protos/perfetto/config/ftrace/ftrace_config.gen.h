@@ -81,6 +81,7 @@ class PERFETTO_EXPORT_COMPONENT FtraceConfig : public ::protozero::CppMessageObj
     kUseMonotonicRawClockFieldNumber = 24,
     kInstanceNameFieldNumber = 25,
     kBufferSizeLowerBoundFieldNumber = 27,
+    kDebugFtraceAbiFieldNumber = 31,
   };
 
   FtraceConfig();
@@ -212,6 +213,10 @@ class PERFETTO_EXPORT_COMPONENT FtraceConfig : public ::protozero::CppMessageObj
   bool buffer_size_lower_bound() const { return buffer_size_lower_bound_; }
   void set_buffer_size_lower_bound(bool value) { buffer_size_lower_bound_ = value; _has_field_.set(27); }
 
+  bool has_debug_ftrace_abi() const { return _has_field_[31]; }
+  bool debug_ftrace_abi() const { return debug_ftrace_abi_; }
+  void set_debug_ftrace_abi(bool value) { debug_ftrace_abi_ = value; _has_field_.set(31); }
+
  private:
   std::vector<std::string> ftrace_events_;
   std::vector<FtraceConfig_KprobeEvent> kprobe_events_;
@@ -236,12 +241,13 @@ class PERFETTO_EXPORT_COMPONENT FtraceConfig : public ::protozero::CppMessageObj
   bool use_monotonic_raw_clock_{};
   std::string instance_name_{};
   bool buffer_size_lower_bound_{};
+  bool debug_ftrace_abi_{};
 
   // Allows to preserve unknown protobuf fields for compatibility
   // with future versions of .proto files.
   std::string unknown_fields_;
 
-  std::bitset<31> _has_field_{};
+  std::bitset<32> _has_field_{};
 };
 
 

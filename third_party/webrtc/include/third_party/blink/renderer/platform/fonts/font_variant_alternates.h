@@ -5,10 +5,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_FONT_VARIANT_ALTERNATES_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_FONT_VARIANT_ALTERNATES_H_
 
-#include <optional>
-
 #include "base/dcheck_is_on.h"
 #include "base/functional/function_ref.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/fonts/resolved_font_features.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
@@ -33,25 +32,16 @@ class PLATFORM_EXPORT FontVariantAlternates
   void SetStyleset(Vector<AtomicString>);
   void SetCharacterVariant(Vector<AtomicString>);
 
-  const AtomicString* Stylistic() const {
-    return stylistic_ ? &(*stylistic_) : nullptr;
-  }
-  bool HistoricalForms() const { return historical_forms_; }
-  const AtomicString* Swash() const { return swash_ ? &(*swash_) : nullptr; }
-  const AtomicString* Ornaments() const {
-    return ornaments_ ? &(*ornaments_) : nullptr;
-  }
-  const AtomicString* Annotation() const {
-    return annotation_ ? &(*annotation_) : nullptr;
-  }
+  AtomicString* Stylistic() { return stylistic_ ? &(*stylistic_) : nullptr; }
+  bool HistoricalForms() { return historical_forms_; }
+  AtomicString* Swash() { return swash_ ? &(*swash_) : nullptr; }
+  AtomicString* Ornaments() { return ornaments_ ? &(*ornaments_) : nullptr; }
+  AtomicString* Annotation() { return annotation_ ? &(*annotation_) : nullptr; }
 
-  const Vector<AtomicString>& Styleset() const { return styleset_; }
-  const Vector<AtomicString>& CharacterVariant() const {
-    return character_variant_;
-  }
+  const Vector<AtomicString>& Styleset() { return styleset_; }
+  const Vector<AtomicString>& CharacterVariant() { return character_variant_; }
 
-  using ResolverFunction =
-      base::FunctionRef<Vector<uint32_t>(const AtomicString&)>;
+  using ResolverFunction = base::FunctionRef<Vector<uint32_t>(AtomicString)>;
   /* Resolves the internal feature configuration with aliases against resolution
    * functions to get the actual OpenType feature indices for each alias.
    * Produces a resolved copy on which it is possible to call
@@ -70,7 +60,7 @@ class PLATFORM_EXPORT FontVariantAlternates
 
   unsigned GetHash() const;
 
-  bool IsNormal() const;
+  bool IsNormal();
 
   bool operator==(const FontVariantAlternates& other) const;
   bool operator!=(const FontVariantAlternates& other) const {
@@ -87,10 +77,10 @@ class PLATFORM_EXPORT FontVariantAlternates
   static scoped_refptr<FontVariantAlternates> Clone(
       const FontVariantAlternates& other);
 
-  std::optional<AtomicString> stylistic_ = std::nullopt;
-  std::optional<AtomicString> swash_ = std::nullopt;
-  std::optional<AtomicString> ornaments_ = std::nullopt;
-  std::optional<AtomicString> annotation_ = std::nullopt;
+  absl::optional<AtomicString> stylistic_ = absl::nullopt;
+  absl::optional<AtomicString> swash_ = absl::nullopt;
+  absl::optional<AtomicString> ornaments_ = absl::nullopt;
+  absl::optional<AtomicString> annotation_ = absl::nullopt;
 
   Vector<AtomicString> styleset_;
   Vector<AtomicString> character_variant_;

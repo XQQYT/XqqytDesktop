@@ -5,14 +5,13 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_COMMON_FONT_UNIQUE_NAME_LOOKUP_FONT_TABLE_MATCHER_H_
 #define THIRD_PARTY_BLINK_PUBLIC_COMMON_FONT_UNIQUE_NAME_LOOKUP_FONT_TABLE_MATCHER_H_
 
-#include <stddef.h>
-#include <stdint.h>
-
-#include <optional>
-
 #include "base/memory/read_only_shared_memory_region.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/common/common_export.h"
 #include "third_party/blink/public/common/font_unique_name_lookup/font_unique_name_table.pb.h"
+
+#include <stddef.h>
+#include <stdint.h>
 
 namespace blink {
 
@@ -46,7 +45,7 @@ class BLINK_COMMON_EXPORT FontTableMatcher {
   // against the internal list of unique font names.
   // Return a font filesystem path and a TrueType collection index to identify a
   // font binary to uniquely identify instantiate a font.
-  std::optional<MatchResult> MatchName(const std::string& name_request) const;
+  absl::optional<MatchResult> MatchName(const std::string& name_request) const;
 
   // Returns the number of fonts available after parsing the
   // ReadOnlySharedMemoryMapping.

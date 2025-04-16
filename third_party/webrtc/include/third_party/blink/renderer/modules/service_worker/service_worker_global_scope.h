@@ -73,6 +73,7 @@ class ExceptionState;
 class FetchEvent;
 class RespondWithObserver;
 class RequestInit;
+class ScriptPromise;
 class ScriptState;
 class ServiceWorker;
 class ServiceWorkerClients;
@@ -168,7 +169,7 @@ class MODULES_EXPORT ServiceWorkerGlobalScope final
   ServiceWorkerRegistration* registration();
   ::blink::ServiceWorker* serviceWorker();
 
-  ScriptPromise<IDLUndefined> skipWaiting(ScriptState*);
+  ScriptPromise skipWaiting(ScriptState*);
 
   void BindServiceWorker(mojo::PendingReceiver<mojom::blink::ServiceWorker>);
   void BindControllerServiceWorker(
@@ -239,14 +240,11 @@ class MODULES_EXPORT ServiceWorkerGlobalScope final
   // native fetch.
   void RespondToFetchEventWithNoResponse(
       int fetch_event_id,
-      FetchEvent* fetch_event,
       const KURL& request_url,
       bool range_request,
-      std::optional<network::DataElementChunkedDataPipe> request_body,
+      absl::optional<network::DataElementChunkedDataPipe> request_body,
       base::TimeTicks event_dispatch_time,
       base::TimeTicks respond_with_settled_time);
-  void OnStreamingUploadCompletion(int fetch_event_id);
-
   // Responds to the fetch event with |response|.
   void RespondToFetchEvent(int fetch_event_id,
                            const KURL& request_url,
@@ -358,7 +356,7 @@ class MODULES_EXPORT ServiceWorkerGlobalScope final
   bool SetAttributeEventListener(const AtomicString& event_type,
                                  EventListener* listener) override;
 
-  std::optional<mojo::PendingRemote<network::mojom::blink::URLLoaderFactory>>
+  absl::optional<mojo::PendingRemote<network::mojom::blink::URLLoaderFactory>>
   FindRaceNetworkRequestURLLoaderFactory(
       const base::UnguessableToken& token) final;
 
@@ -412,6 +410,9 @@ class MODULES_EXPORT ServiceWorkerGlobalScope final
   // number of scripts and the total bytes of scripts.
   void CountScriptInternal(size_t script_size, size_t cached_metadata_size);
 
+  // Called by ServiceWorkerEventQueue just before they start an event.
+  void OnBeforeStartEvent(bool is_offline_event);
+
   // Called by ServiceWorkerEventQueue when a certain time has passed since
   // the last task finished.
   void OnIdleTimeout();
@@ -447,11 +448,7 @@ class MODULES_EXPORT ServiceWorkerGlobalScope final
       const network::CrossOriginEmbedderPolicy& cross_origin_embedder_policy,
       mojo::PendingRemote<
           network::mojom::blink::CrossOriginEmbedderPolicyReporter>
-          coep_reporter,
-      const network::DocumentIsolationPolicy& document_isolation_policy,
-      mojo::PendingRemote<
-          network::mojom::blink::DocumentIsolationPolicyReporter> dip_reporter)
-      override;
+          coep_reporter) override;
 
   // Implements mojom::blink::ServiceWorker.
   void InitializeGlobalScope(
@@ -464,6 +461,7 @@ class MODULES_EXPORT ServiceWorkerGlobalScope final
       mojom::blink::ServiceWorkerRegistrationObjectInfoPtr registration_info,
       mojom::blink::ServiceWorkerObjectInfoPtr service_worker_info,
       mojom::blink::FetchHandlerExistence fetch_handler_existence,
+      mojo::PendingReceiver<mojom::blink::ReportingObserver>,
       mojom::blink::AncestorFrameType ancestor_frame_type,
       const blink::BlinkStorageKey& storage_key) override;
   void DispatchInstallEvent(DispatchInstallEventCallback callback) override;
@@ -559,7 +557,7 @@ class MODULES_EXPORT ServiceWorkerGlobalScope final
   void StartFetchEvent(
       mojom::blink::DispatchFetchEventParamsPtr params,
       base::WeakPtr<CrossOriginResourcePolicyChecker> corp_checker,
-      base::TimeTicks created_time,
+      absl::optional<base::TimeTicks> created_time,
       int event_id);
   void StartInstallEvent(int event_id);
   void StartActivateEvent(int event_id);
@@ -638,7 +636,7 @@ class MODULES_EXPORT ServiceWorkerGlobalScope final
   Member<::blink::ServiceWorker> service_worker_;
 
   // Registry of interfaces exposed to the browser from Service Workers.
-  const raw_ptr<InterfaceRegistry> interface_registry_;
+  const raw_ptr<InterfaceRegistry, ExperimentalRenderer> interface_registry_;
 
   // Map from service worker version id to JavaScript ServiceWorker object in
   // current execution context.
@@ -725,7 +723,6 @@ class MODULES_EXPORT ServiceWorkerGlobalScope final
       fetch_response_callbacks_;
 
   HeapHashMap<int, Member<FetchEvent>> pending_preload_fetch_events_;
-  HeapHashMap<int, Member<FetchEvent>> pending_streaming_upload_fetch_events_;
 
   // Track outstanding FetchEvent objects still waiting for a response by
   // request URL.  This information can be used as a hint that cache_storage

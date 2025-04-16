@@ -104,10 +104,8 @@ class FileChooser : public RefCounted<FileChooser> {
 };
 
 CORE_EXPORT mojom::blink::FileChooserFileInfoPtr
-CreateFileChooserFileInfoNative(
-    const String& path,
-    const String& display_name = String(),
-    const Vector<String>& base_subdirs = Vector<String>());
+CreateFileChooserFileInfoNative(const String& path,
+                                const String& display_name = String());
 CORE_EXPORT mojom::blink::FileChooserFileInfoPtr
 CreateFileChooserFileInfoFileSystem(const KURL& url,
                                     base::Time modification_time,

@@ -64,7 +64,7 @@ class MODULES_EXPORT UserMediaClient
 
   static UserMediaClient* From(LocalDOMWindow*);
 
-#if !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_IOS)
+#if !BUILDFLAG(IS_ANDROID)
   void FocusCapturedSurface(const String& label, bool focus);
 #endif
 
@@ -83,8 +83,7 @@ class MODULES_EXPORT UserMediaClient
       UserMediaProcessor::KeepDeviceAliveForTransferCallback keep_alive_cb);
 
  protected:
-  // Production code forwards the main ctor to this one.
-  // Tests use this ctor directly.
+  // For testing
   UserMediaClient(LocalFrame* frame,
                   UserMediaProcessor* user_media_processor,
                   UserMediaProcessor* display_user_media_processor,

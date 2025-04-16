@@ -8,10 +8,9 @@
 #include <pthread.h>
 #include <stdint.h>
 
-#include <optional>
-
 #include "base/base_export.h"
 #include "base/threading/platform_thread.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base {
 
@@ -26,7 +25,7 @@ namespace base {
 //
 // May return nullopt on Android if the thread's memory range is not found in
 // /proc/self/maps.
-BASE_EXPORT std::optional<uintptr_t> GetThreadStackBaseAddress(
+BASE_EXPORT absl::optional<uintptr_t> GetThreadStackBaseAddress(
     PlatformThreadId id,
     pthread_t pthread_id);
 

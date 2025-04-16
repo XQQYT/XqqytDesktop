@@ -15,8 +15,6 @@
 #ifndef CRASHPAD_HANDLER_LINUX_CROS_CRASH_REPORT_EXCEPTION_HANDLER_H_
 #define CRASHPAD_HANDLER_LINUX_CROS_CRASH_REPORT_EXCEPTION_HANDLER_H_
 
-#include <sys/types.h>
-
 #include <map>
 #include <string>
 

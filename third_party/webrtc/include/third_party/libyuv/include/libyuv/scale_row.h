@@ -12,13 +12,46 @@
 #define INCLUDE_LIBYUV_SCALE_ROW_H_
 
 #include "libyuv/basic_types.h"
-#include "libyuv/cpu_support.h"
 #include "libyuv/scale.h"
 
 #ifdef __cplusplus
 namespace libyuv {
 extern "C" {
 #endif
+
+#if defined(__pnacl__) || defined(__CLR_VER) ||            \
+    (defined(__native_client__) && defined(__x86_64__)) || \
+    (defined(__i386__) && !defined(__SSE__) && !defined(__clang__))
+#define LIBYUV_DISABLE_X86
+#endif
+#if defined(__native_client__)
+#define LIBYUV_DISABLE_NEON
+#endif
+// MemorySanitizer does not support assembly code yet. http://crbug.com/344505
+#if defined(__has_feature)
+#if __has_feature(memory_sanitizer)
+#define LIBYUV_DISABLE_X86
+#endif
+#endif
+// GCC >= 4.7.0 required for AVX2.
+#if defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+#if (__GNUC__ > 4) || (__GNUC__ == 4 && (__GNUC_MINOR__ >= 7))
+#define GCC_HAS_AVX2 1
+#endif  // GNUC >= 4.7
+#endif  // __GNUC__
+
+// clang >= 3.4.0 required for AVX2.
+#if defined(__clang__) && (defined(__x86_64__) || defined(__i386__))
+#if (__clang_major__ > 3) || (__clang_major__ == 3 && (__clang_minor__ >= 4))
+#define CLANG_HAS_AVX2 1
+#endif  // clang >= 3.4
+#endif  // __clang__
+
+// Visual C 2012 required for AVX2.
+#if defined(_M_IX86) && !defined(__clang__) && defined(_MSC_VER) && \
+    _MSC_VER >= 1700
+#define VISUALC_HAS_AVX2 1
+#endif  // VisualStudio >= 2012
 
 // The following are available on all x86 platforms:
 #if !defined(LIBYUV_DISABLE_X86) && \
@@ -116,22 +149,6 @@ extern "C" {
 #define HAS_SCALEUVROWUP2_BILINEAR_16_NEON
 #endif
 
-// The following are available on AArch64 Neon platforms:
-#if !defined(LIBYUV_DISABLE_NEON) && defined(__aarch64__)
-#define HAS_SCALEROWDOWN2_16_NEON
-#endif
-
-// The following are available on AArch64 SME platforms:
-#if !defined(LIBYUV_DISABLE_SME) && defined(CLANG_HAS_SME) && \
-    defined(__aarch64__)
-#define HAS_SCALEARGBROWDOWN2_SME
-#define HAS_SCALEROWDOWN2_16_SME
-#define HAS_SCALEROWDOWN2_SME
-#define HAS_SCALEUVROWDOWN2BOX_SME
-#define HAS_SCALEUVROWDOWN2LINEAR_SME
-#define HAS_SCALEUVROWDOWN2_SME
-#endif
-
 #if !defined(LIBYUV_DISABLE_MSA) && defined(__mips_msa)
 #define HAS_SCALEADDROW_MSA
 #define HAS_SCALEARGBCOLS_MSA
@@ -160,37 +177,15 @@ extern "C" {
 
 #if !defined(LIBYUV_DISABLE_RVV) && defined(__riscv_vector)
 #define HAS_SCALEADDROW_RVV
-// TODO: Test ScaleARGBRowDownEven_RVV and enable it
-// #define HAS_SCALEARGBROWDOWNEVEN_RVV
-#if defined(__riscv_zve64x)
-#define HAS_SCALEUVROWDOWN4_RVV
-#endif
-#define HAS_SCALEUVROWDOWNEVEN_RVV
-#if __riscv_v_intrinsic == 11000
-#define HAS_SCALEARGBFILTERCOLS_RVV
-#endif
 #define HAS_SCALEARGBROWDOWN2_RVV
-#define HAS_SCALEARGBROWDOWN2BOX_RVV
-#define HAS_SCALEARGBROWDOWN2LINEAR_RVV
-#define HAS_SCALEARGBROWDOWNEVENBOX_RVV
+#define HAS_SCALEARGBROWDOWNEVEN_RVV
 #define HAS_SCALEROWDOWN2_RVV
-#define HAS_SCALEROWDOWN2BOX_RVV
-#define HAS_SCALEROWDOWN2LINEAR_RVV
-#define HAS_SCALEROWDOWN34_0_BOX_RVV
-#define HAS_SCALEROWDOWN34_1_BOX_RVV
 #define HAS_SCALEROWDOWN34_RVV
-#define HAS_SCALEROWDOWN38_2_BOX_RVV
-#define HAS_SCALEROWDOWN38_3_BOX_RVV
-#define HAS_SCALEROWDOWN38_RVV
 #define HAS_SCALEROWDOWN4_RVV
-#define HAS_SCALEROWDOWN4BOX_RVV
-#define HAS_SCALEROWUP2_BILINEAR_RVV
-#define HAS_SCALEROWUP2_LINEAR_RVV
 #define HAS_SCALEUVROWDOWN2_RVV
-#define HAS_SCALEUVROWDOWN2BOX_RVV
 #define HAS_SCALEUVROWDOWN2LINEAR_RVV
-#define HAS_SCALEUVROWUP2_BILINEAR_RVV
-#define HAS_SCALEUVROWUP2_LINEAR_RVV
+#define HAS_SCALEUVROWDOWN2BOX_RVV
+#define HAS_SCALEUVROWDOWNEVEN_RVV
 #endif
 
 // Scale ARGB vertically with bilinear interpolation.
@@ -941,11 +936,6 @@ void ScaleARGBCols_Any_MSA(uint8_t* dst_ptr,
                            int dst_width,
                            int x,
                            int dx);
-void ScaleARGBFilterCols_RVV(uint8_t* dst_argb,
-                             const uint8_t* src_argb,
-                             int dst_width,
-                             int x,
-                             int dx);
 
 // ARGB Row functions
 void ScaleARGBRowDown2_SSE2(const uint8_t* src_argb,
@@ -964,26 +954,14 @@ void ScaleARGBRowDown2_NEON(const uint8_t* src_ptr,
                             ptrdiff_t src_stride,
                             uint8_t* dst,
                             int dst_width);
-void ScaleARGBRowDown2_SME(const uint8_t* src_ptr,
-                           ptrdiff_t src_stride,
-                           uint8_t* dst,
-                           int dst_width);
 void ScaleARGBRowDown2Linear_NEON(const uint8_t* src_argb,
                                   ptrdiff_t src_stride,
                                   uint8_t* dst_argb,
                                   int dst_width);
-void ScaleARGBRowDown2Linear_SME(const uint8_t* src_argb,
-                                 ptrdiff_t src_stride,
-                                 uint8_t* dst_argb,
-                                 int dst_width);
 void ScaleARGBRowDown2Box_NEON(const uint8_t* src_ptr,
                                ptrdiff_t src_stride,
                                uint8_t* dst,
                                int dst_width);
-void ScaleARGBRowDown2Box_SME(const uint8_t* src_ptr,
-                              ptrdiff_t src_stride,
-                              uint8_t* dst,
-                              int dst_width);
 void ScaleARGBRowDown2_RVV(const uint8_t* src_argb,
                            ptrdiff_t src_stride,
                            uint8_t* dst_argb,
@@ -1180,26 +1158,14 @@ void ScaleUVRowDown2_NEON(const uint8_t* src_ptr,
                           ptrdiff_t src_stride,
                           uint8_t* dst,
                           int dst_width);
-void ScaleUVRowDown2_SME(const uint8_t* src_ptr,
-                         ptrdiff_t src_stride,
-                         uint8_t* dst,
-                         int dst_width);
 void ScaleUVRowDown2Linear_NEON(const uint8_t* src_ptr,
                                 ptrdiff_t src_stride,
                                 uint8_t* dst_uv,
                                 int dst_width);
-void ScaleUVRowDown2Linear_SME(const uint8_t* src_ptr,
-                               ptrdiff_t src_stride,
-                               uint8_t* dst_uv,
-                               int dst_width);
 void ScaleUVRowDown2Box_NEON(const uint8_t* src_ptr,
                              ptrdiff_t src_stride,
                              uint8_t* dst,
                              int dst_width);
-void ScaleUVRowDown2Box_SME(const uint8_t* src_ptr,
-                            ptrdiff_t src_stride,
-                            uint8_t* dst,
-                            int dst_width);
 void ScaleUVRowDown2_MSA(const uint8_t* src_ptr,
                          ptrdiff_t src_stride,
                          uint8_t* dst_uv,
@@ -1383,14 +1349,6 @@ void ScaleUVRowUp2_Bilinear_Any_NEON(const uint8_t* src_ptr,
                                      uint8_t* dst_ptr,
                                      ptrdiff_t dst_stride,
                                      int dst_width);
-void ScaleUVRowUp2_Linear_RVV(const uint8_t* src_ptr,
-                              uint8_t* dst_ptr,
-                              int dst_width);
-void ScaleUVRowUp2_Bilinear_RVV(const uint8_t* src_ptr,
-                                ptrdiff_t src_stride,
-                                uint8_t* dst_ptr,
-                                ptrdiff_t dst_stride,
-                                int dst_width);
 void ScaleUVRowUp2_Linear_16_SSE41(const uint16_t* src_ptr,
                                    uint16_t* dst_ptr,
                                    int dst_width);
@@ -1441,55 +1399,21 @@ void ScaleUVRowUp2_Bilinear_16_Any_NEON(const uint16_t* src_ptr,
                                         int dst_width);
 
 // ScaleRowDown2Box also used by planar functions
-// NEON/SME downscalers with interpolation.
+// NEON downscalers with interpolation.
+
+// Note - not static due to reuse in convert for 444 to 420.
 void ScaleRowDown2_NEON(const uint8_t* src_ptr,
                         ptrdiff_t src_stride,
                         uint8_t* dst,
                         int dst_width);
-void ScaleRowDown2_SME(const uint8_t* src_ptr,
-                       ptrdiff_t src_stride,
-                       uint8_t* dst,
-                       int dst_width);
-void ScaleRowDown2_16_NEON(const uint16_t* src_ptr,
-                           ptrdiff_t src_stride,
-                           uint16_t* dst,
-                           int dst_width);
-void ScaleRowDown2_16_SME(const uint16_t* src_ptr,
-                          ptrdiff_t src_stride,
-                          uint16_t* dst,
-                          int dst_width);
 void ScaleRowDown2Linear_NEON(const uint8_t* src_ptr,
                               ptrdiff_t src_stride,
                               uint8_t* dst,
                               int dst_width);
-void ScaleRowDown2Linear_SME(const uint8_t* src_ptr,
-                             ptrdiff_t src_stride,
-                             uint8_t* dst,
-                             int dst_width);
-void ScaleRowDown2Linear_16_NEON(const uint16_t* src_ptr,
-                                 ptrdiff_t src_stride,
-                                 uint16_t* dst,
-                                 int dst_width);
-void ScaleRowDown2Linear_16_SME(const uint16_t* src_ptr,
-                                ptrdiff_t src_stride,
-                                uint16_t* dst,
-                                int dst_width);
 void ScaleRowDown2Box_NEON(const uint8_t* src_ptr,
                            ptrdiff_t src_stride,
                            uint8_t* dst,
                            int dst_width);
-void ScaleRowDown2Box_SME(const uint8_t* src_ptr,
-                          ptrdiff_t src_stride,
-                          uint8_t* dst,
-                          int dst_width);
-void ScaleRowDown2Box_16_NEON(const uint16_t* src_ptr,
-                              ptrdiff_t src_stride,
-                              uint16_t* dst,
-                              int dst_width);
-void ScaleRowDown2Box_16_SME(const uint16_t* src_ptr,
-                             ptrdiff_t src_stride,
-                             uint16_t* dst,
-                             int dst_width);
 
 void ScaleRowDown4_NEON(const uint8_t* src_ptr,
                         ptrdiff_t src_stride,
@@ -1911,27 +1835,7 @@ void ScaleRowDown34_1_Box_RVV(const uint8_t* src_ptr,
                               ptrdiff_t src_stride,
                               uint8_t* dst_ptr,
                               int dst_width);
-void ScaleRowDown38_RVV(const uint8_t* src_ptr,
-                        ptrdiff_t src_stride,
-                        uint8_t* dst,
-                        int dst_width);
-void ScaleRowDown38_3_Box_RVV(const uint8_t* src_ptr,
-                              ptrdiff_t src_stride,
-                              uint8_t* dst_ptr,
-                              int dst_width);
-void ScaleRowDown38_2_Box_RVV(const uint8_t* src_ptr,
-                              ptrdiff_t src_stride,
-                              uint8_t* dst_ptr,
-                              int dst_width);
 
-void ScaleRowUp2_Linear_RVV(const uint8_t* src_ptr,
-                            uint8_t* dst_ptr,
-                            int dst_width);
-void ScaleRowUp2_Bilinear_RVV(const uint8_t* src_ptr,
-                              ptrdiff_t src_stride,
-                              uint8_t* dst_ptr,
-                              ptrdiff_t dst_stride,
-                              int dst_width);
 #ifdef __cplusplus
 }  // extern "C"
 }  // namespace libyuv

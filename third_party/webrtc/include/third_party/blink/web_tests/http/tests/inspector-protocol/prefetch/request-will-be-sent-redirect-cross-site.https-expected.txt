@@ -10,7 +10,6 @@ Network.requestWillBeSent{
     redirectHasExtraInfo : false
     request : {
         headers : {
-            Accept-Language : en-us,en;q=0.9
             Upgrade-Insecure-Requests : 1
             User-Agent : <string>
             sec-ch-ua : "content_shell";v="999"
@@ -36,7 +35,7 @@ Network.requestWillBeSentExtraInfo{
     headers : {
         Accept : text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
         Accept-Encoding : gzip, deflate, br, zstd
-        Accept-Language : en-us,en;q=0.9
+        Accept-Language : en-us,en
         Connection : keep-alive
         Host : 127.0.0.1:8443
         Sec-Fetch-Dest : document
@@ -59,17 +58,16 @@ Network.responseReceived{
     requestId : <string>
     response : {
         alternateProtocolUsage : unspecifiedReason
-        charset : 
         connectionId : <number>
         connectionReused : true
-        encodedDataLength : <number>
+        encodedDataLength : 261
         fromDiskCache : false
         fromPrefetchCache : false
         fromServiceWorker : false
         headers : {
             Accept-Ranges : bytes
             Connection : Keep-Alive
-            Content-Length : <string>
+            Content-Length : 441
             Content-Type : text/html
             Date : <string>
             ETag : <string>
@@ -83,7 +81,7 @@ Network.responseReceived{
         remotePort : 8443
         responseTime : <number>
         securityDetails : <object>
-        securityState : secure
+        securityState : insecure
         status : 200
         statusText : OK
         timing : <object>
@@ -95,17 +93,12 @@ Network.responseReceived{
 Network.responseReceivedExtraInfo{
     blockedCookies : [
     ]
-    cookiePartitionKey : {
-        hasCrossSiteAncestor : false
-        topLevelSite : https://127.0.0.1
-    }
+    cookiePartitionKey : https://127.0.0.1
     cookiePartitionKeyOpaque : false
-    exemptedCookies : [
-    ]
     headers : {
         Accept-Ranges : bytes
         Connection : Keep-Alive
-        Content-Length : <string>
+        Content-Length : 441
         Content-Type : text/html
         Date : <string>
         ETag : <string>
@@ -119,7 +112,7 @@ Network.responseReceivedExtraInfo{
     statusCode : 200
 }
 Network.loadingFinished{
-    encodedDataLength : <number>
+    encodedDataLength : 702
     requestId : <string>
     timestamp : <number>
 }
@@ -139,11 +132,7 @@ Network.requestWillBeSent{
             Purpose : prefetch
             Referer : https://127.0.0.1:8443/inspector-protocol/prefetch/resources/prefetch.https.html?url=%2Fresources%2Fredirect.php%3Furl%3Dhttps%253A%252F%252Flocalhost%253A8443%252Fresources%252Fblank.html
             Sec-Purpose : prefetch
-            Sec-Speculation-Tags : null
             Upgrade-Insecure-Requests : 1
-            sec-ch-ua : "content_shell";v="999"
-            sec-ch-ua-mobile : ?0
-            sec-ch-ua-platform : "Unknown"
         }
         initialPriority : VeryLow
         method : GET
@@ -167,16 +156,12 @@ Network.requestWillBeSentExtraInfo{
         Host : 127.0.0.1:8443
         Purpose : prefetch
         Referer : https://127.0.0.1:8443/inspector-protocol/prefetch/resources/prefetch.https.html?url=%2Fresources%2Fredirect.php%3Furl%3Dhttps%253A%252F%252Flocalhost%253A8443%252Fresources%252Fblank.html
-        Sec-Fetch-Dest : document
-        Sec-Fetch-Mode : navigate
+        Sec-Fetch-Dest : empty
+        Sec-Fetch-Mode : no-cors
         Sec-Fetch-Site : none
         Sec-Purpose : prefetch
-        Sec-Speculation-Tags : null
         Upgrade-Insecure-Requests : 1
         User-Agent : <string>
-        sec-ch-ua : "content_shell";v="999"
-        sec-ch-ua-mobile : ?0
-        sec-ch-ua-platform : "Unknown"
     }
     requestId : <string>
     siteHasCookieInOtherPartition : false
@@ -193,16 +178,15 @@ Network.requestWillBeSent{
     redirectHasExtraInfo : true
     redirectResponse : {
         alternateProtocolUsage : unspecifiedReason
-        charset : 
         connectionId : <number>
         connectionReused : true
-        encodedDataLength : <number>
+        encodedDataLength : 248
         fromDiskCache : false
         fromPrefetchCache : false
         fromServiceWorker : false
         headers : {
             Connection : Keep-Alive
-            Content-Length : <string>
+            Content-Length : 0
             Content-Type : text/html
             Date : <string>
             Keep-Alive : timeout=10
@@ -216,7 +200,7 @@ Network.requestWillBeSent{
         remotePort : 8443
         responseTime : <number>
         securityDetails : <object>
-        securityState : secure
+        securityState : insecure
         status : 302
         statusText : Found
         timing : <object>
@@ -228,11 +212,7 @@ Network.requestWillBeSent{
             Purpose : prefetch
             Referer : https://127.0.0.1:8443/
             Sec-Purpose : prefetch
-            Sec-Speculation-Tags : null
             Upgrade-Insecure-Requests : 1
-            sec-ch-ua : "content_shell";v="999"
-            sec-ch-ua-mobile : ?0
-            sec-ch-ua-platform : "Unknown"
         }
         initialPriority : VeryLow
         method : GET
@@ -247,16 +227,11 @@ Network.requestWillBeSent{
 Network.responseReceivedExtraInfo{
     blockedCookies : [
     ]
-    cookiePartitionKey : {
-        hasCrossSiteAncestor : false
-        topLevelSite : https://127.0.0.1
-    }
+    cookiePartitionKey : https://127.0.0.1
     cookiePartitionKeyOpaque : false
-    exemptedCookies : [
-    ]
     headers : {
         Connection : Keep-Alive
-        Content-Length : <string>
+        Content-Length : 0
         Content-Type : text/html
         Date : <string>
         Keep-Alive : timeout=10
@@ -280,16 +255,12 @@ Network.requestWillBeSentExtraInfo{
         Host : localhost:8443
         Purpose : prefetch
         Referer : https://127.0.0.1:8443/
-        Sec-Fetch-Dest : document
-        Sec-Fetch-Mode : navigate
+        Sec-Fetch-Dest : empty
+        Sec-Fetch-Mode : no-cors
         Sec-Fetch-Site : none
         Sec-Purpose : prefetch
-        Sec-Speculation-Tags : null
         Upgrade-Insecure-Requests : 1
         User-Agent : <string>
-        sec-ch-ua : "content_shell";v="999"
-        sec-ch-ua-mobile : ?0
-        sec-ch-ua-platform : "Unknown"
     }
     requestId : <string>
     siteHasCookieInOtherPartition : false
@@ -301,17 +272,16 @@ Network.responseReceived{
     requestId : <string>
     response : {
         alternateProtocolUsage : unspecifiedReason
-        charset : 
         connectionId : <number>
         connectionReused : false
-        encodedDataLength : <number>
+        encodedDataLength : 257
         fromDiskCache : false
         fromPrefetchCache : true
         fromServiceWorker : false
         headers : {
             Accept-Ranges : bytes
             Connection : Keep-Alive
-            Content-Length : <string>
+            Content-Length : 0
             Content-Type : text/html
             Date : <string>
             ETag : <string>
@@ -325,7 +295,7 @@ Network.responseReceived{
         remotePort : 8443
         responseTime : <number>
         securityDetails : <object>
-        securityState : secure
+        securityState : insecure
         status : 200
         statusText : OK
         timing : <object>
@@ -337,17 +307,12 @@ Network.responseReceived{
 Network.responseReceivedExtraInfo{
     blockedCookies : [
     ]
-    cookiePartitionKey : {
-        hasCrossSiteAncestor : false
-        topLevelSite : https://localhost
-    }
+    cookiePartitionKey : https://localhost
     cookiePartitionKeyOpaque : false
-    exemptedCookies : [
-    ]
     headers : {
         Accept-Ranges : bytes
         Connection : Keep-Alive
-        Content-Length : <string>
+        Content-Length : 0
         Content-Type : text/html
         Date : <string>
         ETag : <string>
@@ -361,7 +326,7 @@ Network.responseReceivedExtraInfo{
     statusCode : 200
 }
 Network.loadingFinished{
-    encodedDataLength : <number>
+    encodedDataLength : 257
     requestId : <string>
     timestamp : <number>
 }

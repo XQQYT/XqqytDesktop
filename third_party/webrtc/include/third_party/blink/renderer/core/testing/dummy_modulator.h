@@ -60,12 +60,10 @@ class DummyModulator : public Modulator {
       ModuleTreeClient*) override;
   ModuleScript* GetFetchedModuleScript(const KURL&, ModuleType) override;
   KURL ResolveModuleSpecifier(const String&, const KURL&, String*) override;
-  String GetIntegrityMetadataString(const KURL&) const override;
-  IntegrityMetadataSet GetIntegrityMetadata(const KURL&) const override;
   bool HasValidContext() override;
   void ResolveDynamically(const ModuleRequest& module_request,
                           const ReferrerScriptInfo&,
-                          ScriptPromiseResolver<IDLAny>*) override;
+                          ScriptPromiseResolver*) override;
   ModuleImportMeta HostGetImportMetaProperties(
       v8::Local<v8::Module>) const override;
   ModuleType ModuleTypeFromRequest(

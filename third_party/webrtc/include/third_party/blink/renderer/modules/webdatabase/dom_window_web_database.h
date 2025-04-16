@@ -29,10 +29,7 @@
 
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
-
-namespace WTF {
-class String;
-}  // namespace WTF
+#include "third_party/blink/renderer/platform/wtf/forward.h"
 
 namespace blink {
 
@@ -46,15 +43,15 @@ class MODULES_EXPORT DOMWindowWebDatabase {
 
  public:
   static Database* openDatabase(LocalDOMWindow&,
-                                const WTF::String& name,
-                                const WTF::String& version,
-                                const WTF::String& display_name,
+                                const String& name,
+                                const String& version,
+                                const String& display_name,
                                 uint32_t estimated_size,
                                 ExceptionState&);
   static Database* openDatabase(LocalDOMWindow&,
-                                const WTF::String& name,
-                                const WTF::String& version,
-                                const WTF::String& display_name,
+                                const String& name,
+                                const String& version,
+                                const String& display_name,
                                 uint32_t estimated_size,
                                 V8DatabaseCallback* creation_callback,
                                 ExceptionState&);

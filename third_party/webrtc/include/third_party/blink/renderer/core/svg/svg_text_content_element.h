@@ -28,7 +28,6 @@
 
 namespace blink {
 
-class DOMPointInit;
 class ExceptionState;
 class LineLayoutItem;
 class SVGAnimatedLength;
@@ -59,7 +58,7 @@ class CORE_EXPORT SVGTextContentElement : public SVGGraphicsElement {
   SVGPointTearOff* getEndPositionOfChar(unsigned charnum, ExceptionState&);
   SVGRectTearOff* getExtentOfChar(unsigned charnum, ExceptionState&);
   float getRotationOfChar(unsigned charnum, ExceptionState&);
-  int getCharNumAtPosition(DOMPointInit*, ExceptionState&);
+  int getCharNumAtPosition(SVGPointTearOff*, ExceptionState&);
   void selectSubString(unsigned charnum, unsigned nchars, ExceptionState&);
 
   static SVGTextContentElement* ElementFromLineLayoutItem(
@@ -79,10 +78,9 @@ class CORE_EXPORT SVGTextContentElement : public SVGGraphicsElement {
   SVGTextContentElement(const QualifiedName&, Document&);
 
   bool IsPresentationAttribute(const QualifiedName&) const final;
-  void CollectStyleForPresentationAttribute(
-      const QualifiedName&,
-      const AtomicString&,
-      HeapVector<CSSPropertyValue, 8>&) final;
+  void CollectStyleForPresentationAttribute(const QualifiedName&,
+                                            const AtomicString&,
+                                            MutableCSSPropertyValueSet*) final;
   void SvgAttributeChanged(const SvgAttributeChangedParams&) override;
 
   bool SelfHasRelativeLengths() const override;

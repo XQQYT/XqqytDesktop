@@ -10,14 +10,18 @@
 
 #import "RTCPeerConnectionFactory.h"
 
-#include "api/audio/audio_device.h"
-#include "api/audio/audio_processing.h"
-#include "api/audio_codecs/audio_decoder_factory.h"
-#include "api/audio_codecs/audio_encoder_factory.h"
-#include "api/field_trials_view.h"
 #include "api/scoped_refptr.h"
-#include "api/video_codecs/video_decoder_factory.h"
-#include "api/video_codecs/video_encoder_factory.h"
+
+namespace webrtc {
+
+class AudioDeviceModule;
+class AudioEncoderFactory;
+class AudioDecoderFactory;
+class VideoEncoderFactory;
+class VideoDecoderFactory;
+class AudioProcessing;
+
+}  // namespace webrtc
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -27,29 +31,17 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (RTC_OBJC_TYPE(RTCPeerConnectionFactory) *)createPeerConnectionFactory;
 
-- (void)setFieldTrials:(std::unique_ptr<webrtc::FieldTrialsView>)fieldTrials;
+- (void)setVideoEncoderFactory:(std::unique_ptr<webrtc::VideoEncoderFactory>)videoEncoderFactory;
 
-- (void)setVideoEncoderFactory:
-    (std::unique_ptr<webrtc::VideoEncoderFactory>)videoEncoderFactory;
+- (void)setVideoDecoderFactory:(std::unique_ptr<webrtc::VideoDecoderFactory>)videoDecoderFactory;
 
-- (void)setVideoDecoderFactory:
-    (std::unique_ptr<webrtc::VideoDecoderFactory>)videoDecoderFactory;
+- (void)setAudioEncoderFactory:(rtc::scoped_refptr<webrtc::AudioEncoderFactory>)audioEncoderFactory;
 
-- (void)setAudioEncoderFactory:
-    (rtc::scoped_refptr<webrtc::AudioEncoderFactory>)audioEncoderFactory;
+- (void)setAudioDecoderFactory:(rtc::scoped_refptr<webrtc::AudioDecoderFactory>)audioDecoderFactory;
 
-- (void)setAudioDecoderFactory:
-    (rtc::scoped_refptr<webrtc::AudioDecoderFactory>)audioDecoderFactory;
+- (void)setAudioDeviceModule:(rtc::scoped_refptr<webrtc::AudioDeviceModule>)audioDeviceModule;
 
-- (void)setAudioDeviceModule:
-    (rtc::scoped_refptr<webrtc::AudioDeviceModule>)audioDeviceModule;
-
-- (void)setAudioProcessingModule:
-    (rtc::scoped_refptr<webrtc::AudioProcessing>)audioProcessingModule;
-
-- (void)setAudioProcessingBuilder:
-    (std::unique_ptr<webrtc::AudioProcessingBuilderInterface>)
-        audioProcessingBuilder;
+- (void)setAudioProcessingModule:(rtc::scoped_refptr<webrtc::AudioProcessing>)audioProcessingModule;
 
 @end
 

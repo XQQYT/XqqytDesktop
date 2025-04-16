@@ -35,7 +35,7 @@
 
 namespace blink {
 
-class FFTConvolver final {
+class FFTConvolver {
   USING_FAST_MALLOC(FFTConvolver);
 
  public:

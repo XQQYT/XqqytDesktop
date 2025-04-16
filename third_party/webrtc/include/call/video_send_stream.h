@@ -14,10 +14,10 @@
 #include <stdint.h>
 
 #include <map>
-#include <optional>
 #include <string>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/adaptation/resource.h"
 #include "api/call/transport.h"
 #include "api/crypto/crypto_options.h"
@@ -25,20 +25,18 @@
 #include "api/rtp_parameters.h"
 #include "api/rtp_sender_interface.h"
 #include "api/scoped_refptr.h"
-#include "api/units/data_rate.h"
 #include "api/video/video_content_type.h"
 #include "api/video/video_frame.h"
+#include "api/video/video_sink_interface.h"
 #include "api/video/video_source_interface.h"
 #include "api/video/video_stream_encoder_settings.h"
 #include "api/video_codecs/scalability_mode.h"
-#include "api/video_codecs/video_encoder_factory.h"
 #include "call/rtp_config.h"
 #include "common_video/frame_counts.h"
 #include "common_video/include/quality_limitation_reason.h"
 #include "modules/rtp_rtcp/include/report_block_data.h"
 #include "modules/rtp_rtcp/include/rtcp_statistics.h"
 #include "modules/rtp_rtcp/include/rtp_rtcp_defines.h"
-#include "rtc_base/checks.h"
 #include "video/config/video_encoder_config.h"
 
 namespace webrtc {
@@ -74,7 +72,7 @@ class VideoSendStream {
     // If `type` is kRtx or kFlexfec this value is present. The referenced SSRC
     // is the kMedia stream that this stream is performing retransmissions or
     // FEC for. If `type` is kMedia, this value is null.
-    std::optional<uint32_t> referenced_media_ssrc;
+    absl::optional<uint32_t> referenced_media_ssrc;
     FrameCounts frame_counts;
     int width = 0;
     int height = 0;
@@ -89,24 +87,21 @@ class VideoSendStream {
     RtcpPacketTypeCounter rtcp_packet_type_counts;
     // A snapshot of the most recent Report Block with additional data of
     // interest to statistics. Used to implement RTCRemoteInboundRtpStreamStats.
-    std::optional<ReportBlockData> report_block_data;
+    absl::optional<ReportBlockData> report_block_data;
     double encode_frame_rate = 0.0;
     int frames_encoded = 0;
-    std::optional<uint64_t> qp_sum;
+    absl::optional<uint64_t> qp_sum;
     uint64_t total_encode_time_ms = 0;
     uint64_t total_encoded_bytes_target = 0;
     uint32_t huge_frames_sent = 0;
-    std::optional<ScalabilityMode> scalability_mode;
-    // The target bitrate is what we tell the encoder to produce. What the
-    // encoder actually produces is the sum of encoded bytes.
-    std::optional<DataRate> target_bitrate;
+    absl::optional<ScalabilityMode> scalability_mode;
   };
 
   struct Stats {
     Stats();
     ~Stats();
     std::string ToString(int64_t time_ms) const;
-    std::optional<std::string> encoder_implementation_name;
+    absl::optional<std::string> encoder_implementation_name;
     double input_frame_rate = 0;
     int encode_frame_rate = 0;
     int avg_encode_time_ms = 0;
@@ -118,16 +113,12 @@ class VideoSendStream {
     uint64_t total_encoded_bytes_target = 0;
     uint32_t frames = 0;
     uint32_t frames_dropped_by_capturer = 0;
-    uint32_t frames_dropped_by_bad_timestamp = 0;
     uint32_t frames_dropped_by_encoder_queue = 0;
     uint32_t frames_dropped_by_rate_limiter = 0;
     uint32_t frames_dropped_by_congestion_window = 0;
     uint32_t frames_dropped_by_encoder = 0;
-    // Metric only used by legacy getStats()'s BWE.
-    // - Similar to `StreamStats::target_bitrate` except this is for the whole
-    //   stream as opposed to being per substream (per SSRC).
-    // - Unlike what you would expect, it is not equal to the sum of all
-    //   substream targets and may sometimes over-report e.g. webrtc:392424845.
+    // Bitrate the encoder is currently configured to use due to bandwidth
+    // limitations.
     int target_media_bitrate_bps = 0;
     // Bitrate the encoder is actually producing.
     int media_bitrate_bps = 0;
@@ -153,7 +144,7 @@ class VideoSendStream {
         webrtc::VideoContentType::UNSPECIFIED;
     uint32_t frames_sent = 0;
     uint32_t huge_frames_sent = 0;
-    std::optional<bool> power_efficient_encoder;
+    absl::optional<bool> power_efficient_encoder;
   };
 
   struct Config {
@@ -220,8 +211,20 @@ class VideoSendStream {
     Config(const Config&);
   };
 
+  // Updates the sending state for all simulcast layers that the video send
+  // stream owns. This can mean updating the activity one or for multiple
+  // layers. The ordering of active layers is the order in which the
+  // rtp modules are stored in the VideoSendStream.
+  // Note: This starts stream activity if it is inactive and one of the layers
+  // is active. This stops stream activity if it is active and all layers are
+  // inactive.
+  // `active_layers` should have the same size as the number of configured
+  // simulcast layers or one if only one rtp stream is used.
+  virtual void StartPerRtpStream(std::vector<bool> active_layers) = 0;
+
   // Starts stream activity.
   // When a stream is active, it can receive, process and deliver packets.
+  // Prefer to use StartPerRtpStream.
   virtual void Start() = 0;
 
   // Stops stream activity.
@@ -230,8 +233,11 @@ class VideoSendStream {
 
   // Accessor for determining if the stream is active. This is an inexpensive
   // call that must be made on the same thread as `Start()` and `Stop()` methods
-  // are called on and will return `true` iff activity has been started
-  // via `Start()`.
+  // are called on and will return `true` iff activity has been started either
+  // via `Start()` or `StartPerRtpStream()`. If activity is either
+  // stopped or is in the process of being stopped as a result of a call to
+  // either `Stop()` or `StartPerRtpStream()` where all layers were
+  // deactivated, the return value will be `false`.
   virtual bool started() = 0;
 
   // If the resource is overusing, the VideoSendStream will try to reduce
@@ -256,9 +262,6 @@ class VideoSendStream {
                                        SetParametersCallback callback) = 0;
 
   virtual Stats GetStats() = 0;
-
-  // TODO: webrtc:40644448 - Make this pure virtual.
-  virtual void SetStats(const Stats& stats) { RTC_CHECK_NOTREACHED(); }
 
   virtual void GenerateKeyFrame(const std::vector<std::string>& rids) = 0;
 

@@ -67,10 +67,10 @@ struct ForwardDiffView : std::ranges::view_base {
   constexpr ForwardDiffView& operator=(ForwardDiffView&&) = default;
   constexpr ForwardDiffView(const ForwardDiffView&) = default;
   constexpr ForwardDiffView& operator=(const ForwardDiffView&) = default;
-  constexpr forward_iterator<char*> begin() { return forward_iterator<char*>(buffer_.data()); }
-  constexpr forward_iterator<char*> end()  { return forward_iterator<char*>(buffer_.data() + buffer_.size()); }
-  constexpr forward_iterator<const char*> begin() const { return forward_iterator<const char*>(buffer_.data()); }
-  constexpr forward_iterator<const char*> end() const { return forward_iterator<const char*>(buffer_.data() + buffer_.size()); }
+  constexpr forward_iterator<char*> begin() { return forward_iterator<char*>(buffer_.begin().base()); }
+  constexpr forward_iterator<char*> end()  { return forward_iterator<char*>(buffer_.end().base()); }
+  constexpr forward_iterator<const char*> begin() const { return forward_iterator<const char*>(buffer_.begin().base()); }
+  constexpr forward_iterator<const char*> end() const { return forward_iterator<const char*>(buffer_.end().base()); }
 };
 static_assert( std::ranges::forward_range<ForwardView>);
 static_assert( std::ranges::forward_range<const ForwardView>);
@@ -148,15 +148,15 @@ struct InputView : std::ranges::view_base {
     buffer_ = v;
   }
 
-  constexpr cpp20_input_iterator<char*> begin() { return cpp20_input_iterator<char*>(buffer_.data()); }
+  constexpr cpp20_input_iterator<char*> begin() { return cpp20_input_iterator<char*>(buffer_.begin().base()); }
   constexpr sentinel_wrapper<cpp20_input_iterator<char*>> end() {
-    return sentinel_wrapper(cpp20_input_iterator<char*>(buffer_.data() + buffer_.size()));
+    return sentinel_wrapper(cpp20_input_iterator<char*>(buffer_.end().base()));
   }
   constexpr cpp20_input_iterator<const char*> begin() const {
-    return cpp20_input_iterator<const char*>(buffer_.data());
+    return cpp20_input_iterator<const char*>(buffer_.begin().base());
   }
   constexpr sentinel_wrapper<cpp20_input_iterator<const char*>> end() const {
-    return sentinel_wrapper(cpp20_input_iterator<const char*>(buffer_.data() + buffer_.size()));
+    return sentinel_wrapper(cpp20_input_iterator<const char*>(buffer_.end().base()));
   }
   friend constexpr bool operator==(const InputView& lhs, const InputView& rhs) {
     return lhs.buffer_ == rhs.buffer_;

@@ -11,16 +11,18 @@
 namespace blink {
 
 class CORE_EXPORT MathFractionLayoutAlgorithm
-    : public LayoutAlgorithm<BlockNode, BoxFragmentBuilder, BlockBreakToken> {
+    : public NGLayoutAlgorithm<NGBlockNode,
+                               NGBoxFragmentBuilder,
+                               NGBlockBreakToken> {
  public:
-  explicit MathFractionLayoutAlgorithm(const LayoutAlgorithmParams& params);
-
-  const LayoutResult* Layout();
-
-  MinMaxSizesResult ComputeMinMaxSizes(const MinMaxSizesFloatInput&);
+  explicit MathFractionLayoutAlgorithm(const NGLayoutAlgorithmParams& params);
 
  private:
-  void GatherChildren(BlockNode* numerator, BlockNode* denominator);
+  const NGLayoutResult* Layout() final;
+
+  MinMaxSizesResult ComputeMinMaxSizes(const MinMaxSizesFloatInput&) final;
+
+  void GatherChildren(NGBlockNode* numerator, NGBlockNode* denominator);
 };
 
 }  // namespace blink

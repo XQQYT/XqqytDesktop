@@ -8,24 +8,24 @@ class RecVolumes3
 {
   private:
     File *SrcFile[256];
-    std::vector<byte> Buf;
+    Array<byte> Buf;
 
 #ifdef RAR_SMP
     ThreadPool *RSThreadPool;
 #endif
   public:
-    RecVolumes3(CommandData *Cmd,bool TestOnly);
+    RecVolumes3(RAROptions *Cmd,bool TestOnly);
     ~RecVolumes3();
-    void Make(CommandData *Cmd,std::wstring ArcName);
-    bool Restore(CommandData *Cmd,const std::wstring &Name,bool Silent);
-    void Test(CommandData *Cmd,const std::wstring &Name);
+    void Make(RAROptions *Cmd,wchar *ArcName);
+    bool Restore(RAROptions *Cmd,const wchar *Name,bool Silent);
+    void Test(RAROptions *Cmd,const wchar *Name);
 };
 
 
 struct RecVolItem
 {
   File *f;
-  std::wstring Name;
+  wchar Name[NM];
   uint CRC;
   uint64 FileSize;
   bool New;   // Newly created RAR volume.
@@ -48,11 +48,11 @@ struct RecRSThreadData
 class RecVolumes5
 {
   private:
-    void ProcessRS(CommandData *Cmd,uint DataNum,const byte *Data,uint MaxRead,bool Encode);
-    void ProcessRS(CommandData *Cmd,uint MaxRead,bool Encode);
+    void ProcessRS(RAROptions *Cmd,uint DataNum,const byte *Data,uint MaxRead,bool Encode);
+    void ProcessRS(RAROptions *Cmd,uint MaxRead,bool Encode);
     uint ReadHeader(File *RecFile,bool FirstRev);
 
-    std::vector<RecVolItem> RecItems;
+    Array<RecVolItem> RecItems;
 
     byte *RealReadBuffer; // Real pointer returned by 'new'.
     byte *ReadBuffer;     // Pointer aligned for SSE instructions.
@@ -76,13 +76,13 @@ class RecVolumes5
   public: // 'public' only because called from thread functions.
     void ProcessAreaRS(RecRSThreadData *td);
   public:
-    RecVolumes5(CommandData *Cmd,bool TestOnly);
+    RecVolumes5(RAROptions *Cmd,bool TestOnly);
     ~RecVolumes5();
-    bool Restore(CommandData *Cmd,const std::wstring &Name,bool Silent);
-    void Test(CommandData *Cmd,const std::wstring &Name);
+    bool Restore(RAROptions *Cmd,const wchar *Name,bool Silent);
+    void Test(RAROptions *Cmd,const wchar *Name);
 };
 
-bool RecVolumesRestore(CommandData *Cmd,const std::wstring &Name,bool Silent);
-void RecVolumesTest(CommandData *Cmd,Archive *Arc,const std::wstring &Name);
+bool RecVolumesRestore(RAROptions *Cmd,const wchar *Name,bool Silent);
+void RecVolumesTest(RAROptions *Cmd,Archive *Arc,const wchar *Name);
 
 #endif

@@ -17,37 +17,32 @@
 #ifndef SRC_KERNEL_UTILS_SYSCALL_TABLE_H_
 #define SRC_KERNEL_UTILS_SYSCALL_TABLE_H_
 
+#include <memory>
 #include <optional>
 #include <string>
 
 #include "perfetto/ext/base/string_view.h"
-#include "perfetto/ext/base/utils.h"
 
 namespace perfetto {
 
 static constexpr size_t kMaxSyscalls = 550;
 
-enum class Architecture {
+enum Architecture {
   kUnknown = 0,
-  kArm64,
-  kArm32,
+  kArmEabi,  // 32-bit kernel running a 32-bit process (most old devices).
+  kAarch32,  // 64-bit kernel running a 32-bit process (should be rare).
+  kAarch64,  // 64-bit kernel running a 64-bit process (most new devices).
   kX86_64,
   kX86,
 };
 
 class SyscallTable {
  public:
-  using OffT = uint16_t;
-  // Exposed for testing.
-  template <typename Table>
-  static SyscallTable Load() {
-    static_assert(base::ArraySize(Table::offsets) <= kMaxSyscalls,
-                  "kMaxSyscalls too small");
-    return SyscallTable(Table::names, Table::offsets,
-                        base::ArraySize(Table::offsets));
-  }
-
   explicit SyscallTable(Architecture arch);
+
+  // Use for testing.
+  SyscallTable(const char* const* table, size_t count)
+      : syscall_count_(count), syscall_table_(table) {}
 
   // Return the architecture enum for the given uname machine string.
   static Architecture ArchFromString(base::StringView machine);
@@ -65,12 +60,8 @@ class SyscallTable {
   const char* GetById(size_t id) const;
 
  private:
-  SyscallTable(const char* names, const OffT* off, size_t count)
-      : syscall_names_(names), syscall_offsets_(off), syscall_count_(count) {}
-
-  const char* syscall_names_ = "";
-  const OffT* syscall_offsets_ = {};
-  size_t syscall_count_ = 0;
+  size_t syscall_count_;
+  const char* const* syscall_table_;
 };
 }  // namespace perfetto
 

@@ -39,7 +39,7 @@ enum class ShadowStyle { kNormal, kInset };
 // This class holds information about shadows for the text-shadow and box-shadow
 // properties, as well as the drop-shadow(...) filter operation.
 class CORE_EXPORT ShadowData {
-  DISALLOW_NEW();
+  USING_FAST_MALLOC(ShadowData);
 
  public:
   ShadowData(gfx::Vector2dF offset,
@@ -68,9 +68,8 @@ class CORE_EXPORT ShadowData {
         style_(style),
         opacity_(opacity) {}
 
-  void Trace(Visitor* visitor) const { visitor->Trace(color_); }
-
-  bool operator==(const ShadowData&) const = default;
+  bool operator==(const ShadowData&) const;
+  bool operator!=(const ShadowData& o) const { return !(*this == o); }
 
   static ShadowData NeutralValue();
 
@@ -98,7 +97,5 @@ class CORE_EXPORT ShadowData {
 };
 
 }  // namespace blink
-
-WTF_ALLOW_CLEAR_UNUSED_SLOTS_WITH_MEM_FUNCTIONS(blink::ShadowData)
 
 #endif  // THIRD_PARTY_BLINK_RENDERER_CORE_STYLE_SHADOW_DATA_H_

@@ -11,7 +11,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-#import "sdk/objc/base/RTCMacros.h"
+#import "RTCMacros.h"
 
 @class AVCaptureSession;
 

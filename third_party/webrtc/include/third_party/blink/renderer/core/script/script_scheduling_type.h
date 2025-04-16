@@ -68,10 +68,8 @@ enum class ScriptSchedulingType {
   // These are otherwise parser-blocking scripts that are being forced to
   // execute after parsing completes (due to ForceDeferScriptIntervention).
   //
-  // Spec: not yet spec'ed. https://crbug.com/976061 https://crbug.com/1339112
-  // kDeprecatedForceDefer is deprecated, but kept here to ensure metrics are
-  // recorded correctly in-order.
-  kDeprecatedForceDefer,
+  // Spec: not yet spec'ed. https://crbug.com/976061
+  kForceDefer,
 
   // Force in-order scripts controlled by ScriptRunner.
   //

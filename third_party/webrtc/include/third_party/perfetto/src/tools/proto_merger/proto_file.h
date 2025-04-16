@@ -49,7 +49,7 @@ struct ProtoFile {
     std::vector<Value> deleted_values;
   };
   struct Field : Member {
-    bool is_repeated;
+    std::string label;
     std::string packageless_type;
     std::string type;
     std::string name;

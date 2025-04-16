@@ -5,11 +5,13 @@
 #ifndef BASE_CONTAINERS_FLAT_SET_H_
 #define BASE_CONTAINERS_FLAT_SET_H_
 
-#include <algorithm>
 #include <functional>
 #include <vector>
 
 #include "base/containers/flat_tree.h"
+#include "base/functional/identity.h"
+#include "base/ranges/algorithm.h"
+#include "base/template_util.h"
 
 namespace base {
 
@@ -153,7 +155,7 @@ template <class Key,
           class Compare = std::less<>,
           class Container = std::vector<Key>>
 using flat_set = typename ::base::internal::
-    flat_tree<Key, std::identity, Compare, Container>;
+    flat_tree<Key, base::identity, Compare, Container>;
 
 // Utility function to simplify constructing a flat_set from a fixed list
 // of keys. The keys are obtained by applying the projection |proj| to the
@@ -167,15 +169,15 @@ template <class Key,
           class Compare = std::less<>,
           class Container = std::vector<Key>,
           class InputContainer,
-          class Projection = std::identity>
+          class Projection = base::identity>
 constexpr flat_set<Key, Compare, Container> MakeFlatSet(
     const InputContainer& unprojected_elements,
     const Compare& comp = Compare(),
     const Projection& proj = Projection()) {
   Container elements;
   internal::ReserveIfSupported(elements, unprojected_elements);
-  std::ranges::transform(unprojected_elements, std::back_inserter(elements),
-                         proj);
+  base::ranges::transform(unprojected_elements, std::back_inserter(elements),
+                          proj);
   return flat_set<Key, Compare, Container>(std::move(elements), comp);
 }
 

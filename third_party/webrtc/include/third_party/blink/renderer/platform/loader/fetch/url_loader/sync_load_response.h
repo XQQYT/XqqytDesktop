@@ -5,11 +5,10 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_URL_LOADER_SYNC_LOAD_RESPONSE_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_URL_LOADER_SYNC_LOAD_RESPONSE_H_
 
-#include <optional>
-
 #include "net/dns/public/resolve_error_info.h"
 #include "services/network/public/cpp/cors/cors_error_status.h"
 #include "services/network/public/mojom/url_response_head.mojom.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/platform/web_common.h"
 #include "third_party/blink/renderer/platform/allow_discouraged_type.h"
 #include "third_party/blink/renderer/platform/blob/blob_data.h"
@@ -27,7 +26,7 @@ struct BLINK_PLATFORM_EXPORT SyncLoadResponse {
 
   SyncLoadResponse& operator=(SyncLoadResponse&& other);
 
-  std::optional<net::RedirectInfo> redirect_info;
+  absl::optional<net::RedirectInfo> redirect_info;
 
   network::mojom::URLResponseHeadPtr head =
       network::mojom::URLResponseHead::New();
@@ -44,7 +43,7 @@ struct BLINK_PLATFORM_EXPORT SyncLoadResponse {
   net::ResolveErrorInfo resolve_error_info;
 
   // Optional CORS error details.
-  std::optional<network::CorsErrorStatus> cors_error;
+  absl::optional<network::CorsErrorStatus> cors_error;
 
   // The final URL of the response.  This may differ from the request URL in
   // the case of a server redirect.

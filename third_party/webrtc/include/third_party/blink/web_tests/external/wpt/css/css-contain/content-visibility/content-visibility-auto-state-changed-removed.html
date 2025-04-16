@@ -8,7 +8,6 @@
 
 <script src="/resources/testharness.js"></script>
 <script src="/resources/testharnessreport.js"></script>
-<script src="/common/rendering-utils.js"></script>
 
 <style>
 .spacer {
@@ -24,8 +23,9 @@
 
 <script>
 promise_test(t => new Promise(async (resolve, reject) => {
-  // Make sure the first "contentvisibilityautostatechange" event has fired before the test.
-  await new Promise(resolve => bottomdiv.addEventListener("contentvisibilityautostatechange", resolve, { once: true }));
+  await new Promise((waited, _) => {
+    requestAnimationFrame(() => requestAnimationFrame(waited));
+  });
 
   let observed = false;
   bottomdiv.addEventListener("contentvisibilityautostatechange", () => {
@@ -33,7 +33,7 @@ promise_test(t => new Promise(async (resolve, reject) => {
   });
 
   bottomdiv.remove()
-  waitForAtLeastOneFrame().then(resolve);
+  requestAnimationFrame(() => requestAnimationFrame(resolve));
 
 }), "ContentVisibilityAutoStateChange does not fire on disconnected element");
 

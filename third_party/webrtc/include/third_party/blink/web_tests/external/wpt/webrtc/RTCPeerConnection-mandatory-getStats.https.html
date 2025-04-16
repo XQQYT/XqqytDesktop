@@ -5,6 +5,8 @@
 <script src=/resources/testharness.js></script>
 <script src=/resources/testharnessreport.js></script>
 <script src="RTCPeerConnection-helper.js"></script>
+<script src="dictionary-helper.js"></script>
+<script src="RTCStats-helper.js"></script>
 <script>
 'use strict';
 
@@ -107,7 +109,6 @@ const mandatory = {
     "bytesSent",
     "bytesReceived",
     "totalRoundTripTime",
-    "responsesReceived",
     "currentRoundTripTime"
   ],
   RTCIceCandidateStats: [
@@ -115,8 +116,7 @@ const mandatory = {
     "port",
     "protocol",
     "candidateType",
-    /* url requires a STUN or TURN server so is not testable. */
-    // "url",
+    "url",
   ],
   RTCCertificateStats: [
     "fingerprint",

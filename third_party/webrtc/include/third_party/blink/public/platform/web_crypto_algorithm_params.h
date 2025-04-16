@@ -31,14 +31,11 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_CRYPTO_ALGORITHM_PARAMS_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_CRYPTO_ALGORITHM_PARAMS_H_
 
-#include <cstdint>
-#include <optional>
-#include <vector>
-
 #include "base/check.h"
 #include "third_party/blink/public/platform/web_common.h"
 #include "third_party/blink/public/platform/web_crypto_algorithm.h"
 #include "third_party/blink/public/platform/web_crypto_key.h"
+#include "third_party/blink/public/platform/web_vector.h"
 
 namespace blink {
 
@@ -63,17 +60,17 @@ class WebCryptoAlgorithmParams {
 
 class WebCryptoAesCbcParams : public WebCryptoAlgorithmParams {
  public:
-  explicit WebCryptoAesCbcParams(std::vector<unsigned char> iv)
+  explicit WebCryptoAesCbcParams(WebVector<unsigned char> iv)
       : iv_(std::move(iv)) {}
 
   WebCryptoAlgorithmParamsType GetType() const override {
     return kWebCryptoAlgorithmParamsTypeAesCbcParams;
   }
 
-  const std::vector<unsigned char>& Iv() const { return iv_; }
+  const WebVector<unsigned char>& Iv() const { return iv_; }
 
  private:
-  const std::vector<unsigned char> iv_;
+  const WebVector<unsigned char> iv_;
 };
 
 class WebCryptoAlgorithmParamsWithHash : public WebCryptoAlgorithmParams {
@@ -92,7 +89,7 @@ class WebCryptoAlgorithmParamsWithHash : public WebCryptoAlgorithmParams {
 class WebCryptoAesCtrParams : public WebCryptoAlgorithmParams {
  public:
   WebCryptoAesCtrParams(unsigned char length_bits,
-                        std::vector<unsigned char> counter)
+                        WebVector<unsigned char> counter)
       : WebCryptoAlgorithmParams(),
         counter_(std::move(counter)),
         length_bits_(length_bits) {}
@@ -101,11 +98,11 @@ class WebCryptoAesCtrParams : public WebCryptoAlgorithmParams {
     return kWebCryptoAlgorithmParamsTypeAesCtrParams;
   }
 
-  const std::vector<unsigned char>& Counter() const { return counter_; }
+  const WebVector<unsigned char>& Counter() const { return counter_; }
   unsigned char LengthBits() const { return length_bits_; }
 
  private:
-  const std::vector<unsigned char> counter_;
+  const WebVector<unsigned char> counter_;
   const unsigned char length_bits_;
 };
 
@@ -181,9 +178,9 @@ class WebCryptoHmacKeyGenParams : public WebCryptoAlgorithmParamsWithHash {
 
 class WebCryptoAesGcmParams : public WebCryptoAlgorithmParams {
  public:
-  WebCryptoAesGcmParams(std::vector<unsigned char> iv,
+  WebCryptoAesGcmParams(WebVector<unsigned char> iv,
                         bool has_additional_data,
-                        std::vector<unsigned char> additional_data,
+                        WebVector<unsigned char> additional_data,
                         bool has_tag_length_bits,
                         unsigned char tag_length_bits)
       : iv_(std::move(iv)),
@@ -199,10 +196,10 @@ class WebCryptoAesGcmParams : public WebCryptoAlgorithmParams {
     return kWebCryptoAlgorithmParamsTypeAesGcmParams;
   }
 
-  const std::vector<unsigned char>& Iv() const { return iv_; }
+  const WebVector<unsigned char>& Iv() const { return iv_; }
 
   bool HasAdditionalData() const { return has_additional_data_; }
-  const std::vector<unsigned char>& OptionalAdditionalData() const {
+  const WebVector<unsigned char>& OptionalAdditionalData() const {
     return optional_additional_data_;
   }
 
@@ -210,9 +207,9 @@ class WebCryptoAesGcmParams : public WebCryptoAlgorithmParams {
   unsigned OptionalTagLengthBits() const { return optional_tag_length_bits_; }
 
  private:
-  const std::vector<unsigned char> iv_;
+  const WebVector<unsigned char> iv_;
   const bool has_additional_data_;
-  const std::vector<unsigned char> optional_additional_data_;
+  const WebVector<unsigned char> optional_additional_data_;
   const bool has_tag_length_bits_;
   const unsigned char optional_tag_length_bits_;
 };
@@ -231,7 +228,7 @@ class WebCryptoRsaHashedKeyGenParams : public WebCryptoAlgorithmParams {
  public:
   WebCryptoRsaHashedKeyGenParams(const WebCryptoAlgorithm& hash,
                                  unsigned modulus_length_bits,
-                                 std::vector<unsigned char> public_exponent)
+                                 WebVector<unsigned char> public_exponent)
       : modulus_length_bits_(modulus_length_bits),
         public_exponent_(std::move(public_exponent)),
         hash_(hash) {
@@ -243,35 +240,35 @@ class WebCryptoRsaHashedKeyGenParams : public WebCryptoAlgorithmParams {
   }
 
   unsigned ModulusLengthBits() const { return modulus_length_bits_; }
-  const std::vector<unsigned char>& PublicExponent() const {
+  const WebVector<unsigned char>& PublicExponent() const {
     return public_exponent_;
   }
   const WebCryptoAlgorithm& GetHash() const { return hash_; }
 
   // Converts the public exponent (big-endian WebCrypto BigInteger),
-  // with or without leading zeros, to uint32_t. Returns true on success and
-  // false on overflow.
-  std::optional<uint32_t> PublicExponentAsU32() const {
-    uint32_t result = 0;
-    for (unsigned char byte : public_exponent_) {
-      if (result > UINT32_MAX >> 8) {
-        return std::nullopt;  // Overflow.
-      }
-      result <<= 8;
-      result |= byte;
+  // with or without leading zeros, to unsigned int. Returns true on success.
+  bool ConvertPublicExponentToUnsigned(unsigned& result) const {
+    result = 0;
+    for (size_t i = 0; i < public_exponent_.size(); ++i) {
+      size_t i_reversed = public_exponent_.size() - i - 1;
+
+      if (i_reversed >= sizeof(result) && public_exponent_[i])
+        return false;  // Too large for unsigned int.
+
+      result |= public_exponent_[i] << 8 * i_reversed;
     }
-    return result;
+    return true;
   }
 
  private:
   const unsigned modulus_length_bits_;
-  const std::vector<unsigned char> public_exponent_;
+  const WebVector<unsigned char> public_exponent_;
   const WebCryptoAlgorithm hash_;
 };
 
 class WebCryptoRsaOaepParams : public WebCryptoAlgorithmParams {
  public:
-  WebCryptoRsaOaepParams(bool has_label, std::vector<unsigned char> label)
+  WebCryptoRsaOaepParams(bool has_label, WebVector<unsigned char> label)
       : has_label_(has_label), optional_label_(std::move(label)) {
     DCHECK(has_label || optional_label_.empty());
   }
@@ -281,13 +278,13 @@ class WebCryptoRsaOaepParams : public WebCryptoAlgorithmParams {
   }
 
   bool HasLabel() const { return has_label_; }
-  const std::vector<unsigned char>& OptionalLabel() const {
+  const WebVector<unsigned char>& OptionalLabel() const {
     return optional_label_;
   }
 
  private:
   const bool has_label_;
-  const std::vector<unsigned char> optional_label_;
+  const WebVector<unsigned char> optional_label_;
 };
 
 class WebCryptoRsaPssParams : public WebCryptoAlgorithmParams {
@@ -378,29 +375,29 @@ class WebCryptoAesDerivedKeyParams : public WebCryptoAlgorithmParams {
 class WebCryptoHkdfParams : public WebCryptoAlgorithmParamsWithHash {
  public:
   WebCryptoHkdfParams(const WebCryptoAlgorithm& hash,
-                      std::vector<unsigned char> salt,
-                      std::vector<unsigned char> info)
+                      WebVector<unsigned char> salt,
+                      WebVector<unsigned char> info)
       : WebCryptoAlgorithmParamsWithHash(hash),
         salt_(std::move(salt)),
         info_(std::move(info)) {}
 
-  const std::vector<unsigned char>& Salt() const { return salt_; }
+  const WebVector<unsigned char>& Salt() const { return salt_; }
 
-  const std::vector<unsigned char>& Info() const { return info_; }
+  const WebVector<unsigned char>& Info() const { return info_; }
 
   WebCryptoAlgorithmParamsType GetType() const override {
     return kWebCryptoAlgorithmParamsTypeHkdfParams;
   }
 
  private:
-  const std::vector<unsigned char> salt_;
-  const std::vector<unsigned char> info_;
+  const WebVector<unsigned char> salt_;
+  const WebVector<unsigned char> info_;
 };
 
 class WebCryptoPbkdf2Params : public WebCryptoAlgorithmParamsWithHash {
  public:
   WebCryptoPbkdf2Params(const WebCryptoAlgorithm& hash,
-                        std::vector<unsigned char> salt,
+                        WebVector<unsigned char> salt,
                         unsigned iterations)
       : WebCryptoAlgorithmParamsWithHash(hash),
         salt_(std::move(salt)),
@@ -410,11 +407,11 @@ class WebCryptoPbkdf2Params : public WebCryptoAlgorithmParamsWithHash {
     return kWebCryptoAlgorithmParamsTypePbkdf2Params;
   }
 
-  const std::vector<unsigned char>& Salt() const { return salt_; }
+  const WebVector<unsigned char>& Salt() const { return salt_; }
   unsigned Iterations() const { return iterations_; }
 
  private:
-  const std::vector<unsigned char> salt_;
+  const WebVector<unsigned char> salt_;
   const unsigned iterations_;
 };
 

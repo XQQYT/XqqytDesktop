@@ -43,7 +43,6 @@
 #include "h264qpel.h"
 #include "h274.h"
 #include "mpegutils.h"
-#include "threadframe.h"
 #include "videodsp.h"
 
 #define H264_MAX_PICTURE_COUNT 36
@@ -93,14 +92,6 @@
 
 #define IS_REF0(a)         ((a) & MB_TYPE_REF0)
 #define IS_8x8DCT(a)       ((a) & MB_TYPE_8x8DCT)
-#define IS_SUB_8X8(a)      ((a) & MB_TYPE_16x16) // note reused
-#define IS_SUB_8X4(a)      ((a) & MB_TYPE_16x8)  // note reused
-#define IS_SUB_4X8(a)      ((a) & MB_TYPE_8x16)  // note reused
-#define IS_SUB_4X4(a)      ((a) & MB_TYPE_8x8)   // note reused
-#define IS_DIR(a, part, list) ((a) & (MB_TYPE_P0L0 << ((part) + 2 * (list))))
-
-// does this mb use listX, note does not work if subMBs
-#define USES_LIST(a, list) ((a) & ((MB_TYPE_P0L0 | MB_TYPE_P1L0) << (2 * (list))))
 
 /**
  * Memory management control operation.
@@ -117,19 +108,20 @@ typedef struct H264Picture {
 
     AVFrame *f_grain;
 
-    int8_t *qscale_table_base;        ///< RefStruct reference
+    AVBufferRef *qscale_table_buf;
     int8_t *qscale_table;
 
-    int16_t (*motion_val_base[2])[2]; ///< RefStruct reference
+    AVBufferRef *motion_val_buf[2];
     int16_t (*motion_val[2])[2];
 
-    uint32_t *mb_type_base;           ///< RefStruct reference
+    AVBufferRef *mb_type_buf;
     uint32_t *mb_type;
 
-    /// RefStruct reference for hardware accelerator private data
-    void *hwaccel_picture_private;
+    AVBufferRef *hwaccel_priv_buf;
+    void *hwaccel_picture_private; ///< hardware accelerator private data
 
-    int8_t *ref_index[2];   ///< RefStruct reference
+    AVBufferRef *ref_index_buf[2];
+    int8_t *ref_index[2];
 
     int field_poc[2];       ///< top/bottom POC
     int poc;                ///< frame POC
@@ -155,15 +147,14 @@ typedef struct H264Picture {
     int sei_recovery_frame_cnt;
     int needs_fg;           ///< whether picture needs film grain synthesis (see `f_grain`)
 
+    AVBufferRef *pps_buf;
     const PPS   *pps;
 
     int mb_width, mb_height;
     int mb_stride;
 
-    /// RefStruct reference; its pointee is shared between decoding threads.
-    atomic_int *decode_error_flags;
-
-    int gray;
+    /* data points to an atomic_int */
+    AVBufferRef *decode_error_flags;
 } H264Picture;
 
 typedef struct H264Ref {
@@ -174,7 +165,7 @@ typedef struct H264Ref {
     int poc;
     int pic_id;
 
-    const H264Picture *parent;
+    H264Picture *parent;
 } H264Ref;
 
 typedef struct H264SliceContext {
@@ -364,6 +355,7 @@ typedef struct H264Context {
     int chroma_x_shift, chroma_y_shift;
 
     int droppable;
+    int coded_picture_number;
 
     int context_initialized;
     int flags;
@@ -528,22 +520,8 @@ typedef struct H264Context {
  * so all the following frames in presentation order are correct.
  */
 #define FRAME_RECOVERED_SEI  (1 << 1)
-/**
- * Recovery point detected by heuristic
- */
-#define FRAME_RECOVERED_HEURISTIC  (1 << 2)
 
-    /**
-     * Initial frame has been completely recovered.
-     *
-     * Once this is set, all following decoded as well as displayed frames will be marked as recovered
-     * If a frame is marked as recovered frame_recovered will be set once this frame is output and thus
-     * all subsequently output fraames are also marked as recovered
-     *
-     * In effect, if you want all subsequent DECODED frames marked as recovered, set frame_recovered
-     * If you want all subsequent DISPAYED frames marked as recovered, set the frame->recovered
-     */
-    int frame_recovered;
+    int frame_recovered;    ///< Initial frame has been completely recovered
 
     int has_recovery_point;
 
@@ -570,16 +548,12 @@ typedef struct H264Context {
 
     H264SEIContext sei;
 
-    struct AVRefStructPool *qscale_table_pool;
-    struct AVRefStructPool *mb_type_pool;
-    struct AVRefStructPool *motion_val_pool;
-    struct AVRefStructPool *ref_index_pool;
-    struct AVRefStructPool *decode_error_flags_pool;
+    AVBufferPool *qscale_table_pool;
+    AVBufferPool *mb_type_pool;
+    AVBufferPool *motion_val_pool;
+    AVBufferPool *ref_index_pool;
+    AVBufferPool *decode_error_flags_pool;
     int ref2frm[MAX_SLICES][2][64];     ///< reference to frame number lists, used in the loop filter, the first 2 are for -2,-1
-
-    int non_gray;                       ///< Did we encounter a intra frame after a gray gap frame
-    int noref_gray;
-    int skip_gray;
 } H264Context;
 
 extern const uint16_t ff_h264_mb_sizes[4];
@@ -679,9 +653,9 @@ static av_always_inline int get_chroma_qp(const PPS *pps, int t, int qscale)
 
 int ff_h264_field_end(H264Context *h, H264SliceContext *sl, int in_setup);
 
-int ff_h264_ref_picture(H264Picture *dst, const H264Picture *src);
-int ff_h264_replace_picture(H264Picture *dst, const H264Picture *src);
-void ff_h264_unref_picture(H264Picture *pic);
+int ff_h264_ref_picture(H264Context *h, H264Picture *dst, H264Picture *src);
+int ff_h264_replace_picture(H264Context *h, H264Picture *dst, const H264Picture *src);
+void ff_h264_unref_picture(H264Context *h, H264Picture *pic);
 
 void ff_h264_slice_context_init(H264Context *h, H264SliceContext *sl);
 
@@ -704,6 +678,6 @@ void ff_h264_flush_change(H264Context *h);
 
 void ff_h264_free_tables(H264Context *h);
 
-void ff_h264_set_erpic(ERPicture *dst, const H264Picture *src);
+void ff_h264_set_erpic(ERPicture *dst, H264Picture *src);
 
 #endif /* AVCODEC_H264DEC_H */

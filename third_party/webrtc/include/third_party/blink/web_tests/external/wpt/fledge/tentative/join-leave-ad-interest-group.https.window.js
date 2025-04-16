@@ -1,5 +1,4 @@
 // META: script=/resources/testdriver.js
-// META: script=/resources/testdriver-vendor.js
 // META: script=/common/utils.js
 // META: script=resources/fledge-util.sub.js
 // META: script=/common/subset-tests.js
@@ -14,7 +13,7 @@
 // META: variant=?71-80
 // META: variant=?81-last
 
-"use strict";
+"use strict;"
 
 // These tests are focused on joinAdInterestGroup() and leaveAdInterestGroup().
 // Most join tests do not run auctions, but instead only check the result of
@@ -232,31 +231,31 @@ const SIMPLE_JOIN_LEAVE_TEST_CASES = [
                      biddingWasmHelperURL: 'relative/path' }
   },
 
-  // "updateURL" tests
+  // "dailyUpdateUrl" tests
   { expectJoinSucces: true,
     expectLeaveSucces: true,
     interestGroup: { ...BASE_INTEREST_GROUP,
-                     updateURL: null }
+                     dailyUpdateUrl: null }
   },
   { expectJoinSucces: false,
     expectLeaveSucces: true,
     interestGroup: { ...BASE_INTEREST_GROUP,
-                     updateURL: 'https://{{hosts[][www]}}/foo.js' }
+                     dailyUpdateUrl: 'https://{{hosts[][www]}}/foo.js' }
   },
   { expectJoinSucces: false,
     expectLeaveSucces: true,
     interestGroup: { ...BASE_INTEREST_GROUP,
-                     updateURL: 'data:application/wasm,Foo' }
+                     dailyUpdateUrl: 'data:application/wasm,Foo' }
   },
   { expectJoinSucces: true,
     expectLeaveSucces: true,
     interestGroup: { ...BASE_INTEREST_GROUP,
-                     updateURL: `${window.location.origin}/foo.js`}
+                     dailyUpdateUrl: `${window.location.origin}/foo.js`}
   },
   { expectJoinSucces: true,
     expectLeaveSucces: true,
     interestGroup: { ...BASE_INTEREST_GROUP,
-                     updateURL: 'relative/path' }
+                     dailyUpdateUrl: 'relative/path' }
   },
 
   // "executionMode" tests
@@ -383,17 +382,29 @@ const SIMPLE_JOIN_LEAVE_TEST_CASES = [
     interestGroup: { ...BASE_INTEREST_GROUP,
                      ads: [{metadata: [{a:'b'}, 'c'], 1:[2,3]}] }
   },
-  { expectJoinSucces: false,
-    expectLeaveSucces: true,
-    interestGroup: { ...BASE_INTEREST_GROUP,
-                     ads: [{renderURL: 'https://somewhere.test/',
-                            adRenderId: 'thirteenChars' }] }
-  },
-
   { expectJoinSucces: true,
     expectLeaveSucces: true,
     interestGroup: { ...BASE_INTEREST_GROUP,
                      ads: [{renderURL: 'https://somewhere.test/'}] }
+  },
+  { expectJoinSucces: true,
+    expectLeaveSucces: true,
+    interestGroup: { ...BASE_INTEREST_GROUP,
+                     ads: [{renderURL: 'https://somewhere.test/'},
+                           {renderURL: 'https://somewhere-else.test/'}] }
+  },
+  { expectJoinSucces: true,
+    expectLeaveSucces: true,
+    interestGroup: { ...BASE_INTEREST_GROUP,
+                     ads: [{renderURL: 'https://somewhere.test/',
+                            metadata: null}] }
+  },
+  { expectJoinSucces: true,
+    expectLeaveSucces: true,
+    interestGroup: { ...BASE_INTEREST_GROUP,
+                     ads: [{renderURL: 'https://somewhere.test/',
+                            metadata: null,
+                            someOtherField: 'foo'}] }
   },
 
   // "adComponents" tests
@@ -410,6 +421,16 @@ const SIMPLE_JOIN_LEAVE_TEST_CASES = [
   { expectJoinSucces: false,
     expectLeaveSucces: true,
     interestGroup: { ...BASE_INTEREST_GROUP,
+                     adComponents: {} }
+  },
+  { expectJoinSucces: true,
+    expectLeaveSucces: true,
+    interestGroup: { ...BASE_INTEREST_GROUP,
+                     adComponents: [] }
+  },
+  { expectJoinSucces: false,
+    expectLeaveSucces: true,
+    interestGroup: { ...BASE_INTEREST_GROUP,
                      adComponents: [{}] }
   },
   { expectJoinSucces: false,
@@ -417,16 +438,29 @@ const SIMPLE_JOIN_LEAVE_TEST_CASES = [
     interestGroup: { ...BASE_INTEREST_GROUP,
                      adComponents: [{metadata: [{a:'b'}, 'c'], 1:[2,3]}] }
   },
-  { expectJoinSucces: false,
-    expectLeaveSucces: true,
-    interestGroup: { ...BASE_INTEREST_GROUP,
-                     adComponents: [{renderURL: 'https://somewhere.test/',
-                                     adRenderId: 'More than twelve characters'}] }
-  },
   { expectJoinSucces: true,
     expectLeaveSucces: true,
     interestGroup: { ...BASE_INTEREST_GROUP,
                      adComponents: [{renderURL: 'https://somewhere.test/'}] }
+  },
+  { expectJoinSucces: true,
+    expectLeaveSucces: true,
+    interestGroup: { ...BASE_INTEREST_GROUP,
+                     adComponents: [{renderURL: 'https://somewhere.test/'},
+                                    {renderURL: 'https://elsewhere.test/'}] }
+  },
+  { expectJoinSucces: true,
+    expectLeaveSucces: true,
+    interestGroup: { ...BASE_INTEREST_GROUP,
+                     adComponents: [{renderURL: 'https://somewhere.test/',
+                                     metadata: null}] }
+  },
+  { expectJoinSucces: true,
+    expectLeaveSucces: true,
+    interestGroup: { ...BASE_INTEREST_GROUP,
+                     adComponents: [{renderURL: 'https://somewhere.test/',
+                                     metadata: null,
+                                     someOtherField: 'foo'}] }
   },
 
   // Miscellaneous tests.
@@ -447,20 +481,20 @@ const SIMPLE_JOIN_LEAVE_TEST_CASES = [
   { expectJoinSucces: true,
     expectLeaveSucces: true,
     interestGroup: { ...BASE_INTEREST_GROUP,
-      name: 'a'.repeat(1048516)
+      name: 'a'.repeat(1048524)
     },
     testCaseName: "Largest possible interest group dictionary",
   },
   { expectJoinSucces: false,
     expectLeaveSucces: true,
     interestGroup: { ...BASE_INTEREST_GROUP,
-      name: 'a'.repeat(1048517)
+      name: 'a'.repeat(1048525)
     },
     testCaseName: "Oversized interest group dictionary",
   },
 ];
 
-for (let testCase of SIMPLE_JOIN_LEAVE_TEST_CASES) {
+for (testCase of SIMPLE_JOIN_LEAVE_TEST_CASES) {
   var test_name = 'Join and leave interest group: ';
   if ('testCaseName' in testCase) {
     test_name += testCase.testCaseName;

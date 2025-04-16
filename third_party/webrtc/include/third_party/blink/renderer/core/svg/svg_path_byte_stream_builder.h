@@ -20,39 +20,20 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_SVG_SVG_PATH_BYTE_STREAM_BUILDER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_SVG_SVG_PATH_BYTE_STREAM_BUILDER_H_
 
-#include "base/memory/stack_allocated.h"
-#include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/svg/svg_path_consumer.h"
-#include "third_party/blink/renderer/platform/wtf/vector.h"
 
 namespace blink {
 
 class SVGPathByteStream;
 
-class CORE_EXPORT SVGPathByteStreamBuilder final : public SVGPathConsumer {
-  STACK_ALLOCATED();
-
+class SVGPathByteStreamBuilder final : public SVGPathConsumer {
  public:
-  SVGPathByteStreamBuilder();
-
-  void ReserveInitialCapacity(unsigned capacity) {
-    result_.ReserveInitialCapacity(capacity);
-  }
-
-  // Returns a copy of the byte stream.
-  SVGPathByteStream CopyByteStream();
+  SVGPathByteStreamBuilder(SVGPathByteStream&);
 
   void EmitSegment(const PathSegmentData&) override;
 
  private:
-  class CoalescingBuffer;
-
-  // To minimize allocations a Vector with on-stack allocation is used for
-  // the stream. CopyByteStream() returns a Vector with a capacity just big
-  // enough for the data.
-  using SVGPathByteStreamBuilderStorage = Vector<unsigned char, 1024>;
-
-  SVGPathByteStreamBuilderStorage result_;
+  SVGPathByteStream& byte_stream_;
 };
 
 }  // namespace blink

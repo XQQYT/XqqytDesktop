@@ -26,11 +26,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/351564777): Remove this and convert code to safer constructs.
-#pragma allow_unsafe_buffers
-#endif
-
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_AUDIO_AUDIO_ARRAY_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_AUDIO_AUDIO_ARRAY_H_
 
@@ -47,7 +42,7 @@
 namespace blink {
 
 template <typename T>
-class AudioArray final {
+class AudioArray {
   USING_FAST_MALLOC(AudioArray);
 
  public:
@@ -73,7 +68,7 @@ class AudioArray final {
 
     // Minimmum alignment requirements for arrays so that we can use
     // SIMD.
-#if defined(ARCH_CPU_X86_FAMILY)
+#if defined(ARCH_CPU_X86_FAMILY) || defined(WTF_USE_WEBAUDIO_FFMPEG)
     const unsigned kAlignment = 32;
 #else
     const unsigned kAlignment = 16;

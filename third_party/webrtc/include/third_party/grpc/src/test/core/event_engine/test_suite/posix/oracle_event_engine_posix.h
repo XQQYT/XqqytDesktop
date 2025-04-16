@@ -15,11 +15,6 @@
 #ifndef GRPC_TEST_CORE_EVENT_ENGINE_TEST_SUITE_POSIX_ORACLE_EVENT_ENGINE_POSIX_H
 #define GRPC_TEST_CORE_EVENT_ENGINE_TEST_SUITE_POSIX_ORACLE_EVENT_ENGINE_POSIX_H
 
-#include <grpc/event_engine/endpoint_config.h>
-#include <grpc/event_engine/event_engine.h>
-#include <grpc/event_engine/memory_allocator.h>
-#include <grpc/event_engine/slice_buffer.h>
-
 #include <memory>
 #include <string>
 #include <utility>
@@ -29,10 +24,16 @@
 #include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "src/core/util/crash.h"
-#include "src/core/util/notification.h"
-#include "src/core/util/sync.h"
-#include "src/core/util/thd.h"
+
+#include <grpc/event_engine/endpoint_config.h>
+#include <grpc/event_engine/event_engine.h>
+#include <grpc/event_engine/memory_allocator.h>
+#include <grpc/event_engine/slice_buffer.h>
+
+#include "src/core/lib/gprpp/crash.h"
+#include "src/core/lib/gprpp/notification.h"
+#include "src/core/lib/gprpp/sync.h"
+#include "src/core/lib/gprpp/thd.h"
 #include "test/core/event_engine/event_engine_test_utils.h"
 
 namespace grpc_event_engine {
@@ -91,7 +92,7 @@ class PosixOracleEndpoint : public EventEngine::Endpoint {
                    absl::AnyInvocable<void(absl::Status)>&& on_complete)
         : bytes_to_write_(ExtractSliceBufferIntoString(buffer)),
           on_complete_(std::move(on_complete)) {}
-    bool IsValid() { return !bytes_to_write_.empty(); }
+    bool IsValid() { return bytes_to_write_.length() > 0; }
     std::string GetBytesToWrite() const { return bytes_to_write_; }
     void operator()(absl::Status status) {
       if (on_complete_ != nullptr) {
@@ -170,7 +171,7 @@ class PosixOracleEventEngine final : public EventEngine {
     grpc_core::Crash("unimplemented");
   }
   bool IsWorkerThread() override { return false; };
-  absl::StatusOr<std::unique_ptr<DNSResolver>> GetDNSResolver(
+  std::unique_ptr<DNSResolver> GetDNSResolver(
       const DNSResolver::ResolverOptions& /*options*/) override {
     grpc_core::Crash("unimplemented");
   }

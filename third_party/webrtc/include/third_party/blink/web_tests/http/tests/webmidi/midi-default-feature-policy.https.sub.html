@@ -10,7 +10,6 @@ const mock = new MockMIDIService();
 
 run_permission_default_header_policy_tests(
   location.protocol + '//localhost:' + location.port,
-  'midi-sysex',
   'midi',
   'SecurityError',
   function() {

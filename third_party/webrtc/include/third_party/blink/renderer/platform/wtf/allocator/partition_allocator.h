@@ -2,23 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/390223051): Remove C-library calls to fix the errors.
-#pragma allow_unsafe_libc_calls
-#endif
-
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_ALLOCATOR_PARTITION_ALLOCATOR_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_ALLOCATOR_PARTITION_ALLOCATOR_H_
 
 // This is the allocator that is used for allocations that are not on the
 // traced, garbage collected heap. It uses FastMalloc for collections,
-// but uses the PartitionAlloc for the backing store of the collections.
+// but uses the partition allocator for the backing store of the collections.
 
 #include <string.h>
 
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_constants.h"
 #include "base/check_op.h"
-#include "base/containers/span.h"
-#include "partition_alloc/partition_alloc_constants.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/type_traits.h"
 #include "third_party/blink/renderer/platform/wtf/wtf_export.h"
@@ -115,7 +109,7 @@ class WTF_EXPORT PartitionAllocator {
   static void NotifyNewObject(T* object) {}
 
   template <typename T, typename Traits>
-  static void NotifyNewObjects(base::span<T>) {}
+  static void NotifyNewObjects(T* array, size_t len) {}
 
  private:
   static void* AllocateBacking(size_t, const char* type_name);

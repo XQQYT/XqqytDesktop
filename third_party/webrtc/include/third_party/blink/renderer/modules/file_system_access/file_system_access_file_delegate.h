@@ -44,7 +44,7 @@ class FileSystemAccessFileDelegate
   // that was previously there. `offset` cannot be negative. Returns the number
   // of bytes written, or a file error on failure.
   virtual base::FileErrorOr<int> Write(int64_t offset,
-                                       base::span<const uint8_t> data) = 0;
+                                       const base::span<uint8_t> data) = 0;
 
   // Returns the current size of this file, or a file error on failure.
   virtual base::FileErrorOr<int64_t> GetLength() = 0;

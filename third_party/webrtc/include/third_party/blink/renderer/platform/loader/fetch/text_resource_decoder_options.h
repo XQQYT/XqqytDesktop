@@ -56,6 +56,8 @@ class PLATFORM_EXPORT TextResourceDecoderOptions final {
       content_type_ = content_type;
   }
 
+  static ContentType DetermineContentType(const String& mime_type);
+
   // TextResourceDecoder does three kind of encoding detection:
   // 1. By BOM,
   // 2. By Content if |content_type_| is not |kPlainTextContext|
@@ -84,15 +86,15 @@ class PLATFORM_EXPORT TextResourceDecoderOptions final {
   bool GetNoBOMDecoding() const { return no_bom_decoding_; }
   bool GetUseLenientXMLDecoding() const { return use_lenient_xml_decoding_; }
 
-  const AtomicString& HintEncoding() const { return hint_encoding_; }
+  const char* HintEncoding() const { return hint_encoding_; }
   const KURL& HintURL() const { return hint_url_; }
-  const char* HintLanguage() const { return hint_language_.data(); }
+  const char* HintLanguage() const { return hint_language_; }
 
  private:
   TextResourceDecoderOptions(EncodingDetectionOption,
                              ContentType,
                              const WTF::TextEncoding& default_encoding,
-                             const AtomicString& hint_encoding,
+                             const char* hint_encoding,
                              const KURL& hint_url);
 
   EncodingDetectionOption encoding_detection_option_;
@@ -103,9 +105,9 @@ class PLATFORM_EXPORT TextResourceDecoderOptions final {
 
   // Hints for DetectTextEncoding().
   // Only used when |encoding_detection_option_| == |kUseAllAutoDetection|.
-  AtomicString hint_encoding_;
+  const char* hint_encoding_;
   KURL hint_url_;
-  std::array<char, 3> hint_language_;
+  char hint_language_[3];
 };
 
 }  // namespace blink

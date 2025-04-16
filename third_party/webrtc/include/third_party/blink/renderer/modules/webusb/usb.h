@@ -9,7 +9,6 @@
 #include "services/device/public/mojom/usb_manager_client.mojom-blink.h"
 #include "third_party/blink/public/mojom/usb/web_usb_service.mojom-blink.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/core/dom/events/event_target.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
@@ -27,6 +26,7 @@ namespace blink {
 
 class ExceptionState;
 class NavigatorBase;
+class ScriptPromiseResolver;
 class ScriptState;
 class USBDevice;
 class USBDeviceRequestOptions;
@@ -47,11 +47,10 @@ class USB final : public EventTarget,
   ~USB() override;
 
   // USB.idl
-  ScriptPromise<IDLSequence<USBDevice>> getDevices(ScriptState*,
-                                                   ExceptionState&);
-  ScriptPromise<USBDevice> requestDevice(ScriptState*,
-                                         const USBDeviceRequestOptions*,
-                                         ExceptionState&);
+  ScriptPromise getDevices(ScriptState*, ExceptionState&);
+  ScriptPromise requestDevice(ScriptState*,
+                              const USBDeviceRequestOptions*,
+                              ExceptionState&);
   DEFINE_ATTRIBUTE_EVENT_LISTENER(connect, kConnect)
   DEFINE_ATTRIBUTE_EVENT_LISTENER(disconnect, kDisconnect)
 
@@ -71,9 +70,9 @@ class USB final : public EventTarget,
   void ForgetDevice(const String& device_guid,
                     mojom::blink::WebUsbService::ForgetDeviceCallback callback);
 
-  void OnGetDevices(ScriptPromiseResolver<IDLSequence<USBDevice>>*,
+  void OnGetDevices(ScriptPromiseResolver*,
                     Vector<device::mojom::blink::UsbDeviceInfoPtr>);
-  void OnGetPermission(ScriptPromiseResolver<USBDevice>*,
+  void OnGetPermission(ScriptPromiseResolver*,
                        device::mojom::blink::UsbDeviceInfoPtr);
 
   // DeviceManagerClient implementation.
@@ -95,9 +94,8 @@ class USB final : public EventTarget,
   bool IsFeatureEnabled(ReportOptions) const;
 
   HeapMojoRemote<mojom::blink::WebUsbService> service_;
-  HeapHashSet<Member<ScriptPromiseResolver<IDLSequence<USBDevice>>>>
-      get_devices_requests_;
-  HeapHashSet<Member<ScriptPromiseResolverBase>> get_permission_requests_;
+  HeapHashSet<Member<ScriptPromiseResolver>> get_devices_requests_;
+  HeapHashSet<Member<ScriptPromiseResolver>> get_permission_requests_;
   HeapMojoAssociatedReceiver<device::mojom::blink::UsbDeviceManagerClient, USB>
       client_receiver_;
   HeapHashMap<String, WeakMember<USBDevice>> device_cache_;

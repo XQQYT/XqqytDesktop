@@ -7,6 +7,7 @@
 
 #include "third_party/blink/renderer/core/layout/background_bleed_avoidance.h"
 #include "third_party/blink/renderer/core/paint/box_painter_base.h"
+#include "third_party/blink/renderer/platform/geometry/layout_size.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 
 namespace blink {
@@ -25,20 +26,23 @@ class BoxModelObjectPainter : public BoxPainterBase {
   explicit BoxModelObjectPainter(const LayoutBoxModelObject&);
 
  protected:
+  PhysicalBoxStrut ComputeBorders() const override;
+  PhysicalBoxStrut ComputePadding() const override;
+  PhysicalBoxStrut ComputeMargins() const override;
   BoxPainterBase::FillLayerInfo GetFillLayerInfo(
       const Color&,
       const FillLayer&,
       BackgroundBleedAvoidance,
-      bool is_painting_background_in_contents_space,
-      PaintFlags paint_flags) const override;
+      bool is_painting_background_in_contents_space) const override;
 
   void PaintTextClipMask(const PaintInfo&,
                          const gfx::Rect& mask_rect,
                          const PhysicalOffset& paint_offset,
                          bool object_has_multiple_boxes) override {}
-  PhysicalRect AdjustRectForScrolledContent(GraphicsContext&,
-                                            const PhysicalBoxStrut& borders,
-                                            const PhysicalRect&) const override;
+  PhysicalRect AdjustRectForScrolledContent(
+      const PaintInfo&,
+      const BoxPainterBase::FillLayerInfo&,
+      const PhysicalRect&) override;
 
  private:
   const LayoutBoxModelObject& box_model_;

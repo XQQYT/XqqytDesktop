@@ -28,7 +28,6 @@
 
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
-#include "third_party/blink/renderer/platform/wtf/text/atomic_string.h"
 #include "third_party/blink/renderer/platform/wtf/text/text_codec.h"
 #include "third_party/blink/renderer/platform/wtf/wtf_export.h"
 #include "third_party/blink/renderer/platform/wtf/wtf_size_t.h"
@@ -39,30 +38,31 @@ class WTF_EXPORT TextEncoding final {
   USING_FAST_MALLOC(TextEncoding);
 
  public:
-  TextEncoding() = default;
+  TextEncoding() : name_(nullptr) {}
   explicit TextEncoding(const char* name);
   explicit TextEncoding(const String& name);
 
-  bool IsValid() const { return !name_.IsNull(); }
-  const AtomicString& GetName() const { return name_; }
+  bool IsValid() const { return name_; }
+  const char* GetName() const { return name_; }
   bool UsesVisualOrdering() const;
   const TextEncoding& ClosestByteBasedEquivalent() const;
   const TextEncoding& EncodingForFormSubmission() const;
 
-  String Decode(base::span<const uint8_t> data) const {
+  String Decode(const char* str, wtf_size_t length) const {
     bool ignored;
-    return Decode(data, false, ignored);
+    return Decode(str, length, false, ignored);
   }
-  String Decode(base::span<const uint8_t> data,
+  String Decode(const char*,
+                wtf_size_t length,
                 bool stop_on_error,
                 bool& saw_error) const;
 
-  std::string Encode(const StringView&, UnencodableHandling) const;
+  std::string Encode(const String&, UnencodableHandling) const;
 
   bool IsNonByteBasedEncoding() const;
 
  private:
-  AtomicString name_;
+  const char* name_;
 };
 
 inline bool operator==(const TextEncoding& a, const TextEncoding& b) {

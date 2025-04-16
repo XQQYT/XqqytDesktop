@@ -6,56 +6,60 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_TABLE_TABLE_FRAGMENT_DATA_H_
 
 #include "base/dcheck_is_on.h"
-#include "third_party/blink/renderer/core/layout/layout_input_node.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_layout_input_node.h"
+#include "third_party/blink/renderer/core/style/computed_style.h"
 #include "third_party/blink/renderer/platform/geometry/layout_unit.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 
 namespace blink {
 
-// COLGROUP/COL geometry information. Used for painting column backgrounds.
-// Only present if column has a background.
-struct TableColumnGeometry {
-  DISALLOW_NEW();
-
+class TableFragmentData {
  public:
-  TableColumnGeometry(wtf_size_t start_column,
-                      wtf_size_t span,
-                      LayoutUnit inline_offset,
-                      LayoutUnit inline_size,
-                      LayoutInputNode node)
-      : start_column(start_column),
-        span(span),
-        inline_offset(inline_offset),
-        inline_size(inline_size),
-        node(node) {}
-  void Trace(Visitor* visitor) const { visitor->Trace(node); }
-  wtf_size_t start_column;
-  wtf_size_t span;
-  LayoutUnit inline_offset;
-  LayoutUnit inline_size;
-  LayoutInputNode node;
-};
+  // COLGROUP/COL geometry information. Used for painting column backgrounds.
+  // Only present if column has a background.
+  struct ColumnGeometry {
+    DISALLOW_NEW();
 
-using TableColumnGeometries = HeapVector<TableColumnGeometry>;
-using GCedTableColumnGeometries = GCedHeapVector<TableColumnGeometry>;
+   public:
+    ColumnGeometry(wtf_size_t start_column,
+                   wtf_size_t span,
+                   LayoutUnit inline_offset,
+                   LayoutUnit inline_size,
+                   NGLayoutInputNode node)
+        : start_column(start_column),
+          span(span),
+          inline_offset(inline_offset),
+          inline_size(inline_size),
+          node(node) {}
+    void Trace(Visitor* visitor) const { visitor->Trace(node); }
+    wtf_size_t start_column;
+    wtf_size_t span;
+    LayoutUnit inline_offset;
+    LayoutUnit inline_size;
+    NGLayoutInputNode node;
+  };
 
-// Column locations are used for collapsed-border painting.
-struct CollapsedTableBordersGeometry {
-  USING_FAST_MALLOC(CollapsedTableBordersGeometry);
+  using ColumnGeometries = HeapVector<ColumnGeometry>;
 
- public:
-  Vector<LayoutUnit> columns;
+  // Column locations are used for collapsed-border painting.
+  struct CollapsedBordersGeometry {
+    USING_FAST_MALLOC(CollapsedBordersGeometry);
+
+   public:
+    Vector<LayoutUnit> columns;
 
 #if DCHECK_IS_ON()
-  void CheckSameForSimplifiedLayout(
-      const CollapsedTableBordersGeometry& other) const {
-    DCHECK(columns == other.columns);
-  }
+    void CheckSameForSimplifiedLayout(
+        const CollapsedBordersGeometry& other) const {
+      DCHECK(columns == other.columns);
+    }
 #endif
+  };
 };
 
 }  // namespace blink
 
-WTF_ALLOW_MOVE_INIT_AND_COMPARE_WITH_MEM_FUNCTIONS(blink::TableColumnGeometry)
+WTF_ALLOW_MOVE_INIT_AND_COMPARE_WITH_MEM_FUNCTIONS(
+    blink::TableFragmentData::ColumnGeometry)
 
 #endif  // THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_TABLE_TABLE_FRAGMENT_DATA_H_

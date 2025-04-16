@@ -18,6 +18,7 @@
 
 #include "api/call/transport.h"
 #include "api/rtp_headers.h"
+#include "api/rtp_parameters.h"
 #include "call/receive_stream.h"
 #include "call/rtp_packet_sink_interface.h"
 #include "modules/rtp_rtcp/include/receive_statistics.h"

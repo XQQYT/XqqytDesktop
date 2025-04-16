@@ -439,46 +439,56 @@ struct NullDeviationImpl {
 template <typename... Features>
 struct EnabledFeatures : public Features... {};
 
+// Checks if specific member is present.
+template <typename T, typename = void>
+struct has_member_min : std::false_type {};
 template <typename T>
-concept has_member_min = requires { T::has_min; };
+struct has_member_min<T, decltype((void)T::has_min, void())> : std::true_type {
+};
 
+template <typename T, typename = void>
+struct has_member_max : std::false_type {};
 template <typename T>
-concept has_member_max = requires { T::has_max; };
+struct has_member_max<T, decltype((void)T::has_max, void())> : std::true_type {
+};
 
+template <typename T, typename = void>
+struct has_member_mean : std::false_type {};
 template <typename T>
-concept has_member_mean = requires { T::has_mean; };
+struct has_member_mean<T, decltype((void)T::has_mean, void())>
+    : std::true_type {};
 
+template <typename T, typename = void>
+struct has_memeber_deviation : std::false_type {};
 template <typename T>
-concept has_member_deviation = requires { T::has_deviation; };
+struct has_memeber_deviation<T, decltype((void)T::has_deviation, void())>
+    : std::true_type {};
 
+template <typename T, typename = void>
+struct has_member_iteration : std::false_type {};
 template <typename T>
-concept has_member_iteration = requires { T::has_iteration; };
+struct has_member_iteration<T, decltype((void)T::has_iteration, void())>
+    : std::true_type {};
 
 // Gets the type of the member if present.
 // Can't just use decltype, because the member might be absent.
-template <typename T>
+template <typename T, typename = void>
 struct get_type_mean {
-  using type = void;
+  typedef void type;
 };
 template <typename T>
-  requires has_member_mean<T>
-struct get_type_mean<T> {
-  using type = decltype(T::has_mean);
+struct get_type_mean<T, decltype((void)T::has_mean, void())> {
+  typedef decltype(T::has_mean) type;
 };
-template <typename T>
-using mean_t = typename get_type_mean<T>::type;
 
-template <typename T>
+template <typename T, typename = void>
 struct get_type_deviation {
-  using type = void;
+  typedef void type;
 };
 template <typename T>
-  requires has_member_deviation<T>
-struct get_type_deviation<T> {
-  using type = decltype(T::has_deviation);
+struct get_type_deviation<T, decltype((void)T::has_deviation, void())> {
+  typedef decltype(T::has_deviation) type;
 };
-template <typename T>
-using deviation_t = typename get_type_deviation<T>::type;
 
 // Performs division allowing the class to work with more types.
 // Specific template for TimeDelta.
@@ -542,35 +552,38 @@ class MovingWindow {
   // window size).
   size_t Count() const { return total_added_; }
 
-  // Calculates min in the window.
-  T Min() const
-    requires internal::has_member_min<EnabledFeatures>
-  {
+  // Calculates min in the window. Template to disable when feature isn't
+  // requested.
+  template <typename U = EnabledFeatures,
+            std::enable_if_t<internal::has_member_min<U>::value, int> = 0>
+  T Min() const {
     return min_impl_.Value();
   }
 
-  // Calculates max in the window.
-  T Max() const
-    requires internal::has_member_max<EnabledFeatures>
-  {
+  // Calculates max in the window. Template to disable when feature isn't
+  // requested.
+  template <typename U = EnabledFeatures,
+            std::enable_if_t<internal::has_member_max<U>::value, int> = 0>
+  T Max() const {
     return max_impl_.Value();
   }
 
-  // Calculates mean in the window.
-  // `ReturnType` can be used to adjust the type of the calculated mean value;
-  // if not specified, uses `T` by default.
-  template <typename ReturnType = T>
-    requires internal::has_member_mean<EnabledFeatures>
+  // Calculates mean in the window. Template to disable when feature isn't
+  // requested.
+  template <typename ReturnType = T,
+            typename U = EnabledFeatures,
+            std::enable_if_t<internal::has_member_mean<U>::value, int> = 0>
   ReturnType Mean() const {
     return mean_impl_.template Mean<ReturnType>(
         std::min(total_added_, window_impl_.Size()));
   }
 
-  // Calculates deviation in the window.
-  // `ReturnType` can be used to adjust the type of the calculated deviation
-  // value; if not specified, uses `T` by default.
-  template <typename ReturnType = T>
-    requires internal::has_member_deviation<EnabledFeatures>
+  // Calculates deviation in the window. Template to disable when feature isn't
+  // requested.
+  template <
+      typename ReturnType = T,
+      typename U = EnabledFeatures,
+      std::enable_if_t<internal::has_memeber_deviation<U>::value, int> = 0>
   ReturnType Deviation() const {
     const size_t count = std::min(total_added_, window_impl_.Size());
     return deviation_impl_.template Deviation<ReturnType>(count,
@@ -626,9 +639,9 @@ class MovingWindow {
   };
 
   // Begin iterator. Template to enable only if iteration feature is requested.
-  iterator begin() const
-    requires internal::has_member_iteration<EnabledFeatures>
-  {
+  template <typename U = EnabledFeatures,
+            std::enable_if_t<internal::has_member_iteration<U>::value, int> = 0>
+  iterator begin() const {
     if (total_added_ == 0) {
       return end();
     }
@@ -640,74 +653,71 @@ class MovingWindow {
   }
 
   // End iterator. Template to enable only if iteration feature is requested.
-  iterator end() const
-    requires internal::has_member_iteration<EnabledFeatures>
-  {
+  template <typename U = EnabledFeatures,
+            std::enable_if_t<internal::has_member_iteration<U>::value, int> = 0>
+  iterator end() const {
     return iterator(window_impl_, iterator::kInvalidIndex);
   }
 
   // Size of the collection. Template to enable only if iteration feature is
   // requested.
-  size_t size() const
-    requires internal::has_member_iteration<EnabledFeatures>
-  {
+  template <typename U = EnabledFeatures,
+            std::enable_if_t<internal::has_member_iteration<U>::value, int> = 0>
+  size_t size() const {
     return std::min(total_added_, window_impl_.Size());
   }
 
  private:
   // Member for calculating min.
   // Conditionally enabled on Min feature.
-  std::conditional_t<internal::has_member_min<EnabledFeatures>,
-                     internal::MovingExtremumBase<T, std::greater<>>,
-                     internal::NullExtremumImpl<T>>
-      min_impl_;
+  typename std::conditional<internal::has_member_min<EnabledFeatures>::value,
+                            internal::MovingExtremumBase<T, std::greater<T>>,
+                            internal::NullExtremumImpl<T>>::type min_impl_;
 
   // Member for calculating min.
   // Conditionally enabled on Min feature.
-  std::conditional_t<internal::has_member_max<EnabledFeatures>,
-                     internal::MovingExtremumBase<T, std::less<>>,
-                     internal::NullExtremumImpl<T>>
-      max_impl_;
+  typename std::conditional<internal::has_member_max<EnabledFeatures>::value,
+                            internal::MovingExtremumBase<T, std::less<T>>,
+                            internal::NullExtremumImpl<T>>::type max_impl_;
 
   // Type for sum value in Mean implementation. Might need to reuse deviation
   // sum type, because enabling only deviation feature will also enable mean
   // member (because deviation calculation depends on mean calculation).
-  using MeanSumType =
-      std::conditional_t<internal::has_member_mean<EnabledFeatures>,
-                         internal::mean_t<EnabledFeatures>,
-                         internal::deviation_t<EnabledFeatures>>;
+  using MeanSumType = typename std::conditional<
+      internal::has_member_mean<EnabledFeatures>::value,
+      typename internal::get_type_mean<EnabledFeatures>::type,
+      typename internal::get_type_deviation<EnabledFeatures>::type>::type;
   // Member for calculating mean.
   // Conditionally enabled on Mean or Deviation feature (because deviation
   // calculation depends on mean calculation).
-  std::conditional_t<
-      internal::has_member_mean<EnabledFeatures> ||
-          internal::has_member_deviation<EnabledFeatures>,
+  typename std::conditional<
+      internal::has_member_mean<EnabledFeatures>::value ||
+          internal::has_memeber_deviation<EnabledFeatures>::value,
       internal::
           MovingMeanBase<T, MeanSumType, std::is_floating_point_v<MeanSumType>>,
-      internal::NullMeanImpl<T>>
-      mean_impl_;
+      internal::NullMeanImpl<T>>::type mean_impl_;
 
   // Member for calculating deviation.
   // Conditionally enabled on Deviation feature.
-  std::conditional_t<
-      internal::has_member_deviation<EnabledFeatures>,
+  typename std::conditional<
+      internal::has_memeber_deviation<EnabledFeatures>::value,
       internal::MovingDeviationBase<
           T,
-          internal::deviation_t<EnabledFeatures>,
-          std::is_floating_point_v<internal::deviation_t<EnabledFeatures>>>,
-      internal::NullDeviationImpl<T>>
-      deviation_impl_;
+          typename internal::get_type_deviation<EnabledFeatures>::type,
+          std::is_floating_point_v<
+              typename internal::get_type_deviation<EnabledFeatures>::type>>,
+      internal::NullDeviationImpl<T>>::type deviation_impl_;
 
   // Member for storing the moving window.
   // Conditionally enabled on Mean, Deviation or Iteration feature since
   // they need the elements in the window.
   // Min and Max features store elements internally so they don't need this.
-  std::conditional_t<internal::has_member_mean<EnabledFeatures> ||
-                         internal::has_member_deviation<EnabledFeatures> ||
-                         internal::has_member_iteration<EnabledFeatures>,
-                     internal::MovingWindowBase<T>,
-                     internal::NullWindowImpl<T>>
-      window_impl_;
+  typename std::conditional<
+      internal::has_member_mean<EnabledFeatures>::value ||
+          internal::has_memeber_deviation<EnabledFeatures>::value ||
+          internal::has_member_iteration<EnabledFeatures>::value,
+      internal::MovingWindowBase<T>,
+      internal::NullWindowImpl<T>>::type window_impl_;
   // Total number of added elements.
   size_t total_added_ = 0;
 };

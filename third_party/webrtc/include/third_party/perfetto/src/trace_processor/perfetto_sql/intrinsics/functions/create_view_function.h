@@ -18,13 +18,12 @@
 #define SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_FUNCTIONS_CREATE_VIEW_FUNCTION_H_
 
 #include <sqlite3.h>
-#include <cstddef>
+#include <unordered_map>
 
-#include "perfetto/base/status.h"
-#include "perfetto/trace_processor/basic_types.h"
 #include "src/trace_processor/perfetto_sql/intrinsics/functions/sql_function.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 class PerfettoSqlEngine;
 
@@ -43,6 +42,7 @@ struct CreateViewFunction : public SqlFunction {
                           Destructors&);
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_FUNCTIONS_CREATE_VIEW_FUNCTION_H_

@@ -32,7 +32,6 @@
 #include "base/memory/raw_ptr.h"
 #include "base/synchronization/lock.h"
 #include "base/thread_annotations.h"
-#include "base/threading/platform_thread.h"
 #include "build/build_config.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
@@ -99,8 +98,7 @@ class SQLiteDatabase {
 
   sqlite3* Sqlite3Handle() const {
 #if DCHECK_IS_ON()
-    DCHECK_EQ(CurrentThread() != base::kInvalidThreadId,
-              opening_thread_ != base::kInvalidThreadId || !db_);
+    DCHECK_EQ(!!CurrentThread(), opening_thread_ || !db_);
 #endif
     return db_;
   }
@@ -138,7 +136,7 @@ class SQLiteDatabase {
 
   int PageSize();
 
-  raw_ptr<sqlite3> db_ = nullptr;
+  raw_ptr<sqlite3, ExperimentalRenderer> db_ = nullptr;
   int page_size_ = -1;
 
   bool transaction_in_progress_ = false;
@@ -148,10 +146,10 @@ class SQLiteDatabase {
   // The raw pointer usage is safe because the DatabaseAuthorizer is guaranteed
   // to outlive this instance. The DatabaseAuthorizer is owned by the same
   // Database that owns this instance.
-  raw_ptr<DatabaseAuthorizer> authorizer_ GUARDED_BY(authorizer_lock_) =
-      nullptr;
+  raw_ptr<DatabaseAuthorizer, ExperimentalRenderer> authorizer_
+      GUARDED_BY(authorizer_lock_) = nullptr;
 
-  base::PlatformThreadId opening_thread_ = base::kInvalidThreadId;
+  base::PlatformThreadId opening_thread_ = 0;
 
   base::Lock database_closing_mutex_;
 

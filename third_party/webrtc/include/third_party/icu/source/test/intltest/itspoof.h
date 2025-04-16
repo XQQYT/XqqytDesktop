@@ -30,12 +30,8 @@ public:
 
     void  testSkeleton();
 
-    void testBidiSkeleton();
-
     void testAreConfusable();
     
-    void testAreBidiConfusable();
-
     void testInvisible();
 
     void testConfData();
@@ -60,11 +56,9 @@ public:
 
     void testCombiningDot();
 
-    // Internal functions to run a single skeleton test case.
-    void checkSkeleton(const USpoofChecker *sc, uint32_t flags, const char *input, const char *expected,
-                       int32_t lineNum);
-    void checkBidiSkeleton(const USpoofChecker *sc, const UnicodeString &input, UBiDiDirection direction,
-                           const UnicodeString  &expected, int32_t lineNum);
+    // Internal function to run a single skeleton test case.
+    void  checkSkeleton(const USpoofChecker *sc, uint32_t flags, 
+                        const char *input, const char *expected, int32_t lineNum);
 };
 
 #endif  // !UCONFIG_NO_REGULAR_EXPRESSIONS && !UCONFIG_NO_NORMALIZATION && !UCONFIG_NO_FILE_IO

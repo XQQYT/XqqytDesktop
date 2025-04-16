@@ -11,8 +11,7 @@
 #ifndef MODULES_AUDIO_PROCESSING_AEC3_RENDER_DELAY_CONTROLLER_H_
 #define MODULES_AUDIO_PROCESSING_AEC3_RENDER_DELAY_CONTROLLER_H_
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/array_view.h"
 #include "api/audio/echo_canceller3_config.h"
 #include "modules/audio_processing/aec3/block.h"
@@ -39,7 +38,7 @@ class RenderDelayController {
   virtual void LogRenderCall() = 0;
 
   // Aligns the render buffer content with the capture signal.
-  virtual std::optional<DelayEstimate> GetDelay(
+  virtual absl::optional<DelayEstimate> GetDelay(
       const DownsampledRenderBuffer& render_buffer,
       size_t render_delay_buffer_delay,
       const Block& capture) = 0;

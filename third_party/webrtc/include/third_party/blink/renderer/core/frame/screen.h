@@ -73,10 +73,10 @@ class CORE_EXPORT Screen : public EventTarget,
   ExecutionContext* GetExecutionContext() const override;
 
   // Whether the device’s visual output extends over multiple screens.
-  // https://w3c.github.io/window-management/
+  // https://w3c.github.io/window-placement/
   bool isExtended() const;
   // Fired when the window’s screen or that screen's attributes change.
-  // https://w3c.github.io/window-management/
+  // https://w3c.github.io/window-placement/
   DEFINE_ATTRIBUTE_EVENT_LISTENER(change, kChange)
 
   // Not web-exposed; for internal usage only.

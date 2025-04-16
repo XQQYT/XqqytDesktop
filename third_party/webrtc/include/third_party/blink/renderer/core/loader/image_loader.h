@@ -82,7 +82,6 @@ class CORE_EXPORT ImageLoader : public GarbageCollected<ImageLoader>,
                          bool force_blocking = false);
 
   void ElementDidMoveToNewDocument();
-  void OnAttachLayoutTree();
 
   Element* GetElement() const { return element_.Get(); }
   bool ImageComplete() const { return image_complete_; }
@@ -93,12 +92,6 @@ class CORE_EXPORT ImageLoader : public GarbageCollected<ImageLoader>,
   // loaded as "potentially available", i.e that it may eventually become
   // available.
   bool ImageIsPotentiallyAvailable() const;
-
-  // Returns the natural size (with any image orientation applied) of the
-  // loaded image content. Should only be used when returning the natural size
-  // from a JS property like HTMLImageElement.naturalWidth, since it has
-  // side-effects in the form of a use-counter.
-  gfx::Size AccessNaturalSize() const;
 
   // Cancels pending load events, and doesn't dispatch new ones.
   // Note: ClearImage/SetImage.*() are not a simple setter.
@@ -139,7 +132,7 @@ class CORE_EXPORT ImageLoader : public GarbageCollected<ImageLoader>,
 
   bool GetImageAnimationPolicy(mojom::blink::ImageAnimationPolicy&) final;
 
-  ScriptPromise<IDLUndefined> Decode(ScriptState*, ExceptionState&);
+  ScriptPromise Decode(ScriptState*, ExceptionState&);
 
   // `force_blocking` ensures that the image will block the load event.
   void LoadDeferredImage(bool force_blocking = false,
@@ -171,13 +164,12 @@ class CORE_EXPORT ImageLoader : public GarbageCollected<ImageLoader>,
 
   // Called from the task or from updateFromElement to initiate the load.
   // force_blocking ensures that the image will block the load event.
-  void DoUpdateFromElement(const DOMWrapperWorld* world,
+  void DoUpdateFromElement(scoped_refptr<const DOMWrapperWorld> world,
                            UpdateFromElementBehavior,
                            UpdateType = UpdateType::kAsync,
                            bool force_blocking = false);
 
   virtual void DispatchLoadEvent() = 0;
-  virtual void DispatchErrorEvent() = 0;
   virtual void NoImageResourceToLoad() {}
 
   bool HasPendingEvent() const;
@@ -195,7 +187,7 @@ class CORE_EXPORT ImageLoader : public GarbageCollected<ImageLoader>,
   void UpdateImageState(ImageResourceContent*);
 
   void ClearFailedLoadURL();
-  void QueuePendingErrorEvent();
+  void DispatchErrorEvent();
   void CrossSiteOrCSPViolationOccurred(AtomicString);
   void EnqueueImageLoadingMicroTask(UpdateFromElementBehavior update_behavior);
 
@@ -272,14 +264,14 @@ class CORE_EXPORT ImageLoader : public GarbageCollected<ImageLoader>,
    public:
     enum State { kPendingMicrotask, kPendingLoad, kDispatched };
 
-    DecodeRequest(ImageLoader*, ScriptPromiseResolver<IDLUndefined>*);
+    DecodeRequest(ImageLoader*, ScriptPromiseResolver*);
     ~DecodeRequest() = default;
 
     void Trace(Visitor*) const;
 
     uint64_t request_id() const { return request_id_; }
     State state() const { return state_; }
-    ScriptPromise<IDLUndefined> promise() { return resolver_->Promise(); }
+    ScriptPromise promise() { return resolver_->Promise(); }
 
     void Resolve();
     void Reject();
@@ -293,7 +285,7 @@ class CORE_EXPORT ImageLoader : public GarbageCollected<ImageLoader>,
     uint64_t request_id_ = 0;
     State state_ = kPendingMicrotask;
 
-    Member<ScriptPromiseResolver<IDLUndefined>> resolver_;
+    Member<ScriptPromiseResolver> resolver_;
     Member<ImageLoader> loader_;
   };
 

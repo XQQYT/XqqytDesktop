@@ -35,8 +35,6 @@ class TestScreenCastStreamProvider {
     virtual ~Observer() = default;
   };
 
-  enum FrameDefect { None, EmptyData, CorruptedData, CorruptedMetadata };
-
   explicit TestScreenCastStreamProvider(Observer* observer,
                                         uint32_t width,
                                         uint32_t height);
@@ -44,7 +42,7 @@ class TestScreenCastStreamProvider {
 
   uint32_t PipeWireNodeId();
 
-  void RecordFrame(RgbaColor rgba_color, FrameDefect frame_defect = None);
+  void RecordFrame(RgbaColor rgba_color);
   void StartStreaming();
   void StopStreaming();
 

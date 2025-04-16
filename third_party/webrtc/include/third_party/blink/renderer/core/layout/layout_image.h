@@ -29,7 +29,6 @@
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/layout_image_resource.h"
 #include "third_party/blink/renderer/core/layout/layout_replaced.h"
-#include "third_party/blink/renderer/core/layout/natural_sizing_info.h"
 #include "third_party/blink/renderer/platform/loader/fetch/resource_client.h"
 
 namespace blink {
@@ -53,9 +52,7 @@ class CORE_EXPORT LayoutImage : public LayoutReplaced {
   ~LayoutImage() override;
   void Trace(Visitor*) const override;
 
-  static LayoutImage* CreateAnonymous(Document&);
-
-  bool IsUnsizedImage() const;
+  static LayoutImage* CreateAnonymous(PseudoElement&);
 
   void SetImageResource(LayoutImageResource*);
 
@@ -94,7 +91,7 @@ class CORE_EXPORT LayoutImage : public LayoutReplaced {
     return image_device_pixel_ratio_;
   }
 
-  void NaturalSizeChanged() override {
+  void IntrinsicSizeChanged() override {
     NOT_DESTROYED();
     // The replaced content transform depends on the intrinsic size (see:
     // FragmentPaintPropertyTreeBuilder::UpdateReplacedContentTransform).
@@ -107,6 +104,8 @@ class CORE_EXPORT LayoutImage : public LayoutReplaced {
     NOT_DESTROYED();
     return "LayoutImage";
   }
+
+  void UpdateAfterLayout() override;
 
   class MutableForPainting : public LayoutObject::MutableForPainting {
    public:
@@ -124,15 +123,16 @@ class CORE_EXPORT LayoutImage : public LayoutReplaced {
 
  protected:
   SVGImage* EmbeddedSVGImage() const;
-  PhysicalNaturalSizingInfo GetNaturalDimensions() const override;
+  bool CanApplyObjectViewBox() const override;
+  void ComputeIntrinsicSizingInfo(IntrinsicSizingInfo&) const override;
 
   void ImageChanged(WrappedImagePtr, CanDeferInvalidation) override;
 
   void Paint(const PaintInfo&) const final;
 
-  bool IsLayoutImage() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectImage || LayoutReplaced::IsOfType(type);
   }
 
   void WillBeDestroyed() override;
@@ -169,11 +169,13 @@ class CORE_EXPORT LayoutImage : public LayoutReplaced {
                    HitTestPhase) final;
 
   void InvalidatePaintAndMarkForLayoutIfNeeded(CanDeferInvalidation);
-  bool UpdateNaturalSizeIfNeeded();
-  bool NeedsLayoutOnNaturalSizeChange() const;
-
-  // The natural dimensions for the image.
-  PhysicalNaturalSizingInfo natural_dimensions_;
+  void UpdateIntrinsicSizeIfNeeded(const PhysicalSize&);
+  bool NeedsLayoutOnIntrinsicSizeChange() const;
+  // Override intrinsic sizing info to default if "unsized-media"
+  // is disabled and the element has no sizing info.
+  bool OverrideIntrinsicSizingInfo(IntrinsicSizingInfo&) const;
+  bool HasOverriddenIntrinsicSize() const;
+  gfx::SizeF ImageSizeOverriddenByIntrinsicSize(float multiplier) const;
 
   // This member wraps the associated decoded image.
   //

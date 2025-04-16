@@ -43,6 +43,7 @@ class CORE_EXPORT HighlightPseudoMarkerListImpl : public DocumentMarkerList {
  protected:
   HighlightPseudoMarkerListImpl() = default;
 
+ private:
   HeapVector<Member<DocumentMarker>> markers_;
 };
 

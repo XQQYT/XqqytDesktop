@@ -28,10 +28,10 @@ namespace trace_processor {
 namespace json {
 
 // Export trace to a file stream in json format.
-base::Status ExportJson(const TraceStorage*, FILE* output);
+util::Status ExportJson(const TraceStorage*, FILE* output);
 
 // For testing.
-base::Status ExportJson(const TraceStorage* storage,
+util::Status ExportJson(const TraceStorage* storage,
                         OutputWriter*,
                         ArgumentFilterPredicate = nullptr,
                         MetadataFilterPredicate = nullptr,

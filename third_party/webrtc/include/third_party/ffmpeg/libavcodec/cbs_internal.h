@@ -19,16 +19,15 @@
 #ifndef AVCODEC_CBS_INTERNAL_H
 #define AVCODEC_CBS_INTERNAL_H
 
-#include <stddef.h>
 #include <stdint.h>
 
+#include "libavutil/buffer.h"
 #include "libavutil/log.h"
 
 #include "cbs.h"
 #include "codec_id.h"
 #include "get_bits.h"
 #include "put_bits.h"
-#include "libavutil/refstruct.h"
 
 
 enum CBSContentType {
@@ -93,8 +92,8 @@ typedef const struct CodedBitstreamUnitTypeDescriptor {
         } ref;
 
         struct {
-            void (*content_free)(AVRefStructOpaque opaque, void *content);
-            int  (*content_clone)(void **new_content, CodedBitstreamUnit *unit);
+            void (*content_free)(void *opaque, uint8_t *data);
+            int  (*content_clone)(AVBufferRef **ref, CodedBitstreamUnit *unit);
         } complex;
     } type;
 } CodedBitstreamUnitTypeDescriptor;
@@ -341,7 +340,6 @@ extern const CodedBitstreamType ff_cbs_type_h265;
 extern const CodedBitstreamType ff_cbs_type_h266;
 extern const CodedBitstreamType ff_cbs_type_jpeg;
 extern const CodedBitstreamType ff_cbs_type_mpeg2;
-extern const CodedBitstreamType ff_cbs_type_vp8;
 extern const CodedBitstreamType ff_cbs_type_vp9;
 
 

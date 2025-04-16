@@ -6,12 +6,10 @@
 #ifndef THIRD_PARTY_LIBURLPATTERN_LEXER_H_
 #define THIRD_PARTY_LIBURLPATTERN_LEXER_H_
 
-#include <string_view>
 #include <vector>
-
-
 #include "base/component_export.h"
 #include "third_party/abseil-cpp/absl/status/statusor.h"
+#include "third_party/abseil-cpp/absl/strings/string_view.h"
 
 namespace liburlpattern {
 
@@ -61,9 +59,9 @@ struct COMPONENT_EXPORT(LIBURLPATTERN) Token {
 
   // The value of the token.  May be one or many characters depending on type.
   // May be null zero characters for the kEnd type.
-  std::string_view value;
+  absl::string_view value;
 
-  Token(TokenType t, size_t i, std::string_view v)
+  Token(TokenType t, size_t i, absl::string_view v)
       : type(t), index(i), value(v) {}
   Token() = default;
 };
@@ -102,7 +100,7 @@ std::ostream& operator<<(std::ostream& o, Token token);
 // |pattern| must be kept alive as long as the Token objects.
 COMPONENT_EXPORT(LIBURLPATTERN)
 absl::StatusOr<std::vector<Token>> Tokenize(
-    std::string_view pattern,
+    absl::string_view pattern,
     TokenizePolicy policy = TokenizePolicy::kStrict);
 
 }  // namespace liburlpattern

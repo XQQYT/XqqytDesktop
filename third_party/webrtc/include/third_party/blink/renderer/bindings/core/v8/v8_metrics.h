@@ -69,7 +69,7 @@ class CORE_EXPORT V8MetricsRecorder : public v8::metrics::Recorder {
         : recorder(ukm_recorder), source_id(ukm_source_id) {}
   };
 
-  std::optional<UkmRecorderAndSourceId> GetUkmRecorderAndSourceId(
+  absl::optional<UkmRecorderAndSourceId> GetUkmRecorderAndSourceId(
       ContextId context_id);
 
   v8::Isolate* isolate_;

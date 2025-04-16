@@ -20,10 +20,11 @@ struct CORE_EXPORT InterpolationValue {
   DISALLOW_NEW();
 
   explicit InterpolationValue(
-      InterpolableValue* interpolable_value,
-      const NonInterpolableValue* non_interpolable_value = nullptr)
-      : interpolable_value(interpolable_value),
-        non_interpolable_value(non_interpolable_value) {}
+      std::unique_ptr<InterpolableValue> interpolable_value,
+      scoped_refptr<const NonInterpolableValue> non_interpolable_value =
+          nullptr)
+      : interpolable_value(std::move(interpolable_value)),
+        non_interpolable_value(std::move(non_interpolable_value)) {}
 
   InterpolationValue(std::nullptr_t) {}
 
@@ -36,7 +37,7 @@ struct CORE_EXPORT InterpolationValue {
     non_interpolable_value = std::move(other.non_interpolable_value);
   }
 
-  operator bool() const { return interpolable_value.Get(); }
+  operator bool() const { return interpolable_value.get(); }
 
   InterpolationValue Clone() const {
     return InterpolationValue(
@@ -45,36 +46,14 @@ struct CORE_EXPORT InterpolationValue {
   }
 
   void Clear() {
-    interpolable_value = nullptr;
+    interpolable_value.reset();
     non_interpolable_value = nullptr;
   }
 
-  void Trace(Visitor* v) const {
-    v->Trace(interpolable_value);
-    v->Trace(non_interpolable_value);
-  }
-
-  Member<InterpolableValue> interpolable_value;
-  Member<const NonInterpolableValue> non_interpolable_value;
-};
-
-// Wrapper to be used with MakeGarbageCollected<>.
-class InterpolationValueGCed : public GarbageCollected<InterpolationValueGCed> {
- public:
-  explicit InterpolationValueGCed(const InterpolationValue& underlying)
-      : underlying_(underlying.Clone()) {}
-
-  void Trace(Visitor* v) const { v->Trace(underlying_); }
-
-  InterpolationValue& underlying() { return underlying_; }
-  const InterpolationValue& underlying() const { return underlying_; }
-
- private:
-  InterpolationValue underlying_;
+  std::unique_ptr<InterpolableValue> interpolable_value;
+  scoped_refptr<const NonInterpolableValue> non_interpolable_value;
 };
 
 }  // namespace blink
-
-WTF_ALLOW_CLEAR_UNUSED_SLOTS_WITH_MEM_FUNCTIONS(blink::InterpolationValue)
 
 #endif  // THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_INTERPOLATION_VALUE_H_

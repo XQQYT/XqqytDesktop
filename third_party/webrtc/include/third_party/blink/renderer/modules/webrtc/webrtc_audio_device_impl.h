@@ -134,17 +134,11 @@ class MODULES_EXPORT WebRtcAudioDeviceImpl
   void AddPlayoutSink(blink::WebRtcPlayoutDataSource::Sink* sink) override;
   void RemovePlayoutSink(blink::WebRtcPlayoutDataSource::Sink* sink) override;
 
-  std::optional<webrtc::AudioDeviceModule::Stats> GetStats() const override;
-
-  const String& GetOutputDeviceForAecForTesting() {
-    return output_device_id_for_aec_;
-  }
+  absl::optional<webrtc::AudioDeviceModule::Stats> GetStats() const override;
 
  private:
-  using CapturerList =
-      std::list<raw_ptr<ProcessedLocalAudioSource, CtnExperimental>>;
-  using PlayoutDataSinkList =
-      std::list<raw_ptr<blink::WebRtcPlayoutDataSource::Sink, CtnExperimental>>;
+  using CapturerList = std::list<ProcessedLocalAudioSource*>;
+  using PlayoutDataSinkList = std::list<blink::WebRtcPlayoutDataSource::Sink*>;
 
   class RenderBuffer;
 

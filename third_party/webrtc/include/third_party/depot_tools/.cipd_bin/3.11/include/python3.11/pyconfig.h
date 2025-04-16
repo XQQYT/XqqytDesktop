@@ -177,7 +177,7 @@
 #define HAVE_CRYPT_H 1
 
 /* Define if you have the crypt_r() function. */
-/* #undef HAVE_CRYPT_R */
+#define HAVE_CRYPT_R 1
 
 /* Define to 1 if you have the `ctermid' function. */
 #define HAVE_CTERMID 1
@@ -771,7 +771,7 @@
 #define HAVE_LUTIMES 1
 
 /* Define to 1 if you have the <lzma.h> header file. */
-/* #undef HAVE_LZMA_H */
+#define HAVE_LZMA_H 1
 
 /* Define to 1 if you have the `madvise' function. */
 #define HAVE_MADVISE 1
@@ -786,7 +786,7 @@
 /* #undef HAVE_MEMFD_CREATE */
 
 /* Define to 1 if you have the <memory.h> header file. */
-/* #undef HAVE_MEMORY_H */
+#define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `memrchr' function. */
 #define HAVE_MEMRCHR 1
@@ -968,9 +968,6 @@
 
 /* Define if you can turn off readline's signal handling. */
 #define HAVE_RL_CATCH_SIGNAL 1
-
-/* Define if readline supports rl_compdisp_func_t */
-#define HAVE_RL_COMPDISP_FUNC_T 1
 
 /* Define if you have readline 2.2 */
 #define HAVE_RL_COMPLETION_APPEND_CHARACTER 1
@@ -1463,10 +1460,10 @@
 #define HAVE_UUID_GENERATE_TIME_SAFE 1
 
 /* Define to 1 if you have the <uuid.h> header file. */
-#define HAVE_UUID_H 1
+/* #undef HAVE_UUID_H */
 
 /* Define to 1 if you have the <uuid/uuid.h> header file. */
-/* #undef HAVE_UUID_UUID_H */
+#define HAVE_UUID_UUID_H 1
 
 /* Define to 1 if you have the `vfork' function. */
 #define HAVE_VFORK 1
@@ -1523,7 +1520,7 @@
 
 /* Define to 1 if `major', `minor', and `makedev' are declared in
    <sysmacros.h>. */
-#define MAJOR_IN_SYSMACROS 1
+/* #undef MAJOR_IN_SYSMACROS */
 
 /* Define if mvwdelch in curses.h is an expression. */
 #define MVWDELCH_IS_EXPRESSION 1
@@ -1596,11 +1593,11 @@
 /* Define if you want to enable internal statistics gathering. */
 /* #undef Py_STATS */
 
-/* The version of SunOS/Solaris as reported by `uname -r' without the dot. */
-/* #undef Py_SUNOS_VERSION */
-
 /* Define if you want to enable tracing references for debugging purpose */
 /* #undef Py_TRACE_REFS */
+
+/* Define to override the PY_VERSION reported Python version. */
+#define PY_VERSION_OVERRIDE "3.11.5+chromium.30"
 
 /* assume C89 semantics that RETSIGTYPE is always void */
 #define RETSIGTYPE void

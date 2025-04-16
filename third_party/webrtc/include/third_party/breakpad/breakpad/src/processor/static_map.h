@@ -34,11 +34,11 @@
 //
 // The chunk of memory should contain data with pre-defined pattern:
 // **************** header ***************
-// int64  (8 bytes): number of nodes
-// uint64 (8 bytes): address offset of node1's mapped_value
-// uint64 (8 bytes): address offset of node2's mapped_value
+// uint32 (4 bytes): number of nodes
+// uint32 (4 bytes): address offset of node1's mapped_value
+// uint32 (4 bytes): address offset of node2's mapped_value
 // ...
-// uint64 (8 bytes): address offset of nodeN's mapped_value
+// uint32 (4 bytes): address offset of nodeN's mapped_value
 //
 // ************* Key array ************
 // (X bytes): node1's key
@@ -54,6 +54,9 @@
 //
 // REQUIREMENT: Key type MUST be primitive type or pointers so that:
 // X = sizeof(typename Key);
+//
+// Note: since address offset is stored as uint32, user should keep in mind that
+// StaticMap only supports up to 4GB size of memory data.
 
 // Author: Siyang Xie (lambxsy@google.com)
 
@@ -69,7 +72,7 @@ namespace google_breakpad {
 template<typename Key>
 class DefaultCompare {
  public:
-  int64_t operator()(const Key& k1, const Key& k2) const {
+  int operator()(const Key& k1, const Key& k2) const {
     if (k1 < k2) return -1;
     if (k1 == k2) return 0;
     return 1;
@@ -90,13 +93,13 @@ class StaticMap {
   explicit StaticMap(const char* raw_data);
 
   inline bool empty() const { return num_nodes_ == 0; }
-  inline uint64_t size() const { return num_nodes_; }
+  inline unsigned int size() const { return num_nodes_; }
 
   // Return iterators.
   inline iterator begin() const { return IteratorAtIndex(0); }
   inline iterator last() const { return IteratorAtIndex(num_nodes_ - 1); }
   inline iterator end() const { return IteratorAtIndex(num_nodes_); }
-  inline iterator IteratorAtIndex(int64_t index) const {
+  inline iterator IteratorAtIndex(int index) const {
     return iterator(raw_data_, index);
   }
 
@@ -117,18 +120,18 @@ class StaticMap {
   bool ValidateInMemoryStructure() const;
 
  private:
-  const Key GetKeyAtIndex(int64_t i) const;
+  const Key GetKeyAtIndex(int i) const;
 
   // Start address of a raw memory chunk with serialized data.
   const char* raw_data_;
 
   // Number of nodes in the static map.
-  int64_t num_nodes_;
+  int32_t num_nodes_;
 
   // Array of offset addresses for stored values.
   // For example:
   // address_of_i-th_node_value = raw_data_ + offsets_[i]
-  const uint64_t* offsets_;
+  const uint32_t* offsets_;
 
   // keys_[i] = key of i_th node
   const Key* keys_;

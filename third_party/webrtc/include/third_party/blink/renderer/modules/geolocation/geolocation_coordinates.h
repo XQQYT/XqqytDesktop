@@ -26,9 +26,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_GEOLOCATION_GEOLOCATION_COORDINATES_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_GEOLOCATION_GEOLOCATION_COORDINATES_H_
 
-#include <optional>
-
-#include "third_party/blink/renderer/bindings/core/v8/script_value.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/modules/event_modules.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 
@@ -40,36 +38,48 @@ class GeolocationCoordinates : public ScriptWrappable {
  public:
   GeolocationCoordinates(double latitude,
                          double longitude,
-                         std::optional<double> altitude,
+                         bool provides_altitude,
+                         double altitude,
                          double accuracy,
-                         std::optional<double> altitude_accuracy,
-                         std::optional<double> heading,
-                         std::optional<double> speed)
+                         bool provides_altitude_accuracy,
+                         double altitude_accuracy,
+                         bool provides_heading,
+                         double heading,
+                         bool provides_speed,
+                         double speed)
       : latitude_(latitude),
         longitude_(longitude),
         altitude_(altitude),
         accuracy_(accuracy),
         altitude_accuracy_(altitude_accuracy),
         heading_(heading),
-        speed_(speed) {}
+        speed_(speed),
+        can_provide_altitude_(provides_altitude),
+        can_provide_altitude_accuracy_(provides_altitude_accuracy),
+        can_provide_heading_(provides_heading),
+        can_provide_speed_(provides_speed) {}
 
   double latitude() const { return latitude_; }
   double longitude() const { return longitude_; }
-  std::optional<double> altitude() const { return altitude_; }
+  absl::optional<double> altitude() const;
   double accuracy() const { return accuracy_; }
-  std::optional<double> altitudeAccuracy() const { return altitude_accuracy_; }
-  std::optional<double> heading() const { return heading_; }
-  std::optional<double> speed() const { return speed_; }
-  ScriptObject toJSON(ScriptState* script_state) const;
+  absl::optional<double> altitudeAccuracy() const;
+  absl::optional<double> heading() const;
+  absl::optional<double> speed() const;
 
  private:
   double latitude_;
   double longitude_;
-  std::optional<double> altitude_;
+  double altitude_;
   double accuracy_;
-  std::optional<double> altitude_accuracy_;
-  std::optional<double> heading_;
-  std::optional<double> speed_;
+  double altitude_accuracy_;
+  double heading_;
+  double speed_;
+
+  bool can_provide_altitude_;
+  bool can_provide_altitude_accuracy_;
+  bool can_provide_heading_;
+  bool can_provide_speed_;
 };
 
 }  // namespace blink

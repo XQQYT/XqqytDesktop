@@ -5,9 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_SCRIPT_MODULATOR_IMPL_BASE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_SCRIPT_MODULATOR_IMPL_BASE_H_
 
-#include <optional>
-
 #include "base/task/single_thread_task_runner.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/mojom/fetch/fetch_api_request.mojom-blink-forward.h"
 #include "third_party/blink/renderer/bindings/core/v8/module_record.h"
 #include "third_party/blink/renderer/core/script/import_map_error.h"
@@ -82,14 +81,10 @@ class ModulatorImplBase : public Modulator {
                               String* failure_reason) final;
   void ResolveDynamically(const ModuleRequest& module_request,
                           const ReferrerScriptInfo&,
-                          ScriptPromiseResolver<IDLAny>*) override;
+                          ScriptPromiseResolver*) override;
 
   ModuleImportMeta HostGetImportMetaProperties(
       v8::Local<v8::Module>) const override;
-
-  String GetIntegrityMetadataString(const KURL&) const override;
-  IntegrityMetadataSet GetIntegrityMetadata(const KURL&) const override;
-
   ModuleType ModuleTypeFromRequest(
       const ModuleRequest& module_request) const override;
 
@@ -104,7 +99,7 @@ class ModulatorImplBase : public Modulator {
   void ProduceCacheModuleTree(ModuleScript*,
                               HeapHashSet<Member<const ModuleScript>>*);
 
-  Member<ScriptState> const script_state_;
+  Member<ScriptState> script_state_;
   scoped_refptr<base::SingleThreadTaskRunner> task_runner_;
   Member<ModuleMap> map_;
   Member<ModuleTreeLinkerRegistry> tree_linker_registry_;

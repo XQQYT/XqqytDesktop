@@ -45,8 +45,7 @@
   // Testing __cpp_lib_span requires including either <version> or <span>,
   // both of which were added in C++20.
   // See: https://en.cppreference.com/w/cpp/utility/feature_test
-  #if defined(__cplusplus) && __cplusplus >= 202002L \
-      || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+  #if defined(__cplusplus) && __cplusplus >= 202002L
     #define FLATBUFFERS_USE_STD_SPAN 1
   #endif
 #endif // FLATBUFFERS_USE_STD_SPAN
@@ -273,7 +272,7 @@ template<class T, class U>
 FLATBUFFERS_CONSTEXPR_CPP11 bool operator==(const Optional<T>& lhs, const Optional<U>& rhs) FLATBUFFERS_NOEXCEPT {
   return static_cast<bool>(lhs) != static_cast<bool>(rhs)
               ? false
-              : !static_cast<bool>(lhs) ? true : (*lhs == *rhs);
+              : !static_cast<bool>(lhs) ? false : (*lhs == *rhs);
 }
 #endif // FLATBUFFERS_USE_STD_OPTIONAL
 

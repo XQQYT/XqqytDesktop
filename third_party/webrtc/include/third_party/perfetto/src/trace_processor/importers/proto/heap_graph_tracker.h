@@ -28,7 +28,6 @@
 
 #include "protos/perfetto/trace/profiling/heap_graph.pbzero.h"
 #include "src/trace_processor/storage/trace_storage.h"
-#include "src/trace_processor/tables/profiler_tables_py.h"
 #include "src/trace_processor/types/trace_processor_context.h"
 
 namespace perfetto {
@@ -72,8 +71,6 @@ class HeapGraphTracker : public Destructible {
     uint64_t object_id = 0;
     uint64_t self_size = 0;
     uint64_t type_id = 0;
-    protos::pbzero::HeapGraphObject::HeapType heap_type =
-        protos::pbzero::HeapGraphObject::HEAP_TYPE_UNKNOWN;
 
     std::vector<uint64_t> field_name_ids;
     std::vector<uint64_t> referred_objects;
@@ -136,17 +133,12 @@ class HeapGraphTracker : public Destructible {
     return field_to_rows_.Find(field_name);
   }
 
-  std::unique_ptr<tables::ExperimentalFlamegraphTable> BuildFlamegraph(
+  std::unique_ptr<tables::ExperimentalFlamegraphNodesTable> BuildFlamegraph(
       const int64_t current_ts,
       const UniquePid current_upid);
 
   uint64_t GetLastObjectId(uint32_t seq_id) {
     return GetOrCreateSequence(seq_id).last_object_id;
-  }
-
-  perfetto::protos::pbzero::HeapGraphObject::HeapType GetLastObjectHeapType(
-      uint32_t seq_id) {
-    return GetOrCreateSequence(seq_id).last_heap_type;
   }
 
  private:
@@ -168,8 +160,6 @@ class HeapGraphTracker : public Destructible {
     UniquePid current_upid = 0;
     int64_t current_ts = 0;
     uint64_t last_object_id = 0;
-    protos::pbzero::HeapGraphObject::HeapType last_heap_type =
-        protos::pbzero::HeapGraphObject::HEAP_TYPE_UNKNOWN;
     std::vector<SourceRoot> current_roots;
 
     // Note: the below maps are a mix of std::map and base::FlatHashMap because
@@ -235,10 +225,9 @@ class HeapGraphTracker : public Destructible {
   // all the other tables have been fully populated.
   void PopulateNativeSize(const SequenceState& seq);
 
-  void GetChildren(tables::HeapGraphObjectTable::RowReference,
-                   std::vector<tables::HeapGraphObjectTable::Id>&);
+  base::FlatSet<tables::HeapGraphObjectTable::Id> GetChildren(
+      tables::HeapGraphObjectTable::RowReference);
   void MarkRoot(tables::HeapGraphObjectTable::RowReference, StringId type);
-  size_t RankRoot(StringId type);
   void UpdateShortestPaths(tables::HeapGraphObjectTable::RowReference row_ref);
   void FindPathFromRoot(tables::HeapGraphObjectTable::RowReference,
                         PathFromRoot* path);

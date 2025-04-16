@@ -5,7 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_BINDINGS_CORE_V8_WINDOW_PROXY_MANAGER_H_
 #define THIRD_PARTY_BLINK_RENDERER_BINDINGS_CORE_V8_WINDOW_PROXY_MANAGER_H_
 
-#include "base/memory/stack_allocated.h"
+#include <utility>
+
 #include "third_party/blink/renderer/bindings/core/v8/local_window_proxy.h"
 #include "third_party/blink/renderer/bindings/core/v8/remote_window_proxy.h"
 #include "third_party/blink/renderer/core/core_export.h"
@@ -36,15 +37,8 @@ class CORE_EXPORT WindowProxyManager
   // frame when swapping frames. Global proxies are passed in a vector to ensure
   // the main world is always processed first. This is needed to prevent bugs
   // like https://crbug.com/700077.
-  struct GlobalProxyVector {
-    STACK_ALLOCATED();
-
-   public:
-    explicit GlobalProxyVector(v8::Isolate* isolate) : proxies(isolate) {}
-
-    HeapVector<Member<DOMWrapperWorld>> worlds;
-    v8::LocalVector<v8::Object> proxies;
-  };
+  using GlobalProxyVector =
+      Vector<std::pair<DOMWrapperWorld*, v8::Local<v8::Object>>>;
   void ReleaseGlobalProxies(GlobalProxyVector&);
   void SetGlobalProxies(const GlobalProxyVector&);
 

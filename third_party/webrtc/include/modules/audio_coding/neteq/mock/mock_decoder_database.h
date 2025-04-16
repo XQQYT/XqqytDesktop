@@ -13,7 +13,6 @@
 
 #include <string>
 
-#include "api/environment/environment_factory.h"
 #include "modules/audio_coding/neteq/decoder_database.h"
 #include "test/gmock.h"
 
@@ -21,10 +20,9 @@ namespace webrtc {
 
 class MockDecoderDatabase : public DecoderDatabase {
  public:
-  MockDecoderDatabase()
-      : DecoderDatabase(CreateEnvironment(),
-                        /*decoder_factory=*/nullptr,
-                        /*codec_pair_id=*/std::nullopt) {}
+  explicit MockDecoderDatabase(
+      rtc::scoped_refptr<AudioDecoderFactory> factory = nullptr)
+      : DecoderDatabase(factory, absl::nullopt) {}
   ~MockDecoderDatabase() override { Die(); }
   MOCK_METHOD(void, Die, ());
   MOCK_METHOD(bool, Empty, (), (const, override));

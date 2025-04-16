@@ -12,19 +12,16 @@
 
 namespace blink {
 
-class CSSProperty;
-
 // Represents a blink::NGGridTrackRepeater, converted into a form that can be
 // interpolated from/to.
 class CORE_EXPORT InterpolableGridTrackRepeater final
     : public InterpolableValue {
  public:
-  InterpolableGridTrackRepeater(InterpolableList* values,
+  InterpolableGridTrackRepeater(std::unique_ptr<InterpolableList> values,
                                 const NGGridTrackRepeater& repeater);
-  static InterpolableGridTrackRepeater* Create(
+  static std::unique_ptr<InterpolableGridTrackRepeater> Create(
       const NGGridTrackRepeater& repeater,
       const Vector<GridTrackSize, 1>& repeater_track_sizes,
-      const CSSProperty& property,
       float zoom);
 
   Vector<GridTrackSize, 1> CreateTrackSizes(
@@ -53,17 +50,12 @@ class CORE_EXPORT InterpolableGridTrackRepeater final
   // they combine discretely.
   bool IsCompatibleWith(const InterpolableValue& other) const;
 
-  void Trace(Visitor* v) const override {
-    InterpolableValue::Trace(v);
-    v->Trace(values_);
-  }
-
  private:
   InterpolableGridTrackRepeater* RawClone() const final;
   InterpolableGridTrackRepeater* RawCloneAndZero() const final;
 
   // Stores the track sizes of a repeater.
-  Member<InterpolableList> values_;
+  std::unique_ptr<InterpolableList> values_;
   NGGridTrackRepeater repeater_;
 };
 

@@ -33,3 +33,13 @@
                         (PY_MICRO_VERSION <<  8) | \
                         (PY_RELEASE_LEVEL <<  4) | \
                         (PY_RELEASE_SERIAL << 0))
+
+/* Infra-specific extension: if a version override is provided, replace prefer
+   it over our hard-coded PY_VERSION.
+
+   We define this here so diffs aren't upset when PY_VERSION changes. */
+#include "pyconfig.h"
+#if defined(PY_VERSION_OVERRIDE)
+#undef PY_VERSION
+#define PY_VERSION PY_VERSION_OVERRIDE
+#endif /* PY_VERSION_OVERRIDE */

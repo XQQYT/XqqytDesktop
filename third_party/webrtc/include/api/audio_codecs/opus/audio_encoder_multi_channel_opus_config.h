@@ -15,6 +15,8 @@
 
 #include <vector>
 
+#include "absl/types/optional.h"
+#include "api/audio_codecs/opus/audio_encoder_opus_config.h"
 #include "rtc_base/system/rtc_export.h"
 
 namespace webrtc {

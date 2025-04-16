@@ -7,13 +7,11 @@
 
 namespace WTF {
 
-// Visits the characters of a WTF::String, WTF::AtomicString, StringView or
-// compatible type.
+// Visits the characters of a WTF::String, StringView or compatible type.
 //
 // Intended to be used with a generic lambda or other functor overloaded to
 // handle either LChar* or UChar*. Reduces code duplication in many cases.
-// The functor should receive a base::span<T> and should return the same type
-// in both branches.
+// The functor should return the same type in both branches.
 //
 // Callers should ensure that characters exist (i.e. the string is not null)
 // first.
@@ -23,10 +21,10 @@ namespace WTF {
 //   if (string.IsNull())
 //     return false;
 //
-//   return WTF::VisitCharacters(string, [&](auto chars) {
+//   return WTF::VisitCharacters(string, [&](const auto* chars, unsigned len) {
 //     bool contains_space = false;
-//     for (auto ch : chars)
-//       contains_space |= IsASCIISpace(ch);
+//     for (unsigned i = 0; i < len; i++)
+//       contains_space |= IsASCIISpace(chars[i]);
 //     return contains_space;
 //   });
 //
@@ -35,7 +33,8 @@ namespace WTF {
 template <typename StringType, typename Functor>
 decltype(auto) VisitCharacters(const StringType& string,
                                const Functor& functor) {
-  return string.Is8Bit() ? functor(string.Span8()) : functor(string.Span16());
+  return string.Is8Bit() ? functor(string.Characters8(), string.length())
+                         : functor(string.Characters16(), string.length());
 }
 
 }  // namespace WTF

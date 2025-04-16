@@ -26,7 +26,7 @@
 #include "perfetto/ext/base/string_utils.h"
 #include "perfetto/ext/trace_processor/demangle.h"
 #include "protos/perfetto/common/builtin_clock.pbzero.h"
-#include "src/trace_processor/db/column/utils.h"
+#include "src/trace_processor/db/storage/utils.h"
 #include "src/trace_processor/export_json.h"
 #include "src/trace_processor/importers/common/clock_tracker.h"
 #include "src/trace_processor/perfetto_sql/intrinsics/functions/sql_function.h"
@@ -230,13 +230,13 @@ base::Status WriteFile::Run(TraceStorage*,
   }
 
   base::Status status =
-      sqlite::utils::TypeCheckSqliteValue(argv[0], SqlValue::kString);
+      sqlite_utils::TypeCheckSqliteValue(argv[0], SqlValue::kString);
   if (!status.ok()) {
     return base::ErrStatus("WRITE_FILE: argument 1, filename; %s",
                            status.c_message());
   }
 
-  status = sqlite::utils::TypeCheckSqliteValue(argv[1], SqlValue::kBytes);
+  status = sqlite_utils::TypeCheckSqliteValue(argv[1], SqlValue::kBytes);
   if (!status.ok()) {
     return base::ErrStatus("WRITE_FILE: argument 2, content; %s",
                            status.c_message());
@@ -264,7 +264,7 @@ base::Status WriteFile::Run(TraceStorage*,
 
   out = SqlValue::Long(int_len);
 
-  return base::OkStatus();
+  return util::OkStatus();
 }
 
 struct ExtractArg : public SqlFunction {
@@ -305,7 +305,7 @@ base::Status ExtractArg::Run(TraceStorage* storage,
 
   // This function always returns static strings (i.e. scoped to lifetime
   // of the TraceStorage thread pool) so prevent SQLite from making copies.
-  destructors.string_destructor = sqlite::utils::kSqliteStatic;
+  destructors.string_destructor = sqlite_utils::kSqliteStatic;
 
   switch (opt_value->type) {
     case Variadic::kNull:
@@ -344,18 +344,6 @@ struct SourceGeq : public SqlFunction {
                           Destructors&) {
     return base::ErrStatus(
         "SOURCE_GEQ should not be called from the global scope");
-  }
-};
-
-struct TablePtrBind : public SqlFunction {
-  static base::Status Run(void*,
-                          size_t,
-                          sqlite3_value**,
-                          SqlValue&,
-                          Destructors&) {
-    return base::ErrStatus(
-        "__intrinsic_table_ptr_bind should not be called from the global "
-        "scope");
   }
 };
 

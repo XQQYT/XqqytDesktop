@@ -8,9 +8,9 @@
 #include "base/check_op.h"
 #include "third_party/blink/renderer/platform/graphics/paint/display_item_list.h"
 #include "third_party/blink/renderer/platform/graphics/paint/paint_chunk.h"
-#include "third_party/blink/renderer/platform/heap/collection_support/heap_vector.h"
-#include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
+#include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
+#include "third_party/blink/renderer/platform/wtf/vector.h"
 
 namespace blink {
 
@@ -24,16 +24,15 @@ namespace blink {
 // It represents a particular state of the world, and is immutable (const) and
 // promises to be in a reasonable state (e.g. chunk bounding boxes computed) to
 // all users, except for PaintController and unit tests.
-class PLATFORM_EXPORT PaintArtifact final
-    : public GarbageCollected<PaintArtifact> {
+class PLATFORM_EXPORT PaintArtifact final : public RefCounted<PaintArtifact> {
+  USING_FAST_MALLOC(PaintArtifact);
+
  public:
   PaintArtifact() = default;
   PaintArtifact(const PaintArtifact& other) = delete;
   PaintArtifact& operator=(const PaintArtifact& other) = delete;
   PaintArtifact(PaintArtifact&& other) = delete;
   PaintArtifact& operator=(PaintArtifact&& other) = delete;
-
-  void Trace(Visitor* visitor) const { visitor->Trace(chunks_); }
 
   bool IsEmpty() const { return chunks_.empty(); }
 
@@ -42,14 +41,13 @@ class PLATFORM_EXPORT PaintArtifact final
     return display_item_list_;
   }
 
-  PaintChunks& GetPaintChunks() { return chunks_; }
-  const PaintChunks& GetPaintChunks() const { return chunks_; }
+  Vector<PaintChunk>& PaintChunks() { return chunks_; }
+  const Vector<PaintChunk>& PaintChunks() const { return chunks_; }
 
   DisplayItemRange DisplayItemsInChunk(wtf_size_t chunk_index) const {
     DCHECK_LT(chunk_index, chunks_.size());
     auto& chunk = chunks_[chunk_index];
-    return UNSAFE_TODO(
-        display_item_list_.ItemsInRange(chunk.begin_index, chunk.end_index));
+    return display_item_list_.ItemsInRange(chunk.begin_index, chunk.end_index);
   }
 
   // Returns the approximate memory usage, excluding memory likely to be
@@ -70,13 +68,10 @@ class PLATFORM_EXPORT PaintArtifact final
   String IdAsString(const DisplayItem::Id& id) const;
 
   std::unique_ptr<JSONArray> ToJSON() const;
-  void AppendChunksAsJSON(
-      wtf_size_t start_chunk_index,
-      wtf_size_t end_chunk_index,
-      JSONArray&,
-      DisplayItemList::JsonOption = DisplayItemList::kDefault) const;
-
-  void clear();
+  void AppendChunksAsJSON(wtf_size_t start_chunk_index,
+                          wtf_size_t end_chunk_index,
+                          JSONArray&,
+                          unsigned flags) const;
 
  private:
   struct ClientDebugInfo {
@@ -88,7 +83,7 @@ class PLATFORM_EXPORT PaintArtifact final
   using DebugInfo = HashMap<DisplayItemClientId, ClientDebugInfo>;
 
   DisplayItemList display_item_list_;
-  PaintChunks chunks_;
+  Vector<PaintChunk> chunks_;
   DebugInfo debug_info_;
 };
 

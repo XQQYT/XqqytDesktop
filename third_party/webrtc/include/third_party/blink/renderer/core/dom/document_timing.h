@@ -35,17 +35,6 @@ namespace blink {
 class Document;
 class LocalFrame;
 
-// The values need to outlive DocumentTiming for metrics reporting.
-struct DocumentTimingValues final
-    : public GarbageCollected<DocumentTimingValues> {
-  base::TimeTicks dom_loading;
-  base::TimeTicks dom_interactive;
-  base::TimeTicks dom_content_loaded_event_start;
-  base::TimeTicks dom_content_loaded_event_end;
-  base::TimeTicks dom_complete;
-  void Trace(Visitor*) const {}
-};
-
 class DocumentTiming final {
   DISALLOW_NEW();
 
@@ -57,26 +46,17 @@ class DocumentTiming final {
   void MarkDomContentLoadedEventStart();
   void MarkDomContentLoadedEventEnd();
   void MarkDomComplete();
-  DocumentTimingValues* GetDocumentTimingValues() const {
-    return document_timing_values_.Get();
-  }
 
   // These return monotonically-increasing time.
-  base::TimeTicks DomLoading() const {
-    return document_timing_values_->dom_loading;
-  }
-  base::TimeTicks DomInteractive() const {
-    return document_timing_values_->dom_interactive;
-  }
+  base::TimeTicks DomLoading() const { return dom_loading_; }
+  base::TimeTicks DomInteractive() const { return dom_interactive_; }
   base::TimeTicks DomContentLoadedEventStart() const {
-    return document_timing_values_->dom_content_loaded_event_start;
+    return dom_content_loaded_event_start_;
   }
   base::TimeTicks DomContentLoadedEventEnd() const {
-    return document_timing_values_->dom_content_loaded_event_end;
+    return dom_content_loaded_event_end_;
   }
-  base::TimeTicks DomComplete() const {
-    return document_timing_values_->dom_complete;
-  }
+  base::TimeTicks DomComplete() const { return dom_complete_; }
 
   void Trace(Visitor*) const;
 
@@ -84,8 +64,13 @@ class DocumentTiming final {
   LocalFrame* GetFrame() const;
   void NotifyDocumentTimingChanged();
 
+  base::TimeTicks dom_loading_;
+  base::TimeTicks dom_interactive_;
+  base::TimeTicks dom_content_loaded_event_start_;
+  base::TimeTicks dom_content_loaded_event_end_;
+  base::TimeTicks dom_complete_;
+
   Member<Document> document_;
-  Member<DocumentTimingValues> document_timing_values_;
 };
 
 }  // namespace blink

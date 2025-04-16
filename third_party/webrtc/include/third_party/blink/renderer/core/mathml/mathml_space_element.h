@@ -24,7 +24,7 @@ class MathMLSpaceElement final : public MathMLElement {
   void CollectStyleForPresentationAttribute(
       const QualifiedName&,
       const AtomicString&,
-      HeapVector<CSSPropertyValue, 8>&) override;
+      MutableCSSPropertyValueSet*) override;
 };
 
 }  // namespace blink

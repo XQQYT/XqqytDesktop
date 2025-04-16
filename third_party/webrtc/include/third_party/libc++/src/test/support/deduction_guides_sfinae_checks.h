@@ -16,7 +16,6 @@
 #include <memory>
 #include <type_traits>
 #include <utility>
-#include <vector>
 
 #include "test_macros.h"
 #if TEST_STD_VER >= 23
@@ -117,10 +116,10 @@ constexpr void SequenceContainerDeductionGuidesSfinaeAway() {
 template<template<typename ...> class Container, typename InstantiatedContainer>
 constexpr void ContainerAdaptorDeductionGuidesSfinaeAway() {
   using T = typename InstantiatedContainer::value_type;
-  using Alloc [[maybe_unused]] = std::allocator<T>;
+  using Alloc = std::allocator<T>;
   using Iter = T*;
 
-  using BadIter [[maybe_unused]] = int;
+  using BadIter = int;
   using BadAlloc = Empty;
 
   // (container) -- no constraints.

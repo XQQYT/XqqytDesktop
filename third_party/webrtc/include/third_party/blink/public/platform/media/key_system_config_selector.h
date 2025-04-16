@@ -17,6 +17,7 @@
 #include "third_party/blink/public/platform/web_common.h"
 #include "third_party/blink/public/platform/web_content_settings_client.h"
 #include "third_party/blink/public/platform/web_media_key_system_media_capability.h"
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/blink/public/web/web_local_frame.h"
 
 namespace media {
@@ -78,10 +79,10 @@ class BLINK_PLATFORM_EXPORT KeySystemConfigSelector {
   using SelectConfigCB = base::OnceCallback<
       void(Status status, WebMediaKeySystemConfiguration*, media::CdmConfig*)>;
 
-  void SelectConfig(const WebString& key_system,
-                    const std::vector<WebMediaKeySystemConfiguration>&
-                        candidate_configurations,
-                    SelectConfigCB cb);
+  void SelectConfig(
+      const WebString& key_system,
+      const WebVector<WebMediaKeySystemConfiguration>& candidate_configurations,
+      SelectConfigCB cb);
 
   using IsSupportedMediaTypeCB =
       base::RepeatingCallback<bool(const std::string& container_mime_type,
@@ -122,7 +123,7 @@ class BLINK_PLATFORM_EXPORT KeySystemConfigSelector {
   bool GetSupportedCapabilities(
       const std::string& key_system,
       media::EmeMediaType media_type,
-      const std::vector<WebMediaKeySystemMediaCapability>&
+      const WebVector<WebMediaKeySystemMediaCapability>&
           requested_media_capabilities,
       ConfigState* config_state,
       std::vector<WebMediaKeySystemMediaCapability>*

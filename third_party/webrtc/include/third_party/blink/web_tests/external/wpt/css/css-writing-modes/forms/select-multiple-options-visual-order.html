@@ -1,5 +1,4 @@
 <!doctype html>
-<meta name="timeout" content="long">
 <link rel="author" title="Aditya Keerthi" href="https://github.com/pxlcoder">
 <link rel="help" href="https://html.spec.whatwg.org/#the-select-element">
 <link rel="help" href="https://drafts.csswg.org/css-writing-modes-4/#block-flow">
@@ -30,7 +29,6 @@ for (const writingMode of ["horizontal-tb", "vertical-lr", "vertical-rl", "sidew
         select.style.writingMode = writingMode;
         this.add_cleanup(() => {
             select.removeAttribute("style");
-            select.value = "";
         });
 
         const elementBox = select.getBoundingClientRect();

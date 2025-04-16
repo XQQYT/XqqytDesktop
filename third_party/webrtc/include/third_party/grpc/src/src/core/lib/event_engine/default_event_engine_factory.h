@@ -15,16 +15,19 @@
 #ifndef GRPC_SRC_CORE_LIB_EVENT_ENGINE_DEFAULT_EVENT_ENGINE_FACTORY_H
 #define GRPC_SRC_CORE_LIB_EVENT_ENGINE_DEFAULT_EVENT_ENGINE_FACTORY_H
 
-#include <grpc/event_engine/event_engine.h>
 #include <grpc/support/port_platform.h>
 
 #include <memory>
 
-namespace grpc_event_engine::experimental {
+#include <grpc/event_engine/event_engine.h>
+
+namespace grpc_event_engine {
+namespace experimental {
 
 /// Create an EventEngine using the default factory provided at link time.
-std::shared_ptr<EventEngine> DefaultEventEngineFactory();
+std::unique_ptr<EventEngine> DefaultEventEngineFactory();
 
-}  // namespace grpc_event_engine::experimental
+}  // namespace experimental
+}  // namespace grpc_event_engine
 
 #endif  // GRPC_SRC_CORE_LIB_EVENT_ENGINE_DEFAULT_EVENT_ENGINE_FACTORY_H

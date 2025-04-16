@@ -12,11 +12,11 @@
 #define TEST_PC_E2E_SDP_SDP_CHANGER_H_
 
 #include <map>
-#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "api/array_view.h"
 #include "api/jsep.h"
 #include "api/rtp_parameters.h"
@@ -92,11 +92,11 @@ class SignalingInterceptor {
   // modified offer/answer and ice candidates exchange.
   struct SimulcastSectionInfo {
     SimulcastSectionInfo(const std::string& mid,
-                         MediaProtocolType media_protocol_type,
+                         cricket::MediaProtocolType media_protocol_type,
                          const std::vector<cricket::RidDescription>& rids_desc);
 
     const std::string mid;
-    const MediaProtocolType media_protocol_type;
+    const cricket::MediaProtocolType media_protocol_type;
     std::vector<std::string> rids;
     cricket::SimulcastDescription simulcast_description;
     webrtc::RtpExtension mid_extension;
@@ -133,8 +133,8 @@ class SignalingInterceptor {
       std::unique_ptr<SessionDescriptionInterface> answer);
 
   void FillSimulcastContext(SessionDescriptionInterface* offer);
-  std::unique_ptr<SessionDescription> RestoreMediaSectionsOrder(
-      std::unique_ptr<SessionDescription> source);
+  std::unique_ptr<cricket::SessionDescription> RestoreMediaSectionsOrder(
+      std::unique_ptr<cricket::SessionDescription> source);
 
   PatchingParams params_;
   SignalingContext context_;

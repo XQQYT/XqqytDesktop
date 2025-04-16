@@ -29,11 +29,8 @@ class BASE_EXPORT DiscardableMemoryAllocator {
 
   virtual ~DiscardableMemoryAllocator() = default;
 
-  // Returns the allocator instance. Asserts if not already set.
+  // Returns the allocator instance.
   static DiscardableMemoryAllocator* GetInstance();
-
-  // Returns true if the instance has been set.
-  static bool HasInstance();
 
   // Sets the allocator instance. Can only be called once, e.g. on startup.
   // Ownership of |instance| remains with the caller.

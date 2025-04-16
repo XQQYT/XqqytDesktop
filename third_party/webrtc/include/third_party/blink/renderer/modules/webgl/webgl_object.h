@@ -55,8 +55,6 @@ GLuint ObjectNonZero(const T* object) {
 }
 
 class WebGLObject : public ScriptWrappable {
-  DEFINE_WRAPPERTYPEINFO();
-
   // WebGLObjects are pre-finalized, and the WebGLRenderingContextBase
   // is specifically not. This is done in order to allow WebGLObjects to
   // refer back to their owning context in their destructor to delete their

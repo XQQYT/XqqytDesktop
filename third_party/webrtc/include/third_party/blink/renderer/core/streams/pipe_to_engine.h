@@ -5,8 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_STREAMS_PIPE_TO_ENGINE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_STREAMS_PIPE_TO_ENGINE_H_
 
-#include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/bindings/core/v8/to_v8_traits.h"
 #include "third_party/blink/renderer/core/dom/abort_signal.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
@@ -21,6 +19,7 @@ class PipeOptions;
 class ReadableStream;
 class ReadableStreamDefaultReader;
 class ScriptState;
+class StreamPromiseResolver;
 class WritableStream;
 class WritableStreamDefaultWriter;
 
@@ -42,9 +41,9 @@ class PipeToEngine final : public GarbageCollected<PipeToEngine> {
   PipeToEngine& operator=(const PipeToEngine&) = delete;
 
   // This is the main entrypoint for ReadableStreamPipeTo().
-  ScriptPromise<IDLUndefined> Start(ReadableStream* readable,
-                                    WritableStream* destination,
-                                    ExceptionState&);
+  ScriptPromise Start(ReadableStream* readable,
+                      WritableStream* destination,
+                      ExceptionState&);
 
   void Trace(Visitor* visitor) const {
     visitor->Trace(script_state_);
@@ -62,16 +61,23 @@ class PipeToEngine final : public GarbageCollected<PipeToEngine> {
 
   class PipeToAbortAlgorithm;
   class PipeToReadRequest;
-
-  template <typename ReturnType>
-  class WrappedPromiseResolve;
-  class WrappedPromiseReject;
+  class WrappedPromiseReaction;
 
   // |Action| represents an action that can be passed to the "Shutdown with an
   // action" operation. Each Action is implemented as a method which delegates
   // to some abstract operation, inferring the arguments from the state of
   // |this|.
-  using Action = ScriptPromise<IDLUndefined> (PipeToEngine::*)();
+  using Action = v8::Local<v8::Promise> (PipeToEngine::*)();
+
+  // This implementation uses ThenPromise() 7 times. Instead of creating a dozen
+  // separate subclasses of ScriptFunction, we use a single implementation and
+  // pass a method pointer at runtime to control the behaviour. Most
+  // PromiseReaction methods don't need to return a value, but because some do,
+  // the rest have to return undefined so that they can have the same method
+  // signature. Similarly, many of the methods ignore the argument that is
+  // passed to them.
+  using PromiseReaction =
+      v8::Local<v8::Value> (PipeToEngine::*)(v8::Local<v8::Value>);
 
   // Checks the state of the streams and executes the shutdown handlers if
   // necessary. Returns true if piping can continue.
@@ -79,27 +85,27 @@ class PipeToEngine final : public GarbageCollected<PipeToEngine> {
 
   void AbortAlgorithm(AbortSignal* signal);
 
-  ScriptPromise<IDLUndefined> AbortAlgorithmAction();
+  v8::Local<v8::Promise> AbortAlgorithmAction();
 
-  // HandleNextEvent() has an unused return value because it is a
+  // HandleNextEvent() has an unused argument and return value because it is a
   // PromiseReaction. HandleNextEvent() and ReadFulfilled() call each other
   // asynchronously in a loop until the pipe completes.
-  void HandleNextEvent();
+  v8::Local<v8::Value> HandleNextEvent(v8::Local<v8::Value>);
 
   void ReadRequestChunkStepsBody(ScriptState* script_state,
                                  v8::Global<v8::Value> chunk);
 
   // If read() is in progress, then wait for it to tell us that the stream is
   // closed so that we write all the data before shutdown.
-  void OnReaderClosed();
+  v8::Local<v8::Value> OnReaderClosed(v8::Local<v8::Value>);
 
   // 1. Errors must be propagated forward: if source.[[state]] is or
   //    becomes "errored", then
-  void ReadableError(v8::Local<v8::Value> error);
+  v8::Local<v8::Value> ReadableError(v8::Local<v8::Value> error);
 
   // 2. Errors must be propagated backward: if dest.[[state]] is or becomes
   //    "errored", then
-  void WritableError(v8::Local<v8::Value> error);
+  v8::Local<v8::Value> WritableError(v8::Local<v8::Value> error);
 
   // 3. Closing must be propagated forward: if source.[[state]] is or
   //    becomes "closed", then
@@ -121,10 +127,10 @@ class PipeToEngine final : public GarbageCollected<PipeToEngine> {
 
   // Calls Finalize(), using the stored shutdown error rather than the value
   // that was passed.
-  void FinalizeWithOriginalErrorIfSet();
+  v8::Local<v8::Value> FinalizeWithOriginalErrorIfSet(v8::Local<v8::Value>);
 
   // Calls Finalize(), using the value that was passed as the error.
-  void FinalizeWithNewError(v8::Local<v8::Value> new_error);
+  v8::Local<v8::Value> FinalizeWithNewError(v8::Local<v8::Value> new_error);
 
   // * Finalize: both forms of shutdown will eventually ask to finalize,
   //   optionally with an error error, which means to perform the following
@@ -133,12 +139,20 @@ class PipeToEngine final : public GarbageCollected<PipeToEngine> {
 
   bool ShouldWriteQueuedChunks() const;
 
-  ScriptPromise<IDLUndefined> WriteQueuedChunks();
+  v8::Local<v8::Promise> WriteQueuedChunks();
 
-  void IgnoreErrors(v8::Local<v8::Value>) {}
+  v8::Local<v8::Value> IgnoreErrors(v8::Local<v8::Value>) {
+    return Undefined();
+  }
 
-  ScriptPromise<IDLUndefined> InvokeShutdownAction() {
+  // InvokeShutdownAction(), version for calling directly.
+  v8::Local<v8::Promise> InvokeShutdownAction() {
     return (this->*shutdown_action_)();
+  }
+
+  // InvokeShutdownAction(), version for use as a PromiseReaction.
+  v8::Local<v8::Value> InvokeShutdownAction(v8::Local<v8::Value>) {
+    return InvokeShutdownAction();
   }
 
   v8::Local<v8::Value> ShutdownError() const {
@@ -146,12 +160,17 @@ class PipeToEngine final : public GarbageCollected<PipeToEngine> {
     return shutdown_error_.Get(script_state_->GetIsolate());
   }
 
-  ScriptPromise<IDLUndefined> WritableStreamAbortAction();
+  v8::Local<v8::Promise> WritableStreamAbortAction();
 
-  ScriptPromise<IDLUndefined> ReadableStreamCancelAction();
+  v8::Local<v8::Promise> ReadableStreamCancelAction();
 
-  ScriptPromise<IDLUndefined>
+  v8::Local<v8::Promise>
   WritableStreamDefaultWriterCloseWithErrorPropagationAction();
+
+  // Reduces the visual noise when we are returning an undefined value.
+  v8::Local<v8::Value> Undefined() {
+    return v8::Undefined(script_state_->GetIsolate());
+  }
 
   WritableStream* Destination();
 
@@ -159,13 +178,19 @@ class PipeToEngine final : public GarbageCollected<PipeToEngine> {
 
   ReadableStream* Readable();
 
+  // Performs promise.then(on_fulfilled, on_rejected). It behaves like
+  // StreamPromiseThen(). Only the types are different.
+  v8::Local<v8::Promise> ThenPromise(v8::Local<v8::Promise> promise,
+                                     PromiseReaction on_fulfilled,
+                                     PromiseReaction on_rejected = nullptr);
+
   Member<ScriptState> script_state_;
   Member<PipeOptions> pipe_options_;
   Member<ReadableStreamDefaultReader> reader_;
   Member<WritableStreamDefaultWriter> writer_;
-  Member<ScriptPromiseResolver<IDLUndefined>> promise_;
+  Member<StreamPromiseResolver> promise_;
   Member<AbortSignal::AlgorithmHandle> abort_handle_;
-  MemberScriptPromise<IDLUndefined> last_write_;
+  TraceWrapperV8Reference<v8::Promise> last_write_;
   Action shutdown_action_;
   TraceWrapperV8Reference<v8::Value> shutdown_error_;
   bool is_shutting_down_ = false;

@@ -28,7 +28,8 @@ found in the LICENSE file.
     <script>
       'use strict';
       document.querySelector('#v2').href += encodeURI(
-          new URLSearchParams(location.search.substr(1)).get('sheriff'));
+          new URLSearchParams(location.search.substr(1)).get('sheriff') ||
+          'Chromium Perf Sheriff');
     </script>
   </body>
 </html>

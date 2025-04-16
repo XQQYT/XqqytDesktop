@@ -16,9 +16,7 @@
 
 #ifdef LIBXML_SCHEMAS_ENABLED
 
-#include <stdio.h>
 #include <libxml/encoding.h>
-#include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xmlerror.h>
 
@@ -157,16 +155,12 @@ XMLPUBFUN void
 					 xmlStructuredErrorFunc serror,
 					 void *ctx);
 XMLPUBFUN int
-	    xmlSchemaGetParserErrors	(xmlSchemaParserCtxtPtr ctxt,
+		xmlSchemaGetParserErrors(xmlSchemaParserCtxtPtr ctxt,
 					xmlSchemaValidityErrorFunc * err,
 					xmlSchemaValidityWarningFunc * warn,
 					void **ctx);
-XMLPUBFUN void
-	    xmlSchemaSetResourceLoader	(xmlSchemaParserCtxtPtr ctxt,
-					 xmlResourceLoader loader,
-					 void *data);
 XMLPUBFUN int
-	    xmlSchemaIsValid		(xmlSchemaValidCtxtPtr ctxt);
+		xmlSchemaIsValid	(xmlSchemaValidCtxtPtr ctxt);
 
 XMLPUBFUN xmlSchemaPtr
 	    xmlSchemaParse		(xmlSchemaParserCtxtPtr ctxt);

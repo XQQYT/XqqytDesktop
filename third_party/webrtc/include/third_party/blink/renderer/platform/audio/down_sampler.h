@@ -40,7 +40,7 @@ namespace blink {
 
 // DownSampler down-samples the source stream by a factor of 2x.
 
-class PLATFORM_EXPORT DownSampler final {
+class PLATFORM_EXPORT DownSampler {
   USING_FAST_MALLOC(DownSampler);
 
  public:

@@ -73,6 +73,7 @@ class CORE_EXPORT HTMLTableElement final : public HTMLElement {
   const CSSPropertyValueSet* AdditionalGroupStyle(bool rows);
 
   bool HasNonInBodyInsertionMode() const override { return true; }
+  void FinishParsingChildren() override;
 
   void Trace(Visitor*) const override;
 
@@ -82,7 +83,7 @@ class CORE_EXPORT HTMLTableElement final : public HTMLElement {
   void CollectStyleForPresentationAttribute(
       const QualifiedName&,
       const AtomicString&,
-      HeapVector<CSSPropertyValue, 8>&) override;
+      MutableCSSPropertyValueSet*) override;
   bool IsURLAttribute(const Attribute&) const override;
   bool HasLegalLinkAttribute(const QualifiedName&) const override;
 

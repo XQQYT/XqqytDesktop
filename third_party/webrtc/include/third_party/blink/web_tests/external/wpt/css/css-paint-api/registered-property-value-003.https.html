@@ -16,9 +16,9 @@
         inherits: false
       });
 
-      target.style.setProperty('--prop', 'foo(){}');
+      target.style.setProperty('--prop', 'if(){}');
 
-      expectWorkletValue(target, '--prop', '[CSSUnparsedValue foo(){}]');
+      expectWorkletValue(target, '--prop', '[CSSUnparsedValue if(){}]');
     } catch(e) {
       document.body.textContent = e;
       takeScreenshot();

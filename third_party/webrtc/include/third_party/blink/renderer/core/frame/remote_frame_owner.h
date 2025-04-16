@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_FRAME_REMOTE_FRAME_OWNER_H_
 
 #include "third_party/blink/public/common/frame/frame_policy.h"
-#include "third_party/blink/public/mojom/css/preferred_color_scheme.mojom-blink-forward.h"
 #include "third_party/blink/public/mojom/frame/color_scheme.mojom-blink-forward.h"
 #include "third_party/blink/public/mojom/scroll/scrollbar_mode.mojom-blink.h"
 #include "third_party/blink/public/web/web_frame_owner_properties.h"
@@ -37,7 +36,7 @@ class CORE_EXPORT RemoteFrameOwner final
   const FramePolicy& GetFramePolicy() const override { return frame_policy_; }
   void AddResourceTiming(mojom::blink::ResourceTimingInfoPtr) override;
   void DispatchLoad() override;
-  void NaturalSizingInfoChanged() override;
+  void IntrinsicSizingInfoChanged() override;
   void SetNeedsOcclusionTracking(bool) override;
 
   AtomicString BrowsingContextContainerName() const override {
@@ -53,9 +52,6 @@ class CORE_EXPORT RemoteFrameOwner final
   bool IsDisplayNone() const override { return is_display_none_; }
   mojom::blink::ColorScheme GetColorScheme() const override {
     return color_scheme_;
-  }
-  mojom::blink::PreferredColorScheme GetPreferredColorScheme() const override {
-    return preferred_color_scheme_;
   }
   bool ShouldLazyLoadChildren() const final;
 
@@ -80,10 +76,6 @@ class CORE_EXPORT RemoteFrameOwner final
   void SetColorScheme(mojom::blink::ColorScheme color_scheme) {
     color_scheme_ = color_scheme;
   }
-  void SetPreferredColorScheme(
-      mojom::blink::PreferredColorScheme preferred_color_scheme) {
-    preferred_color_scheme_ = preferred_color_scheme;
-  }
 
   void Trace(Visitor*) const override;
 
@@ -103,7 +95,6 @@ class CORE_EXPORT RemoteFrameOwner final
   bool allow_payment_request_;
   bool is_display_none_;
   mojom::blink::ColorScheme color_scheme_;
-  mojom::blink::PreferredColorScheme preferred_color_scheme_;
   bool needs_occlusion_tracking_;
 };
 

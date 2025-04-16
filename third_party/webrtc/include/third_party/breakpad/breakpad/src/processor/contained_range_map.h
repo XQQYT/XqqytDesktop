@@ -76,10 +76,7 @@ class ContainedRangeMap {
   // and no entry, and as such is only suitable for the root node of a
   // ContainedRangeMap tree.
   explicit ContainedRangeMap(bool allow_equal_range = false)
-      : base_(),
-        entry_(),
-        map_(nullptr),
-        allow_equal_range_(allow_equal_range) {}
+      : base_(), entry_(), map_(NULL), allow_equal_range_(allow_equal_range) {}
 
   ~ContainedRangeMap();
 

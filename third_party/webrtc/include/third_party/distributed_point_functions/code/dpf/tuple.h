@@ -17,10 +17,7 @@
 #ifndef DISTRIBUTED_POINT_FUNCTIONS_DPF_TUPLE_H_
 #define DISTRIBUTED_POINT_FUNCTIONS_DPF_TUPLE_H_
 
-#include <stddef.h>
-
 #include <tuple>
-#include <utility>
 
 namespace distributed_point_functions {
 

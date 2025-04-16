@@ -5,12 +5,11 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_ORIGIN_TRIALS_ORIGIN_TRIAL_CONTEXT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_ORIGIN_TRIALS_ORIGIN_TRIAL_CONTEXT_H_
 
-#include <optional>
-
 #include "base/time/time.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/common/origin_trials/trial_token.h"
 #include "third_party/blink/public/common/origin_trials/trial_token_validator.h"
-#include "third_party/blink/public/mojom/origin_trials/origin_trial_state_host.mojom-blink.h"
+#include "third_party/blink/public/mojom/origin_trial_state/origin_trial_state_host.mojom-blink.h"
 #include "third_party/blink/public/mojom/runtime_feature_state/runtime_feature.mojom-shared.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context.h"
@@ -39,12 +38,12 @@ enum class OriginTrialStatus {
 struct OriginTrialTokenResult {
   OriginTrialTokenResult(const String& raw_token,
                          OriginTrialTokenStatus status,
-                         const std::optional<TrialToken>& parsed_token);
+                         const absl::optional<TrialToken>& parsed_token);
   ~OriginTrialTokenResult() = default;
 
   String raw_token;
   OriginTrialTokenStatus status;
-  std::optional<TrialToken> parsed_token;
+  absl::optional<TrialToken> parsed_token;
 };
 
 struct OriginTrialResult {
@@ -210,6 +209,13 @@ class CORE_EXPORT OriginTrialContext final
   // If this returns false, the trial cannot be enabled (e.g. due to it is
   // invalid in the browser's present configuration).
   bool CanEnableTrialFromName(const StringView& trial_name);
+
+  // Returns features which are currently restricted for a given trial name,
+  // these features *will not* be enabled by the origin trial infrastructure if
+  // the given trial is enabled. The corresponding runtime features may still be
+  // enabled via command line flags, etc.
+  Vector<mojom::blink::OriginTrialFeature> RestrictedFeaturesForTrial(
+      const String& trial_name);
 
   // Enable features by trial name. Returns a OriginTrialFeaturesEnabled struct
   // containing whether one or more trials were enabled, and a Vector of the

@@ -31,13 +31,11 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_TIMING_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_TIMING_H_
 
-#include <optional>
-
 #include "base/check_op.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/memory/values_equivalent.h"
 #include "cc/animation/keyframe_model.h"
-#include "third_party/blink/renderer/bindings/core/v8/v8_fill_mode.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_timeline_range.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_typedefs.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_union_cssnumericvalue_double.h"
@@ -53,8 +51,8 @@
 
 namespace blink {
 
-class ComputedEffectTiming;
 class EffectTiming;
+class ComputedEffectTiming;
 enum class TimelinePhase;
 
 struct CORE_EXPORT Timing {
@@ -101,7 +99,7 @@ struct CORE_EXPORT Timing {
     // TODO(crbug.com/7575): Support percent delays in addition to time-based
     // delays.
     AnimationTimeDelta time_delay;
-    std::optional<double> relative_delay;
+    absl::optional<double> relative_delay;
 
     Delay() = default;
 
@@ -133,8 +131,8 @@ struct CORE_EXPORT Timing {
 
   static double NullValue() { return std::numeric_limits<double>::quiet_NaN(); }
 
-  static V8FillMode::Enum FillModeEnum(FillMode);
-  static FillMode EnumToFillMode(V8FillMode::Enum);
+  static String FillModeString(FillMode);
+  static FillMode StringToFillMode(const String&);
   static String PlaybackDirectionString(PlaybackDirection);
 
   Timing() = default;
@@ -176,8 +174,8 @@ struct CORE_EXPORT Timing {
   }
   bool HasTimingOverrides() { return timing_overrides != kOverrideNode; }
 
-  V8CSSNumberish* ToComputedValue(std::optional<AnimationTimeDelta>,
-                                  std::optional<AnimationTimeDelta>) const;
+  V8CSSNumberish* ToComputedValue(absl::optional<AnimationTimeDelta>,
+                                  absl::optional<AnimationTimeDelta>) const;
 
   Delay start_delay;
   Delay end_delay;
@@ -185,7 +183,7 @@ struct CORE_EXPORT Timing {
   double iteration_start = 0;
   double iteration_count = 1;
   // If empty, indicates the 'auto' value.
-  std::optional<AnimationTimeDelta> iteration_duration = std::nullopt;
+  absl::optional<AnimationTimeDelta> iteration_duration = absl::nullopt;
 
   PlaybackDirection direction = PlaybackDirection::NORMAL;
   scoped_refptr<TimingFunction> timing_function =
@@ -198,12 +196,12 @@ struct CORE_EXPORT Timing {
   struct CalculatedTiming {
     DISALLOW_NEW();
     Phase phase = Phase::kPhaseNone;
-    std::optional<double> current_iteration = 0;
-    std::optional<double> progress = 0;
+    absl::optional<double> current_iteration = 0;
+    absl::optional<double> progress = 0;
     bool is_current = false;
     bool is_in_effect = false;
     bool is_in_play = false;
-    std::optional<AnimationTimeDelta> local_time;
+    absl::optional<AnimationTimeDelta> local_time;
     AnimationTimeDelta time_to_forwards_effect_change =
         AnimationTimeDelta::Max();
     AnimationTimeDelta time_to_reverse_effect_change =
@@ -218,7 +216,7 @@ struct CORE_EXPORT Timing {
     // Value used in normalization math. Stored so that we can convert back if
     // needed. At present, only scroll-linked animations have a timeline
     // duration. If this changes, we need to update the is_current calculation.
-    std::optional<AnimationTimeDelta> timeline_duration;
+    absl::optional<AnimationTimeDelta> timeline_duration;
     // Though timing delays may be expressed as either times or (phase,offset)
     // pairs, post normalization, delays is expressed in time.
     AnimationTimeDelta start_delay;
@@ -239,12 +237,12 @@ struct CORE_EXPORT Timing {
   // TODO(crbug.com/1394434): Cleanup method signature by passing in
   // AnimationEffectOwner.
   CalculatedTiming CalculateTimings(
-      std::optional<AnimationTimeDelta> local_time,
+      absl::optional<AnimationTimeDelta> local_time,
       bool is_idle,
       const NormalizedTiming& normalized_timing,
       AnimationDirection animation_direction,
       bool is_keyframe_effect,
-      std::optional<double> playback_rate) const;
+      absl::optional<double> playback_rate) const;
   ComputedEffectTiming* getComputedTiming(const CalculatedTiming& calculated,
                                           const NormalizedTiming& normalized,
                                           bool is_keyframe_effect) const;

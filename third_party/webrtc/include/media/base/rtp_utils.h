@@ -11,13 +11,14 @@
 #ifndef MEDIA_BASE_RTP_UTILS_H_
 #define MEDIA_BASE_RTP_UTILS_H_
 
-#include <cstddef>
-#include <cstdint>
-
 #include "absl/strings/string_view.h"
 #include "api/array_view.h"
-#include "rtc_base/async_packet_socket.h"
+#include "rtc_base/byte_order.h"
 #include "rtc_base/system/rtc_export.h"
+
+namespace rtc {
+struct PacketTimeUpdateParams;
+}  // namespace rtc
 
 namespace cricket {
 
@@ -45,7 +46,7 @@ bool GetRtcpType(const void* data, size_t len, int* value);
 bool GetRtcpSsrc(const void* data, size_t len, uint32_t* value);
 
 // Checks the packet header to determine if it can be an RTP or RTCP packet.
-RtpPacketType InferRtpPacketType(rtc::ArrayView<const uint8_t> packet);
+RtpPacketType InferRtpPacketType(rtc::ArrayView<const char> packet);
 // True if |payload type| is 0-127.
 bool IsValidRtpPayloadType(int payload_type);
 
@@ -71,7 +72,7 @@ bool UpdateRtpAbsSendTimeExtension(uint8_t* rtp,
 bool RTC_EXPORT
 ApplyPacketOptions(uint8_t* data,
                    size_t length,
-                   const webrtc::PacketTimeUpdateParams& packet_time_params,
+                   const rtc::PacketTimeUpdateParams& packet_time_params,
                    uint64_t time_us);
 
 }  // namespace cricket

@@ -29,13 +29,13 @@
 #include "third_party/blink/renderer/core/layout/background_bleed_avoidance.h"
 #include "third_party/blink/renderer/core/layout/content_change_type.h"
 #include "third_party/blink/renderer/core/layout/layout_object.h"
+#include "third_party/blink/renderer/platform/geometry/layout_rect.h"
 #include "third_party/blink/renderer/platform/text/writing_mode_utils.h"
 
 namespace blink {
 
 class PaintLayer;
 class PaintLayerScrollableArea;
-struct LogicalRect;
 
 enum PaintLayerType {
   kNoPaintLayer,
@@ -105,6 +105,13 @@ enum PaintLayerType {
 // See https://drafts.csswg.org/css-writing-modes-3/#text-flow for some
 // extra details.
 //
+// - physical coordinates with flipped block-flow direction: those are physical
+//   coordinates but we flipped the block direction. Almost all geometries
+//   in box layout use this coordinate space, except those having explicit
+//   "Logical" or "Physical" prefix in their names, or the name implies logical
+//   (e.g. InlineStart, BlockEnd) or physical (e.g. Top, Left), or the return
+//   type is PhysicalRect.
+//
 // - logical coordinates without flipping inline direction: those are "logical
 //   block coordinates", without considering text direction. Examples are
 //   "LogicalLeft" and "LogicalRight".
@@ -119,8 +126,10 @@ class CORE_EXPORT LayoutBoxModelObject : public LayoutObject {
   // This is the only way layers should ever be destroyed.
   void DestroyLayer();
 
-  // Computes the sticky constraints for this object.
-  StickyPositionScrollingConstraints* ComputeStickyPositionConstraints() const;
+  // If needed, populates StickyPositionConstraints, setting the sticky box
+  // rect, containing block rect and updating the constraint offsets according
+  // to the available space, and returns true. Otherwise returns false.
+  bool UpdateStickyPositionConstraints();
 
   PhysicalOffset StickyPositionOffset() const;
   virtual LayoutBlock* StickyContainer() const;
@@ -154,6 +163,10 @@ class CORE_EXPORT LayoutBoxModelObject : public LayoutObject {
   PaintLayerScrollableArea* GetScrollableArea() const;
 
   virtual void UpdateFromStyle();
+
+  // This will work on inlines to return the bounding box of all of the lines'
+  // border boxes.
+  virtual gfx::Rect BorderBoundingBox() const = 0;
 
   virtual PhysicalRect VisualOverflowRect() const = 0;
 
@@ -288,29 +301,27 @@ class CORE_EXPORT LayoutBoxModelObject : public LayoutObject {
     NOT_DESTROYED();
     return BorderLeft() + BorderRight() + PaddingLeft() + PaddingRight();
   }
-  DISABLE_CFI_PERF LayoutUnit BorderAndPaddingBlockSize() const {
+  DISABLE_CFI_PERF LayoutUnit BorderAndPaddingLogicalHeight() const {
     NOT_DESTROYED();
-    if (!StyleRef().HasBorder() && !StyleRef().MayHavePadding()) {
-      return LayoutUnit();
-    }
-    return IsHorizontalWritingMode() ? BorderAndPaddingHeight()
-                                     : BorderAndPaddingWidth();
+    return (StyleRef().HasBorder() || StyleRef().MayHavePadding())
+               ? BorderAndPaddingBlockStart() + BorderAndPaddingBlockEnd()
+               : LayoutUnit();
   }
-  DISABLE_CFI_PERF LayoutUnit BorderAndPaddingInlineSize() const {
+  DISABLE_CFI_PERF LayoutUnit BorderAndPaddingLogicalWidth() const {
     NOT_DESTROYED();
-    if (!StyleRef().HasBorder() && !StyleRef().MayHavePadding()) {
-      return LayoutUnit();
-    }
-    return IsHorizontalWritingMode() ? BorderAndPaddingWidth()
-                                     : BorderAndPaddingHeight();
+    return StyleRef().IsHorizontalWritingMode() ? BorderAndPaddingWidth()
+                                                : BorderAndPaddingHeight();
   }
-  DISABLE_CFI_PERF LayoutUnit BorderAndPaddingInlineStart() const {
+  DISABLE_CFI_PERF LayoutUnit BorderAndPaddingLogicalLeft() const {
     NOT_DESTROYED();
-    return BorderInlineStart() + PhysicalPaddingToLogical().InlineStart();
+    return StyleRef().IsHorizontalWritingMode() ? BorderLeft() + PaddingLeft()
+                                                : BorderTop() + PaddingTop();
   }
-  DISABLE_CFI_PERF LayoutUnit BorderAndPaddingInlineEnd() const {
+  DISABLE_CFI_PERF LayoutUnit BorderAndPaddingLogicalRight() const {
     NOT_DESTROYED();
-    return BorderInlineEnd() + PaddingInlineEnd();
+    return StyleRef().IsHorizontalWritingMode()
+               ? BorderRight() + PaddingRight()
+               : BorderBottom() + PaddingBottom();
   }
 
   LayoutUnit PaddingLogicalHeight() const {
@@ -399,31 +410,25 @@ class CORE_EXPORT LayoutBoxModelObject : public LayoutObject {
 
   void AddOutlineRectsForNormalChildren(OutlineRectCollector&,
                                         const PhysicalOffset& additional_offset,
-                                        OutlineType) const;
-
-  void UpdateCanCompositeBackgroundAttachmentFixed(
-      bool enable_composited_background_attachment_fixed);
+                                        NGOutlineType) const;
 
  protected:
   void WillBeDestroyed() override;
 
-  PhysicalOffset OffsetFromContainerInternal(
-      const LayoutObject*,
-      MapCoordinatesFlags) const override;
-
   PhysicalOffset AdjustedPositionRelativeTo(const PhysicalOffset&,
                                             const Element*) const;
 
-  LogicalRect LocalCaretRectForEmptyElement(
+  // This returns a logical rectangle.
+  // TODO(crbug.com/1229581): Change it to LogicalRect.
+  DeprecatedLayoutRect LocalCaretRectForEmptyElement(
       LayoutUnit width,
       LayoutUnit text_indent_offset) const;
 
   void AddOutlineRectsForDescendant(const LayoutObject& descendant,
                                     OutlineRectCollector&,
                                     const PhysicalOffset& additional_offset,
-                                    OutlineType) const;
+                                    NGOutlineType) const;
 
-  bool ShouldBeHandledAsInline(const ComputedStyle& style) const;
   void StyleWillChange(StyleDifference,
                        const ComputedStyle& new_style) override;
   void StyleDidChange(StyleDifference, const ComputedStyle* old_style) override;

@@ -218,7 +218,7 @@ class ByteCursor {
       *pointer = here_;
       here_ += size;
     } else {
-      *pointer = nullptr;
+      *pointer = NULL;
     }
     return *this;
   }

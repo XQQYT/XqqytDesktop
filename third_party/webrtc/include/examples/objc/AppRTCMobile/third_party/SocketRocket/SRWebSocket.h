@@ -59,8 +59,7 @@ extern NSString *const SRHTTPResponseErrorKey;
 // It will be nil until after the handshake completes.
 @property(nonatomic, readonly, copy) NSString *protocol;
 
-// Protocols should be an array of strings that turn into
-// Sec-WebSocket-Protocol.
+// Protocols should be an array of strings that turn into Sec-WebSocket-Protocol.
 - (id)initWithURLRequest:(NSURLRequest *)request protocols:(NSArray *)protocols;
 - (id)initWithURLRequest:(NSURLRequest *)request;
 
@@ -73,13 +72,11 @@ extern NSString *const SRHTTPResponseErrorKey;
 - (void)setDelegateOperationQueue:(NSOperationQueue *)queue;
 - (void)setDelegateDispatchQueue:(dispatch_queue_t)queue;
 
-// By default, it will schedule itself on +[NSRunLoop SR_networkRunLoop] using
-// defaultModes.
+// By default, it will schedule itself on +[NSRunLoop SR_networkRunLoop] using defaultModes.
 - (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode;
 - (void)unscheduleFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode;
 
-// SRWebSockets are intended for one-time-use only.  Open should be called once
-// and only once.
+// SRWebSockets are intended for one-time-use only.  Open should be called once and only once.
 - (void)open;
 
 - (void)close;

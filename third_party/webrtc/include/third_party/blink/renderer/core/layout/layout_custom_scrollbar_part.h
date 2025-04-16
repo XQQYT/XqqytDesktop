@@ -82,9 +82,10 @@ class CORE_EXPORT LayoutCustomScrollbarPart final : public LayoutReplaced {
   LayoutUnit MarginLeft() const override;
   LayoutUnit MarginRight() const override;
 
-  bool IsLayoutCustomScrollbarPart() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectCustomScrollbarPart ||
+           LayoutReplaced::IsOfType(type);
   }
   ScrollableArea* GetScrollableArea() const {
     NOT_DESTROYED();
@@ -101,12 +102,20 @@ class CORE_EXPORT LayoutCustomScrollbarPart final : public LayoutReplaced {
   void StyleDidChange(StyleDifference, const ComputedStyle* old_style) override;
   void ImageChanged(WrappedImagePtr, CanDeferInvalidation) override;
 
-  // A scrollbar part's PhysicalLocation() is relative to the scrollbar
-  // (instead of relative to any LayoutBox ancestor), so it doesn't have a
-  // meaningful location container as a LayoutBox.
+  // A scrollbar part's Location() and PhysicalLocation() are relative to the
+  // scrollbar (instead of relative to any LayoutBox ancestor), and both are
+  // in physical coordinates.
   LayoutBox* LocationContainer() const override {
     NOT_DESTROYED();
     return nullptr;
+  }
+
+  // A scrollbar part is not in the layout tree and is not laid out like other
+  // layout objects. CustomScrollbar will call scrollbar parts' SetFrameRect()
+  // from its SetFrameRect() when needed.
+  void UpdateLayout() override {
+    NOT_DESTROYED();
+    NOTREACHED();
   }
 
   // Have all padding getters return 0. The important point here is to avoid
@@ -134,8 +143,6 @@ class CORE_EXPORT LayoutCustomScrollbarPart final : public LayoutReplaced {
   void SetNeedsPaintInvalidation();
 
   void RecordPercentLengthStats() const;
-
-  PhysicalNaturalSizingInfo GetNaturalDimensions() const override;
 
   int ComputeSize(const Length& length, int container_size) const;
   int ComputeWidth(int container_width) const;

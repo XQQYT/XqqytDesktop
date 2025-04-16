@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "base/containers/span.h"
 #include "third_party/hunspell/google/bdict.h"
 
 namespace hunspell {
@@ -41,7 +40,7 @@ class WordIterator {
   friend class BDictReader;
   struct NodeInfo;
 
-  explicit WordIterator(const NodeReader& reader);
+  WordIterator(const NodeReader& reader);
 
   // Called by Advance when a leaf is found to generate the word, affix list,
   // and return value.
@@ -55,8 +54,13 @@ class WordIterator {
 // Will iterate over a list of lines separated by NULLs.
 class LineIterator {
  public:
-  // Returns the next word in the sequence or NULL if there are no more.
+  // Returns the next word in the sequence or NULL if there are no mode.
   const char* Advance();
+
+  // Advances to the next word in the sequence and copies it into the given
+  // buffer, of the given length. If it doesn't fit, it will be truncated.
+  // Returns true on success.
+  bool AdvanceAndCopy(char* buf, size_t buf_len);
 
   // Returns true when all data has been read. We're done when we reach a
   // double-NULL or a the end of the input (shouldn't happen).
@@ -65,10 +69,11 @@ class LineIterator {
  protected:
   friend class BDictReader;
 
-  LineIterator();
-  LineIterator(base::span<const unsigned char> bdict_data, size_t first_offset);
+  LineIterator(const unsigned char* bdict_data, size_t bdict_length,
+               size_t first_offset);
 
-  base::span<const unsigned char> bdict_data_;
+  const unsigned char* bdict_data_;
+  size_t bdict_length_;
 
   // Current offset within bdict_data of the next string to read.
   size_t cur_offset_;
@@ -84,10 +89,10 @@ class ReplacementIterator : public LineIterator {
  private:
   friend class BDictReader;
 
-  ReplacementIterator() = default;
-  ReplacementIterator(base::span<const unsigned char> bdict_data,
+  ReplacementIterator(const unsigned char* bdict_data, size_t bdict_length,
                       size_t first_offset)
-      : LineIterator(bdict_data, first_offset) {}
+      : LineIterator(bdict_data, bdict_length, first_offset) {
+  }
 };
 
 // Reads a BDict file mapped into memory.
@@ -102,10 +107,10 @@ class BDictReader {
   // Initializes the reader with the given data. The data does not transfer
   // ownership, and the caller must keep it valid until the reader is destroyed.
   // Returns true on success.
-  bool Init(base::span<const unsigned char> bdict_data);
+  bool Init(const unsigned char* bdic_data, size_t bdic_length);
 
   // Returns true if Init() succeeded and other functions can be called.
-  bool IsValid() const { return !bdict_data_.empty(); }
+  bool IsValid() const { return !!bdict_data_; }
 
   // Locates the given word in the dictionary. There may be multiple matches if
   // the word is listed multiple times in the dictionary with different affix
@@ -134,11 +139,15 @@ class BDictReader {
   WordIterator GetAllWordIterator() const;
 
  private:
-  // Non-empty indicates Init succeeded.
-  base::span<const unsigned char> bdict_data_;
+  // Non-NULL indicates Init succeeded.
+  const unsigned char* bdict_data_;
+  size_t bdict_length_;
 
-  BDict::Header header_ = {0};
-  BDict::AffHeader aff_header_ = {0};
+  // Pointer not owned by this class. It will point into the data. It will be
+  // NULL if the data is invalid.
+  const BDict::Header* header_;
+
+  const BDict::AffHeader* aff_header_;
 };
 
 }  // namespace hunspell

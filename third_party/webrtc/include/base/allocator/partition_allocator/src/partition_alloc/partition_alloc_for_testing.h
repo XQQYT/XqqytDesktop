@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_FOR_TESTING_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_FOR_TESTING_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_FOR_TESTING_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_FOR_TESTING_H_
 
-#include "partition_alloc/partition_alloc.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc.h"
 
 namespace partition_alloc {
 namespace internal {
@@ -43,4 +43,4 @@ using PartitionAllocatorAllowLeaksForTesting =
 
 }  // namespace partition_alloc
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_FOR_TESTING_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_FOR_TESTING_H_

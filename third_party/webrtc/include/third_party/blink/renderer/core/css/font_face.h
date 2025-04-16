@@ -50,13 +50,12 @@ class CSSFontFace;
 class CSSFontFamilyValue;
 class CSSPropertyValueSet;
 class CSSValue;
+class DOMArrayBuffer;
+class DOMArrayBufferView;
 class Document;
-class CSSLengthResolver;
 class ExceptionState;
-class MediaValues;
 class FontFaceDescriptors;
 class StyleRuleFontFace;
-class V8FontFaceLoadStatus;
 class V8UnionArrayBufferOrArrayBufferViewOrString;
 struct FontMetricsOverride;
 
@@ -114,12 +113,12 @@ class CORE_EXPORT FontFace : public ScriptWrappable,
   void setLineGapOverride(ExecutionContext*, const String&, ExceptionState&);
   void setSizeAdjust(ExecutionContext*, const String&, ExceptionState&);
 
-  V8FontFaceLoadStatus status() const;
-  ScriptPromise<FontFace> loaded(ScriptState* script_state) {
+  String status() const;
+  ScriptPromise loaded(ScriptState* script_state) {
     return FontStatusPromise(script_state);
   }
 
-  ScriptPromise<FontFace> load(ScriptState*);
+  ScriptPromise load(ScriptState*);
 
   LoadStatusType LoadStatus() const { return status_; }
   void SetLoadStatus(LoadStatusType);
@@ -163,12 +162,14 @@ class CORE_EXPORT FontFace : public ScriptWrappable,
   const StyleRuleFontFace* GetStyleRule() const { return style_rule_.Get(); }
   bool IsUserStyle() const { return is_user_style_; }
 
-  const CSSLengthResolver& EnsureLengthResolver() const;
-
  private:
   static FontFace* Create(ExecutionContext*,
                           const AtomicString& family,
-                          base::span<const uint8_t> data,
+                          DOMArrayBuffer* source,
+                          const FontFaceDescriptors*);
+  static FontFace* Create(ExecutionContext*,
+                          const AtomicString& family,
+                          DOMArrayBufferView*,
                           const FontFaceDescriptors*);
   static FontFace* Create(ExecutionContext*,
                           const AtomicString& family,
@@ -176,7 +177,7 @@ class CORE_EXPORT FontFace : public ScriptWrappable,
                           const FontFaceDescriptors*);
 
   void InitCSSFontFace(ExecutionContext*, const CSSValue& src);
-  void InitCSSFontFace(ExecutionContext*, base::span<const uint8_t> data);
+  void InitCSSFontFace(ExecutionContext*, const unsigned char* data, size_t);
   void SetPropertyFromString(const ExecutionContext*,
                              const String&,
                              AtRuleDescriptorID,
@@ -184,10 +185,11 @@ class CORE_EXPORT FontFace : public ScriptWrappable,
   bool SetPropertyFromStyle(const CSSPropertyValueSet&, AtRuleDescriptorID);
   bool SetPropertyValue(const CSSValue*, AtRuleDescriptorID);
   void SetFamilyValue(const CSSFontFamilyValue&);
-  ScriptPromise<FontFace> FontStatusPromise(ScriptState*);
+  ScriptPromise FontStatusPromise(ScriptState*);
   void RunCallbacks();
 
-  using LoadedProperty = ScriptPromiseProperty<FontFace, DOMException>;
+  using LoadedProperty =
+      ScriptPromiseProperty<Member<FontFace>, Member<DOMException>>;
 
   HeapVector<Member<LoadFontCallback>> callbacks_;
   AtomicString family_;
@@ -214,9 +216,6 @@ class CORE_EXPORT FontFace : public ScriptWrappable,
   // Note that we will also need to distinguish font faces in different tree
   // scopes when we allow @font-face in shadow DOM. See crbug.com/336876.
   bool is_user_style_ = false;
-
-  // Global media values to resolve calc().
-  mutable Member<const MediaValues> media_values_;
 };
 
 using FontFaceArray = HeapVector<Member<FontFace>>;

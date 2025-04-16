@@ -11,21 +11,20 @@ enum SCAN_DIRS
 
 enum SCAN_CODE { SCAN_SUCCESS,SCAN_DONE,SCAN_ERROR,SCAN_NEXT };
 
+#define MAXSCANDEPTH    (NM/2)
+
 class CommandData;
 
 class ScanTree
 {
   private:
-    static constexpr size_t MAXSCANDEPTH = MAXPATHSIZE/2;
-
     bool ExpandFolderMask();
     bool GetFilteredMask();
     bool GetNextMask();
     SCAN_CODE FindProc(FindData *FD);
     void ScanError(bool &Error);
 
-//    FindFile *FindStack[MAXSCANDEPTH];
-    std::vector<FindFile *> FindStack;
+    FindFile *FindStack[MAXSCANDEPTH];
     int Depth;
 
     int SetAllMaskDepth;
@@ -34,13 +33,13 @@ class ScanTree
     RECURSE_MODE Recurse;
     bool GetLinks;
     SCAN_DIRS GetDirs;
-    uint Errors;
+    int Errors;
 
     // Set when processing paths like c:\ (root directory without wildcards).
     bool ScanEntireDisk;
 
-    std::wstring CurMask;
-    std::wstring OrigCurMask;
+    wchar CurMask[NM];
+    wchar OrigCurMask[NM];
 
     // Store all folder masks generated from folder wildcard mask in non-recursive mode.
     StringList ExpandedFolderList;
@@ -50,7 +49,7 @@ class ScanTree
 
     // Save the list of unreadable dirs here.
     StringList *ErrDirList;
-    std::vector<uint> *ErrDirSpecPathLength;
+    Array<uint> *ErrDirSpecPathLength;
 
     // Set if processing a folder wildcard mask.
     bool FolderWildcards;
@@ -58,7 +57,7 @@ class ScanTree
     bool SearchAllInRoot;
     size_t SpecPathLength;
 
-    std::wstring ErrArcName;
+    wchar ErrArcName[NM];
 
     CommandData *Cmd;
   public:
@@ -66,10 +65,10 @@ class ScanTree
     ~ScanTree();
     SCAN_CODE GetNext(FindData *FindData);
     size_t GetSpecPathLength() {return SpecPathLength;}
-    uint GetErrors() {return Errors;};
-    void SetErrArcName(const std::wstring &Name) {ErrArcName=Name;}
+    int GetErrors() {return Errors;};
+    void SetErrArcName(const wchar *Name) {wcsncpyz(ErrArcName,Name,ASIZE(ErrArcName));}
     void SetCommandData(CommandData *Cmd) {ScanTree::Cmd=Cmd;}
-    void SetErrDirList(StringList *List,std::vector<uint> *Lengths)
+    void SetErrDirList(StringList *List,Array<uint> *Lengths)
     {
       ErrDirList=List;
       ErrDirSpecPathLength=Lengths;

@@ -48,8 +48,12 @@ class SVGTransformableElement : public SVGElement {
                           Document&,
                           ConstructionType = kCreateSVGElement);
 
+  void CollectStyleForPresentationAttribute(
+      const QualifiedName&,
+      const AtomicString&,
+      MutableCSSPropertyValueSet*) override;
   void CollectExtraStyleForPresentationAttribute(
-      HeapVector<CSSPropertyValue, 8>& style) override;
+      MutableCSSPropertyValueSet* style) override;
   void SvgAttributeChanged(const SvgAttributeChangedParams&) override;
 
   SVGAnimatedPropertyBase* PropertyFromAttribute(

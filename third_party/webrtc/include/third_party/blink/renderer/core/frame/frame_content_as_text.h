@@ -8,11 +8,7 @@
 #include <stdint.h>
 
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/platform/wtf/wtf_size_t.h"
-
-namespace WTF {
-class StringBuilder;
-}  // namespace WTF
+#include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
 namespace blink {
 
@@ -22,7 +18,7 @@ class LocalFrame;
 // |output|, up to the length of |max_chars|.
 CORE_EXPORT void FrameContentAsText(wtf_size_t max_chars,
                                     LocalFrame* frame,
-                                    WTF::StringBuilder& output);
+                                    StringBuilder& output);
 
 }  // namespace blink
 

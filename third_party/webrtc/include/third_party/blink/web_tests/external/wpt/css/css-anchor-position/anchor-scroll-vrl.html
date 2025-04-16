@@ -48,17 +48,17 @@ body {
 #inner-anchored {
   color: green;
   position: absolute;
-  top: anchor(top);
-  left: anchor(right);
-  position-anchor: --anchor;
+  top: anchor(--anchor top);
+  left: anchor(--anchor right);
+  anchor-default: --anchor;
 }
 
 #outer-anchored {
   color: yellow;
   position: absolute;
-  top: anchor(top);
-  right: anchor(left);
-  position-anchor: --anchor;
+  top: anchor(--anchor top);
+  right: anchor(--anchor left);
+  anchor-default: --anchor;
 }
 </style>
 

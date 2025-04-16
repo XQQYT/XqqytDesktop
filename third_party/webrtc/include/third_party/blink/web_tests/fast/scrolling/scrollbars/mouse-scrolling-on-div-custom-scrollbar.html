@@ -30,11 +30,15 @@
 }
 
 #custom::-webkit-scrollbar-track {
-  background: #ffff00;
+  background: #f5f5f5;
 }
 
 #custom::-webkit-scrollbar-thumb {
-  background: #00ffff;
+  background: #ababab;
+}
+
+#custom::-webkit-scrollbar-thumb:hover {
+  background: #cdcdcd;
 }
 </style>
 
@@ -42,47 +46,38 @@
 <div id="custom" class="appearance customLocation">
   <div class="space"></div>
 </div>
-<script>
-const customDivFast = document.getElementById("custom");
-const customRectFast = customDivFast.getBoundingClientRect();
 
+<script>
 window.onload = () => {
   promise_test (async () => {
-    // Test the vertical custom scrollbar click.
-    var x = customRectFast.right - 5;
-    var y = customRectFast.top + customRectFast.height / 2;
+    await waitForCompositorCommit();
+    const customDivFast = document.getElementById("custom");
+    const customRectFast = customDivFast.getBoundingClientRect();
 
-    await waitForCompositorReady();
-    const scrollPromise = waitForScrollendEvent(customDivFast);
-    const gesturePromise =  new test_driver.Actions()
+    // Testing the vertical custom scrollbar click.
+    let x = customRectFast.right - 5;
+    let y = customRectFast.top + customRectFast.height / 2;
+
+    await new test_driver.Actions()
         .pointerMove(x, y)
         .pointerDown()
         .addTick()
         .pointerUp()
         .send();
 
-    return Promise.all([gesturePromise, scrollPromise]).then(() => {
-      assert_true(customDivFast.scrollTop > 0);
-    });
-  }, "Test mouse click on custom composited vertical div scrollbars.");
+    // Testing the horizontal custom scrollbar click.
+    x = customRectFast.left + customRectFast.width / 2;
+    y = customRectFast.bottom - 5;
 
-  promise_test (async () => {
-    // Test the horizontal custom scrollbar click.
-    var x = customRectFast.left + customRectFast.width / 2;
-    var y = customRectFast.bottom - 5;
-
-    await waitForCompositorReady();
-    const scrollPromise = waitForScrollendEvent(customDivFast);
-    const gesturePromise =  new test_driver.Actions()
+    await new test_driver.Actions()
         .pointerMove(x, y)
         .pointerDown()
         .addTick()
         .pointerUp()
         .send();
 
-    return Promise.all([gesturePromise, scrollPromise]).then(() => {
-      assert_true(customDivFast.scrollLeft > 0);
-    });
-  }, "Test mouse click on custom composited hirizontal div scrollbars.");
+    // Test passes if renderer did not crash.
+
+  }, "Test mouse click on custom composited div scrollbars.");
 }
 </script>

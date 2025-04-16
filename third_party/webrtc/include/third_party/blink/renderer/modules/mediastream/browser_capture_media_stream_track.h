@@ -6,6 +6,7 @@
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_MEDIASTREAM_BROWSER_CAPTURE_MEDIA_STREAM_TRACK_H_
 
 #include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver_with_tracker.h"
+#include "third_party/blink/renderer/core/dom/dom_exception.h"
 #include "third_party/blink/renderer/modules/mediastream/crop_target.h"
 #include "third_party/blink/renderer/modules/mediastream/media_stream_track_impl.h"
 #include "third_party/blink/renderer/modules/mediastream/restriction_target.h"
@@ -42,12 +43,8 @@ class MODULES_EXPORT BrowserCaptureMediaStreamTrack
   }
 #endif
 
-  ScriptPromise<IDLUndefined> cropTo(ScriptState*,
-                                     CropTarget*,
-                                     ExceptionState&);
-  ScriptPromise<IDLUndefined> restrictTo(ScriptState*,
-                                         RestrictionTarget*,
-                                         ExceptionState&);
+  ScriptPromise cropTo(ScriptState*, CropTarget*, ExceptionState&);
+  ScriptPromise restrictTo(ScriptState*, RestrictionTarget*, ExceptionState&);
 
   BrowserCaptureMediaStreamTrack* clone(ExecutionContext*) override;
 
@@ -71,24 +68,23 @@ class MODULES_EXPORT BrowserCaptureMediaStreamTrack
   // future function that takes a BCMST and mutates what it is capturing
   // to some subset of the original target, based on a target identified
   // using a SubCaptureTarget.
-  ScriptPromise<IDLUndefined> ApplySubCaptureTarget(ScriptState*,
-                                                    SubCaptureTarget::Type,
-                                                    SubCaptureTarget*,
-                                                    ExceptionState&);
+  ScriptPromise ApplySubCaptureTarget(ScriptState*,
+                                      SubCaptureTarget::Type,
+                                      SubCaptureTarget*,
+                                      ExceptionState&);
 
 #if !BUILDFLAG(IS_ANDROID)
   struct PromiseInfo : GarbageCollected<PromiseInfo> {
     explicit PromiseInfo(
-        ScriptPromiseResolverWithTracker<ApplySubCaptureTargetResult,
-                                         IDLUndefined>* promise_resolver)
+        ScriptPromiseResolverWithTracker<ApplySubCaptureTargetResult>*
+            promise_resolver)
         : promise_resolver(promise_resolver) {}
 
     void Trace(Visitor* visitor) const { visitor->Trace(promise_resolver); }
 
-    const Member<ScriptPromiseResolverWithTracker<ApplySubCaptureTargetResult,
-                                                  IDLUndefined>>
+    const Member<ScriptPromiseResolverWithTracker<ApplySubCaptureTargetResult>>
         promise_resolver;
-    std::optional<media::mojom::ApplySubCaptureTargetResult> result;
+    absl::optional<media::mojom::ApplySubCaptureTargetResult> result;
     bool sub_capture_target_version_observed = false;
   };
 

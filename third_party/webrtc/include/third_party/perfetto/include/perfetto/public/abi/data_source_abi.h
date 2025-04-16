@@ -60,8 +60,6 @@ struct PerfettoDsOnSetupArgs;
 // PerfettoDsSetCbUserArg(). The return value of this is passed to all other
 // callbacks (for this data source instance) as `inst_ctx` and can be accessed
 // during tracing with PerfettoDsImplGetInstanceLocked().
-//
-// Can be called from any thread.
 typedef void* (*PerfettoDsOnSetupCb)(struct PerfettoDsImpl*,
                                      PerfettoDsInstanceIndex inst_id,
                                      void* ds_config,
@@ -76,8 +74,6 @@ struct PerfettoDsOnStartArgs;
 // Called when tracing starts for a data source instance. `user_arg` is the
 // value passed to PerfettoDsSetCbUserArg(). `inst_ctx` is the return
 // value of PerfettoDsOnSetupCb.
-//
-// Can be called from any thread.
 typedef void (*PerfettoDsOnStartCb)(struct PerfettoDsImpl*,
                                     PerfettoDsInstanceIndex inst_id,
                                     void* user_arg,
@@ -106,10 +102,6 @@ PERFETTO_SDK_EXPORT void PerfettoDsStopDone(struct PerfettoDsAsyncStopper*);
 // PerfettoDsOnSetupCb.`args` can be used to postpone stopping this data source
 // instance. Note that, in general, it's not a good idea to destroy `inst_ctx`
 // here: PerfettoDsOnDestroyCb should be used instead.
-//
-// Can be called from any thread. Blocking this for too long it's not a good
-// idea and can cause deadlocks. Use PerfettoDsOnStopArgsPostpone() to postpone
-// disabling the data source instance.
 typedef void (*PerfettoDsOnStopCb)(struct PerfettoDsImpl*,
                                    PerfettoDsInstanceIndex inst_id,
                                    void* user_arg,
@@ -120,8 +112,6 @@ typedef void (*PerfettoDsOnStopCb)(struct PerfettoDsImpl*,
 // that `inst_ctx` (which is the return value of PerfettoDsOnSetupCb) can
 // potentially be destroyed. `user_arg` is the value passed to
 // PerfettoDsSetCbUserArg().
-//
-// Can be called from any thread.
 typedef void (*PerfettoDsOnDestroyCb)(struct PerfettoDsImpl*,
                                       void* user_arg,
                                       void* inst_ctx);
@@ -149,10 +139,6 @@ PERFETTO_SDK_EXPORT void PerfettoDsFlushDone(struct PerfettoDsAsyncFlusher*);
 // PerfettoDsSetCbUserArg(). `inst_ctx` is the return value of
 // PerfettoDsOnSetupCb. `args` can be used to postpone stopping this data source
 // instance.
-//
-// Can be called from any thread. Blocking this for too long it's not a good
-// idea and can cause deadlocks. Use PerfettoDsOnFlushArgsPostpone() to postpone
-// disabling the data source instance.
 typedef void (*PerfettoDsOnFlushCb)(struct PerfettoDsImpl*,
                                     PerfettoDsInstanceIndex inst_id,
                                     void* user_arg,
@@ -189,23 +175,19 @@ PERFETTO_SDK_EXPORT void PerfettoDsSetOnFlushCallback(struct PerfettoDsImpl*,
                                                       PerfettoDsOnFlushCb);
 
 // Callbacks for custom per instance thread local state.
-//
-// Called from inside a trace point. Trace points inside these will be
-// ignored.
 PERFETTO_SDK_EXPORT void PerfettoDsSetOnCreateTls(
     struct PerfettoDsImpl*,
     PerfettoDsOnCreateCustomState);
+
 PERFETTO_SDK_EXPORT void PerfettoDsSetOnDeleteTls(
     struct PerfettoDsImpl*,
     PerfettoDsOnDeleteCustomState);
 
 // Callbacks for custom per instance thread local incremental state.
-//
-// Called from inside a trace point. Trace points inside these will be
-// ignored.
 PERFETTO_SDK_EXPORT void PerfettoDsSetOnCreateIncr(
     struct PerfettoDsImpl*,
     PerfettoDsOnCreateCustomState);
+
 PERFETTO_SDK_EXPORT void PerfettoDsSetOnDeleteIncr(
     struct PerfettoDsImpl*,
     PerfettoDsOnDeleteCustomState);

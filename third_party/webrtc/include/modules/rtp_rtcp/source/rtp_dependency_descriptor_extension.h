@@ -33,11 +33,6 @@ class RtpDependencyDescriptorExtension {
                     const FrameDependencyStructure* structure,
                     DependencyDescriptor* descriptor);
 
-  // Reads the mandatory part of the descriptor.
-  // Such read is stateless, i.e., doesn't require `FrameDependencyStructure`.
-  static bool Parse(rtc::ArrayView<const uint8_t> data,
-                    DependencyDescriptorMandatory* descriptor);
-
   static size_t ValueSize(const FrameDependencyStructure& structure,
                           const DependencyDescriptor& descriptor) {
     return ValueSize(structure, kAllChainsAreActive, descriptor);

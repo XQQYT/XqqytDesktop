@@ -44,7 +44,7 @@ namespace blink {
 class EventListenerOptions;
 class EventTarget;
 
-using EventListenerVector = GCedHeapVector<Member<RegisteredEventListener>, 1>;
+using EventListenerVector = HeapVector<Member<RegisteredEventListener>, 1>;
 
 class CORE_EXPORT EventListenerMap final {
   DISALLOW_NEW();
@@ -76,13 +76,6 @@ class CORE_EXPORT EventListenerMap final {
               RegisteredEventListener** registered_listener);
   EventListenerVector* Find(const AtomicString& event_type);
   Vector<AtomicString> EventTypes() const;
-
-  template <typename CallbackType>
-  void ForAllEventListenerTypes(CallbackType callback) const {
-    for (const auto& entry : entries_) {
-      callback(entry.first, entry.second->size());
-    }
-  }
 
   void CopyEventListenersNotCreatedFromMarkupToTarget(EventTarget*);
 

@@ -1,35 +1,25 @@
 // Copyright 2016 The Chromium Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef BSSL_PKI_CERT_ISSUER_SOURCE_SYNC_UNITTEST_H_
 #define BSSL_PKI_CERT_ISSUER_SOURCE_SYNC_UNITTEST_H_
 
 #include <algorithm>
 
-#include <gtest/gtest.h>
-#include <openssl/pool.h>
 #include "cert_errors.h"
 #include "cert_issuer_source.h"
 #include "test_helpers.h"
+#include <gtest/gtest.h>
+#include <openssl/pool.h>
 
-BSSL_NAMESPACE_BEGIN
+namespace bssl {
 
 namespace {
 
-::testing::AssertionResult ReadTestPem(const std::string &file_name,
-                                       const std::string &block_name,
-                                       std::string *result) {
+::testing::AssertionResult ReadTestPem(const std::string& file_name,
+                                       const std::string& block_name,
+                                       std::string* result) {
   const PemBlockMapping mappings[] = {
       {block_name.c_str(), result},
   };
@@ -38,19 +28,18 @@ namespace {
 }
 
 ::testing::AssertionResult ReadTestCert(
-    const std::string &file_name,
-    std::shared_ptr<const ParsedCertificate> *result) {
+    const std::string& file_name,
+    std::shared_ptr<const ParsedCertificate>* result) {
   std::string der;
   ::testing::AssertionResult r =
       ReadTestPem("testdata/cert_issuer_source_static_unittest/" + file_name,
                   "CERTIFICATE", &der);
-  if (!r) {
+  if (!r)
     return r;
-  }
   CertErrors errors;
   *result = ParsedCertificate::Create(
       bssl::UniquePtr<CRYPTO_BUFFER>(CRYPTO_BUFFER_new(
-          reinterpret_cast<const uint8_t *>(der.data()), der.size(), nullptr)),
+          reinterpret_cast<const uint8_t*>(der.data()), der.size(), nullptr)),
       {}, &errors);
   if (!*result) {
     return ::testing::AssertionFailure()
@@ -97,7 +86,7 @@ class CertIssuerSourceSyncTest : public ::testing::Test {
     AddCert(e2_);
   }
 
-  CertIssuerSource &source() { return delegate_.source(); }
+  CertIssuerSource& source() { return delegate_.source(); }
 
  protected:
   bool IssuersMatch(std::shared_ptr<const ParsedCertificate> cert,
@@ -106,20 +95,17 @@ class CertIssuerSourceSyncTest : public ::testing::Test {
     source().SyncGetIssuersOf(cert.get(), &matches);
 
     std::vector<der::Input> der_result_matches;
-    for (const auto &it : matches) {
+    for (const auto& it : matches)
       der_result_matches.push_back(it->der_cert());
-    }
     std::sort(der_result_matches.begin(), der_result_matches.end());
 
     std::vector<der::Input> der_expected_matches;
-    for (const auto &it : expected_matches) {
+    for (const auto& it : expected_matches)
       der_expected_matches.push_back(it->der_cert());
-    }
     std::sort(der_expected_matches.begin(), der_expected_matches.end());
 
-    if (der_expected_matches == der_result_matches) {
+    if (der_expected_matches == der_result_matches)
       return true;
-    }
 
     // Print some extra information for debugging.
     EXPECT_EQ(der_expected_matches, der_result_matches);
@@ -182,8 +168,12 @@ TYPED_TEST_P(CertIssuerSourceSyncTest, IsNotAsync) {
 
 // These are all the tests that should have the same result with or without
 // normalization.
-REGISTER_TYPED_TEST_SUITE_P(CertIssuerSourceSyncTest, NoMatch, OneMatch,
-                            MultipleMatches, SelfIssued, IsNotAsync);
+REGISTER_TYPED_TEST_SUITE_P(CertIssuerSourceSyncTest,
+                            NoMatch,
+                            OneMatch,
+                            MultipleMatches,
+                            SelfIssued,
+                            IsNotAsync);
 
 template <typename TestDelegate>
 class CertIssuerSourceSyncNormalizationTest
@@ -221,6 +211,6 @@ TYPED_TEST_P(CertIssuerSourceSyncNotNormalizedTest,
 REGISTER_TYPED_TEST_SUITE_P(CertIssuerSourceSyncNotNormalizedTest,
                             OneMatchWithoutNormalization);
 
-BSSL_NAMESPACE_END
+}  // namespace net
 
 #endif  // BSSL_PKI_CERT_ISSUER_SOURCE_SYNC_UNITTEST_H_

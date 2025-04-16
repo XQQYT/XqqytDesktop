@@ -82,7 +82,7 @@ class CORE_EXPORT SelectionModifier {
       SelectionModifyAlteration,
       SelectionModifyDirection) const;
   TextDirection DirectionOfEnclosingBlock() const;
-  TextDirection LineDirectionOfFocus() const;
+  TextDirection LineDirectionOfExtent() const;
   VisiblePositionInFlatTree PositionForPlatform(bool is_get_start) const;
   VisiblePositionInFlatTree StartForPlatform() const;
   VisiblePositionInFlatTree EndForPlatform() const;
@@ -105,7 +105,7 @@ class CORE_EXPORT SelectionModifier {
   VisiblePositionInFlatTree ModifyMovingBackward(TextGranularity);
   PositionInFlatTree NextWordPositionForPlatform(const PositionInFlatTree&);
 
-  void UpdateAllLifecyclePhasesExceptPaint();
+  void UpdateLifecycleToPrePaintClean();
 
   static PositionInFlatTreeWithAffinity PreviousLinePosition(
       const PositionInFlatTreeWithAffinity&,

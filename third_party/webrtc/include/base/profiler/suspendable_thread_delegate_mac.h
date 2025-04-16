@@ -6,7 +6,6 @@
 #define BASE_PROFILER_SUSPENDABLE_THREAD_DELEGATE_MAC_H_
 
 #include <mach/mach.h>
-
 #include <memory>
 #include <vector>
 
@@ -56,9 +55,6 @@ class BASE_EXPORT SuspendableThreadDelegateMac
       RegisterContext* thread_context) override;
 
  private:
-  // Thread ID of thread being profiled.
-  const base::PlatformThreadId thread_id_;
-
   // Weak reference: Mach port for thread being profiled.
   const mach_port_t thread_port_;
 

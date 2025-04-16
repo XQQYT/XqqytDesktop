@@ -17,13 +17,14 @@
 #ifndef SRC_TRACE_PROCESSOR_UTIL_STREAMING_LINE_READER_H_
 #define SRC_TRACE_PROCESSOR_UTIL_STREAMING_LINE_READER_H_
 
-#include <cstddef>
 #include <functional>
 #include <vector>
 
 #include "perfetto/ext/base/string_view.h"
 
-namespace perfetto::trace_processor::util {
+namespace perfetto {
+namespace trace_processor {
+namespace util {
 
 // A streaming line tokenizer for efficiently processing large text files on a
 // line-by-line basis. It's designed to be used in conjunction with ZipReader to
@@ -84,6 +85,8 @@ class StreamingLineReader {
   size_t size_before_write_ = 0;
 };
 
-}  // namespace perfetto::trace_processor::util
+}  // namespace util
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_UTIL_STREAMING_LINE_READER_H_

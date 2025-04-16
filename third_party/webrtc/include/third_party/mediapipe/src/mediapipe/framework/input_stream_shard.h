@@ -17,6 +17,7 @@
 
 #include <queue>
 #include <string>
+#include <utility>
 
 #include "mediapipe/framework/input_stream.h"
 #include "mediapipe/framework/packet.h"

@@ -18,7 +18,6 @@ class DeviceOrientationData;
 class DeviceOrientationEventPump;
 class Event;
 class ScriptState;
-class V8PermissionState;
 
 class MODULES_EXPORT DeviceOrientationController
     : public DeviceSingleWindowEventController,
@@ -39,15 +38,13 @@ class MODULES_EXPORT DeviceOrientationController
   void SetOverride(DeviceOrientationData*);
   void ClearOverride();
 
-  void RestartPumpIfNeeded();
-
   void Trace(Visitor*) const override;
 
   static void LogToConsolePolicyFeaturesDisabled(
       LocalFrame&,
       const AtomicString& event_name);
 
-  ScriptPromise<V8PermissionState> RequestPermission(ScriptState*);
+  ScriptPromise RequestPermission(ScriptState*);
 
  protected:
   void RegisterWithOrientationEventPump(bool absolute);

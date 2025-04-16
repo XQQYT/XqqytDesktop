@@ -16,6 +16,7 @@
 #define GRPC_SRC_CORE_LIB_EVENT_ENGINE_POSIX_ENGINE_INTERNAL_ERRQUEUE_H
 
 #include <grpc/support/port_platform.h>
+
 #include <stdint.h>
 
 #include "src/core/lib/iomgr/port.h"
@@ -29,7 +30,8 @@
 #include <sys/socket.h>
 #endif  // GRPC_LINUX_ERRQUEUE
 
-namespace grpc_event_engine::experimental {
+namespace grpc_event_engine {
+namespace experimental {
 
 #ifdef GRPC_LINUX_ERRQUEUE
 
@@ -169,7 +171,8 @@ int GetSocketTcpInfo(tcp_info* info, int fd);
 // Currently allowing only linux kernels above 4.0.0
 bool KernelSupportsErrqueue();
 
-}  // namespace grpc_event_engine::experimental
+}  // namespace experimental
+}  // namespace grpc_event_engine
 
 #endif  // GRPC_POSIX_SOCKET_TCP
 

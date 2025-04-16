@@ -5,10 +5,9 @@
 #ifndef BASE_TIME_TIME_DELTA_FROM_STRING_H_
 #define BASE_TIME_TIME_DELTA_FROM_STRING_H_
 
-#include <optional>
-#include <string_view>
-
 #include "base/base_export.h"
+#include "base/strings/string_piece.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base {
 
@@ -28,11 +27,11 @@ class TimeDelta;
 //  "0", "+0", "-0" -> TimeDelta()
 //  "inf", "+inf"   -> TimeDelta::Max()
 //  "-inf"          -> TimeDelta::Min()
-// Returns `std::nullopt` when parsing fails. Numbers larger than 2^63-1
+// Returns `absl::nullopt` when parsing fails. Numbers larger than 2^63-1
 // will fail parsing. Overflowing `number * unit` will return +/-inf, as
 // appropriate.
-BASE_EXPORT std::optional<TimeDelta> TimeDeltaFromString(
-    std::string_view duration_string);
+BASE_EXPORT absl::optional<TimeDelta> TimeDeltaFromString(
+    StringPiece duration_string);
 
 }  // namespace base
 

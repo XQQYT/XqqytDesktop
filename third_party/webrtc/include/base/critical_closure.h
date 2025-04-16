@@ -5,33 +5,30 @@
 #ifndef BASE_CRITICAL_CLOSURE_H_
 #define BASE_CRITICAL_CLOSURE_H_
 
-#include <string_view>
 #include <utility>
 
 #include "base/functional/callback.h"
 #include "base/location.h"
+#include "base/strings/string_piece.h"
 #include "build/build_config.h"
-#include "build/ios_buildflags.h"
 
-#if BUILDFLAG(IS_IOS) && !BUILDFLAG(IS_IOS_APP_EXTENSION)
-#include <optional>
-
+#if BUILDFLAG(IS_IOS)
 #include "base/functional/bind.h"
 #include "base/ios/scoped_critical_action.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #endif
 
 namespace base {
 
 namespace internal {
 
-#if BUILDFLAG(IS_IOS) && !BUILDFLAG(IS_IOS_APP_EXTENSION)
+#if BUILDFLAG(IS_IOS)
 // This class wraps a closure so it can continue to run for a period of time
 // when the application goes to the background by using
 // |ios::ScopedCriticalAction|.
 class ImmediateCriticalClosure {
  public:
-  explicit ImmediateCriticalClosure(std::string_view task_name,
-                                    OnceClosure closure);
+  explicit ImmediateCriticalClosure(StringPiece task_name, OnceClosure closure);
   ImmediateCriticalClosure(const ImmediateCriticalClosure&) = delete;
   ImmediateCriticalClosure& operator=(const ImmediateCriticalClosure&) = delete;
   ~ImmediateCriticalClosure();
@@ -46,15 +43,14 @@ class ImmediateCriticalClosure {
 // is started when the action runs, not when the CriticalAction is created.
 class PendingCriticalClosure {
  public:
-  explicit PendingCriticalClosure(std::string_view task_name,
-                                  OnceClosure closure);
+  explicit PendingCriticalClosure(StringPiece task_name, OnceClosure closure);
   PendingCriticalClosure(const PendingCriticalClosure&) = delete;
   PendingCriticalClosure& operator=(const PendingCriticalClosure&) = delete;
   ~PendingCriticalClosure();
   void Run();
 
  private:
-  std::optional<ios::ScopedCriticalAction> critical_action_;
+  absl::optional<ios::ScopedCriticalAction> critical_action_;
   std::string task_name_;
   OnceClosure closure_;
 };
@@ -82,8 +78,8 @@ class PendingCriticalClosure {
 //
 // This function is used automatically for tasks posted to a sequence runner
 // using TaskShutdownBehavior::BLOCK_SHUTDOWN.
-#if BUILDFLAG(IS_IOS) && !BUILDFLAG(IS_IOS_APP_EXTENSION)
-inline OnceClosure MakeCriticalClosure(std::string_view task_name,
+#if BUILDFLAG(IS_IOS)
+inline OnceClosure MakeCriticalClosure(StringPiece task_name,
                                        OnceClosure closure,
                                        bool is_immediate) {
   // Wrapping a null closure in a critical closure has unclear semantics and
@@ -108,9 +104,9 @@ inline OnceClosure MakeCriticalClosure(const Location& posted_from,
                              is_immediate);
 }
 
-#else  // BUILDFLAG(IS_IOS) && !BUILDFLAG(IS_IOS_APP_EXTENSION)
+#else  // BUILDFLAG(IS_IOS)
 
-inline OnceClosure MakeCriticalClosure(std::string_view task_name,
+inline OnceClosure MakeCriticalClosure(StringPiece task_name,
                                        OnceClosure closure,
                                        bool is_immediate) {
   // No-op for platforms where the application does not need to acquire
@@ -124,7 +120,7 @@ inline OnceClosure MakeCriticalClosure(const Location& posted_from,
   return closure;
 }
 
-#endif  // BUILDFLAG(IS_IOS) && !BUILDFLAG(IS_IOS_APP_EXTENSION)
+#endif  // BUILDFLAG(IS_IOS)
 
 }  // namespace base
 

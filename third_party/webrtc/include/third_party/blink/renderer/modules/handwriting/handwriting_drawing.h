@@ -14,7 +14,6 @@
 namespace blink {
 
 class ExecutionContext;
-class HandwritingPrediction;
 class HandwritingRecognizer;
 class HandwritingStroke;
 class ScriptState;
@@ -36,8 +35,7 @@ class HandwritingDrawing final : public ScriptWrappable {
   void addStroke(HandwritingStroke* stroke);
   void removeStroke(const HandwritingStroke* stroke);
   void clear();
-  ScriptPromise<IDLSequence<HandwritingPrediction>> getPrediction(
-      ScriptState* script_state);
+  ScriptPromise getPrediction(ScriptState* script_state);
   const HeapVector<Member<HandwritingStroke>>& getStrokes();
 
   void Trace(Visitor* visitor) const override;

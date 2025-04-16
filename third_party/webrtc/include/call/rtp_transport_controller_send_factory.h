@@ -12,19 +12,20 @@
 #define CALL_RTP_TRANSPORT_CONTROLLER_SEND_FACTORY_H_
 
 #include <memory>
+#include <utility>
 
-#include "call/rtp_transport_config.h"
 #include "call/rtp_transport_controller_send.h"
 #include "call/rtp_transport_controller_send_factory_interface.h"
-#include "call/rtp_transport_controller_send_interface.h"
 
 namespace webrtc {
 class RtpTransportControllerSendFactory
     : public RtpTransportControllerSendFactoryInterface {
  public:
   std::unique_ptr<RtpTransportControllerSendInterface> Create(
-      const RtpTransportConfig& config) override {
-    return std::make_unique<RtpTransportControllerSend>(config);
+      const RtpTransportConfig& config,
+      Clock* clock) override {
+    RTC_CHECK(config.trials);
+    return std::make_unique<RtpTransportControllerSend>(clock, config);
   }
 
   virtual ~RtpTransportControllerSendFactory() {}

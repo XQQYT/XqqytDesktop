@@ -12,22 +12,25 @@
 #define CALL_ADAPTATION_RESOURCE_ADAPTATION_PROCESSOR_H_
 
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "api/adaptation/resource.h"
-#include "api/ref_count.h"
+#include "api/rtp_parameters.h"
 #include "api/scoped_refptr.h"
-#include "api/sequence_checker.h"
 #include "api/task_queue/task_queue_base.h"
 #include "api/video/video_adaptation_counters.h"
+#include "api/video/video_frame.h"
 #include "call/adaptation/resource_adaptation_processor_interface.h"
 #include "call/adaptation/video_source_restrictions.h"
 #include "call/adaptation/video_stream_adapter.h"
-#include "rtc_base/synchronization/mutex.h"
-#include "rtc_base/thread_annotations.h"
+#include "call/adaptation/video_stream_input_state.h"
+#include "call/adaptation/video_stream_input_state_provider.h"
+#include "video/video_stream_encoder_observer.h"
 
 namespace webrtc {
 
@@ -81,7 +84,7 @@ class ResourceAdaptationProcessor : public ResourceAdaptationProcessorInterface,
   // If resource usage measurements happens off the adaptation task queue, this
   // class takes care of posting the measurement for the processor to handle it
   // on the adaptation task queue.
-  class ResourceListenerDelegate : public RefCountInterface,
+  class ResourceListenerDelegate : public rtc::RefCountInterface,
                                    public ResourceListener {
    public:
     explicit ResourceListenerDelegate(ResourceAdaptationProcessor* processor);

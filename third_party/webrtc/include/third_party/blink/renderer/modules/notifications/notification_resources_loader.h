@@ -51,7 +51,7 @@ class MODULES_EXPORT NotificationResourcesLoader final
   // pre-finalizer.
   void Stop();
 
-  void Trace(Visitor* visitor) const;
+  virtual void Trace(Visitor* visitor) const;
 
  private:
   void LoadIcon(ExecutionContext* context,

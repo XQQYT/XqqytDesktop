@@ -13,10 +13,10 @@
 
 #include <cstddef>
 #include <memory>
-#include <optional>
 #include <string>
 
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "api/test/frame_generator_interface.h"
 #include "rtc_base/checks.h"
 #include "test/testsupport/frame_reader.h"
@@ -45,13 +45,11 @@ class Y4mFrameGenerator : public FrameGeneratorInterface {
 
   VideoFrameData NextFrame() override;
 
-  void SkipNextFrame() override;
-
   void ChangeResolution(size_t width, size_t height) override;
 
   Resolution GetResolution() const override;
 
-  std::optional<int> fps() const override { return fps_; }
+  absl::optional<int> fps() const override { return fps_; }
 
  private:
   YuvFrameReaderImpl::RepeatMode ToYuvFrameReaderRepeatMode(

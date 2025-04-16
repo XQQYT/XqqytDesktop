@@ -20,15 +20,15 @@
 #define GRPC_SRC_CORE_EXT_FILTERS_LOGGING_LOGGING_SINK_H
 
 #include <grpc/support/port_platform.h>
+
 #include <stdint.h>
 
 #include <map>
 #include <string>
 
-#include "absl/numeric/int128.h"
-#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
-#include "src/core/util/time.h"
+
+#include "src/core/lib/gprpp/time.h"
 
 namespace grpc_core {
 
@@ -62,7 +62,7 @@ class LoggingSink {
 
   struct Entry {
     enum class EventType {
-      kUnknown = 0,
+      kUnkown = 0,
       kClientHeader,
       kServerHeader,
       kClientMessage,
@@ -72,41 +72,7 @@ class LoggingSink {
       kCancel
     };
 
-    static std::string EventTypeString(EventType type) {
-      switch (type) {
-        case EventType::kUnknown:
-          return "UNKNOWN";
-        case EventType::kClientHeader:
-          return "CLIENT_HEADER";
-        case EventType::kServerHeader:
-          return "SERVER_HEADER";
-        case EventType::kClientMessage:
-          return "CLIENT_MESSAGE";
-        case EventType::kServerMessage:
-          return "SERVER_MESSAGE";
-        case EventType::kClientHalfClose:
-          return "CLIENT_HALF_CLOSE";
-        case EventType::kServerTrailer:
-          return "SERVER_TRAILER";
-        case EventType::kCancel:
-          return "CANCEL";
-      }
-      return absl::StrCat("INVALID(", static_cast<int>(type), ")");
-    }
-
-    enum class Logger { kUnknown = 0, kClient, kServer };
-
-    static std::string LoggerString(Logger logger) {
-      switch (logger) {
-        case Logger::kUnknown:
-          return "UNKNOWN";
-        case Logger::kClient:
-          return "CLIENT";
-        case Logger::kServer:
-          return "SERVER";
-      }
-      return absl::StrCat("INVALID(", static_cast<int>(logger), ")");
-    }
+    enum class Logger { kUnkown = 0, kClient, kServer };
 
     struct Payload {
       std::map<std::string, std::string> metadata;
@@ -125,10 +91,10 @@ class LoggingSink {
       uint32_t ip_port = 0;
     };
 
-    absl::uint128 call_id = 0;
+    uint64_t call_id = 0;
     uint64_t sequence_id = 0;
-    EventType type = LoggingSink::Entry::EventType::kUnknown;
-    Logger logger = LoggingSink::Entry::Logger::kUnknown;
+    EventType type = LoggingSink::Entry::EventType::kUnkown;
+    Logger logger = LoggingSink::Entry::Logger::kUnkown;
     Payload payload;
     bool payload_truncated = false;
     Address peer;
@@ -136,11 +102,6 @@ class LoggingSink {
     std::string service_name;
     std::string method_name;
     Timestamp timestamp;
-    // Optional tracing details
-    std::string trace_id;
-    std::string span_id;
-    bool is_sampled = false;
-    bool is_trailer_only = false;
   };
 
   virtual ~LoggingSink() = default;
@@ -150,16 +111,6 @@ class LoggingSink {
 
   virtual void LogEntry(Entry entry) = 0;
 };
-
-inline std::ostream& operator<<(std::ostream& out,
-                                const LoggingSink::Entry::EventType& type) {
-  return out << LoggingSink::Entry::EventTypeString(type);
-}
-
-inline std::ostream& operator<<(std::ostream& out,
-                                const LoggingSink::Entry::Logger& logger) {
-  return out << LoggingSink::Entry::LoggerString(logger);
-}
 
 }  // namespace grpc_core
 

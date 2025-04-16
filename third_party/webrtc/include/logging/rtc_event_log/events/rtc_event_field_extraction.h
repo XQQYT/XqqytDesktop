@@ -11,10 +11,13 @@
 #ifndef LOGGING_RTC_EVENT_LOG_EVENTS_RTC_EVENT_FIELD_EXTRACTION_H_
 #define LOGGING_RTC_EVENT_LOG_EVENTS_RTC_EVENT_FIELD_EXTRACTION_H_
 
-#include <cstdint>
-#include <type_traits>
+#include <string>
 #include <vector>
 
+#include "absl/types/optional.h"
+#include "api/array_view.h"
+#include "api/rtc_event_log/rtc_event.h"
+#include "api/units/timestamp.h"
 #include "logging/rtc_event_log/encoder/rtc_event_log_encoder_common.h"
 #include "rtc_base/logging.h"
 

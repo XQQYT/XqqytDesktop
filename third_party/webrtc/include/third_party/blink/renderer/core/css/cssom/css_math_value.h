@@ -10,8 +10,6 @@
 
 namespace blink {
 
-class V8CSSMathOperator;
-
 // Represents mathematical operations, acting as nodes in a tree of
 // CSSNumericValues. See CSSMathValue.idl for more information about this class.
 class CORE_EXPORT CSSMathValue : public CSSNumericValue {
@@ -21,7 +19,7 @@ class CORE_EXPORT CSSMathValue : public CSSNumericValue {
   CSSMathValue(const CSSMathValue&) = delete;
   CSSMathValue& operator=(const CSSMathValue&) = delete;
 
-  virtual V8CSSMathOperator getOperator() const = 0;
+  virtual String getOperator() const = 0;
 
   // From CSSNumericValue.
   bool IsUnitValue() const final { return false; }

@@ -18,16 +18,18 @@
 #define SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_FUNCTIONS_WINDOW_FUNCTIONS_H_
 
 #include <sqlite3.h>
-#include <cstdint>
-#include <type_traits>
+#include <unordered_map>
+#include "perfetto/ext/base/base64.h"
+#include "perfetto/ext/base/file_utils.h"
+#include "perfetto/ext/trace_processor/demangle.h"
+#include "protos/perfetto/common/builtin_clock.pbzero.h"
+#include "src/trace_processor/export_json.h"
+#include "src/trace_processor/importers/common/clock_tracker.h"
+#include "src/trace_processor/perfetto_sql/intrinsics/functions/sql_function.h"
+#include "src/trace_processor/util/status_macros.h"
 
-#include "perfetto/base/logging.h"
-#include "src/trace_processor/perfetto_sql/engine/perfetto_sql_engine.h"
-#include "src/trace_processor/sqlite/bindings/sqlite_result.h"
-#include "src/trace_processor/sqlite/bindings/sqlite_window_function.h"
-
-namespace perfetto::trace_processor {
-
+namespace perfetto {
+namespace trace_processor {
 // Keeps track of the latest non null value and its position withing the
 // window. Every time the window shrinks (`xInverse` is called) the window size
 // is reduced by one and the position of the value moves one back, if it gets
@@ -87,59 +89,66 @@ class LastNonNullAggregateContext {
   sqlite3_value* last_non_null_value_;
 };
 
-static_assert(std::is_standard_layout_v<LastNonNullAggregateContext>,
+static_assert(std::is_standard_layout<LastNonNullAggregateContext>::value,
               "Must be able to be initialized by sqlite3_aggregate_context "
               "(similar to calloc, i.e. no constructor called)");
-static_assert(std::is_trivial_v<LastNonNullAggregateContext>,
+static_assert(std::is_trivial<LastNonNullAggregateContext>::value,
               "Must be able to be destroyed by just calling free (i.e. no "
               "destructor called)");
 
-class LastNonNull : public SqliteWindowFunction {
- public:
-  static void Step(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-    if (argc != 1) {
-      return sqlite::result::Error(
-          ctx, "Unsupported number of args passed to LAST_NON_NULL");
-    }
-
-    auto* ptr = LastNonNullAggregateContext::GetOrCreate(ctx);
-    if (!ptr) {
-      return sqlite::result::Error(ctx,
-                                   "LAST_NON_NULL: Failed to allocate context");
-    }
-
-    ptr->PushBack(argv[0]);
+inline void LastNonNullStep(sqlite3_context* ctx,
+                            int argc,
+                            sqlite3_value** argv) {
+  if (argc != 1) {
+    sqlite3_result_error(
+        ctx, "Unsupported number of args passed to LAST_NON_NULL", -1);
+    return;
   }
 
-  static void Inverse(sqlite3_context* ctx, int, sqlite3_value**) {
-    auto* ptr = LastNonNullAggregateContext::GetOrCreate(ctx);
-    PERFETTO_CHECK(ptr != nullptr);
-    ptr->PopFront();
+  auto* ptr = LastNonNullAggregateContext::GetOrCreate(ctx);
+  if (!ptr) {
+    sqlite3_result_error(ctx, "LAST_NON_NULL: Failed to allocate context", -1);
+    return;
   }
 
-  static void Value(sqlite3_context* ctx) {
-    auto* ptr = LastNonNullAggregateContext::GetOrCreate(ctx);
-    if (!ptr || !ptr->last_non_null_value()) {
-      return sqlite::result::Null(ctx);
-    }
-    sqlite3_result_value(ctx, ptr->last_non_null_value());
-  }
-
-  static void Final(sqlite3_context* ctx) {
-    auto* ptr = LastNonNullAggregateContext::Get(ctx);
-    if (!ptr || !ptr->last_non_null_value()) {
-      return sqlite::result::Null(ctx);
-    }
-    sqlite::result::Value(ctx, ptr->last_non_null_value());
-    ptr->Destroy();
-  }
-};
-
-inline base::Status RegisterLastNonNullFunction(PerfettoSqlEngine& engine) {
-  return engine.RegisterSqliteWindowFunction<LastNonNull>("LAST_NON_NULL", 1,
-                                                          nullptr);
+  ptr->PushBack(argv[0]);
 }
 
-}  // namespace perfetto::trace_processor
+inline void LastNonNullInverse(sqlite3_context* ctx, int, sqlite3_value**) {
+  auto* ptr = LastNonNullAggregateContext::GetOrCreate(ctx);
+  PERFETTO_CHECK(ptr != nullptr);
+  ptr->PopFront();
+}
+
+inline void LastNonNullValue(sqlite3_context* ctx) {
+  auto* ptr = LastNonNullAggregateContext::GetOrCreate(ctx);
+  if (!ptr || !ptr->last_non_null_value()) {
+    sqlite3_result_null(ctx);
+  } else {
+    sqlite3_result_value(ctx, ptr->last_non_null_value());
+  }
+}
+
+inline void LastNonNullFinal(sqlite3_context* ctx) {
+  auto* ptr = LastNonNullAggregateContext::Get(ctx);
+  if (!ptr || !ptr->last_non_null_value()) {
+    sqlite3_result_null(ctx);
+  } else {
+    sqlite3_result_value(ctx, ptr->last_non_null_value());
+    ptr->Destroy();
+  }
+}
+
+inline void RegisterLastNonNullFunction(sqlite3* db) {
+  auto ret = sqlite3_create_window_function(
+      db, "LAST_NON_NULL", 1, SQLITE_UTF8 | SQLITE_DETERMINISTIC, nullptr,
+      &LastNonNullStep, &LastNonNullFinal, &LastNonNullValue,
+      &LastNonNullInverse, nullptr);
+  if (ret) {
+    PERFETTO_ELOG("Error initializing LAST_NON_NULL");
+  }
+}
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_FUNCTIONS_WINDOW_FUNCTIONS_H_

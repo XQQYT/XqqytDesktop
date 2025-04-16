@@ -152,17 +152,6 @@ struct TracingInitArgs {
   // event tracks for the same thread.
   bool disallow_merging_with_system_tracks = false;
 
-  // If set, this function will be called by the producer client to create a
-  // socket for connection to the system service. The function takes one
-  // argument: a callback that takes an open file descriptor. The function
-  // should create a socket with the name defined by
-  // perfetto::GetProducerSocket(), connect to it, and return the corresponding
-  // descriptor via the callback.
-  // This is intended for the use-case where a process being traced is run
-  // inside a sandbox and can't create sockets directly.
-  // Not yet supported for consumer connections currently.
-  CreateSocketAsync create_socket_async = nullptr;
-
  protected:
   friend class Tracing;
   friend class internal::TracingMuxerImpl;
@@ -344,36 +333,12 @@ class PERFETTO_EXPORT_COMPONENT TracingSession {
   // started.
   virtual void StartBlocking() = 0;
 
-  // Struct passed as argument to the callback passed to CloneTrace().
-  struct CloneTraceCallbackArgs {
-    bool success;
-    std::string error;
-    // UUID of the cloned session.
-    int64_t uuid_msb;
-    int64_t uuid_lsb;
-  };
-
-  // Struct passed as argument to CloneTrace().
-  struct CloneTraceArgs {
-    // The unique_session_name of the session that should be cloned.
-    std::string unique_session_name;
-  };
-
-  // Clones an existing initialized tracing session from the same `BackendType`
-  // as this tracing session, and attaches to it. The session is cloned in
-  // read-only mode and can only be used to read a snapshot of an existing
-  // tracing session. For each session, only one CloneTrace call can be pending
-  // at the same time; subsequent calls after the callback is executed are
-  // supported.
-  using CloneTraceCallback = std::function<void(CloneTraceCallbackArgs)>;
-  virtual void CloneTrace(CloneTraceArgs args, CloneTraceCallback);
-
   // This callback will be invoked when all data sources have acknowledged that
   // tracing has started. This callback will be invoked on an internal perfetto
   // thread.
   virtual void SetOnStartCallback(std::function<void()>) = 0;
 
-  // This callback can be used to get a notification when some error occurred
+  // This callback can be used to get a notification when some error occured
   // (e.g., peer disconnection). Error type will be passed as an argument. This
   // callback will be invoked on an internal perfetto thread.
   virtual void SetOnErrorCallback(std::function<void(TracingError)>) = 0;
@@ -527,8 +492,8 @@ class PERFETTO_EXPORT_COMPONENT StartupTracingSession {
   virtual void AbortBlocking() = 0;
 };
 
-PERFETTO_ALWAYS_INLINE inline std::unique_ptr<TracingSession> Tracing::NewTrace(
-    BackendType backend) {
+PERFETTO_ALWAYS_INLINE inline std::unique_ptr<TracingSession>
+Tracing::NewTrace(BackendType backend) {
   // This code is inlined to allow dead-code elimination for unused consumer
   // implementation. The logic behind it is the following:
   // Nothing other than the code below references the GetInstance() method

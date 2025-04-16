@@ -11,20 +11,12 @@
 #ifndef TEST_AUDIO_DECODER_PROXY_FACTORY_H_
 #define TEST_AUDIO_DECODER_PROXY_FACTORY_H_
 
-#include <cstddef>
-#include <cstdint>
 #include <memory>
-#include <optional>
 #include <utility>
 #include <vector>
 
-#include "api/audio_codecs/audio_codec_pair_id.h"
 #include "api/audio_codecs/audio_decoder.h"
 #include "api/audio_codecs/audio_decoder_factory.h"
-#include "api/audio_codecs/audio_format.h"
-#include "api/environment/environment.h"
-#include "rtc_base/buffer.h"
-#include "rtc_base/checks.h"
 
 namespace webrtc {
 namespace test {
@@ -47,10 +39,9 @@ class AudioDecoderProxyFactory : public AudioDecoderFactory {
     return true;
   }
 
-  std::unique_ptr<AudioDecoder> Create(
-      const Environment& /* env */,
+  std::unique_ptr<AudioDecoder> MakeAudioDecoder(
       const SdpAudioFormat& /* format */,
-      std::optional<AudioCodecPairId> /* codec_pair_id */) override {
+      absl::optional<AudioCodecPairId> /* codec_pair_id */) override {
     return std::make_unique<DecoderProxy>(decoder_);
   }
 

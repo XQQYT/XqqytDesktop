@@ -55,15 +55,15 @@ class VisibleSelectionTemplate {
   TextAffinity Affinity() const { return affinity_; }
 
   SelectionTemplate<Strategy> AsSelection() const;
-  PositionTemplate<Strategy> Anchor() const { return anchor_; }
-  PositionTemplate<Strategy> Focus() const { return focus_; }
+  PositionTemplate<Strategy> Base() const { return base_; }
+  PositionTemplate<Strategy> Extent() const { return extent_; }
   PositionTemplate<Strategy> Start() const;
   PositionTemplate<Strategy> End() const;
 
   VisiblePositionTemplate<Strategy> VisibleStart() const;
   VisiblePositionTemplate<Strategy> VisibleEnd() const;
-  VisiblePositionTemplate<Strategy> VisibleAnchor() const;
-  VisiblePositionTemplate<Strategy> VisibleFocus() const;
+  VisiblePositionTemplate<Strategy> VisibleBase() const;
+  VisiblePositionTemplate<Strategy> VisibleExtent() const;
 
   bool operator==(const VisibleSelectionTemplate&) const;
   bool operator!=(const VisibleSelectionTemplate& other) const {
@@ -74,8 +74,8 @@ class VisibleSelectionTemplate {
   bool IsCaret() const;
   bool IsRange() const;
 
-  // True if Anchor() <= Focus().
-  bool IsAnchorFirst() const { return anchor_is_first_; }
+  // True if base() <= extent().
+  bool IsBaseFirst() const { return base_is_first_; }
 
   // TODO(yosin) Most callers probably don't want these functions, but
   // are using them for historical reasons. |toNormalizedEphemeralRange()|
@@ -104,14 +104,14 @@ class VisibleSelectionTemplate {
   // currently invalid, will be valid once the changes are undone.
 
   // Where the first click happened
-  PositionTemplate<Strategy> anchor_;
+  PositionTemplate<Strategy> base_;
   // Where the end click happened
-  PositionTemplate<Strategy> focus_;
+  PositionTemplate<Strategy> extent_;
 
   TextAffinity affinity_;  // the upstream/downstream affinity of the caret
 
   // these are cached, can be recalculated by validate()
-  bool anchor_is_first_ : 1;  // True if anchor is before the focus
+  bool base_is_first_ : 1;        // True if base is before the extent
 };
 
 extern template class CORE_EXTERN_TEMPLATE_EXPORT

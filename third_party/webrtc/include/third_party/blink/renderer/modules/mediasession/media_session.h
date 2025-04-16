@@ -8,7 +8,6 @@
 #include "base/memory/raw_ptr.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "third_party/blink/public/mojom/mediasession/media_session.mojom-blink.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_media_session_action.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
@@ -31,7 +30,6 @@ class MediaMetadata;
 class MediaPositionState;
 class Navigator;
 class V8MediaSessionActionHandler;
-class V8MediaSessionPlaybackState;
 
 class MODULES_EXPORT MediaSession final
     : public ScriptWrappable,
@@ -44,13 +42,13 @@ class MODULES_EXPORT MediaSession final
   static MediaSession* mediaSession(Navigator&);
   explicit MediaSession(Navigator&);
 
-  void setPlaybackState(const V8MediaSessionPlaybackState&);
-  V8MediaSessionPlaybackState playbackState();
+  void setPlaybackState(const String&);
+  String playbackState();
 
   void setMetadata(MediaMetadata*);
   MediaMetadata* metadata() const;
 
-  void setActionHandler(const V8MediaSessionAction& action,
+  void setActionHandler(const String& action,
                         V8MediaSessionActionHandler*,
                         ExceptionState&);
 
@@ -75,7 +73,7 @@ class MODULES_EXPORT MediaSession final
     kActionDisabled,
   };
 
-  void NotifyActionChange(V8MediaSessionAction::Enum action, ActionChangeType);
+  void NotifyActionChange(const String& action, ActionChangeType);
 
   base::TimeDelta GetPositionNow() const;
 
@@ -94,8 +92,7 @@ class MODULES_EXPORT MediaSession final
   media_session::mojom::blink::MediaPositionPtr position_state_;
   double declared_playback_rate_ = 0.0;
   Member<MediaMetadata> metadata_;
-  HeapHashMap<V8MediaSessionAction::Enum, Member<V8MediaSessionActionHandler>>
-      action_handlers_;
+  HeapHashMap<String, Member<V8MediaSessionActionHandler>> action_handlers_;
   HeapMojoRemote<mojom::blink::MediaSessionService> service_;
   HeapMojoReceiver<blink::mojom::blink::MediaSessionClient, MediaSession>
       client_receiver_;

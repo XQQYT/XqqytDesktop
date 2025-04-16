@@ -43,7 +43,10 @@ class WorkerLocation final : public ScriptWrappable,
   explicit WorkerLocation(const KURL& url) : url_(url) {}
 
   KURL Url() const override { return url_; }
-  String Input() const override { NOTREACHED(); }
+  String Input() const override {
+    NOTREACHED();
+    return String();
+  }
 
  private:
   KURL url_;

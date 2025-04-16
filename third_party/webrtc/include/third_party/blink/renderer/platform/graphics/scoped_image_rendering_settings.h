@@ -6,7 +6,7 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_GRAPHICS_SCOPED_IMAGE_RENDERING_SETTINGS_H_
 
 #include "third_party/blink/renderer/platform/graphics/graphics_context.h"
-#include "third_party/blink/renderer/platform/graphics/graphics_context_types.h"
+#include "third_party/blink/renderer/platform/graphics/graphics_types.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 
 namespace blink {
@@ -19,9 +19,10 @@ class ScopedImageRenderingSettings {
   STACK_ALLOCATED();
 
  public:
-  ScopedImageRenderingSettings(GraphicsContext& context,
-                               InterpolationQuality interpolation_quality,
-                               DynamicRangeLimit dynamic_range_limit)
+  ScopedImageRenderingSettings(
+      GraphicsContext& context,
+      InterpolationQuality interpolation_quality,
+      cc::PaintFlags::DynamicRangeLimit dynamic_range_limit)
       : context_(context),
         previous_interpolation_quality_(context.ImageInterpolationQuality()),
         previous_dynamic_range_limit_(context.DynamicRangeLimit()) {
@@ -37,8 +38,6 @@ class ScopedImageRenderingSettings {
     if (previous_interpolation_quality_ !=
         context_.ImageInterpolationQuality()) {
       context_.SetImageInterpolationQuality(previous_interpolation_quality_);
-    }
-    if (previous_dynamic_range_limit_ != context_.DynamicRangeLimit()) {
       context_.SetDynamicRangeLimit(previous_dynamic_range_limit_);
     }
   }
@@ -46,7 +45,7 @@ class ScopedImageRenderingSettings {
  private:
   GraphicsContext& context_;
   const InterpolationQuality previous_interpolation_quality_;
-  const DynamicRangeLimit previous_dynamic_range_limit_;
+  const cc::PaintFlags::DynamicRangeLimit previous_dynamic_range_limit_;
 };
 
 }  // namespace blink

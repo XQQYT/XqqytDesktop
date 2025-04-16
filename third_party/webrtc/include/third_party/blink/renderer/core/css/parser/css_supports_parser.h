@@ -11,6 +11,7 @@
 namespace blink {
 
 class CSSParserImpl;
+class CSSParserToken;
 class CSSParserTokenStream;
 
 class CORE_EXPORT CSSSupportsParser {
@@ -18,15 +19,23 @@ class CORE_EXPORT CSSSupportsParser {
 
  public:
   enum class Result {
-    // The supports condition evaluated to 'false'. The child rules of the
-    // the @supports rule should have no effect.
+    // kUnsupported/kSupported means that we parsed the @supports
+    // successfully, and conclusively determined that we either support or
+    // don't support the feature.
     kUnsupported,
-    // The supports condition evaluated to 'true'. The child rules of the
-    // the @supports rule *should* have an effect.
     kSupported,
-    // Used when the grammar of @supports was violated. If this is returned,
-    // the entire @supports rule (including the child rules) should
-    // be dropped.
+    // This is used to signal parse failure in the @supports syntax itself.
+    // This means that for a production like:
+    //
+    // <supports-in-parens> = ( <supports-condition> )
+    //                    | <supports-feature>
+    //                    | <general-enclosed>
+    //
+    // If ConsumeSupportsCondition returns a kParseFailure, we'll proceed to
+    // trying the ConsumeGeneralEnclosed branch. Had however
+    // ConsumeSupportsCondition returned kUnsupported, we would consider this a
+    // conclusive answer, and would have returned kUnsupported without trying
+    // any further parsing branches.
     kParseFailure
   };
 
@@ -35,7 +44,7 @@ class CORE_EXPORT CSSSupportsParser {
  private:
   friend class CSSSupportsParserTest;
 
-  explicit CSSSupportsParser(CSSParserImpl& parser) : parser_(parser) {}
+  CSSSupportsParser(CSSParserImpl& parser) : parser_(parser) {}
 
   // Parsing functions follow, as defined by:
   // https://drafts.csswg.org/css-conditional-3/#typedef-supports-condition
@@ -51,29 +60,38 @@ class CORE_EXPORT CSSSupportsParser {
   Result ConsumeSupportsInParens(CSSParserTokenStream&);
 
   // <supports-feature> = <supports-selector-fn> | <supports-decl>
-  bool ConsumeSupportsFeature(CSSParserTokenStream&);
+  Result ConsumeSupportsFeature(const CSSParserToken&, CSSParserTokenStream&);
 
   // <supports-selector-fn> = selector( <complex-selector> )
-  bool ConsumeSupportsSelectorFn(CSSParserTokenStream&);
+  Result ConsumeSupportsSelectorFn(const CSSParserToken&,
+                                   CSSParserTokenStream&);
 
   // <supports-font-tech-fn> = font-tech( <font-tech> )
-  bool ConsumeFontTechFn(CSSParserTokenStream& stream);
+  Result ConsumeFontTechFn(const CSSParserToken& first_token,
+                           CSSParserTokenStream& stream);
 
   // <supports-font-format-fn> = font-format( <font-format> )
-  bool ConsumeFontFormatFn(CSSParserTokenStream& stream);
-
-  // <supports-at-rule-fn> = at-rule( <at-rule> [ ; <descriptor> : <value> ]? )
-  bool ConsumeAtRuleFn(CSSParserTokenStream& stream);
+  Result ConsumeFontFormatFn(const CSSParserToken& first_token,
+                             CSSParserTokenStream& stream);
 
   // <supports-decl> = ( <declaration> )
-  bool ConsumeSupportsDecl(CSSParserTokenStream&);
+  Result ConsumeSupportsDecl(const CSSParserToken&, CSSParserTokenStream&);
 
   // <general-enclosed> = [ <function-token> <any-value>? ) ]
   //                  | ( <any-value>? )
-  bool ConsumeGeneralEnclosed(CSSParserTokenStream&);
+  Result ConsumeGeneralEnclosed(const CSSParserToken&, CSSParserTokenStream&);
 
-  // This is an internal feature which is not web-exposed.
-  bool ConsumeBlinkFeatureFn(CSSParserTokenStream&);
+  // Parsing helpers.
+  static bool IsSupportsInParens(const CSSParserToken&);
+  static bool IsEnclosedSupportsCondition(const CSSParserToken&,
+                                          const CSSParserToken&);
+  static bool IsSupportsSelectorFn(const CSSParserToken&,
+                                   const CSSParserToken&);
+  static bool IsFontTechFn(const CSSParserToken&, const CSSParserToken&);
+  static bool IsFontFormatFn(const CSSParserToken&, const CSSParserToken&);
+  static bool IsSupportsDecl(const CSSParserToken&, const CSSParserToken&);
+  static bool IsSupportsFeature(const CSSParserToken&, const CSSParserToken&);
+  static bool IsGeneralEnclosed(const CSSParserToken&);
 
   CSSParserImpl& parser_;
 };

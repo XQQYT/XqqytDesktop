@@ -40,7 +40,7 @@ namespace blink {
 
 class AffineTransform;
 
-enum RespectImageOrientationEnum : uint8_t {
+enum RespectImageOrientationEnum {
   kDoNotRespectImageOrientation = 0,
   kRespectImageOrientation = 1
 };

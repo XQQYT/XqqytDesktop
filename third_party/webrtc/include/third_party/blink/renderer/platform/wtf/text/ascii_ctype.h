@@ -26,11 +26,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/351564777): Remove this and convert code to safer constructs.
-#pragma allow_unsafe_buffers
-#endif
-
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TEXT_ASCII_CTYPE_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TEXT_ASCII_CTYPE_H_
 
@@ -53,7 +48,7 @@
 namespace WTF {
 
 template <typename CharType>
-constexpr inline bool IsASCII(CharType c) {
+inline bool IsASCII(CharType c) {
   return !(c & ~0x7F);
 }
 
@@ -126,7 +121,7 @@ inline char ToASCIILower(char c) {
 }
 
 template <typename CharType>
-constexpr inline CharType ToASCIIUpper(CharType c) {
+inline CharType ToASCIIUpper(CharType c) {
   return c & ~((c >= 'a' && c <= 'z') << 5);
 }
 
@@ -160,10 +155,7 @@ inline bool IsASCIIAlphaCaselessEqual(CharType css_character, char character) {
   // lowercase letter to any input character.
   DCHECK_GE(character, 'a');
   DCHECK_LE(character, 'z');
-  if ((css_character | 0x20) == character) [[likely]] {
-    return true;
-  }
-  return false;
+  return LIKELY((css_character | 0x20) == character);
 }
 
 }  // namespace WTF

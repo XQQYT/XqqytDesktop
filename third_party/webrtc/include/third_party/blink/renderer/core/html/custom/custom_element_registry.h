@@ -7,7 +7,6 @@
 
 #include "base/gtest_prod_util.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_custom_element_constructor.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_custom_element_constructor_hash.h"
 #include "third_party/blink/renderer/core/core_export.h"
@@ -29,6 +28,7 @@ class Element;
 class ElementDefinitionOptions;
 class ExceptionState;
 class LocalDOMWindow;
+class ScriptPromiseResolver;
 class ScriptState;
 class ScriptValue;
 
@@ -49,13 +49,9 @@ class CORE_EXPORT CustomElementRegistry final : public ScriptWrappable {
                                   const ElementDefinitionOptions*,
                                   ExceptionState&);
 
-  // Access to custom element definitions. Name here refers to the
-  // https://whatwg.org/C/#concept-custom-element-definition-name.
-
   ScriptValue get(const AtomicString& name);
   const AtomicString& getName(V8CustomElementConstructor* constructor);
   bool NameIsDefined(const AtomicString& name) const;
-  Vector<AtomicString> DefinedNames() const;
   CustomElementDefinition* DefinitionForName(const AtomicString& name) const;
   CustomElementDefinition* DefinitionForConstructor(
       V8CustomElementConstructor*) const;
@@ -69,8 +65,9 @@ class CORE_EXPORT CustomElementRegistry final : public ScriptWrappable {
   // TODO(dominicc): Consider broadening this API when type extensions are
   // implemented.
   void AddCandidate(Element&);
-  ScriptPromise<V8CustomElementConstructor>
-  whenDefined(ScriptState*, const AtomicString& name, ExceptionState&);
+  ScriptPromise whenDefined(ScriptState*,
+                            const AtomicString& name,
+                            ExceptionState&);
   void upgrade(Node* root);
 
   const LocalDOMWindow* GetOwnerWindow() const { return owner_.Get(); }
@@ -103,9 +100,9 @@ class CORE_EXPORT CustomElementRegistry final : public ScriptWrappable {
 
   Member<const LocalDOMWindow> owner_;
 
-  using UpgradeCandidateSet = GCedHeapHashSet<WeakMember<Element>>;
+  using UpgradeCandidateSet = HeapHashSet<WeakMember<Element>>;
   using UpgradeCandidateMap =
-      GCedHeapHashMap<AtomicString, Member<UpgradeCandidateSet>>;
+      HeapHashMap<AtomicString, Member<UpgradeCandidateSet>>;
 
   // Candidate elements that can be upgraded with this registry later.
   // To make implementation simpler, we maintain a superset here, and remove
@@ -113,13 +110,12 @@ class CORE_EXPORT CustomElementRegistry final : public ScriptWrappable {
   Member<UpgradeCandidateMap> upgrade_candidates_;
 
   using WhenDefinedPromiseMap =
-      HeapHashMap<AtomicString,
-                  Member<ScriptPromiseResolver<V8CustomElementConstructor>>>;
+      HeapHashMap<AtomicString, Member<ScriptPromiseResolver>>;
   WhenDefinedPromiseMap when_defined_promise_map_;
 
   // Weak ordered set of all documents where this registry is used, in the order
   // of association between this registry and any tree scope in the document.
-  using AssociatedDocumentSet = GCedHeapLinkedHashSet<WeakMember<Document>>;
+  using AssociatedDocumentSet = HeapLinkedHashSet<WeakMember<Document>>;
   Member<AssociatedDocumentSet> associated_documents_;
 
   FRIEND_TEST_ALL_PREFIXES(

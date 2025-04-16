@@ -12,6 +12,7 @@
 #include "third_party/blink/renderer/modules/webcodecs/webcodecs_logger.h"
 #include "third_party/blink/renderer/platform/wtf/functional.h"
 #include "third_party/blink/renderer/platform/wtf/thread_safe_ref_counted.h"
+#include "third_party/blink/renderer/platform/wtf/threading_primitives.h"
 #include "third_party/skia/include/core/SkRefCnt.h"
 
 // Note: Don't include "media/base/video_frame.h" here without good reason,
@@ -40,28 +41,17 @@ class MODULES_EXPORT VideoFrameHandle
  public:
   VideoFrameHandle(scoped_refptr<media::VideoFrame>,
                    ExecutionContext*,
-                   std::string monitoring_source_id = std::string(),
-                   bool use_capture_timestamp = false);
+                   std::string monitoring_source_id = std::string());
   VideoFrameHandle(scoped_refptr<media::VideoFrame>,
                    sk_sp<SkImage> sk_image,
                    ExecutionContext*,
-                   std::string monitoring_source_id = std::string(),
-                   bool use_capture_timestamp = false);
-  VideoFrameHandle(scoped_refptr<media::VideoFrame>,
-                   sk_sp<SkImage> sk_image,
-                   base::TimeDelta timestamp,
-                   scoped_refptr<WebCodecsLogger::VideoFrameCloseAuditor>,
-                   std::string monitoring_source_id = std::string());
-  VideoFrameHandle(scoped_refptr<media::VideoFrame>,
-                   sk_sp<SkImage> sk_image,
-                   base::TimeDelta timestamp,
-                   std::string monitoring_source_id = std::string());
-  VideoFrameHandle(scoped_refptr<media::VideoFrame>,
-                   sk_sp<SkImage> sk_image,
                    std::string monitoring_source_id = std::string());
   VideoFrameHandle(scoped_refptr<media::VideoFrame>,
                    sk_sp<SkImage> sk_image,
                    scoped_refptr<WebCodecsLogger::VideoFrameCloseAuditor>,
+                   std::string monitoring_source_id = std::string());
+  VideoFrameHandle(scoped_refptr<media::VideoFrame>,
+                   sk_sp<SkImage> sk_image,
                    std::string monitoring_source_id = std::string());
 
   VideoFrameHandle(const VideoFrameHandle&) = delete;
@@ -106,7 +96,7 @@ class MODULES_EXPORT VideoFrameHandle
           webgpu_external_texture_expire_callback);
 
   base::TimeDelta timestamp() const { return timestamp_; }
-  std::optional<base::TimeDelta> duration() const { return duration_; }
+  absl::optional<base::TimeDelta> duration() const { return duration_; }
 
  private:
   friend class WTF::ThreadSafeRefCounted<VideoFrameHandle>;
@@ -137,7 +127,7 @@ class MODULES_EXPORT VideoFrameHandle
   // duration of the underlying media::VideoFrame are modified after
   // blink::VideoFrame construction, those updates won't appear here.
   const base::TimeDelta timestamp_;
-  const std::optional<base::TimeDelta> duration_;
+  const absl::optional<base::TimeDelta> duration_;
 };
 
 }  // namespace blink

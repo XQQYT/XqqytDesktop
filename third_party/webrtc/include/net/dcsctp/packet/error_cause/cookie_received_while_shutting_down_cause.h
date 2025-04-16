@@ -38,7 +38,7 @@ class CookieReceivedWhileShuttingDownCause
 
   CookieReceivedWhileShuttingDownCause() {}
 
-  static std::optional<CookieReceivedWhileShuttingDownCause> Parse(
+  static absl::optional<CookieReceivedWhileShuttingDownCause> Parse(
       rtc::ArrayView<const uint8_t> data);
 
   void SerializeTo(std::vector<uint8_t>& out) const override;

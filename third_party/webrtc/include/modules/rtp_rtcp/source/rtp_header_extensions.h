@@ -27,14 +27,6 @@
 #include "api/video/video_rotation.h"
 #include "api/video/video_timing.h"
 #include "modules/rtp_rtcp/include/rtp_rtcp_defines.h"
-#include "system_wrappers/include/ntp_time.h"
-
-// This file contains class definitions for reading/writing each RTP header
-// extension. Each class must be defined such that it is compatible with being
-// an argument to the templated RtpPacket::GetExtension and
-// RtpPacketToSend::SetExtension methods. New header extensions must have class
-// names ending with "Extension", for the purpose of avoiding collisions with
-// RTP extension information exposed in the public API of WebRTC.
 
 namespace webrtc {
 
@@ -48,9 +40,7 @@ class AbsoluteSendTime {
   }
 
   static bool Parse(rtc::ArrayView<const uint8_t> data, uint32_t* time_24bits);
-  static size_t ValueSize(uint32_t /* time_24bits */) {
-    return kValueSizeBytes;
-  }
+  static size_t ValueSize(uint32_t time_24bits) { return kValueSizeBytes; }
   static bool Write(rtc::ArrayView<uint8_t> data, uint32_t time_24bits);
 
   static constexpr uint32_t To24Bits(Timestamp time) {
@@ -61,14 +51,9 @@ class AbsoluteSendTime {
     return static_cast<uint32_t>(time6x18);
   }
 
-  static uint32_t To24Bits(NtpTime ntp_time) {
-    uint64_t ntp_time32x32 = static_cast<uint64_t>(ntp_time);
-    return (ntp_time32x32 >> 14) & 0x00FF'FFFF;
-  }
-
   static constexpr Timestamp ToTimestamp(uint32_t time_24bits) {
     RTC_DCHECK_LT(time_24bits, (1 << 24));
-    return Timestamp::Micros((time_24bits * int64_t{1'000'000}) >> 18);
+    return Timestamp::Micros((time_24bits* int64_t{1'000'000}) >> 18);
   }
 };
 
@@ -90,20 +75,23 @@ class AbsoluteCaptureTimeExtension {
                     const AbsoluteCaptureTime& extension);
 };
 
-class AudioLevelExtension {
+class AudioLevel {
  public:
-  using value_type = AudioLevel;
   static constexpr RTPExtensionType kId = kRtpExtensionAudioLevel;
   static constexpr uint8_t kValueSizeBytes = 1;
   static constexpr absl::string_view Uri() {
     return RtpExtension::kAudioLevelUri;
   }
 
-  static bool Parse(rtc::ArrayView<const uint8_t> data, AudioLevel* extension);
-  static size_t ValueSize(const AudioLevel& /* extension */) {
+  static bool Parse(rtc::ArrayView<const uint8_t> data,
+                    bool* voice_activity,
+                    uint8_t* audio_level);
+  static size_t ValueSize(bool voice_activity, uint8_t audio_level) {
     return kValueSizeBytes;
   }
-  static bool Write(rtc::ArrayView<uint8_t> data, const AudioLevel& extension);
+  static bool Write(rtc::ArrayView<uint8_t> data,
+                    bool voice_activity,
+                    uint8_t audio_level);
 };
 
 class CsrcAudioLevel {
@@ -131,7 +119,7 @@ class TransmissionOffset {
   }
 
   static bool Parse(rtc::ArrayView<const uint8_t> data, int32_t* rtp_time);
-  static size_t ValueSize(int32_t /* rtp_time */) { return kValueSizeBytes; }
+  static size_t ValueSize(int32_t rtp_time) { return kValueSizeBytes; }
   static bool Write(rtc::ArrayView<uint8_t> data, int32_t rtp_time);
 };
 
@@ -165,16 +153,16 @@ class TransportSequenceNumberV2 {
 
   static bool Parse(rtc::ArrayView<const uint8_t> data,
                     uint16_t* transport_sequence_number,
-                    std::optional<FeedbackRequest>* feedback_request);
+                    absl::optional<FeedbackRequest>* feedback_request);
   static size_t ValueSize(
       uint16_t /*transport_sequence_number*/,
-      const std::optional<FeedbackRequest>& feedback_request) {
+      const absl::optional<FeedbackRequest>& feedback_request) {
     return feedback_request ? kValueSizeBytes
                             : kValueSizeBytesWithoutFeedbackRequest;
   }
   static bool Write(rtc::ArrayView<uint8_t> data,
                     uint16_t transport_sequence_number,
-                    const std::optional<FeedbackRequest>& feedback_request);
+                    const absl::optional<FeedbackRequest>& feedback_request);
 
  private:
   static constexpr uint16_t kIncludeTimestampsBit = 1 << 15;
@@ -193,7 +181,7 @@ class VideoOrientation {
   static size_t ValueSize(VideoRotation) { return kValueSizeBytes; }
   static bool Write(rtc::ArrayView<uint8_t> data, VideoRotation value);
   static bool Parse(rtc::ArrayView<const uint8_t> data, uint8_t* value);
-  static size_t ValueSize(uint8_t /* value */) { return kValueSizeBytes; }
+  static size_t ValueSize(uint8_t value) { return kValueSizeBytes; }
   static bool Write(rtc::ArrayView<uint8_t> data, uint8_t value);
 };
 
@@ -261,7 +249,7 @@ class VideoTimingExtension {
   static bool Write(rtc::ArrayView<uint8_t> data,
                     const VideoSendTiming& timing);
 
-  static size_t ValueSize(uint16_t /* time_delta_ms */, uint8_t /* idx */) {
+  static size_t ValueSize(uint16_t time_delta_ms, uint8_t idx) {
     return kValueSizeBytes;
   }
   // Writes only single time delta to position idx.
@@ -346,7 +334,7 @@ class RtpMid : public BaseRtpStringExtension {
 
 class InbandComfortNoiseExtension {
  public:
-  using value_type = std::optional<uint8_t>;
+  using value_type = absl::optional<uint8_t>;
 
   static constexpr RTPExtensionType kId = kRtpExtensionInbandComfortNoise;
   static constexpr uint8_t kValueSizeBytes = 1;
@@ -355,11 +343,12 @@ class InbandComfortNoiseExtension {
   static constexpr absl::string_view Uri() { return kUri; }
 
   static bool Parse(rtc::ArrayView<const uint8_t> data,
-                    std::optional<uint8_t>* level);
-  static size_t ValueSize(std::optional<uint8_t> /* level */) {
+                    absl::optional<uint8_t>* level);
+  static size_t ValueSize(absl::optional<uint8_t> level) {
     return kValueSizeBytes;
   }
-  static bool Write(rtc::ArrayView<uint8_t> data, std::optional<uint8_t> level);
+  static bool Write(rtc::ArrayView<uint8_t> data,
+                    absl::optional<uint8_t> level);
 };
 
 class VideoFrameTrackingIdExtension {

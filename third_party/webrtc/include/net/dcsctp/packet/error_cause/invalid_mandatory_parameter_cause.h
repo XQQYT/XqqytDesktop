@@ -37,7 +37,7 @@ class InvalidMandatoryParameterCause
 
   InvalidMandatoryParameterCause() {}
 
-  static std::optional<InvalidMandatoryParameterCause> Parse(
+  static absl::optional<InvalidMandatoryParameterCause> Parse(
       rtc::ArrayView<const uint8_t> data);
 
   void SerializeTo(std::vector<uint8_t>& out) const override;

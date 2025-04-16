@@ -15,10 +15,6 @@ namespace base {
 class TickClock;
 }
 
-namespace viz {
-struct FrameTimingDetails;
-}
-
 namespace blink {
 
 class Document;
@@ -50,7 +46,7 @@ class CORE_EXPORT FirstMeaningfulPaintDetector
 
   void NotifyInputEvent();
   void NotifyPaint();
-  void ReportPresentationTime(PaintEvent, const viz::FrameTimingDetails&);
+  void ReportPresentationTime(PaintEvent, base::TimeTicks);
   void NotifyFirstContentfulPaint(base::TimeTicks presentation_time);
   void OnNetwork2Quiet();
   bool SeenFirstMeaningfulPaint() const;

@@ -34,6 +34,7 @@
 #include <vector>
 
 #include "third_party/blink/public/platform/web_common.h"
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/blink/public/web/web_node.h"
 #include "third_party/skia/include/core/SkBitmap.h"
 #include "v8/include/v8-forward.h"
@@ -79,25 +80,12 @@ class BLINK_EXPORT WebElement : public WebNode {
   WebString GetAttribute(const WebString&) const;
   void SetAttribute(const WebString& name, const WebString& value);
   WebString TextContent() const;
-  WebString TextContentAbridged(unsigned int max_length) const;
   WebString InnerHTML() const;
 
-  // Returns true if the element's computed writing suggestions value is true.
-  // https://html.spec.whatwg.org/#writing-suggestions:computed-writing-suggestions-value
-  bool WritingSuggestions() const;
-
-  // Returns true if the frame's selection is inside this editable element.
-  bool ContainsFrameSelection() const;
-
-  // Returns the selected text if this element contains the selection.
-  // Otherwise returns the empty string.
-  WebString SelectedText() const;
-
-  // Selects the text in this element.
-  // If `select_all`, then the entire contents of the element is selected.
-  // If `!select_all`, then selects only the empty range at the end of the
-  // element
-  void SelectText(bool select_all);
+  // Returns true if the element's contenteditable attribute is in the true
+  // state or in the plaintext-only state:
+  // https://html.spec.whatwg.org/multipage/interaction.html#attr-contenteditable
+  bool IsContentEditable() const;
 
   // Simulates a paste of `text` event into `this` element.
   //
@@ -115,7 +103,7 @@ class BLINK_EXPORT WebElement : public WebNode {
   void PasteText(const WebString& text, bool replace_all);
 
   // Returns all <label> elements associated to this element.
-  std::vector<WebLabelElement> Labels() const;
+  WebVector<WebLabelElement> Labels() const;
 
   // Returns true if this is an autonomous custom element.
   bool IsAutonomousCustomElement() const;

@@ -17,8 +17,10 @@ class LayoutTableSection;
 class LayoutTableCell;
 class TableBorders;
 
-// LayoutTable is the LayoutObject associated with display: table or
-// inline-table.
+enum SkipEmptySectionsValue { kDoNotSkipEmptySections, kSkipEmptySections };
+
+// LayoutTable is the LayoutObject associated with
+// display: table or inline-table.
 //
 // LayoutTable is the coordinator for determining the overall table structure.
 // The reason is that LayoutTableSection children have a local view over what
@@ -101,16 +103,16 @@ class CORE_EXPORT LayoutTable : public LayoutBlock {
 
   void Trace(Visitor*) const override;
 
-  static bool ShouldCreateInlineAnonymous(const LayoutObject& parent);
   static LayoutTable* CreateAnonymousWithParent(const LayoutObject&);
 
   bool IsFirstCell(const LayoutTableCell&) const;
-
-  // All the section methods will return non-empty sections.
   LayoutTableSection* FirstSection() const;
-  LayoutTableSection* LastSection() const;
-  LayoutTableSection* NextSection(const LayoutTableSection*) const;
-  LayoutTableSection* PreviousSection(const LayoutTableSection*) const;
+  LayoutTableSection* FirstNonEmptySection() const;
+  LayoutTableSection* LastNonEmptySection() const;
+  LayoutTableSection* NextSection(const LayoutTableSection*,
+                                  SkipEmptySectionsValue) const;
+  LayoutTableSection* PreviousSection(const LayoutTableSection*,
+                                      SkipEmptySectionsValue) const;
 
   wtf_size_t ColumnCount() const;
 
@@ -202,9 +204,9 @@ class CORE_EXPORT LayoutTable : public LayoutBlock {
   unsigned EffectiveColumnCount() const;
 
  protected:
-  bool IsTable() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectTable || LayoutBlock::IsOfType(type);
   }
 
   // Table paints background specially.
@@ -219,7 +221,7 @@ class CORE_EXPORT LayoutTable : public LayoutBlock {
   // Table borders are cached because computing collapsed borders is expensive.
   Member<const TableBorders> cached_table_borders_;
 
-  // Table columns do not depend on any outside data (e.g. ConstraintSpace).
+  // Table columns do not depend on any outside data (e.g. NGConstraintSpace).
   // They are cached because computing them is expensive.
   scoped_refptr<const TableTypes::Columns> cached_table_columns_;
 };

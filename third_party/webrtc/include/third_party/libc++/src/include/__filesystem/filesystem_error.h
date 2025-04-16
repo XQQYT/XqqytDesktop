@@ -10,6 +10,7 @@
 #ifndef _LIBCPP___FILESYSTEM_FILESYSTEM_ERROR_H
 #define _LIBCPP___FILESYSTEM_FILESYSTEM_ERROR_H
 
+#include <__availability>
 #include <__config>
 #include <__filesystem/path.h>
 #include <__memory/shared_ptr.h>
@@ -17,13 +18,15 @@
 #include <__system_error/system_error.h>
 #include <__utility/forward.h>
 #include <__verbose_abort>
+#include <iosfwd>
+#include <new>
 #include <string>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
 #endif
 
-#if _LIBCPP_STD_VER >= 17
+#ifndef _LIBCPP_CXX03_LANG
 
 _LIBCPP_BEGIN_NAMESPACE_FILESYSTEM
 
@@ -67,15 +70,15 @@ private:
   shared_ptr<_Storage> __storage_;
 };
 
-#  if _LIBCPP_HAS_EXCEPTIONS
+#  ifndef _LIBCPP_HAS_NO_EXCEPTIONS
 template <class... _Args>
-[[__noreturn__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FILESYSTEM_LIBRARY void
+_LIBCPP_NORETURN inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FILESYSTEM_LIBRARY void
 __throw_filesystem_error(_Args&&... __args) {
-  throw filesystem_error(std::forward<_Args>(__args)...);
+  throw filesystem_error(_VSTD::forward<_Args>(__args)...);
 }
 #  else
 template <class... _Args>
-[[__noreturn__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FILESYSTEM_LIBRARY void
+_LIBCPP_NORETURN inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FILESYSTEM_LIBRARY void
 __throw_filesystem_error(_Args&&...) {
   _LIBCPP_VERBOSE_ABORT("filesystem_error was thrown in -fno-exceptions mode");
 }
@@ -83,6 +86,6 @@ __throw_filesystem_error(_Args&&...) {
 
 _LIBCPP_END_NAMESPACE_FILESYSTEM
 
-#endif // _LIBCPP_STD_VER >= 17
+#endif // _LIBCPP_CXX03_LANG
 
 #endif // _LIBCPP___FILESYSTEM_FILESYSTEM_ERROR_H

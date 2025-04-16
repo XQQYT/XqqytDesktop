@@ -1,5 +1,4 @@
 // META: script=/resources/testdriver.js
-// META: script=/resources/testdriver-vendor.js
 // META: script=/common/utils.js
 // META: script=resources/fledge-util.sub.js
 // META: script=/common/subset-tests.js
@@ -8,7 +7,7 @@
 // META: variant=?5-8
 // META: variant=?9-last
 
-"use strict";
+"use strict;"
 
 // These are separate from the other join-leave tests because these all create
 // and navigate fenced frames, which is much slower than just joining/leaving
@@ -365,6 +364,7 @@ subsetTest(promise_test, async test => {
       uuid,
       [createSellerReportURL(uuid), createSuccessURL(uuid)]);
 
-  // Check the interest group was left.
-  await runBasicFledgeTestExpectingNoWinner(test, uuid);
+  // Check the interest group was not actually left - component ads are not currently
+  // allowed to leave interest groups, even if same origin.
+  await runBasicFledgeTestExpectingWinner(test, uuid);
 }, 'leaveAdInterestGroup() in component ad fenced frame, no parameters.');

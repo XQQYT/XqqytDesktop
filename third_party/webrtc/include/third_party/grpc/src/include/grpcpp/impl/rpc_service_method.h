@@ -19,19 +19,17 @@
 #ifndef GRPCPP_IMPL_RPC_SERVICE_METHOD_H
 #define GRPCPP_IMPL_RPC_SERVICE_METHOD_H
 
-#include <grpcpp/impl/rpc_method.h>
-#include <grpcpp/support/byte_buffer.h>
-#include <grpcpp/support/config.h>
-#include <grpcpp/support/status.h>
-
 #include <climits>
 #include <functional>
 #include <map>
 #include <memory>
 #include <vector>
 
-#include "absl/log/absl_check.h"
-#include "absl/log/absl_log.h"
+#include <grpc/support/log.h>
+#include <grpcpp/impl/rpc_method.h>
+#include <grpcpp/support/byte_buffer.h>
+#include <grpcpp/support/config.h>
+#include <grpcpp/support/status.h>
 
 namespace grpc {
 class ServerContextBase;
@@ -77,7 +75,7 @@ class MethodHandler {
   // retained by the handler. Returns nullptr if deserialization failed.
   virtual void* Deserialize(grpc_call* /*call*/, grpc_byte_buffer* req,
                             Status* /*status*/, void** /*handler_data*/) {
-    ABSL_CHECK_EQ(req, nullptr);
+    GPR_ASSERT(req == nullptr);
     return nullptr;
   }
 };
@@ -116,12 +114,12 @@ class RpcServiceMethod : public RpcMethod {
       // this is not an error condition, as it allows users to declare a server
       // like WithRawMethod_foo<AsyncService>. However since it
       // overwrites behavior, it should be logged.
-      ABSL_LOG(INFO)
-          << "You are marking method " << name() << " as '"
-          << TypeToString(api_type_)
-          << "', even though it was previously marked '" << TypeToString(type)
-          << "'. This behavior will overwrite the original behavior. If "
-             "you expected this then ignore this message.";
+      gpr_log(
+          GPR_INFO,
+          "You are marking method %s as '%s', even though it was "
+          "previously marked '%s'. This behavior will overwrite the original "
+          "behavior. If you expected this then ignore this message.",
+          name(), TypeToString(api_type_), TypeToString(type));
     }
     api_type_ = type;
   }

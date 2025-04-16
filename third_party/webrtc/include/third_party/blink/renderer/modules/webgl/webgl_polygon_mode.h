@@ -22,11 +22,6 @@ class WebGLPolygonMode final : public WebGLExtension {
   WebGLExtensionName GetName() const override;
 
   void polygonModeWEBGL(GLenum face, GLenum mode);
-
- private:
-  void EmitDeferredPortabilityWarning(WebGLRenderingContextBase* context);
-
-  bool emitted_warning_ = false;
 };
 
 }  // namespace blink

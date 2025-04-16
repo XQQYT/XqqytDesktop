@@ -6,31 +6,27 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_DOM_ABORT_SIGNAL_H_
 
 #include "base/functional/callback_forward.h"
+#include "base/functional/function_ref.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_value.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/dom/abort_signal_composition_type.h"
 #include "third_party/blink/renderer/core/dom/events/event_target.h"
-#include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_linked_hash_set.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_vector.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
-#include "third_party/blink/renderer/platform/scheduler/public/post_cancellable_task.h"
-
-namespace v8 {
-class Isolate;
-}  // namespace v8
 
 namespace blink {
 
 class AbortController;
 class AbortSignalCompositionManager;
 class AbortSignalRegistry;
+class ExceptionState;
 class ExecutionContext;
+class FollowAlgorithm;
 class ScriptState;
 
 // Implementation of https://dom.spec.whatwg.org/#interface-AbortSignal
-class CORE_EXPORT AbortSignal : public EventTarget,
-                                public ExecutionContextLifecycleObserver {
+class CORE_EXPORT AbortSignal : public EventTarget {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
@@ -41,8 +37,14 @@ class CORE_EXPORT AbortSignal : public EventTarget,
     kAborted,
     // Created by AbortSignal.timeout().
     kTimeout,
-    // Created by AbortSignal.any() or used internally to combine signals.
+    // Created by AbortSignal.any().
     kComposite,
+    // An internal signal which either is directly aborted or uses the internal
+    // `Follow` algorithm.
+    //
+    // TODO(crbug.com/1323391): Specs that use the internal `Follow` algorithm
+    // should be modified to create follow-immutable composite signals.
+    kInternal,
   };
 
   // The base class for "abort algorithm" defined at
@@ -79,9 +81,8 @@ class CORE_EXPORT AbortSignal : public EventTarget,
     Member<AbortSignal> signal_;
   };
 
-  // Constructs a composite signal that is dependent on no other signals. This
-  // is used to create non-abortable signal, e.g. fixed priority task signals
-  // and default signals used in fetch.
+  // Constructs a SignalType::kInternal signal. This is only for non web-exposed
+  // signals.
   explicit AbortSignal(ExecutionContext*);
 
   // Constructs a new signal with the given `SignalType`.
@@ -89,8 +90,7 @@ class CORE_EXPORT AbortSignal : public EventTarget,
 
   // Constructs a composite signal. The signal will be aborted if any of
   // `source_signals` are aborted or become aborted.
-  AbortSignal(ScriptState*,
-              const HeapVector<Member<AbortSignal>>& source_signals);
+  AbortSignal(ScriptState*, HeapVector<Member<AbortSignal>>& source_signals);
 
   ~AbortSignal() override;
 
@@ -102,14 +102,11 @@ class CORE_EXPORT AbortSignal : public EventTarget,
   static AbortSignal* timeout(ScriptState*, uint64_t milliseconds);
   ScriptValue reason(ScriptState*) const;
   bool aborted() const { return !abort_reason_.IsEmpty(); }
-  void throwIfAborted(v8::Isolate*) const;
+  void throwIfAborted(ScriptState*, ExceptionState&) const;
   DEFINE_ATTRIBUTE_EVENT_LISTENER(abort, kAbort)
 
   const AtomicString& InterfaceName() const override;
   ExecutionContext* GetExecutionContext() const override;
-
-  // `ExecutionContextLifecycleObserver` overrides:
-  void ContextDestroyed() override;
 
   // Internal API
 
@@ -136,12 +133,18 @@ class CORE_EXPORT AbortSignal : public EventTarget,
 
     friend class AbortController;
     friend class AbortSignal;
+    friend class FollowAlgorithm;
   };
   // The "To signal abort" algorithm from the standard:
   // https://dom.spec.whatwg.org/#abortsignal-add. Run all algorithms that were
   // added by AddAlgorithm(), in order of addition, then fire an "abort"
   // event. Does nothing if called more than once.
   void SignalAbort(ScriptState*, ScriptValue reason, SignalAbortPassKey);
+
+  // The "follow" algorithm from the standard:
+  // https://dom.spec.whatwg.org/#abortsignal-follow
+  // |this| is the followingSignal described in the standard.
+  void Follow(ScriptState*, AbortSignal* parent);
 
   virtual bool IsTaskSignal() const { return false; }
 
@@ -180,8 +183,9 @@ class CORE_EXPORT AbortSignal : public EventTarget,
   virtual bool IsSettledFor(AbortSignalCompositionType) const;
 
  private:
-  void InitializeCompositeSignal(
-      const HeapVector<Member<AbortSignal>>& source_signals);
+  // Common constructor initialization separated out to make mutually exclusive
+  // constructors more readable.
+  void InitializeCommon(ExecutionContext*, SignalType);
 
   void AbortTimeoutFired(ScriptState*);
 
@@ -189,8 +193,15 @@ class CORE_EXPORT AbortSignal : public EventTarget,
   void OnEventListenerAddedOrRemoved(const AtomicString& event_type,
                                      AddRemoveType);
 
-  void SetAbortReason(ScriptState* script_state, ScriptValue reason);
-  void RunAbortSteps();
+  // Invokes the given callback on the associated `AbortSignalRegistry`. Must
+  // only be called for composite signals.
+  void InvokeRegistryCallback(base::FunctionRef<void(AbortSignalRegistry&)>);
+
+  // This ensures abort is propagated to any "following" signals.
+  //
+  // TODO(crbug.com/1323391): Remove this after AbortSignal.any() is
+  // implemented.
+  HeapVector<Member<AlgorithmHandle>> dependent_signal_algorithms_;
 
   // https://dom.spec.whatwg.org/#abortsignal-abort-reason
   // There is one difference from the spec. The value is empty instead of
@@ -199,15 +210,13 @@ class CORE_EXPORT AbortSignal : public EventTarget,
   // ScriptValue::IsEmpty does not.
   ScriptValue abort_reason_;
   HeapLinkedHashSet<WeakMember<AbortSignal::AlgorithmHandle>> abort_algorithms_;
+  Member<ExecutionContext> execution_context_;
   SignalType signal_type_;
 
   // This is set to a DependentSignalCompositionManager for composite signals or
   // a SourceSignalCompositionManager for non-composite signals. Null if
   // AbortSignalAny isn't enabled.
   Member<AbortSignalCompositionManager> composition_manager_;
-
-  // Handle for the delayed task associated with `SignalType::kTimeout` signals.
-  TaskHandle timout_task_handle_;
 };
 
 }  // namespace blink

@@ -66,64 +66,34 @@ HB_INTERNAL void PaintColrGlyph::closurev1 (hb_colrv1_closure_context_t* c) cons
 
 template <template<typename> class Var>
 HB_INTERNAL void PaintTransform<Var>::closurev1 (hb_colrv1_closure_context_t* c) const
-{
-  (this+src).dispatch (c);
-  (this+transform).closurev1 (c);
-}
+{ (this+src).dispatch (c); }
 
 HB_INTERNAL void PaintTranslate::closurev1 (hb_colrv1_closure_context_t* c) const
-{
-  (this+src).dispatch (c);
-  c->num_var_idxes = 2;
-}
+{ (this+src).dispatch (c); }
 
 HB_INTERNAL void PaintScale::closurev1 (hb_colrv1_closure_context_t* c) const
-{
-  (this+src).dispatch (c);
-  c->num_var_idxes = 2;
-}
+{ (this+src).dispatch (c); }
 
 HB_INTERNAL void PaintScaleAroundCenter::closurev1 (hb_colrv1_closure_context_t* c) const
-{
-  (this+src).dispatch (c);
-  c->num_var_idxes = 4;
-}
+{ (this+src).dispatch (c); }
 
 HB_INTERNAL void PaintScaleUniform::closurev1 (hb_colrv1_closure_context_t* c) const
-{
-  (this+src).dispatch (c);
-  c->num_var_idxes = 1;
-}
+{ (this+src).dispatch (c); }
 
 HB_INTERNAL void PaintScaleUniformAroundCenter::closurev1 (hb_colrv1_closure_context_t* c) const
-{
-  (this+src).dispatch (c);
-  c->num_var_idxes = 3;
-}
+{ (this+src).dispatch (c); }
 
 HB_INTERNAL void PaintRotate::closurev1 (hb_colrv1_closure_context_t* c) const
-{
-  (this+src).dispatch (c);
-  c->num_var_idxes = 1;
-}
+{ (this+src).dispatch (c); }
 
 HB_INTERNAL void PaintRotateAroundCenter::closurev1 (hb_colrv1_closure_context_t* c) const
-{
-  (this+src).dispatch (c);
-  c->num_var_idxes = 3;
-}
+{ (this+src).dispatch (c); }
 
 HB_INTERNAL void PaintSkew::closurev1 (hb_colrv1_closure_context_t* c) const
-{
-  (this+src).dispatch (c);
-  c->num_var_idxes = 2;
-}
+{ (this+src).dispatch (c); }
 
 HB_INTERNAL void PaintSkewAroundCenter::closurev1 (hb_colrv1_closure_context_t* c) const
-{
-  (this+src).dispatch (c);
-  c->num_var_idxes = 4;
-}
+{ (this+src).dispatch (c); }
 
 HB_INTERNAL void PaintComposite::closurev1 (hb_colrv1_closure_context_t* c) const
 {

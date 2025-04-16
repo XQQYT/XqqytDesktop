@@ -4,6 +4,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_URL_PATTERN_URL_PATTERN_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_URL_PATTERN_URL_PATTERN_H_
 
+#include "base/containers/enum_set.h"
 #include "base/types/pass_key.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_typedefs.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_url_pattern_component.h"
@@ -16,50 +17,35 @@
 namespace blink {
 
 class ExceptionState;
-class KURL;
-struct SafeUrlPattern;
 class URLPatternInit;
 class URLPatternOptions;
 class URLPatternResult;
 
 class CORE_EXPORT URLPattern : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
-  struct Options final {
-    bool ignore_case;
-  };
   using Component = url_pattern::Component;
+  using ComponentSet = base::EnumSet<Component::Type,
+                                     Component::Type::kProtocol,
+                                     Component::Type::kHash>;
 
  public:
-  // Used to convert the convenience types that may be passed to WebIDL APIs in
-  // place of a URLPattern into a URLPattern object. `base_url` will usually be
-  // the result of calling `ExecutionContext::BaseURL`.
-  static URLPattern* From(v8::Isolate* isolate,
-                          const V8URLPatternCompatible* compatible,
-                          const KURL& base_url,
-                          ExceptionState& exception_state);
-
-  static URLPattern* Create(v8::Isolate* isolate,
-                            const V8URLPatternInput* input,
+  static URLPattern* Create(const V8URLPatternInput* input,
                             const String& base_url,
                             const URLPatternOptions* options,
                             ExceptionState& exception_state);
 
-  static URLPattern* Create(v8::Isolate* isolate,
-                            const V8URLPatternInput* input,
+  static URLPattern* Create(const V8URLPatternInput* input,
                             const String& base_url,
                             ExceptionState& exception_state);
 
-  static URLPattern* Create(v8::Isolate* isolate,
-                            const V8URLPatternInput* input,
+  static URLPattern* Create(const V8URLPatternInput* input,
                             const URLPatternOptions* options,
                             ExceptionState& exception_state);
 
-  static URLPattern* Create(v8::Isolate* isolate,
-                            const V8URLPatternInput* input,
+  static URLPattern* Create(const V8URLPatternInput* input,
                             ExceptionState& exception_state);
 
-  static URLPattern* Create(v8::Isolate* isolate,
-                            const URLPatternInit* init,
+  static URLPattern* Create(const URLPatternInit* init,
                             Component* precomputed_protocol_component,
                             const URLPatternOptions* options,
                             ExceptionState& exception_state);
@@ -72,7 +58,6 @@ class CORE_EXPORT URLPattern : public ScriptWrappable {
              Component* pathname,
              Component* search,
              Component* hash,
-             Options options,
              base::PassKey<URLPattern> key);
 
   bool test(ScriptState* script_state,
@@ -100,16 +85,9 @@ class CORE_EXPORT URLPattern : public ScriptWrappable {
   String search() const;
   String hash() const;
 
-  bool hasRegExpGroups() const;
-
   static int compareComponent(const V8URLPatternComponent& component,
                               const URLPattern* left,
                               const URLPattern* right);
-
-  // Throws a TypeError if the pattern does not meet the requirements to be
-  // safe. i.e. has no regexp groups.
-  std::optional<SafeUrlPattern> ToSafeUrlPattern(
-      ExceptionState& exception_state) const;
 
   // Used for testing and debugging.
   String ToString() const;
@@ -135,7 +113,14 @@ class CORE_EXPORT URLPattern : public ScriptWrappable {
   Member<Component> pathname_;
   Member<Component> search_;
   Member<Component> hash_;
-  const Options options_;
+
+  // For data analysis: the components which would be wildcarded but are empty
+  // due to the string parsing.
+  ComponentSet wildcard_with_string_format_change_;
+
+  // For data analysis: the components which would be wildcarded but are
+  // replicated from the base URL.
+  ComponentSet wildcard_with_base_url_change_;
 };
 
 }  // namespace blink

@@ -22,7 +22,6 @@ class LengthPropertyFunctions {
  public:
   static Length::ValueRange GetValueRange(const CSSProperty&);
   static bool IsZoomedLength(const CSSProperty&);
-  static bool CanAnimateKeyword(const CSSProperty&, CSSValueID);
   static bool GetPixelsForKeyword(const CSSProperty&,
                                   CSSValueID,
                                   double& result_pixels);

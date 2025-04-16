@@ -55,12 +55,6 @@ XMLPUBFUN xmlPatternPtr
 						 int flags,
 						 const xmlChar **namespaces);
 XMLPUBFUN int
-			xmlPatternCompileSafe	(const xmlChar *pattern,
-						 xmlDict *dict,
-						 int flags,
-						 const xmlChar **namespaces,
-						 xmlPatternPtr *patternOut);
-XMLPUBFUN int
 			xmlPatternMatch		(xmlPatternPtr comp,
 						 xmlNodePtr node);
 

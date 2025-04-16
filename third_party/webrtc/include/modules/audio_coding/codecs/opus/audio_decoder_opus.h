@@ -17,7 +17,6 @@
 #include <vector>
 
 #include "api/audio_codecs/audio_decoder.h"
-#include "api/field_trials_view.h"
 #include "modules/audio_coding/codecs/opus/opus_interface.h"
 #include "rtc_base/buffer.h"
 
@@ -25,10 +24,8 @@ namespace webrtc {
 
 class AudioDecoderOpusImpl final : public AudioDecoder {
  public:
-  explicit AudioDecoderOpusImpl(const FieldTrialsView& field_trails,
-                                size_t num_channels,
-                                int sample_rate_hz);
-
+  explicit AudioDecoderOpusImpl(size_t num_channels,
+                                int sample_rate_hz = 48000);
   ~AudioDecoderOpusImpl() override;
 
   AudioDecoderOpusImpl(const AudioDecoderOpusImpl&) = delete;
@@ -43,8 +40,6 @@ class AudioDecoderOpusImpl final : public AudioDecoder {
   bool PacketHasFec(const uint8_t* encoded, size_t encoded_len) const override;
   int SampleRateHz() const override;
   size_t Channels() const override;
-  void GeneratePlc(size_t requested_samples_per_channel,
-                   rtc::BufferT<int16_t>* concealment_audio) override;
 
  protected:
   int DecodeInternal(const uint8_t* encoded,
@@ -62,7 +57,6 @@ class AudioDecoderOpusImpl final : public AudioDecoder {
   OpusDecInst* dec_state_;
   const size_t channels_;
   const int sample_rate_hz_;
-  const bool generate_plc_;
 };
 
 }  // namespace webrtc

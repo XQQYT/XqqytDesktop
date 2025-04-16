@@ -47,15 +47,17 @@ class CORE_EXPORT MediaQuerySet : public GarbageCollected<MediaQuerySet> {
   static MediaQuerySet* Create() {
     return MakeGarbageCollected<MediaQuerySet>();
   }
-  static MediaQuerySet* Create(const String& media_string, ExecutionContext*);
+  static MediaQuerySet* Create(const String& media_string,
+                               const ExecutionContext*);
 
   MediaQuerySet();
   MediaQuerySet(const MediaQuerySet&);
   explicit MediaQuerySet(HeapVector<Member<const MediaQuery>>);
   void Trace(Visitor*) const;
 
-  const MediaQuerySet* CopyAndAdd(const String&, ExecutionContext*) const;
-  const MediaQuerySet* CopyAndRemove(const String&, ExecutionContext*) const;
+  const MediaQuerySet* CopyAndAdd(const String&, const ExecutionContext*) const;
+  const MediaQuerySet* CopyAndRemove(const String&,
+                                     const ExecutionContext*) const;
 
   const HeapVector<Member<const MediaQuery>>& QueryVector() const {
     return queries_;
@@ -76,10 +78,10 @@ class CORE_EXPORT MediaList final : public ScriptWrappable {
 
   unsigned length() const { return Queries()->QueryVector().size(); }
   String item(unsigned index) const;
-  void deleteMedium(ExecutionContext*,
+  void deleteMedium(const ExecutionContext*,
                     const String& old_medium,
                     ExceptionState&);
-  void appendMedium(ExecutionContext*, const String& new_medium);
+  void appendMedium(const ExecutionContext*, const String& new_medium);
 
   // Note that this getter doesn't require the ExecutionContext (except for
   // crbug.com/1268860 use-counting), but the attribute is marked as
@@ -88,7 +90,7 @@ class CORE_EXPORT MediaList final : public ScriptWrappable {
   //
   // Prefer MediaTextInternal for internal use. (Avoids use-counter).
   String mediaText(ExecutionContext*) const;
-  void setMediaText(ExecutionContext*, const String&);
+  void setMediaText(const ExecutionContext*, const String&);
   String MediaTextInternal() const { return Queries()->MediaText(); }
 
   // Not part of CSSOM.

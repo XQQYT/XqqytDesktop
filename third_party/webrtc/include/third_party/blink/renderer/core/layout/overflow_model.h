@@ -22,9 +22,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_OVERFLOW_MODEL_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_OVERFLOW_MODEL_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/layout/geometry/physical_rect.h"
+#include "third_party/blink/renderer/platform/geometry/layout_rect.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 
 namespace blink {
@@ -37,24 +37,23 @@ namespace blink {
 // more details.
 //
 // The class models the overflows as rectangles that unite all the sources of
-// overflow. This is the natural choice for scrollable overflow (scrollbars are
+// overflow. This is the natural choice for layout overflow (scrollbars are
 // linear in nature, thus are modeled by rectangles in 2D). For visual overflow
 // and content visual overflow, this is a first order simplification though as
 // they can be thought of as a collection of (potentially overlapping)
 // rectangles.
 //
-// Scrollable overflow is the overflow that is reachable via scrollbars. It is
-// used to size the scrollbar thumb and determine its position, which is
-// determined by the maximum scrollable overflow size.
-// Scrollable overflow cannot occur without an overflow clip as this is the only
-// way to get scrollbars. As its name implies, it is a direct consequence of
-// layout.
-// Example of scrollable overflow:
+// Layout overflow is the overflow that is reachable via scrollbars. It is used
+// to size the scrollbar thumb and determine its position, which is determined
+// by the maximum layout overflow size.
+// Layout overflow cannot occur without an overflow clip as this is the only way
+// to get scrollbars. As its name implies, it is a direct consequence of layout.
+// Example of layout overflow:
 // * in the inline case, a tall image could spill out of a line box.
 // * 'height' / 'width' set to a value smaller than the one needed by the
 //   descendants.
 // Due to how scrollbars work, no overflow in the logical top and logical left
-// direction is allowed(see LayoutBox::AddScrollableOverflow).
+// direction is allowed(see LayoutBox::AddLayoutOverflow).
 //
 // Visual overflow covers all the effects that visually bleed out of the box.
 // Its primary use is to determine the area to invalidate.
@@ -90,22 +89,19 @@ namespace blink {
 //
 // An overflow model object is allocated only when some of these fields have
 // non-default values in the owning object. Care should be taken to use adder
-// functions (AddScrollableOverflow, AddVisualOverflow, etc.) to keep this
+// functions (AddLayoutOverflow, AddVisualOverflow, etc.) to keep this
 // invariant.
-class BoxScrollableOverflowModel {
+class BoxLayoutOverflowModel {
  public:
-  explicit BoxScrollableOverflowModel(const PhysicalRect& overflow_rect)
-      : scrollable_overflow_(overflow_rect) {}
-  BoxScrollableOverflowModel(const BoxScrollableOverflowModel&) = delete;
-  BoxScrollableOverflowModel& operator=(const BoxScrollableOverflowModel&) =
-      delete;
+  explicit BoxLayoutOverflowModel(const PhysicalRect& overflow_rect)
+      : layout_overflow_(overflow_rect) {}
+  BoxLayoutOverflowModel(const BoxLayoutOverflowModel&) = delete;
+  BoxLayoutOverflowModel& operator=(const BoxLayoutOverflowModel&) = delete;
 
-  const PhysicalRect& ScrollableOverflowRect() const {
-    return scrollable_overflow_;
-  }
+  const PhysicalRect& LayoutOverflowRect() const { return layout_overflow_; }
 
  private:
-  PhysicalRect scrollable_overflow_;
+  PhysicalRect layout_overflow_;
 };
 
 class BoxVisualOverflowModel {
@@ -153,17 +149,17 @@ class BoxVisualOverflowModel {
 };
 
 struct BoxOverflowModel : public GarbageCollected<BoxOverflowModel> {
-  std::optional<BoxScrollableOverflowModel> scrollable_overflow;
-  std::optional<BoxVisualOverflowModel> visual_overflow;
+  absl::optional<BoxLayoutOverflowModel> layout_overflow;
+  absl::optional<BoxVisualOverflowModel> visual_overflow;
 
   // Used by BoxPaintInvalidator. Stores the previous overflow data after the
   // last paint invalidation.
   struct PreviousOverflowData {
-    PhysicalRect previous_scrollable_overflow_rect;
+    PhysicalRect previous_physical_layout_overflow_rect;
     PhysicalRect previous_visual_overflow_rect;
     PhysicalRect previous_self_visual_overflow_rect;
   };
-  std::optional<PreviousOverflowData> previous_overflow_data;
+  absl::optional<PreviousOverflowData> previous_overflow_data;
 
   void Trace(Visitor*) const {}
 };

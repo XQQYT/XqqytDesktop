@@ -14,23 +14,36 @@
 #include <memory>
 #include <vector>
 
-#include "absl/base/nullability.h"
-#include "api/environment/environment.h"
 #include "api/video_codecs/video_encoder.h"
+#include "api/video_codecs/vp8_frame_buffer_controller.h"
 #include "modules/video_coding/include/video_codec_interface.h"
 
 namespace webrtc {
 
-struct Vp8EncoderSettings {
-  // Allows for overriding the resolution/bitrate limits exposed through
-  // VideoEncoder::GetEncoderInfo(). No override is done if empty.
-  std::vector<VideoEncoder::ResolutionBitrateLimits> resolution_bitrate_limits;
-};
-absl::Nonnull<std::unique_ptr<VideoEncoder>> CreateVp8Encoder(
-    const Environment& env,
-    Vp8EncoderSettings settings = {});
+// TODO(brandtr): Move these interfaces to the api/ folder.
+class VP8Encoder {
+ public:
+  struct Settings {
+    // Allows for overriding the Vp8FrameBufferController used by the encoder.
+    // If unset, a default Vp8FrameBufferController will be instantiated
+    // internally.
+    std::unique_ptr<Vp8FrameBufferControllerFactory>
+        frame_buffer_controller_factory = nullptr;
 
-std::unique_ptr<VideoDecoder> CreateVp8Decoder(const Environment& env);
+    // Allows for overriding the resolution/bitrate limits exposed through
+    // VideoEncoder::GetEncoderInfo(). No override is done if empty.
+    std::vector<VideoEncoder::ResolutionBitrateLimits>
+        resolution_bitrate_limits = {};
+  };
+
+  static std::unique_ptr<VideoEncoder> Create();
+  static std::unique_ptr<VideoEncoder> Create(Settings settings);
+};
+
+class VP8Decoder {
+ public:
+  static std::unique_ptr<VideoDecoder> Create();
+};
 
 }  // namespace webrtc
 

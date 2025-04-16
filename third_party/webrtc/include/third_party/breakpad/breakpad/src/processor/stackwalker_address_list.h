@@ -63,7 +63,6 @@ class StackwalkerAddressList : public Stackwalker {
 
   const uint64_t* frames_;
   size_t frame_count_;
-  size_t next_frame_index_;
 };
 
 }  // namespace google_breakpad

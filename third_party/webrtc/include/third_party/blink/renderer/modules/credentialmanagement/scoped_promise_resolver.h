@@ -10,13 +10,12 @@
 
 namespace blink {
 
-// Off-heap wrapper that holds a strong reference to a
-// ScriptPromiseResolverBase.
+// Off-heap wrapper that holds a strong reference to a ScriptPromiseResolver.
 class ScopedPromiseResolver {
   USING_FAST_MALLOC(ScopedPromiseResolver);
 
  public:
-  explicit ScopedPromiseResolver(ScriptPromiseResolverBase* resolver);
+  explicit ScopedPromiseResolver(ScriptPromiseResolver* resolver);
 
   ScopedPromiseResolver(const ScopedPromiseResolver&) = delete;
   ScopedPromiseResolver& operator=(const ScopedPromiseResolver&) = delete;
@@ -29,12 +28,12 @@ class ScopedPromiseResolver {
   // If this method is not called before |this| goes of scope, it is assumed
   // that a Mojo connection error has occurred, and the response callback was
   // never invoked. The Promise will be rejected with an appropriate exception.
-  ScriptPromiseResolverBase* Release();
+  ScriptPromiseResolver* Release();
 
  private:
   void OnConnectionError();
 
-  Persistent<ScriptPromiseResolverBase> resolver_;
+  Persistent<ScriptPromiseResolver> resolver_;
 };
 
 }  // namespace blink

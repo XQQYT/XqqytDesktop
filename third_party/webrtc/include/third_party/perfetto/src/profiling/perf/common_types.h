@@ -25,7 +25,8 @@
 
 #include <unwindstack/Error.h>
 #include <unwindstack/Regs.h>
-#include <unwindstack/Unwinder.h>  // for FrameData
+
+#include "src/profiling/common/unwind_support.h"
 
 namespace perfetto {
 namespace profiling {
@@ -38,11 +39,10 @@ struct CommonSampleData {
   pid_t tid = 0;
   uint64_t timestamp = 0;
   uint64_t timebase_count = 0;
-  std::vector<uint64_t> follower_counts;
 };
 
 // A parsed perf sample record (PERF_RECORD_SAMPLE from the kernel buffer).
-// Self-contained, used as input to the callstack unwinding.
+// Self-contained, used as as input to the callstack unwinding.
 struct ParsedSample {
   // move-only
   ParsedSample() = default;

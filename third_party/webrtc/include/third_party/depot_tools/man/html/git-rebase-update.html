@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 10.2.1" />
+<meta name="generator" content="AsciiDoc 10.2.0" />
 <title>git-rebase-update(1)</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -756,7 +756,7 @@ git-rebase-update(1) Manual Page
 <h2 id="_synopsis">SYNOPSIS</h2>
 <div class="sectionbody">
 <div class="verseblock">
-<pre class="content"><em>git rebase-update</em> [-v | --verbose] [-n | --no-fetch] [-k | --keep-going] [--no-squash]</pre>
+<pre class="content"><em>git rebase-update</em> [-v | --verbose] [-n | --no-fetch] [-k | --keep-going]</pre>
 <div class="attribution">
 </div></div>
 </div>
@@ -869,14 +869,6 @@ Restoration
 </p>
 </dd>
 <dt class="hdlist1">
---no-squash
-</dt>
-<dd>
-<p>
-  Skip the squash phase of rebase-update if there are merge conflicts.
-</p>
-</dd>
-<dt class="hdlist1">
 -v
 </dt>
 <dt class="hdlist1">
@@ -893,15 +885,6 @@ Restoration
 <dd>
 <p>
   Only rebase the current branch.
-</p>
-</dd>
-<dt class="hdlist1">
---tree
-</dt>
-<dd>
-<p>
-  Also rebase any branches downstream from the selected branches. Use with
-  named branches or <code>--current</code> to selectively rebase a branch tree.
 </p>
 </dd>
 </dl></div>
@@ -973,7 +956,7 @@ by checking out the <a href="https://chromium.googlesource.com/chromium/tools/de
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2025-02-20 16:05:41 PST
+ 2022-08-26 21:13:38 PDT
 </div>
 </div>
 </body>

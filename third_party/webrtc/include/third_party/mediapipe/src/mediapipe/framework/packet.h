@@ -23,29 +23,20 @@
 #include <ostream>
 #include <string>
 #include <type_traits>
-#include <utility>
-#include <vector>
 
-#include "absl/base/attributes.h"
 #include "absl/base/macros.h"
-#include "absl/base/optimization.h"
-#include "absl/functional/any_invocable.h"
 #include "absl/log/absl_check.h"
 #include "absl/log/absl_log.h"
 #include "absl/memory/memory.h"
-#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
-#include "google/protobuf/message.h"
-#include "google/protobuf/message_lite.h"
 #include "mediapipe/framework/deps/no_destructor.h"
 #include "mediapipe/framework/deps/registration.h"
 #include "mediapipe/framework/port.h"
 #include "mediapipe/framework/port/canonical_errors.h"
 #include "mediapipe/framework/port/logging.h"
 #include "mediapipe/framework/port/proto_ns.h"
-#include "mediapipe/framework/port/ret_check.h"
 #include "mediapipe/framework/port/status.h"
 #include "mediapipe/framework/port/status_builder.h"
 #include "mediapipe/framework/port/status_macros.h"
@@ -63,10 +54,10 @@ class HolderBase;
 
 Packet Create(HolderBase* holder);
 Packet Create(HolderBase* holder, Timestamp timestamp);
-Packet Create(std::shared_ptr<const HolderBase> holder, Timestamp timestamp);
+Packet Create(std::shared_ptr<HolderBase> holder, Timestamp timestamp);
 const HolderBase* GetHolder(const Packet& packet);
-const std::shared_ptr<const HolderBase>& GetHolderShared(const Packet& packet);
-std::shared_ptr<const HolderBase> GetHolderShared(Packet&& packet);
+const std::shared_ptr<HolderBase>& GetHolderShared(const Packet& packet);
+std::shared_ptr<HolderBase> GetHolderShared(Packet&& packet);
 absl::StatusOr<Packet> PacketFromDynamicProto(const std::string& type_name,
                                               const std::string& serialized);
 }  // namespace packet_internal
@@ -120,14 +111,6 @@ class Packet {
   template <typename T>
   const T& Get() const;
 
-  // Returns a shared pointer to the object of typename T if it contains
-  // one, an error otherwise (if the packet is empty or of another type). It is
-  // safe to concurrently call Share() on the same packet from multiple threads.
-  template <typename T>
-  absl::StatusOr<std::shared_ptr<const T>> Share() const;
-
-  // DEPRECATED
-  //
   // Transfers the ownership of holder's data to a unique pointer
   // of the object if the packet is the sole owner of a non-foreign
   // holder. Otherwise, returns error when the packet can't be consumed.
@@ -144,15 +127,8 @@ class Packet {
   // must be written in a special way to account for that. It's error-prone and
   // general recommendation is to avoid calling this function.
   template <typename T>
-  ABSL_DEPRECATED(
-      "Avoid Consume* functions usage as in most cases it's hard to ensure "
-      "the proper usage (taken the nature of calculators not knowing where "
-      "packets are received from and sent to) and leads to races. Consider "
-      "SharedPtrWithPacket instead to get a shared_ptr<T> if applicable.")
   absl::StatusOr<std::unique_ptr<T>> Consume();
 
-  // DEPRECATED
-  //
   // Consumes the packet and transfers the ownership of the data to a
   // unique pointer if the packet is the sole owner of a non-foreign
   // holder. Otherwise, the unique pointer holds a copy of the original
@@ -194,38 +170,21 @@ class Packet {
   //
   // Version for non-arrays.
   template <typename T>
-  ABSL_DEPRECATED(
-      "Avoid Consume* functions usage as in most cases it's hard to ensure "
-      "the proper usage (taken the nature of calculators not knowing where "
-      "packets are received from and sent to) and leads to races. Consider "
-      "SharedPtrWithPacket instead to get a shared_ptr<T> if applicable.")
   absl::StatusOr<std::unique_ptr<T>> ConsumeOrCopy(
       bool* was_copied = nullptr,
       typename std::enable_if<!std::is_array<T>::value>::type* = nullptr);
 
   // Version for bounded array.
   template <typename T>
-  ABSL_DEPRECATED(
-      "Avoid Consume* functions usage as in most cases it's hard to ensure "
-      "the proper usage (taken the nature of calculators not knowing where "
-      "packets are received from and sent to) and leads to races. Consider "
-      "SharedPtrWithPacket instead to get a shared_ptr<T> if applicable.")
   absl::StatusOr<std::unique_ptr<T>> ConsumeOrCopy(
       bool* was_copied = nullptr,
       typename std::enable_if<std::is_array<T>::value &&
                               std::extent<T>::value != 0>::type* = nullptr);
 
-  // DEPRECATED
-  //
   // TODO: Support unbounded array after fixing the bug in holder's
   // delete helper.
   // Version for unbounded array.
   template <typename T>
-  ABSL_DEPRECATED(
-      "Avoid Consume* functions usage as in most cases it's hard to ensure "
-      "the proper usage (taken the nature of calculators not knowing where "
-      "packets are received from and sent to) and leads to races. Consider "
-      "SharedPtrWithPacket instead to get a shared_ptr<T> if applicable.")
   absl::StatusOr<std::unique_ptr<T>> ConsumeOrCopy(
       bool* was_copied = nullptr,
       typename std::enable_if<std::is_array<T>::value &&
@@ -239,7 +198,7 @@ class Packet {
   // object type is a vector of MessageLite data, returns an error otherwise.
   // Note: This function is meant to be used internally within the MediaPipe
   // framework only.
-  absl::StatusOr<std::vector<const proto_ns::MessageLite*>>
+  StatusOr<std::vector<const proto_ns::MessageLite*>>
   GetVectorOfProtoMessageLitePtrs() const;
 
   // Returns an error if the packet does not contain data of type T.
@@ -276,19 +235,19 @@ class Packet {
   friend Packet packet_internal::Create(packet_internal::HolderBase* holder,
                                         class Timestamp timestamp);
   friend Packet packet_internal::Create(
-      std::shared_ptr<const packet_internal::HolderBase> holder,
+      std::shared_ptr<packet_internal::HolderBase> holder,
       class Timestamp timestamp);
   friend const packet_internal::HolderBase* packet_internal::GetHolder(
       const Packet& packet);
-  friend const std::shared_ptr<const packet_internal::HolderBase>&
+  friend const std::shared_ptr<packet_internal::HolderBase>&
   packet_internal::GetHolderShared(const Packet& packet);
-  friend std::shared_ptr<const packet_internal::HolderBase>
+  friend std::shared_ptr<packet_internal::HolderBase>
   packet_internal::GetHolderShared(Packet&& packet);
 
   friend class PacketType;
   absl::Status ValidateAsType(TypeId type_id) const;
 
-  std::shared_ptr<const packet_internal::HolderBase> holder_;
+  std::shared_ptr<packet_internal::HolderBase> holder_;
   class Timestamp timestamp_;
 };
 
@@ -305,17 +264,11 @@ Packet Adopt(const T* ptr);
 
 // Returns a Packet that does not own its data. The data pointed to by *ptr
 // remains owned by the caller, who must ensure that it outlives not only the
-// returned Packet but also all of its copies.
-//
-// Optionally, `cleanup` object can be specified to invoke when all copies of
-// the packet are destroyed (can be used to capture the foreign owner if
-// possible and ensure the lifetime).
-//
-// The timestamp of the returned Packet is Timestamp::Unset(). To set the
-// timestamp, the caller should do PointToForeign(...).At(...).
+// returned Packet but also all of its copies. The timestamp of the returned
+// Packet is Timestamp::Unset(). To set the timestamp, the caller should do
+// PointToForeign(...).At(...).
 template <typename T>
-Packet PointToForeign(const T* ptr,
-                      absl::AnyInvocable<void()> cleanup = nullptr);
+Packet PointToForeign(const T* ptr);
 
 // Adopts the data but places it in a std::unique_ptr inside the
 // resulting Packet, leaving the timestamp unset. This allows the
@@ -408,13 +361,16 @@ T* GetFromUniquePtr(const Packet& packet) {
 // Returns a shared_ptr to the payload of the packet which retains its object
 // through a copy of the packet.
 // Use std::const_pointer_cast if you need a shared_ptr<T>, but remember that
-// you must not change the payload if the packet has other owners.
+// you must not change the payload if the packet has other owners. Use Consume
+// if you want to try and modify the payload directly.
 template <typename T>
-ABSL_DEPRECATED("Use Packet::Share<T>() instead.")
-std::shared_ptr<const T> SharedPtrWithPacket(const Packet& packet) {
-  absl::StatusOr<std::shared_ptr<const T>> shared_ptr = packet.Share<T>();
-  ABSL_CHECK_OK(shared_ptr.status());
-  return *std::move(shared_ptr);
+std::shared_ptr<const T> SharedPtrWithPacket(Packet packet) {
+  // This needs to be a separate statement because the evaluation order of
+  // function arguments is unspecified, and if the lambda is created first it
+  // moves the packet.
+  const T* ptr = &packet.Get<T>();
+  return std::shared_ptr<const T>(
+      ptr, [packet = std::move(packet)](const T* ptr) mutable { packet = {}; });
 }
 
 //// Implementation details.
@@ -448,22 +404,20 @@ class HolderBase {
   // Downcasts this to Holder<T>.  Returns nullptr if deserialization
   // failed or if the requested type is not what is stored.
   template <typename T>
-  const Holder<T>* As() const;
+  Holder<T>* As();
 
-  // Same as As() but returns this as a mutable Holder<T>.
-  // Dangerous! Only use in contexts when we are guaranteed the holder is not
-  // shared.
+  // Same as non-const As() function.
   template <typename T>
-  Holder<T>* AsMutable() const;
+  const Holder<T>* As() const;
 
   // Returns the pointer to MessageLite type for the data in holder, if
   // underlying object is protocol buffer type, otherwise, nullptr is returned.
-  virtual const proto_ns::MessageLite* GetProtoMessageLite() const = 0;
+  virtual const proto_ns::MessageLite* GetProtoMessageLite() = 0;
 
   // Returns a vector<MessageLite*> for the data in the holder, if the
   // underlying object is a vector of protocol buffer objects, otherwise,
   // returns an error.
-  virtual absl::StatusOr<std::vector<const proto_ns::MessageLite*>>
+  virtual StatusOr<std::vector<const proto_ns::MessageLite*>>
   GetVectorOfProtoMessageLite() const = 0;
 
   virtual bool HasForeignOwner() const { return false; }
@@ -493,7 +447,7 @@ struct is_proto_vector<std::vector<ItemT, Allocator>>
 // Helper function to create and return a vector of pointers to proto message
 // elements of the vector passed into the function.
 template <typename T>
-absl::StatusOr<std::vector<const proto_ns::MessageLite*>>
+StatusOr<std::vector<const proto_ns::MessageLite*>>
 ConvertToVectorOfProtoMessageLitePtrs(const T* data,
                                       /*is_proto_vector=*/std::false_type) {
   return absl::InvalidArgumentError(absl::StrCat(
@@ -502,7 +456,7 @@ ConvertToVectorOfProtoMessageLitePtrs(const T* data,
 }
 
 template <typename T>
-absl::StatusOr<std::vector<const proto_ns::MessageLite*>>
+StatusOr<std::vector<const proto_ns::MessageLite*>>
 ConvertToVectorOfProtoMessageLitePtrs(const T* data,
                                       /*is_proto_vector=*/std::true_type) {
   std::vector<const proto_ns::MessageLite*> result;
@@ -601,7 +555,7 @@ class Holder : public HolderBase, private HolderPayloadRegistrator<T> {
 
   // Returns the MessageLite pointer to the data, if the underlying object type
   // is protocol buffer, otherwise, nullptr is returned.
-  const proto_ns::MessageLite* GetProtoMessageLite() const override {
+  const proto_ns::MessageLite* GetProtoMessageLite() override {
     return ConvertToProtoMessageLite(
         ptr_, std::is_base_of<proto_ns::MessageLite, T>());
   }
@@ -609,7 +563,7 @@ class Holder : public HolderBase, private HolderPayloadRegistrator<T> {
   // Returns a vector<MessageLite*> for the data in the holder, if the
   // underlying object is a vector of protocol buffer objects, otherwise,
   // returns an error.
-  absl::StatusOr<std::vector<const proto_ns::MessageLite*>>
+  StatusOr<std::vector<const proto_ns::MessageLite*>>
   GetVectorOfProtoMessageLite() const override {
     return ConvertToVectorOfProtoMessageLitePtrs(ptr_, is_proto_vector<T>());
   }
@@ -635,30 +589,20 @@ class Holder : public HolderBase, private HolderPayloadRegistrator<T> {
 template <typename T>
 class ForeignHolder : public Holder<T> {
  public:
-  explicit ForeignHolder(const T* ptr,
-                         absl::AnyInvocable<void()> cleanup = nullptr)
-      : Holder<T>::Holder(ptr), cleanup_(std::move(cleanup)) {}
-
+  using Holder<T>::Holder;
   ~ForeignHolder() override {
     // Null out ptr_ so it doesn't get deleted by ~Holder.
     // Note that ~Holder cannot call HasForeignOwner because the subclass's
     // destructor runs first.
     this->ptr_ = nullptr;
-    if (cleanup_) {
-      cleanup_();
-    }
   }
-
   bool HasForeignOwner() const final { return true; }
-
- private:
-  absl::AnyInvocable<void()> cleanup_;
 };
 
 template <typename T>
-Holder<T>* HolderBase::AsMutable() const {
+Holder<T>* HolderBase::As() {
   if (PayloadIsOfType<T>()) {
-    return static_cast<Holder<T>*>(const_cast<HolderBase*>(this));
+    return static_cast<Holder<T>*>(this);
   }
   // Does not hold a T.
   return nullptr;
@@ -691,14 +635,53 @@ inline Packet& Packet::operator=(const Packet& packet) {
 
 template <typename T>
 inline absl::StatusOr<std::unique_ptr<T>> Packet::Consume() {
-  return absl::InternalError("Consume isn't supported.");
+  // If type validation fails, returns error.
+  MP_RETURN_IF_ERROR(ValidateAsType<T>());
+  // Clients who use this function are responsible for ensuring that no
+  // other thread is doing anything with this Packet.
+  if (!holder_->HasForeignOwner() && holder_.unique()) {
+    VLOG(2) << "Consuming the data of " << DebugString();
+    absl::StatusOr<std::unique_ptr<T>> release_result =
+        holder_->As<T>()->Release();
+    if (release_result.ok()) {
+      VLOG(2) << "Setting " << DebugString() << " to empty.";
+      holder_.reset();
+    }
+    return release_result;
+  }
+  // If packet isn't the sole owner of the holder, returns kFailedPrecondition
+  // error with message.
+  return absl::Status(absl::StatusCode::kFailedPrecondition,
+                      "Packet isn't the sole owner of the holder.");
 }
 
 template <typename T>
 inline absl::StatusOr<std::unique_ptr<T>> Packet::ConsumeOrCopy(
     bool* was_copied,
     typename std::enable_if<!std::is_array<T>::value>::type*) {
-  return absl::InternalError("ConsumeOrCopy isn't supported.");
+  MP_RETURN_IF_ERROR(ValidateAsType<T>());
+  // If holder is the sole owner of the underlying data, consumes this packet.
+  if (!holder_->HasForeignOwner() && holder_.unique()) {
+    VLOG(2) << "Consuming the data of " << DebugString();
+    absl::StatusOr<std::unique_ptr<T>> release_result =
+        holder_->As<T>()->Release();
+    if (release_result.ok()) {
+      VLOG(2) << "Setting " << DebugString() << " to empty.";
+      holder_.reset();
+    }
+    if (was_copied) {
+      *was_copied = false;
+    }
+    return release_result;
+  }
+  VLOG(2) << "Copying the data of " << DebugString();
+  std::unique_ptr<T> data_ptr = absl::make_unique<T>(Get<T>());
+  VLOG(2) << "Setting " << DebugString() << " to empty.";
+  holder_.reset();
+  if (was_copied) {
+    *was_copied = true;
+  }
+  return std::move(data_ptr);
 }
 
 template <typename T>
@@ -706,7 +689,35 @@ inline absl::StatusOr<std::unique_ptr<T>> Packet::ConsumeOrCopy(
     bool* was_copied,
     typename std::enable_if<std::is_array<T>::value &&
                             std::extent<T>::value != 0>::type*) {
-  return absl::InternalError("ConsumeOrCopy isn't supported.");
+  MP_RETURN_IF_ERROR(ValidateAsType<T>());
+  // If holder is the sole owner of the underlying data, consumes this packet.
+  if (!holder_->HasForeignOwner() && holder_.unique()) {
+    VLOG(2) << "Consuming the data of " << DebugString();
+    absl::StatusOr<std::unique_ptr<T>> release_result =
+        holder_->As<T>()->Release();
+    if (release_result.ok()) {
+      VLOG(2) << "Setting " << DebugString() << " to empty.";
+      holder_.reset();
+    }
+    if (was_copied) {
+      *was_copied = false;
+    }
+    return release_result;
+  }
+  VLOG(2) << "Copying the data of " << DebugString();
+  const auto& original_array = Get<T>();
+  // Type T is bounded array type, such as int[N] and float[M].
+  // The new operator creates a new bounded array.
+  std::unique_ptr<T> data_ptr(reinterpret_cast<T*>(new T));
+  // Copies bounded array data into data_ptr.
+  std::copy(std::begin(original_array), std::end(original_array),
+            std::begin(*data_ptr));
+  VLOG(2) << "Setting " << DebugString() << " to empty.";
+  holder_.reset();
+  if (was_copied) {
+    *was_copied = true;
+  }
+  return std::move(data_ptr);
 }
 
 template <typename T>
@@ -743,25 +754,13 @@ inline TypeId Packet::GetTypeId() const {
 
 template <typename T>
 inline const T& Packet::Get() const {
-  const packet_internal::Holder<T>* holder =
-      IsEmpty() ? nullptr : holder_->As<T>();
+  packet_internal::Holder<T>* holder = IsEmpty() ? nullptr : holder_->As<T>();
   if (holder == nullptr) {
     // Produce a good error message.
     absl::Status status = ValidateAsType<T>();
     ABSL_LOG(FATAL) << "Packet::Get() failed: " << status.message();
   }
   return holder->data();
-}
-
-// Returns a shared pointer to the object of typename T if it contains
-// one, an error otherwise (if the packet is empty or of another type). It is
-// safe to concurrently call Share() on the same packet from multiple threads.
-template <typename T>
-inline absl::StatusOr<std::shared_ptr<const T>> Packet::Share() const {
-  MP_RETURN_IF_ERROR(ValidateAsType<T>());
-  const T* ptr = &Get<T>();
-  return std::shared_ptr<const T>(
-      ptr, [packet = *this](const T* ptr) mutable { packet = {}; });
 }
 
 inline Timestamp Packet::Timestamp() const { return timestamp_; }
@@ -773,10 +772,9 @@ Packet Adopt(const T* ptr) {
 }
 
 template <typename T>
-Packet PointToForeign(const T* ptr, absl::AnyInvocable<void()> cleanup) {
+Packet PointToForeign(const T* ptr) {
   ABSL_CHECK(ptr != nullptr);
-  return packet_internal::Create(
-      new packet_internal::ForeignHolder<T>(ptr, std::move(cleanup)));
+  return packet_internal::Create(new packet_internal::ForeignHolder<T>(ptr));
 }
 
 // Equal Packets refer to the same memory contents, like equal pointers.
@@ -789,12 +787,12 @@ inline bool operator!=(const Packet& p1, const Packet& p2) {
 
 namespace packet_internal {
 
-inline const std::shared_ptr<const HolderBase>& GetHolderShared(
+inline const std::shared_ptr<HolderBase>& GetHolderShared(
     const Packet& packet) {
   return packet.holder_;
 }
 
-inline std::shared_ptr<const HolderBase> GetHolderShared(Packet&& packet) {
+inline std::shared_ptr<HolderBase> GetHolderShared(Packet&& packet) {
   return std::move(packet.holder_);
 }
 

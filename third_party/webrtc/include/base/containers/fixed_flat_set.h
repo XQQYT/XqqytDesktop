@@ -5,20 +5,15 @@
 #ifndef BASE_CONTAINERS_FIXED_FLAT_SET_H_
 #define BASE_CONTAINERS_FIXED_FLAT_SET_H_
 
-#include <algorithm>
 #include <array>
 #include <functional>
 #include <type_traits>
 
+#include "base/check.h"
 #include "base/containers/flat_set.h"
 #include "base/containers/flat_tree.h"
 
 namespace base {
-
-namespace internal {
-// Not constexpr to trigger a compile error.
-void FixedFlatSetInputNotSortedOrNotUnique();
-}  // namespace internal
 
 // fixed_flat_set is a immutable container with a std::set-like interface that
 // stores its contents in a sorted std::array.
@@ -85,16 +80,13 @@ using fixed_flat_set = base::flat_set<Key, Compare, std::array<const Key, N>>;
 // input automatically.
 //
 // Example usage:
-//   constexpr auto kSet = base::MakeFixedFlatSet<std::string_view>(
-//       base::sorted_unique, {"bar", "baz", "foo", "qux"});
+//   constexpr auto kSet = base::MakeFixedFlatSetSorted<std::string_view>(
+//       {"bar", "baz", "foo", "qux"});
 template <class Key, size_t N, class Compare = std::less<>>
-consteval fixed_flat_set<Key, N, Compare> MakeFixedFlatSet(
-    sorted_unique_t,
+constexpr fixed_flat_set<Key, N, Compare> MakeFixedFlatSetSorted(
     std::common_type_t<Key> (&&data)[N],
     const Compare& comp = Compare()) {
-  if (!internal::is_sorted_and_unique(data, comp)) {
-    internal::FixedFlatSetInputNotSortedOrNotUnique();
-  }
+  CHECK(internal::is_sorted_and_unique(data, comp));
   // Specify the value_type explicitly to ensure that the returned array has
   // immutable keys.
   return fixed_flat_set<Key, N, Compare>(
@@ -103,9 +95,6 @@ consteval fixed_flat_set<Key, N, Compare> MakeFixedFlatSet(
 
 // Utility function to simplify constructing a fixed_flat_set from a fixed list
 // of keys. Requires that the passed in `data` contains unique keys.
-//
-// Large inputs will run into compiler limits, e.g. "constexpr evaluation hit
-// maximum step limit". In that case, use `MakeFixedFlatSet(sorted_unique)`.
 //
 // Example usage:
 //   constexpr auto kIntSet = base::MakeFixedFlatSet<int>({1, 2, 3, 4});
@@ -116,12 +105,16 @@ consteval fixed_flat_set<Key, N, Compare> MakeFixedFlatSet(
 //
 // Note: Wrapping `Key` in `std::common_type_t` below requires callers to
 // explicitly specify `Key`, which is desired here.
-template <class Key, class Compare = std::less<>, size_t N>
-consteval fixed_flat_set<Key, N, Compare> MakeFixedFlatSet(
-    std::common_type_t<Key> (&&data)[N],
+template <class Key, size_t N, class Compare = std::less<>>
+constexpr fixed_flat_set<Key, N, Compare> MakeFixedFlatSet(
+    std::common_type_t<Key>(&&data)[N],
     const Compare& comp = Compare()) {
-  std::ranges::sort(data, comp);
-  return MakeFixedFlatSet<Key>(sorted_unique, std::move(data), comp);
+  internal::InsertionSort(data, data + N, comp);
+  CHECK(internal::is_sorted_and_unique(data, comp));
+  // Specify the value_type explicitly to ensure that the returned array has
+  // immutable keys.
+  return fixed_flat_set<Key, N, Compare>(
+      sorted_unique, internal::ToArray<const Key>(data), comp);
 }
 
 }  // namespace base

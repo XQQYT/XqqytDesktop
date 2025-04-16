@@ -11,9 +11,10 @@
 #ifndef CALL_ADAPTATION_VIDEO_SOURCE_RESTRICTIONS_H_
 #define CALL_ADAPTATION_VIDEO_SOURCE_RESTRICTIONS_H_
 
-#include <cstddef>
-#include <optional>
 #include <string>
+#include <utility>
+
+#include "absl/types/optional.h"
 
 namespace webrtc {
 
@@ -25,9 +26,9 @@ class VideoSourceRestrictions {
   VideoSourceRestrictions();
   // All values must be positive or nullopt.
   // TODO(hbos): Support expressing "disable this stream"?
-  VideoSourceRestrictions(std::optional<size_t> max_pixels_per_frame,
-                          std::optional<size_t> target_pixels_per_frame,
-                          std::optional<double> max_frame_rate);
+  VideoSourceRestrictions(absl::optional<size_t> max_pixels_per_frame,
+                          absl::optional<size_t> target_pixels_per_frame,
+                          absl::optional<double> max_frame_rate);
 
   bool operator==(const VideoSourceRestrictions& rhs) const {
     return max_pixels_per_frame_ == rhs.max_pixels_per_frame_ &&
@@ -42,7 +43,7 @@ class VideoSourceRestrictions {
 
   // The source must produce a resolution less than or equal to
   // max_pixels_per_frame().
-  const std::optional<size_t>& max_pixels_per_frame() const;
+  const absl::optional<size_t>& max_pixels_per_frame() const;
   // The source should produce a resolution as close to the
   // target_pixels_per_frame() as possible, provided this does not exceed
   // max_pixels_per_frame().
@@ -51,13 +52,13 @@ class VideoSourceRestrictions {
   // the camera in the smallest resolution that is greater than or equal to the
   // target and scale it down to the target if it is greater. Is this an
   // accurate description of what this does today, or do we do something else?
-  const std::optional<size_t>& target_pixels_per_frame() const;
-  const std::optional<double>& max_frame_rate() const;
+  const absl::optional<size_t>& target_pixels_per_frame() const;
+  const absl::optional<double>& max_frame_rate() const;
 
-  void set_max_pixels_per_frame(std::optional<size_t> max_pixels_per_frame);
+  void set_max_pixels_per_frame(absl::optional<size_t> max_pixels_per_frame);
   void set_target_pixels_per_frame(
-      std::optional<size_t> target_pixels_per_frame);
-  void set_max_frame_rate(std::optional<double> max_frame_rate);
+      absl::optional<size_t> target_pixels_per_frame);
+  void set_max_frame_rate(absl::optional<double> max_frame_rate);
 
   // Update `this` with min(`this`, `other`).
   void UpdateMin(const VideoSourceRestrictions& other);
@@ -65,9 +66,9 @@ class VideoSourceRestrictions {
  private:
   // These map to rtc::VideoSinkWants's `max_pixel_count` and
   // `target_pixel_count`.
-  std::optional<size_t> max_pixels_per_frame_;
-  std::optional<size_t> target_pixels_per_frame_;
-  std::optional<double> max_frame_rate_;
+  absl::optional<size_t> max_pixels_per_frame_;
+  absl::optional<size_t> target_pixels_per_frame_;
+  absl::optional<double> max_frame_rate_;
 };
 
 bool DidRestrictionsIncrease(VideoSourceRestrictions before,

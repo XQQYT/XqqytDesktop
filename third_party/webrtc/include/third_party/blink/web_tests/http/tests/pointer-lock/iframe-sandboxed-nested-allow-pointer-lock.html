@@ -18,7 +18,7 @@
       });
       window.addEventListener('message', (event) => {
         if (event.data == 'inner frame load') {
-          iframe.contentWindow.postMessage([ "clickBody" ], "*");
+          clickOnElement(iframe);
         }
       });
       var iframe = document.createElement('iframe');

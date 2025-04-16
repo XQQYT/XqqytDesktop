@@ -2,10 +2,9 @@
 <body>
 <p>This test expects a HTTP fetch resulting in a redirect for the first history
 navigation. This doesn't happen if the page is restored from back-forward cache,
-so back-forward cache has to be disabled to test this behaviour.
+so back-fowrad cache has to be disabled to test this behaviour.
 </p>
 
-<script src="/resources/prevent-bfcache.js"></script>
 <script>
 if (window.testRunner) {
     testRunner.dumpAsText();
@@ -20,8 +19,7 @@ window.onload = function() {
         return;
     }
 
-    setTimeout(async function() {
-        await preventBFCache();
+    setTimeout(function() {
         history.replaceState({}, "", "#back");
         history.pushState({}, "", "http://127.0.0.1:8000/resources/redirect.php?url=http://localhost:8000/history/resources/back.html");
         location = "http://127.0.0.1:8000/history/resources/back.html";

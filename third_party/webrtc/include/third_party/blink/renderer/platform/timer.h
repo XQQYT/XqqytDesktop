@@ -26,8 +26,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_TIMER_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_TIMER_H_
 
-#include <optional>
-
 #include "base/check_op.h"
 #include "base/dcheck_is_on.h"
 #include "base/location.h"
@@ -65,7 +63,7 @@ class PLATFORM_EXPORT TimerBase {
   // If |precise|, the task is scheduled with a precise delay policy to run
   // preferably as close as possible to the specified delay.
   void Start(base::TimeDelta next_fire_interval,
-             std::optional<base::TimeDelta> repeat_interval,
+             base::TimeDelta repeat_interval,
              const base::Location&,
              bool precise = false);
 
@@ -80,7 +78,7 @@ class PLATFORM_EXPORT TimerBase {
   void StartOneShot(base::TimeDelta interval,
                     const base::Location& caller,
                     bool precise = false) {
-    Start(interval, std::nullopt, caller, precise);
+    Start(interval, base::TimeDelta(), caller, precise);
   }
 
   // Timer cancellation is fast enough that you shouldn't have to worry
@@ -90,15 +88,12 @@ class PLATFORM_EXPORT TimerBase {
   const base::Location& GetLocation() const { return location_; }
 
   base::TimeDelta NextFireInterval() const;
-  std::optional<base::TimeDelta> RepeatInterval() const {
-    return repeat_interval_;
-  }
+  base::TimeDelta RepeatInterval() const { return repeat_interval_; }
 
   void AugmentRepeatInterval(base::TimeDelta delta) {
     SetNextFireTime(next_fire_time_.is_null() ? TimerCurrentTimeTicks() + delta
                                               : next_fire_time_ + delta);
-    DCHECK(repeat_interval_);
-    *repeat_interval_ += delta;
+    repeat_interval_ += delta;
   }
 
   void MoveToNewTaskRunner(scoped_refptr<base::SingleThreadTaskRunner>);
@@ -122,11 +117,11 @@ class PLATFORM_EXPORT TimerBase {
 
   base::TimeTicks next_fire_time_ =
       base::TimeTicks::Max();        // Max() if inactive
-  std::optional<base::TimeDelta> repeat_interval_;
+  base::TimeDelta repeat_interval_;  // 0 if not repeating
   base::Location location_;
   scoped_refptr<base::SingleThreadTaskRunner> web_task_runner_;
   // The tick clock used to calculate the run time for scheduled tasks.
-  raw_ptr<const base::TickClock> tick_clock_ = nullptr;
+  raw_ptr<const base::TickClock, ExperimentalRenderer> tick_clock_ = nullptr;
   base::subtle::DelayPolicy delay_policy_;
 
 #if DCHECK_IS_ON()
@@ -155,7 +150,7 @@ class TaskRunnerTimer : public TimerBase {
   void Fired() override { (object_->*function_)(this); }
 
  private:
-  raw_ptr<TimerFiredClass> object_;
+  TimerFiredClass* object_;
   TimerFiredFunction function_;
 };
 

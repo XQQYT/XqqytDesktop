@@ -4,13 +4,6 @@
 <script src="../../../resources/testharness.js"></script>
 <script src="../../../resources/testharnessreport.js"></script>
 <script>
-
-async function collectGarbage() {
-  // Multiple rounds of GC are required to reclaim garbage here.
-  await gc({type:'major', execution:'async'});
-  await gc({type:'major', execution:'async'});
-}
-
 async function instantiateAndRunModule(url)
 {
   let {module, instance} = await WebAssembly.instantiateStreaming(fetch(url));
@@ -45,9 +38,9 @@ promise_test(async () => {
   // The initial compilation should not have any TurboFan functions.
   assert_false(has_turbofan);
   // Collect the other instances to avoid the in-process module caching.
-  await collectGarbage();
+  gc();
   await instantiateAndRunModule(url);
-  await collectGarbage();
+  gc();
   has_turbofan = await instantiateAndRunModule(url);
   // The compiled module should have been loaded from the cache, and should
   // contain at least one TurboFan function.
@@ -62,9 +55,9 @@ promise_test(async () => {
   // The initial compilation should not have any TurboFan functions.
   assert_false(has_turbofan);
   // Collect the other instances to avoid the in-process module caching.
-  await collectGarbage();
+  gc();
   await instantiateAndRunModule(url);
-  await collectGarbage();
+  gc();
   has_turbofan = await instantiateAndRunModule(url);
   // The module should be too small for caching, there should be no TurboFan.
   assert_false(has_turbofan);
@@ -76,7 +69,7 @@ promise_test(async () => {
   let has_turbofan = await instantiateAndRunModule(url1);
   // The module has already been optimized in the first test.
   assert_true(has_turbofan);
-  await collectGarbage();
+  gc();
   // Load the same module again, but from a different origin.
   has_turbofan = await instantiateAndRunModule(url2);
   // Compiled modules of different origins should not share the cache.

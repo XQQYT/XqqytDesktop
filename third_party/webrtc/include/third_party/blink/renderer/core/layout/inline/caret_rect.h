@@ -11,15 +11,15 @@ namespace blink {
 
 // This file provides utility functions for computing caret rect in LayoutNG.
 
-struct InlineCaretPosition;
+struct CaretPosition;
 struct LocalCaretRect;
 
 // Given a position, returns the caret rect.
-LocalCaretRect ComputeLocalCaretRect(const InlineCaretPosition&);
+LocalCaretRect ComputeLocalCaretRect(const CaretPosition&);
 
 // Almost the same as ComputeNGLocalCaretRect, except that the returned rect
 // is adjusted to span the containing line box in the block direction.
-LocalCaretRect ComputeLocalSelectionRect(const InlineCaretPosition&);
+LocalCaretRect ComputeLocalSelectionRect(const CaretPosition&);
 
 }  // namespace blink
 

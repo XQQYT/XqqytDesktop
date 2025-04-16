@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_ARM_IMPL_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_ARM_IMPL_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_ARM_IMPL_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_ARM_IMPL_H_
 
 #include <cassert>
 #include <type_traits>
 
-#include "partition_alloc/partition_alloc_base/numerics/safe_conversions.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/numerics/safe_conversions.h"
 
 namespace partition_alloc::internal::base::internal {
 
@@ -123,4 +123,4 @@ struct ClampedMulFastAsmOp {
 
 }  // namespace partition_alloc::internal::base::internal
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_ARM_IMPL_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_SAFE_MATH_ARM_IMPL_H_

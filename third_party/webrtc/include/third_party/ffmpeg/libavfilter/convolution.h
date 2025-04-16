@@ -34,14 +34,13 @@ typedef struct ConvolutionContext {
     const AVClass *class;
 
     char *matrix_str[4];
-    float user_rdiv[4];
+    float rdiv[4];
     float bias[4];
     int mode[4];
     float scale;
     float delta;
     int planes;
 
-    float rdiv[4];
     int size[4];
     int depth;
     int max;
@@ -119,7 +118,7 @@ static void filter16_sobel(uint8_t *dstp, int width,
     }
 }
 
-static inline void ff_sobel_init(ConvolutionContext *s, int depth, int nb_planes)
+static av_unused void ff_sobel_init(ConvolutionContext *s, int depth, int nb_planes)
 {
     for (int i = 0; i < 4; i++) {
         s->filter[i] = filter_sobel;

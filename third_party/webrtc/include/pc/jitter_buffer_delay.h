@@ -13,8 +13,7 @@
 
 #include <stdint.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/sequence_checker.h"
 #include "rtc_base/system/no_unique_address.h"
 #include "rtc_base/thread_annotations.h"
@@ -28,13 +27,13 @@ class JitterBufferDelay {
  public:
   JitterBufferDelay() = default;
 
-  void Set(std::optional<double> delay_seconds);
+  void Set(absl::optional<double> delay_seconds);
   int GetMs() const;
 
  private:
   RTC_NO_UNIQUE_ADDRESS SequenceChecker worker_thread_checker_{
       SequenceChecker::kDetached};
-  std::optional<double> cached_delay_seconds_
+  absl::optional<double> cached_delay_seconds_
       RTC_GUARDED_BY(&worker_thread_checker_);
 };
 

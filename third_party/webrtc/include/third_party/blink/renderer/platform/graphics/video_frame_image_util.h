@@ -8,17 +8,16 @@
 #include <memory>
 
 #include "base/memory/scoped_refptr.h"
-#include "components/viz/common/resources/shared_image_format.h"
 #include "media/base/video_transformation.h"
 #include "third_party/blink/renderer/platform/graphics/image_orientation.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
-#include "third_party/skia/include/core/SkAlphaType.h"
-#include "ui/gfx/color_space.h"
 #include "ui/gfx/geometry/rect.h"
 #include "ui/gfx/geometry/size.h"
 
 // Note: Don't include "media/base/video_frame.h" here without good reason,
 // since it includes a lot of non-blink types which can pollute the namespace.
+struct SkImageInfo;
+
 namespace media {
 class PaintCanvasVideoRenderer;
 class VideoFrame;
@@ -72,9 +71,6 @@ PLATFORM_EXPORT bool WillCreateAcceleratedImagesFromVideoFrame(
 // tag the StaticBitmapImage with the correct orientation ("soft flip") instead
 // of drawing the frame with the correct orientation ("hard flip").
 //
-// If `reinterpret_video_as_srgb` true, then the video will be reinterpreted as
-// being originally having been in sRGB.
-//
 // Returns nullptr if a StaticBitmapImage can't be created.
 PLATFORM_EXPORT scoped_refptr<StaticBitmapImage> CreateImageFromVideoFrame(
     scoped_refptr<media::VideoFrame> frame,
@@ -82,8 +78,7 @@ PLATFORM_EXPORT scoped_refptr<StaticBitmapImage> CreateImageFromVideoFrame(
     CanvasResourceProvider* resource_provider = nullptr,
     media::PaintCanvasVideoRenderer* video_renderer = nullptr,
     const gfx::Rect& dest_rect = gfx::Rect(),
-    bool prefer_tagged_orientation = true,
-    bool reinterpret_video_as_srgb = false);
+    bool prefer_tagged_orientation = true);
 
 // Similar to the above, but just skips creating the StaticBitmapImage from the
 // CanvasResourceProvider. Returns true if the frame could be drawn or false
@@ -96,17 +91,13 @@ PLATFORM_EXPORT scoped_refptr<StaticBitmapImage> CreateImageFromVideoFrame(
 //
 // If |ignore_video_transformation| is true, the media::VideoTransformation on
 // the |frame| will be ignored.
-//
-// If `reinterpret_video_as_srgb` true, then the video will be reinterpreted as
-// being originally having been in sRGB.
 PLATFORM_EXPORT bool DrawVideoFrameIntoResourceProvider(
     scoped_refptr<media::VideoFrame> frame,
     CanvasResourceProvider* resource_provider,
     viz::RasterContextProvider* raster_context_provider,
     const gfx::Rect& dest_rect,
     media::PaintCanvasVideoRenderer* video_renderer = nullptr,
-    bool ignore_video_transformation = false,
-    bool reinterpret_video_as_srgb = false);
+    bool ignore_video_transformation = false);
 
 PLATFORM_EXPORT void DrawVideoFrameIntoCanvas(
     scoped_refptr<media::VideoFrame> frame,
@@ -124,10 +115,7 @@ GetRasterContextProvider();
 // resource provider will be returned.
 PLATFORM_EXPORT std::unique_ptr<CanvasResourceProvider>
 CreateResourceProviderForVideoFrame(
-    gfx::Size size,
-    viz::SharedImageFormat format,
-    SkAlphaType alpha_type,
-    const gfx::ColorSpace& color_space,
+    const SkImageInfo& info,
     viz::RasterContextProvider* raster_context_provider);
 
 }  // namespace blink

@@ -50,14 +50,13 @@ class CORE_EXPORT ExternalDateTimeChooser final : public DateTimeChooser {
 
   bool IsShowingDateTimeChooserUI() const;
 
-  // DateTimeChooser function:
-  void EndChooser() override;
-  AXObject* RootAXObject(Element* popup_owner) override;
-  bool IsPickerVisible() const override;
-
  private:
   void DidChooseValue(double);
   void DidCancelChooser();
+
+  // DateTimeChooser function:
+  void EndChooser() override;
+  AXObject* RootAXObject(Element* popup_owner) override;
 
   mojom::blink::DateTimeChooser& GetDateTimeChooser(LocalFrame* frame);
 

@@ -63,8 +63,8 @@ class PLATFORM_EXPORT FEComposite final : public FilterEffect {
   float K4() const;
   bool SetK4(float);
 
-  StringBuilder& ExternalRepresentation(StringBuilder&,
-                                        wtf_size_t indent) const override;
+  WTF::TextStream& ExternalRepresentation(WTF::TextStream&,
+                                          int indention) const override;
 
  protected:
   bool MayProduceInvalidPreMultipliedPixels() override {

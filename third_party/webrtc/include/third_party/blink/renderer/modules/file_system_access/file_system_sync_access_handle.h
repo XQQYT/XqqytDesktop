@@ -47,11 +47,11 @@ class FileSystemSyncAccessHandle final : public ScriptWrappable {
                 FileSystemReadWriteOptions* options,
                 ExceptionState&);
 
-  uint64_t write(base::span<const uint8_t> buffer,
+  uint64_t write(const AllowSharedBufferSource* buffer,
                  FileSystemReadWriteOptions* options,
                  ExceptionState&);
 
-  String mode();
+  const char* mode();
 
  private:
   FileSystemAccessFileDelegate* file_delegate() { return file_delegate_.Get(); }

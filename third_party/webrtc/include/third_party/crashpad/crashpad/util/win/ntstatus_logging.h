@@ -37,17 +37,8 @@ class NtstatusLogMessage : public logging::LogMessage {
 
   ~NtstatusLogMessage();
 
- protected:
-  void AppendError();
-
  private:
   DWORD ntstatus_;
-};
-
-class NtstatusLogMessageFatal final : public NtstatusLogMessage {
- public:
-  using NtstatusLogMessage::NtstatusLogMessage;
-  [[noreturn]] ~NtstatusLogMessageFatal() override;
 };
 
 }  // namespace logging

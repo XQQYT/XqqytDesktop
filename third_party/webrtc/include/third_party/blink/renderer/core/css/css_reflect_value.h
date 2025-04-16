@@ -30,10 +30,6 @@
 #include "third_party/blink/renderer/core/css/css_value.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 
-namespace WTF {
-class String;
-}  // namespace WTF
-
 namespace blink {
 
 class CSSIdentifierValue;
@@ -55,7 +51,7 @@ class CSSReflectValue : public CSSValue {
   CSSPrimitiveValue* Offset() const { return offset_.Get(); }
   CSSValue* Mask() const { return mask_.Get(); }
 
-  WTF::String CustomCSSText() const;
+  String CustomCSSText() const;
 
   bool Equals(const CSSReflectValue&) const;
 

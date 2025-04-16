@@ -24,6 +24,7 @@
 
 #include "avcodec.h"
 #include "me_cmp.h"
+#include "threadframe.h"
 
 ///< current MB is the first after a resync marker
 #define VP_START               1
@@ -39,8 +40,7 @@
 
 typedef struct ERPicture {
     AVFrame *f;
-    const struct ThreadFrame *tf;
-    const struct ThreadProgress *progress;
+    ThreadFrame *tf;
 
     // it is the caller's responsibility to allocate these buffers
     int16_t (*motion_val[2])[2];

@@ -133,7 +133,6 @@ XMLPUBFUN void
 
 #endif /* LIBXML_OUTPUT_ENABLED */
 
-XML_DEPRECATED
 XMLPUBFUN int
 		htmlIsBooleanAttr	(const xmlChar *name);
 

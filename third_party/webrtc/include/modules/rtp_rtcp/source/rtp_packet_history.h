@@ -14,12 +14,11 @@
 #include <deque>
 #include <map>
 #include <memory>
-#include <optional>
 #include <set>
 #include <utility>
 #include <vector>
 
-#include "api/environment/environment.h"
+#include "absl/types/optional.h"
 #include "api/function_view.h"
 #include "api/units/time_delta.h"
 #include "api/units/timestamp.h"
@@ -41,8 +40,11 @@ class RtpPacketHistory {
   };
 
   enum class PaddingMode {
-    kDefault,  // Last packet stored in the history that has not yet been
-               // culled.
+    kDefault,   // Last packet stored in the history that has not yet been
+                // culled.
+    kPriority,  // Selects padding packets based on
+    // heuristics such as send time, retransmission count etc, in order to
+    // make padding potentially more useful.
     kRecentLargePacket  // Use the most recent large packet. Packet is kept for
                         // padding even after it has been culled from history.
   };
@@ -57,7 +59,11 @@ class RtpPacketHistory {
   // With kStoreAndCull, always remove packets after 3x max(1000ms, 3x rtt).
   static constexpr int kPacketCullingDelayFactor = 3;
 
-  RtpPacketHistory(const Environment& env, PaddingMode padding_mode);
+  RtpPacketHistory(Clock* clock, bool enable_padding_prio)
+      : RtpPacketHistory(clock,
+                         enable_padding_prio ? PaddingMode::kPriority
+                                             : PaddingMode::kDefault) {}
+  RtpPacketHistory(Clock* clock, PaddingMode padding_mode);
 
   RtpPacketHistory() = delete;
   RtpPacketHistory(const RtpPacketHistory&) = delete;
@@ -91,8 +97,8 @@ class RtpPacketHistory {
   // packet will not be marked as pending.
   std::unique_ptr<RtpPacketToSend> GetPacketAndMarkAsPending(
       uint16_t sequence_number,
-      FunctionView<std::unique_ptr<RtpPacketToSend>(const RtpPacketToSend&)>
-          encapsulate);
+      rtc::FunctionView<std::unique_ptr<RtpPacketToSend>(
+          const RtpPacketToSend&)> encapsulate);
 
   // Updates the send time for the given packet and increments the transmission
   // counter. Marks the packet as no longer being in the pacer queue.
@@ -113,8 +119,8 @@ class RtpPacketHistory {
   // container, or to abort getting the packet if the function returns
   // nullptr.
   std::unique_ptr<RtpPacketToSend> GetPayloadPaddingPacket(
-      FunctionView<std::unique_ptr<RtpPacketToSend>(const RtpPacketToSend&)>
-          encapsulate);
+      rtc::FunctionView<std::unique_ptr<RtpPacketToSend>(
+          const RtpPacketToSend&)> encapsulate);
 
   // Cull packets that have been acknowledged as received by the remote end.
   void CullAcknowledgedPackets(rtc::ArrayView<const uint16_t> sequence_numbers);
@@ -124,6 +130,10 @@ class RtpPacketHistory {
   void Clear();
 
  private:
+  struct MoreUseful;
+  class StoredPacket;
+  using PacketPrioritySet = std::set<StoredPacket*, MoreUseful>;
+
   class StoredPacket {
    public:
     StoredPacket() = default;
@@ -136,7 +146,7 @@ class RtpPacketHistory {
 
     uint64_t insert_order() const { return insert_order_; }
     size_t times_retransmitted() const { return times_retransmitted_; }
-    void IncrementTimesRetransmitted();
+    void IncrementTimesRetransmitted(PacketPrioritySet* priority_set);
 
     // The time of last transmission, including retransmissions.
     Timestamp send_time() const { return send_time_; }
@@ -158,6 +168,11 @@ class RtpPacketHistory {
     // Number of times RE-transmitted, ie excluding the first transmission.
     size_t times_retransmitted_;
   };
+  struct MoreUseful {
+    bool operator()(StoredPacket* lhs, StoredPacket* rhs) const;
+  };
+
+  bool padding_priority_enabled() const;
 
   // Helper method to check if packet has too recently been sent.
   bool VerifyRtt(const StoredPacket& packet) const
@@ -190,8 +205,11 @@ class RtpPacketHistory {
 
   // Total number of packets with inserted.
   uint64_t packets_inserted_ RTC_GUARDED_BY(lock_);
+  // Objects from `packet_history_` ordered by "most likely to be useful", used
+  // in GetPayloadPaddingPacket().
+  PacketPrioritySet padding_priority_ RTC_GUARDED_BY(lock_);
 
-  std::optional<RtpPacketToSend> large_payload_packet_ RTC_GUARDED_BY(lock_);
+  absl::optional<RtpPacketToSend> large_payload_packet_ RTC_GUARDED_BY(lock_);
 };
 }  // namespace webrtc
 #endif  // MODULES_RTP_RTCP_SOURCE_RTP_PACKET_HISTORY_H_

@@ -8,7 +8,6 @@
 #include <memory>
 
 #include "gpu/command_buffer/client/raster_interface.h"
-#include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/deque.h"
 
@@ -36,7 +35,7 @@ class WebGraphicsContext3DProvider;
 //   and later restored, the existing rate limiter must be destroyed and
 //   a new one created.
 
-class PLATFORM_EXPORT SharedContextRateLimiter final {
+class SharedContextRateLimiter final {
   USING_FAST_MALLOC(SharedContextRateLimiter);
 
  public:

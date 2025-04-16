@@ -15,7 +15,6 @@
 #ifndef MEDIAPIPE_UTIL_RESOURCE_CACHE_H_
 #define MEDIAPIPE_UTIL_RESOURCE_CACHE_H_
 
-#include <cstddef>
 #include <unordered_map>
 
 #include "absl/container/flat_hash_map.h"
@@ -70,8 +69,7 @@ class ResourceCache {
     std::vector<Value> evicted;
 
     // Remove excess entries.
-    ABSL_CHECK_GE(max_count, 0);
-    while (entry_list_.size() > static_cast<size_t>(max_count)) {
+    while (entry_list_.size() > max_count) {
       Entry* victim = entry_list_.tail();
       evicted.emplace_back(std::move(victim->value));
       entry_list_.Remove(victim);

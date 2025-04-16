@@ -53,12 +53,11 @@ class CORE_EXPORT DisplayLockUtilities {
     friend void Document::UpdateStyleAndLayoutForRange(
         const Range* range,
         DocumentUpdateReason reason);
-    friend void Document::UpdateStyleAndLayoutTreeForElement(
-        const Element* node,
-        DocumentUpdateReason reason,
-        bool only_cv_auto);
+    friend void Document::UpdateStyleAndLayoutTreeForNode(
+        const Node* node,
+        DocumentUpdateReason reason);
     friend void Document::UpdateStyleAndLayoutTreeForSubtree(
-        const Element* node,
+        const Node* node,
         DocumentUpdateReason reason);
     friend void Document::EnsurePaintLocationDataValidForNode(
         const Node* node,
@@ -157,20 +156,20 @@ class CORE_EXPORT DisplayLockUtilities {
         DisplayLockUtilities::memoizer_ = this;
     }
 
-    std::optional<bool> IsNodeLocked(const Node* node) {
+    absl::optional<bool> IsNodeLocked(const Node* node) {
       if (nodes_preventing_paint.Contains(node))
         return true;
       if (unlocked_nodes.Contains(node))
         return false;
-      return std::nullopt;
+      return absl::nullopt;
     }
 
-    std::optional<bool> IsNodeLockedForAccessibility(const Node* node) {
+    absl::optional<bool> IsNodeLockedForAccessibility(const Node* node) {
       if (nodes_preventing_accessibility.Contains(node))
         return true;
       if (unlocked_nodes.Contains(node))
         return false;
-      return std::nullopt;
+      return absl::nullopt;
     }
 
     void NotifyLocked(const Node* node) {
@@ -338,14 +337,6 @@ class CORE_EXPORT DisplayLockUtilities {
   static bool IsLockedForAccessibility(const Node& node);
 
   static LockCheckMemoizationScope* memoizer_;
-};
-
-template <typename T>
-struct ThreadingTrait<
-    T,
-    std::enable_if_t<
-        std::is_base_of_v<DisplayLockUtilities::ScopedForcedUpdate::Impl, T>>> {
-  static constexpr ThreadAffinity kAffinity = kMainThreadOnly;
 };
 
 }  // namespace blink

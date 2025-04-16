@@ -17,17 +17,10 @@
 #ifndef SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_EXPERIMENTAL_ANNOTATED_STACK_H_
 #define SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_EXPERIMENTAL_ANNOTATED_STACK_H_
 
-#include <cstdint>
-#include <memory>
-#include <string>
-#include <vector>
-
-#include "perfetto/ext/base/status_or.h"
-#include "perfetto/trace_processor/basic_types.h"
-#include "src/trace_processor/db/table.h"
 #include "src/trace_processor/perfetto_sql/intrinsics/table_functions/static_table_function.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 class TraceProcessorContext;
 
@@ -44,13 +37,17 @@ class ExperimentalAnnotatedStack : public StaticTableFunction {
   Table::Schema CreateSchema() override;
   std::string TableName() override;
   uint32_t EstimateRowCount() override;
-  base::StatusOr<std::unique_ptr<Table>> ComputeTable(
-      const std::vector<SqlValue>& arguments) override;
+  base::Status ValidateConstraints(const QueryConstraints&) override;
+  base::Status ComputeTable(const std::vector<Constraint>& cs,
+                            const std::vector<Order>& ob,
+                            const BitVector& cols_used,
+                            std::unique_ptr<Table>& table_return) override;
 
  private:
   TraceProcessorContext* context_ = nullptr;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_EXPERIMENTAL_ANNOTATED_STACK_H_

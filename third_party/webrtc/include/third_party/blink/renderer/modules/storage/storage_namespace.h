@@ -119,8 +119,7 @@ class MODULES_EXPORT StorageNamespace final
   // Called by areas in `cached_areas_` to bind/rebind their StorageArea
   // interface.
   void BindStorageArea(
-      const BlinkStorageKey& storage_key,
-      const LocalFrameToken& local_frame_token,
+      const LocalDOMWindow& local_dom_window,
       mojo::PendingReceiver<mojom::blink::StorageArea> receiver);
 
   // If this StorageNamespace was previously connected to the backend, this
@@ -134,7 +133,7 @@ class MODULES_EXPORT StorageNamespace final
   HeapHashSet<WeakMember<InspectorDOMStorageAgent>> inspector_agents_;
 
   // Lives globally.
-  raw_ptr<StorageController> controller_;
+  raw_ptr<StorageController, ExperimentalRenderer> controller_;
   String namespace_id_;
   scoped_refptr<base::SingleThreadTaskRunner> task_runner_;
   // `StorageNamespace` is a per-Page object and doesn't have any

@@ -11,16 +11,13 @@
 #ifndef RTC_BASE_EXPERIMENTS_NORMALIZE_SIMULCAST_SIZE_EXPERIMENT_H_
 #define RTC_BASE_EXPERIMENTS_NORMALIZE_SIMULCAST_SIZE_EXPERIMENT_H_
 
-#include <optional>
-
-#include "api/field_trials_view.h"
+#include "absl/types/optional.h"
 
 namespace webrtc {
 class NormalizeSimulcastSizeExperiment {
  public:
   // Returns the base two exponent from field trial.
-  static std::optional<int> GetBase2Exponent(
-      const FieldTrialsView& field_trials);
+  static absl::optional<int> GetBase2Exponent();
 };
 
 }  // namespace webrtc

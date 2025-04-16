@@ -116,8 +116,7 @@ class MODULES_EXPORT RTCRtpReceiverImpl : public RTCRtpReceiverPlatform {
   RTCRtpReceiverImpl(rtc::scoped_refptr<webrtc::PeerConnectionInterface>
                          native_peer_connection,
                      RtpReceiverState state,
-                     bool require_encoded_insertable_streams,
-                     std::unique_ptr<webrtc::Metronome> decode_metronome);
+                     bool encoded_insertable_streams);
   RTCRtpReceiverImpl(const RTCRtpReceiverImpl& other);
   ~RTCRtpReceiverImpl() override;
 
@@ -137,7 +136,7 @@ class MODULES_EXPORT RTCRtpReceiverImpl : public RTCRtpReceiverPlatform {
   void GetStats(RTCStatsReportCallback) override;
   std::unique_ptr<webrtc::RtpParameters> GetParameters() const override;
   void SetJitterBufferMinimumDelay(
-      std::optional<double> delay_seconds) override;
+      absl::optional<double> delay_seconds) override;
   RTCEncodedAudioStreamTransformer* GetEncodedAudioStreamTransformer()
       const override;
   RTCEncodedVideoStreamTransformer* GetEncodedVideoStreamTransformer()

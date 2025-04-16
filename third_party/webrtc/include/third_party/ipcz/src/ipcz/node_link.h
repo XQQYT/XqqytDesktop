@@ -8,13 +8,10 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <optional>
 #include <type_traits>
-#include <vector>
 
 #include "ipcz/driver_memory.h"
 #include "ipcz/driver_transport.h"
-#include "ipcz/features.h"
 #include "ipcz/fragment_ref.h"
 #include "ipcz/link_side.h"
 #include "ipcz/link_type.h"
@@ -26,6 +23,7 @@
 #include "ipcz/sublink_id.h"
 #include "third_party/abseil-cpp/absl/container/flat_hash_map.h"
 #include "third_party/abseil-cpp/absl/synchronization/mutex.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/abseil-cpp/absl/types/span.h"
 #include "util/ref_counted.h"
 
@@ -67,7 +65,6 @@ class NodeLink : public msg::NodeMessageListener {
                                     const NodeName& remote_node_name,
                                     Node::Type remote_node_type,
                                     uint32_t remote_protocol_version,
-                                    const Features& remote_features,
                                     Ref<DriverTransport> transport,
                                     Ref<NodeLinkMemory> memory);
 
@@ -80,7 +77,6 @@ class NodeLink : public msg::NodeMessageListener {
                                       const NodeName& remote_node_name,
                                       Node::Type remote_node_type,
                                       uint32_t remote_protocol_version,
-                                      const Features& remote_features,
                                       Ref<DriverTransport> transport,
                                       Ref<NodeLinkMemory> memory);
 
@@ -90,9 +86,6 @@ class NodeLink : public msg::NodeMessageListener {
   const NodeName& remote_node_name() const { return remote_node_name_; }
   Node::Type remote_node_type() const { return remote_node_type_; }
   uint32_t remote_protocol_version() const { return remote_protocol_version_; }
-  const Features& remote_features() const { return remote_features_; }
-  const Features& available_features() const { return available_features_; }
-
   const Ref<DriverTransport>& transport() const { return transport_; }
 
   NodeLinkMemory& memory() { return *memory_; }
@@ -111,6 +104,7 @@ class NodeLink : public msg::NodeMessageListener {
   // shared RouterLinkState structure for the new link. Only central links
   // require a RouterLinkState.
   Ref<RemoteRouterLink> AddRemoteRouterLink(
+      const OperationContext& context,
       SublinkId sublink,
       FragmentRef<RouterLinkState> link_state,
       LinkType type,
@@ -123,7 +117,7 @@ class NodeLink : public msg::NodeMessageListener {
 
   // Retrieves the Router and RemoteRouterLink currently bound to `sublink`
   // on this NodeLink.
-  std::optional<Sublink> GetSublink(SublinkId sublink);
+  absl::optional<Sublink> GetSublink(SublinkId sublink);
 
   // Retrieves only the Router currently bound to `sublink` on this NodeLink.
   Ref<Router> GetRouter(SublinkId sublink);
@@ -147,7 +141,6 @@ class NodeLink : public msg::NodeMessageListener {
                           LinkSide side,
                           Node::Type remote_node_type,
                           uint32_t remote_protocol_version,
-                          const Features& remote_features,
                           Ref<DriverTransport> transport,
                           DriverMemory memory);
 
@@ -209,7 +202,7 @@ class NodeLink : public msg::NodeMessageListener {
   // Must only be called on an activated NodeLink, either one which was created
   // with CreateActive(), or one which was activated later by calling
   // Activate().
-  void Deactivate();
+  void Deactivate(const OperationContext& context);
 
   // Finalizes serialization of DriverObjects within `message` and transmits it
   // to the NodeLink's peer, either over the DriverTransport or through shared
@@ -231,7 +224,6 @@ class NodeLink : public msg::NodeMessageListener {
            const NodeName& remote_node_name,
            Node::Type remote_node_type,
            uint32_t remote_protocol_version,
-           const Features& remote_features,
            Ref<DriverTransport> transport,
            Ref<NodeLinkMemory> memory,
            ActivationState initial_activation_state);
@@ -269,7 +261,7 @@ class NodeLink : public msg::NodeMessageListener {
   bool OnAcceptRelayedMessage(msg::AcceptRelayedMessage& accept) override;
   void OnTransportError() override;
 
-  void HandleTransportError();
+  void HandleTransportError(const OperationContext& context);
 
   // Invoked when we receive a Parcel whose data fragment resides in a buffer
   // not yet known to the local node. This schedules the parcel for acceptance
@@ -295,8 +287,6 @@ class NodeLink : public msg::NodeMessageListener {
   const NodeName remote_node_name_;
   const Node::Type remote_node_type_;
   const uint32_t remote_protocol_version_;
-  const Features remote_features_;
-  const Features available_features_;
   const Ref<DriverTransport> transport_;
   const Ref<NodeLinkMemory> memory_;
 
@@ -345,8 +335,8 @@ class NodeLink : public msg::NodeMessageListener {
 
   // Tracks pending referrals sent to the broker.
   uint64_t next_referral_id_ = 0;
-  using ReferralCallbackMap = absl::flat_hash_map<uint64_t, ReferralCallback>;
-  ReferralCallbackMap pending_referrals_ ABSL_GUARDED_BY(mutex_);
+  absl::flat_hash_map<uint64_t, ReferralCallback> pending_referrals_
+      ABSL_GUARDED_BY(mutex_);
 };
 
 }  // namespace ipcz

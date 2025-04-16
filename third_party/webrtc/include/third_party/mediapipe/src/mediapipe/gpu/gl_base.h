@@ -55,7 +55,6 @@
 #define HAS_EGL 1
 
 #include <EGL/egl.h>
-// TODO: b/377324183 - add <EGL/eglext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #if defined(__ANDROID__)

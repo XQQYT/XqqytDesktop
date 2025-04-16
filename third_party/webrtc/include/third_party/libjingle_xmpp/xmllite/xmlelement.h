@@ -13,7 +13,6 @@
 
 #include <iosfwd>
 #include <string>
-#include <string_view>
 
 #include "third_party/libjingle_xmpp/xmllite/qname.h"
 
@@ -97,8 +96,11 @@ class XmlAttr {
  private:
   friend class XmlElement;
 
-  explicit XmlAttr(const QName& name, std::string_view value)
-      : next_attr_(NULL), name_(name), value_(value) {}
+  explicit XmlAttr(const QName& name, const std::string& value) :
+    next_attr_(NULL),
+    name_(name),
+    value_(value) {
+  }
   explicit XmlAttr(const XmlAttr& att) :
     next_attr_(NULL),
     name_(att.name_),
@@ -136,7 +138,7 @@ class XmlElement : public XmlChild {
   const std::string Attr(const QName& name) const;
   bool HasAttr(const StaticQName& name) const;
   bool HasAttr(const QName& name) const;
-  void SetAttr(const QName& name, std::string_view value);
+  void SetAttr(const QName& name, const std::string& value);
   void ClearAttr(const QName& name);
 
   XmlChild* FirstChild();

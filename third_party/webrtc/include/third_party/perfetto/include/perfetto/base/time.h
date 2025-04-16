@@ -17,7 +17,6 @@
 #ifndef INCLUDE_PERFETTO_BASE_TIME_H_
 #define INCLUDE_PERFETTO_BASE_TIME_H_
 
-#include <stdint.h>
 #include <time.h>
 
 #include <chrono>
@@ -38,12 +37,6 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#if PERFETTO_BUILDFLAG(PERFETTO_ARCH_CPU_X86_64)
-#if PERFETTO_BUILDFLAG(PERFETTO_COMPILER_MSVC)
-#include <intrin.h>
-#endif
-#endif
-
 namespace perfetto {
 namespace base {
 
@@ -56,7 +49,6 @@ inline TimeNanos FromPosixTimespec(const struct timespec& ts) {
 }
 
 void SleepMicroseconds(unsigned interval_us);
-void InitializeTime();
 
 #if PERFETTO_BUILDFLAG(PERFETTO_OS_WIN)
 
@@ -74,39 +66,14 @@ inline TimeNanos GetBootTimeNs() {
 #elif PERFETTO_BUILDFLAG(PERFETTO_OS_APPLE)
 
 inline TimeNanos GetWallTimeNs() {
-  auto init_timebase_info = []() -> mach_timebase_info_data_t {
+  auto init_time_factor = []() -> uint64_t {
     mach_timebase_info_data_t timebase_info;
     mach_timebase_info(&timebase_info);
-    return timebase_info;
+    return timebase_info.numer / timebase_info.denom;
   };
 
-  static mach_timebase_info_data_t timebase_info = init_timebase_info();
-  uint64_t mach_time = mach_absolute_time();
-
-  // Take the fast path when the conversion is 1:1. The result will for sure fit
-  // into an int_64 because we're going from nanoseconds to microseconds.
-  if (timebase_info.numer == timebase_info.denom) {
-    return TimeNanos(mach_time);
-  }
-
-  // Nanoseconds is mach_time * timebase.numer // timebase.denom. Divide first
-  // to reduce the chance of overflow. Also stash the remainder right now,
-  // a likely byproduct of the division.
-  uint64_t nanoseconds = mach_time / timebase_info.denom;
-  const uint64_t mach_time_remainder = mach_time % timebase_info.denom;
-
-  // Now multiply, keeping an eye out for overflow.
-  PERFETTO_CHECK(!__builtin_umulll_overflow(nanoseconds, timebase_info.numer,
-                                            &nanoseconds));
-
-  // By dividing first we lose precision. Regain it by adding back the
-  // nanoseconds from the remainder, with an eye out for overflow.
-  uint64_t least_significant_nanoseconds =
-      (mach_time_remainder * timebase_info.numer) / timebase_info.denom;
-  PERFETTO_CHECK(!__builtin_uaddll_overflow(
-      nanoseconds, least_significant_nanoseconds, &nanoseconds));
-
-  return TimeNanos(nanoseconds);
+  static uint64_t monotonic_timebase_factor = init_time_factor();
+  return TimeNanos(mach_absolute_time() * monotonic_timebase_factor);
 }
 
 inline TimeNanos GetWallTimeRawNs() {
@@ -185,33 +152,6 @@ inline TimeNanos GetThreadCPUTimeNs() {
 
 inline TimeNanos GetBootTimeNs() {
   return TimeNanos(0);
-}
-
-#elif PERFETTO_BUILDFLAG(PERFETTO_OS_QNX)
-
-constexpr clockid_t kWallTimeClockSource = CLOCK_MONOTONIC;
-
-inline TimeNanos GetTimeInternalNs(clockid_t clk_id) {
-  struct timespec ts = {};
-  PERFETTO_CHECK(clock_gettime(clk_id, &ts) == 0);
-  return FromPosixTimespec(ts);
-}
-
-inline TimeNanos GetWallTimeNs() {
-  return GetTimeInternalNs(kWallTimeClockSource);
-}
-
-inline TimeNanos GetWallTimeRawNs() {
-  return GetTimeInternalNs(CLOCK_MONOTONIC);
-}
-
-inline TimeNanos GetThreadCPUTimeNs() {
-  return GetTimeInternalNs(CLOCK_THREAD_CPUTIME_ID);
-}
-
-// TODO: Clock that counts time during suspend is not implemented on QNX.
-inline TimeNanos GetBootTimeNs() {
-  return GetWallTimeNs();
 }
 
 #else  // posix
@@ -305,20 +245,6 @@ inline int64_t MkTime(int year, int month, int day, int h, int m, int s) {
   tms.tm_sec = s;
   return TimeGm(&tms);
 }
-
-#if PERFETTO_BUILDFLAG(PERFETTO_ARCH_CPU_X86_64)
-inline uint64_t Rdtsc() {
-#if PERFETTO_BUILDFLAG(PERFETTO_COMPILER_MSVC)
-  return static_cast<uint64_t>(__rdtsc());
-#else
-  // Use inline asm for clang and gcc: rust ffi bindgen crashes in using
-  // intrinsics on ChromeOS.
-  uint64_t low, high;
-  __asm__ volatile("rdtsc" : "=a"(low), "=d"(high));
-  return (high << 32) | low;
-#endif
-}
-#endif
 
 std::optional<int32_t> GetTimezoneOffsetMins();
 

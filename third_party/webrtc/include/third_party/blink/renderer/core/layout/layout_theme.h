@@ -33,15 +33,16 @@
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
 #include "third_party/blink/renderer/platform/wtf/ref_counted.h"
-#include "ui/color/color_provider.h"
 #include "ui/gfx/geometry/size.h"
 
 namespace blink {
 
 class ComputedStyle;
 class ComputedStyleBuilder;
+class Document;
 class Element;
 class File;
+class FontDescription;
 class LocalFrame;
 class Node;
 class ThemePainter;
@@ -78,7 +79,7 @@ class CORE_EXPORT LayoutTheme : public RefCounted<LayoutTheme> {
 
   // Whether or not the control has been styled enough by the author to disable
   // the native appearance.
-  virtual bool IsControlStyled(AppearanceValue appearance,
+  virtual bool IsControlStyled(ControlPart part,
                                const ComputedStyleBuilder&) const;
 
   bool ShouldDrawDefaultFocusRing(const Node*, const ComputedStyle&) const;
@@ -119,15 +120,9 @@ class CORE_EXPORT LayoutTheme : public RefCounted<LayoutTheme> {
   // Highlight and text colors for TextMatches.
   Color PlatformTextSearchHighlightColor(
       bool active_match,
-      bool in_forced_colors,
-      mojom::blink::ColorScheme color_scheme,
-      const ui::ColorProvider* color_provider,
-      bool is_in_web_app_scope) const;
+      mojom::blink::ColorScheme color_scheme) const;
   Color PlatformTextSearchColor(bool active_match,
-                                bool in_forced_colors,
-                                mojom::blink::ColorScheme color_scheme,
-                                const ui::ColorProvider* color_provider,
-                                bool is_in_web_app_scope) const;
+                                mojom::blink::ColorScheme color_scheme) const;
 
   virtual Color FocusRingColor(mojom::blink::ColorScheme color_scheme) const;
   virtual Color PlatformFocusRingColor() const { return Color(0, 0, 0); }
@@ -147,11 +142,10 @@ class CORE_EXPORT LayoutTheme : public RefCounted<LayoutTheme> {
   void SetCaretBlinkInterval(base::TimeDelta);
   virtual base::TimeDelta CaretBlinkInterval() const;
 
-  // System colors for CSS.
+  // System fonts and colors for CSS.
+  void SystemFont(CSSValueID system_font_id, FontDescription&, const Document*);
   virtual Color SystemColor(CSSValueID,
-                            mojom::blink::ColorScheme color_scheme,
-                            const ui::ColorProvider* color_provider,
-                            bool is_in_web_app_scope) const;
+                            mojom::blink::ColorScheme color_scheme) const;
 
   virtual void AdjustSliderThumbSize(ComputedStyleBuilder&) const;
 
@@ -197,18 +191,13 @@ class CORE_EXPORT LayoutTheme : public RefCounted<LayoutTheme> {
       mojom::blink::ColorScheme color_scheme) const;
 
   // GetAccentColorOrDefault will return GetAccentColor if there is a value from
-  // the OS and if it is within an installed WebApp scope, otherwise it will
-  // return the default accent color.
-  Color GetAccentColorOrDefault(mojom::blink::ColorScheme color_scheme,
-                                bool is_in_web_app_scope) const;
+  // the OS, otherwise it will return the default accent color.
+  Color GetAccentColorOrDefault(mojom::blink::ColorScheme color_scheme) const;
   // GetAccentColorText returns black or white depending on which can be
   // rendered with enough contrast on the result of GetAccentColorOrDefault.
-  Color GetAccentColorText(mojom::blink::ColorScheme color_scheme,
-                           bool is_in_web_app_scope) const;
+  Color GetAccentColorText(mojom::blink::ColorScheme color_scheme) const;
 
-  virtual Color SystemHighlightFromColorProvider(
-      mojom::blink::ColorScheme color_scheme,
-      const ui::ColorProvider* color_provider) const;
+  bool InForcedColorsMode() const { return in_forced_colors_mode_; }
 
  protected:
   // The platform selection color.
@@ -248,25 +237,22 @@ class CORE_EXPORT LayoutTheme : public RefCounted<LayoutTheme> {
   Color GetCustomFocusRingColor() const;
 
   Color DefaultSystemColor(CSSValueID,
-                           mojom::blink::ColorScheme color_scheme,
-                           const ui::ColorProvider* color_provider,
-                           bool is_in_web_app_scope) const;
-  Color SystemColorFromColorProvider(CSSValueID,
-                                     mojom::blink::ColorScheme color_scheme,
-                                     const ui::ColorProvider* color_provider,
-                                     bool is_in_web_app_scope) const;
+                           mojom::blink::ColorScheme color_scheme) const;
+  Color SystemColorFromNativeTheme(
+      CSSValueID,
+      mojom::blink::ColorScheme color_scheme) const;
 
  private:
   // This function is to be implemented in your platform-specific theme
   // implementation to hand back the appropriate platform theme.
   static LayoutTheme& NativeTheme();
 
-  AppearanceValue AdjustAppearanceWithAuthorStyle(
-      AppearanceValue appearance,
+  ControlPart AdjustAppearanceWithAuthorStyle(
+      ControlPart part,
       const ComputedStyleBuilder& style);
 
-  AppearanceValue AdjustAppearanceWithElementType(const ComputedStyleBuilder&,
-                                                  const Element*);
+  ControlPart AdjustAppearanceWithElementType(const ComputedStyleBuilder&,
+                                              const Element*);
 
   void UpdateForcedColorsState();
 
@@ -275,6 +261,7 @@ class CORE_EXPORT LayoutTheme : public RefCounted<LayoutTheme> {
   base::TimeDelta caret_blink_interval_ = base::Milliseconds(500);
 
   bool delegates_menu_list_rendering_ = false;
+  bool in_forced_colors_mode_ = false;
 
   // This color is expected to be drawn on a semi-transparent overlay,
   // making it more transparent than its alpha value indicates.

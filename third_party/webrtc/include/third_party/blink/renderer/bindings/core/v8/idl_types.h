@@ -5,10 +5,11 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_BINDINGS_CORE_V8_IDL_TYPES_H_
 #define THIRD_PARTY_BLINK_RENDERER_BINDINGS_CORE_V8_IDL_TYPES_H_
 
-#include <optional>
 #include <type_traits>
 
+#include "base/template_util.h"
 #include "base/time/time.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/bindings/core/v8/idl_types_base.h"
 #include "third_party/blink/renderer/bindings/core/v8/native_value_traits.h"
 #include "third_party/blink/renderer/platform/heap/heap_traits.h"
@@ -20,22 +21,11 @@ namespace blink {
 
 class BigInt;
 class EventListener;
-class ScriptObject;
-template <typename T>
-class MemberScriptPromise;
-template <typename T>
 class ScriptPromise;
 class ScriptValue;
-struct ToV8UndefinedGenerator;
 
 // The type names below are named as "IDL" prefix + Web IDL type name.
 // https://webidl.spec.whatwg.org/#dfn-type-name
-// undefined
-// TODO(japhet): Use IDLUndefined in place of ToV8UndefinedGenerator and delete
-// ToV8UndefinedGenerator. Using IDLUndefined here makes calls to
-// ScriptPromseResolver::Resolve/Reject ambiguous between the ToV8() variant
-// and the ToV8Traits<>::ToV8() variant of those functions.
-struct IDLUndefined final : public IDLBaseHelper<ToV8UndefinedGenerator> {};
 
 // any
 struct IDLAny final : public IDLBaseHelper<ScriptValue> {};
@@ -137,10 +127,6 @@ using IDLUnrestrictedDouble = IDLFloatingPointNumberTypeBase<
     double,
     bindings::IDLFloatingPointNumberConvMode::kUnrestricted>;
 
-// DOMHighResTimeStamp
-// https://w3c.github.io/hr-time/#sec-domhighrestimestamp
-using IDLDOMHighResTimeStamp = IDLDouble;
-
 // Strings
 
 namespace bindings {
@@ -203,23 +189,10 @@ using IDLUSVStringStringContextTrustedScriptURL =
         bindings::IDLStringConvMode::kDefault>;
 
 // object
-struct IDLObject final : public IDLBaseHelper<ScriptObject> {};
+struct IDLObject final : public IDLBaseHelper<ScriptValue> {};
 
 // Promise types
-template <typename T>
-struct IDLPromise final : public IDLBaseHelper<ScriptPromise<T>> {};
-
-template <typename T>
-struct IsPromiseType {
-  static constexpr bool value = false;
-  using IDLPromiseResultType = void;
-};
-
-template <typename T>
-struct IsPromiseType<IDLPromise<T>> {
-  static constexpr bool value = true;
-  using IDLPromiseResultType = T;
-};
+struct IDLPromise final : public IDLBaseHelper<ScriptPromise> {};
 
 // Sequence types
 template <typename T>
@@ -231,15 +204,6 @@ struct IDLSequence final : public IDLBase {
 // Frozen array types
 template <typename T>
 struct IDLArray final : public IDLBase {
-  // IDL FrozenArray is implemented as FrozenArray<IDLType>, but it's convenient
-  // for NativeValueTraits<IDLArray<T>> to use (Heap)Vector<T>. Generally, for
-  // inputs (attribute setters, operation arguments), (Heap)Vector is convenient
-  // while FrozenArray<IDLType> should be used for outputs (attribute getters,
-  // operation return values).
-  //
-  // Since IDLType is tightly bound to NativeValueTraits rather than ToV8Traits,
-  // IDLArray<T>::ImplType is defined as (Heap)Vector<T> rather than
-  // FrozenArray<T>.
   using ImplType =
       VectorOf<std::remove_pointer_t<typename NativeValueTraits<T>::ImplType>>;
 };
@@ -253,12 +217,9 @@ struct IDLRecord final : public IDLBase {
       std::is_same<typename NativeValueTraits<Key>::ImplType, String>::value,
       "IDLRecord keys must be of a WebIDL string type");
 
-  using ValueImplType = std::conditional_t<
-      IsPromiseType<Value>::value,
-      MemberScriptPromise<typename IsPromiseType<Value>::IDLPromiseResultType>,
-      typename NativeValueTraits<Value>::ImplType>;
-
-  using ImplType = VectorOfPairs<String, std::remove_pointer_t<ValueImplType>>;
+  using ImplType = VectorOfPairs<
+      String,
+      std::remove_pointer_t<typename NativeValueTraits<Value>::ImplType>>;
 };
 
 // Nullable types
@@ -267,8 +228,11 @@ struct IDLNullable final : public IDLBase {
   using ImplType = std::conditional_t<
       NativeValueTraits<T>::has_null_value,
       typename NativeValueTraits<T>::ImplType,
-      std::optional<typename NativeValueTraits<T>::ImplType>>;
+      absl::optional<typename NativeValueTraits<T>::ImplType>>;
 };
+
+// Date
+struct IDLDate final : public IDLBaseHelper<base::Time> {};
 
 // EventHandler types
 struct IDLEventHandler final : public IDLBaseHelper<EventListener*> {};
@@ -288,7 +252,7 @@ struct IDLAllowResizable {};
 //
 // IDLOptional represents an optional argument and supports a conversion from
 // ES undefined to "missing" special value.  The "missing" value might be
-// represented in Blink as std::nullopt, nullptr, 0, etc. depending on a Blink
+// represented in Blink as absl::nullopt, nullptr, 0, etc. depending on a Blink
 // type.
 //
 // Note that IDLOptional is not meant to represent an optional dictionary

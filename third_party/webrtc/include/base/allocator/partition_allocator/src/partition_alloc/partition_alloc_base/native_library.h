@@ -2,29 +2,29 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_NATIVE_LIBRARY_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_NATIVE_LIBRARY_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NATIVE_LIBRARY_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NATIVE_LIBRARY_H_
 
 // This file defines a cross-platform "NativeLibrary" type which represents
 // a loadable module.
 
 #include <string>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_base/files/file_path.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/files/file_path.h"
+#include "build/build_config.h"
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 #include <windows.h>
-#elif PA_BUILDFLAG(IS_APPLE)
-#include <CoreFoundation/CoreFoundation.h>
+#elif BUILDFLAG(IS_APPLE)
+#import <CoreFoundation/CoreFoundation.h>
 #endif  // OS_*
 
 namespace partition_alloc::internal::base {
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
 using NativeLibrary = HMODULE;
-#elif PA_BUILDFLAG(IS_APPLE)
+#elif BUILDFLAG(IS_APPLE)
 enum NativeLibraryType { BUNDLE, DYNAMIC_LIB };
 enum NativeLibraryObjCStatus {
   OBJC_UNKNOWN,
@@ -41,26 +41,26 @@ struct NativeLibraryStruct {
   };
 };
 using NativeLibrary = NativeLibraryStruct*;
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
 using NativeLibrary = void*;
 #endif  // OS_*
 
-struct PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) NativeLibraryLoadError {
-#if PA_BUILDFLAG(IS_WIN)
+struct PA_COMPONENT_EXPORT(PARTITION_ALLOC) NativeLibraryLoadError {
+#if BUILDFLAG(IS_WIN)
   NativeLibraryLoadError() : code(0) {}
-#endif  // PA_BUILDFLAG(IS_WIN)
+#endif  // BUILDFLAG(IS_WIN)
 
   // Returns a string representation of the load error.
   std::string ToString() const;
 
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   DWORD code;
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
   std::string message;
-#endif  // PA_BUILDFLAG(IS_WIN)
+#endif  // BUILDFLAG(IS_WIN)
 };
 
-struct PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) NativeLibraryOptions {
+struct PA_COMPONENT_EXPORT(PARTITION_ALLOC) NativeLibraryOptions {
   NativeLibraryOptions() = default;
   NativeLibraryOptions(const NativeLibraryOptions& options) = default;
 
@@ -75,23 +75,23 @@ struct PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE) NativeLibraryOptions {
 // Loads a native library from disk.  Release it with UnloadNativeLibrary when
 // you're done.  Returns NULL on failure.
 // If |error| is not NULL, it may be filled in on load error.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 NativeLibrary LoadNativeLibrary(const FilePath& library_path,
                                 NativeLibraryLoadError* error);
 
 // Loads a native library from disk.  Release it with UnloadNativeLibrary when
 // you're done.  Returns NULL on failure.
 // If |error| is not NULL, it may be filled in on load error.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 NativeLibrary LoadNativeLibraryWithOptions(const FilePath& library_path,
                                            const NativeLibraryOptions& options,
                                            NativeLibraryLoadError* error);
 
 // Gets a function pointer from a native library.
-PA_COMPONENT_EXPORT(PARTITION_ALLOC_BASE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void* GetFunctionPointerFromNativeLibrary(NativeLibrary library,
                                           const std::string& name);
 
 }  // namespace partition_alloc::internal::base
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_NATIVE_LIBRARY_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NATIVE_LIBRARY_H_

@@ -14,10 +14,12 @@
 #include <memory>
 #include <sstream>  // no-presubmit-check TODO(webrtc:8982)
 
+#include "rtc_base/ignore_wundef.h"
 #include "rtc_base/protobuf_utils.h"
 
-// Generated at build-time by the protobuf compiler.
+RTC_PUSH_IGNORING_WUNDEF()
 #include "modules/audio_processing/debug.pb.h"
+RTC_POP_IGNORING_WUNDEF()
 
 namespace webrtc {
 

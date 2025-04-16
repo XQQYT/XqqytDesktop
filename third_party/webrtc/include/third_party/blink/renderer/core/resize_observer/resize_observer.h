@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_RESIZE_OBSERVER_RESIZE_OBSERVER_H_
 
 #include "third_party/blink/renderer/bindings/core/v8/active_script_wrappable.h"
-#include "third_party/blink/renderer/bindings/core/v8/v8_resize_observer_box_options.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/core/resize_observer/resize_observer_box_options.h"
@@ -72,8 +71,7 @@ class CORE_EXPORT ResizeObserver final
   void DeliverObservations();
   void ClearObservations();
 
-  ResizeObserverBoxOptions V8EnumToBoxOptions(
-      V8ResizeObserverBoxOptions::Enum box_options);
+  ResizeObserverBoxOptions ParseBoxOptions(const String& box_options);
 
   // ScriptWrappable override:
   bool HasPendingActivity() const override;

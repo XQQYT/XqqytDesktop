@@ -8,13 +8,11 @@
 #include <unicode/ubidi.h>
 #include <unicode/uscript.h>
 
-#include <bit>
-
 #include "base/check_op.h"
 #include "base/dcheck_is_on.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/inline/offset_mapping.h"
-#include "third_party/blink/renderer/core/layout/style_variant.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_style_variant.h"
 #include "third_party/blink/renderer/core/style/computed_style.h"
 #include "third_party/blink/renderer/platform/fonts/shaping/run_segmenter.h"
 #include "third_party/blink/renderer/platform/fonts/shaping/shape_options.h"
@@ -52,18 +50,7 @@ class CORE_EXPORT InlineItemSegment {
   unsigned EndOffset() const { return end_offset_; }
 
   // Pack/unpack utility functions to store in bit fields.
-  // UScriptCode is -1 (USCRIPT_INVALID_CODE) to 199 as of ICU 74.
-  // `USCRIPT_CODE_LIMIT` is the max value plus 1, but the plus 1 is necessary
-  // to represent -1 (USCRIPT_INVALID_CODE), which is handled separately.
-  static constexpr unsigned kScriptBits =
-      std::bit_width(static_cast<unsigned>(USCRIPT_CODE_LIMIT));
-  static constexpr unsigned kFontFallbackPriorityBits = std::bit_width(
-      static_cast<unsigned>(FontFallbackPriority::kMaxEnumValue));
-  static constexpr unsigned kRenderOrientationBits =
-      std::bit_width(static_cast<unsigned>(
-          OrientationIterator::RenderOrientation::kMaxEnumValue));
-  static constexpr unsigned kSegmentDataBits =
-      kScriptBits + kFontFallbackPriorityBits + kRenderOrientationBits;
+  static constexpr unsigned kSegmentDataBits = 11;
 
   static unsigned PackSegmentData(const RunSegmenter::RunSegmenterRange& range);
   static RunSegmenter::RunSegmenterRange
@@ -121,7 +108,7 @@ class CORE_EXPORT InlineItemSegments {
                                       unsigned segment_index);
 
   // Compute an internal items-to-segments index for faster access.
-  void ComputeItemIndex(const HeapVector<Member<InlineItem>>& items);
+  void ComputeItemIndex(const HeapVector<InlineItem>& items);
 
   using RunSegmenterRanges = Vector<RunSegmenter::RunSegmenterRange, 16>;
   void ToRanges(RunSegmenterRanges& ranges) const;
@@ -161,13 +148,13 @@ class CORE_EXPORT InlineItemSegments {
                         unsigned item_index) const;
 
   // Shape runs in the range and return the concatenated |ShapeResult|.
-  ShapeResult* ShapeText(const HarfBuzzShaper* shaper,
-                         const Font* font,
-                         TextDirection direction,
-                         unsigned start_offset,
-                         unsigned end_offset,
-                         unsigned item_index,
-                         ShapeOptions = ShapeOptions()) const;
+  scoped_refptr<ShapeResult> ShapeText(const HarfBuzzShaper* shaper,
+                                       const Font* font,
+                                       TextDirection direction,
+                                       unsigned start_offset,
+                                       unsigned end_offset,
+                                       unsigned item_index,
+                                       ShapeOptions = ShapeOptions()) const;
 
  private:
   unsigned PopulateItemsFromFontOrientation(
@@ -203,8 +190,7 @@ inline void InlineItemSegments::Iterator::operator++() {
     return;
   }
   start_offset_ = range_.end;
-  // TODO(crbug.com/351564777): Resolve a buffer safety issue.
-  UNSAFE_TODO(++segment_);
+  ++segment_;
   range_ = segment_->ToRunSegmenterRange(start_offset_, end_offset_);
 }
 

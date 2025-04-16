@@ -8,9 +8,9 @@
 #include <hstring.h>
 
 #include <string>
-#include <string_view>
 
 #include "base/scoped_generic.h"
+#include "base/strings/string_piece_forward.h"
 
 namespace base {
 
@@ -45,13 +45,13 @@ class BASE_EXPORT ScopedHString
   // Constructs a ScopedHString from an HSTRING, and takes ownership of |hstr|.
   explicit ScopedHString(HSTRING hstr);
 
-  static ScopedHString Create(std::wstring_view str);
-  static ScopedHString Create(std::string_view str);
+  static ScopedHString Create(WStringPiece str);
+  static ScopedHString Create(StringPiece str);
 
   // Returns a view into the memory buffer managed by the instance. The returned
-  // std::string_view is only valid during the lifetime of this ScopedHString
+  // StringPiece is only valid during the lifetime of this ScopedHString
   // instance.
-  std::wstring_view Get() const;
+  WStringPiece Get() const;
 
   // Returns a copy of the instance as a UTF-8 string.
   std::string GetAsUTF8() const;

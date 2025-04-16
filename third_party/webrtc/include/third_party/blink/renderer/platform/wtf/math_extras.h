@@ -326,9 +326,8 @@ constexpr LimitType ClampToWithNaNTo0(
     LimitType min = DefaultMinimumForClamp<LimitType>(),
     LimitType max = DefaultMaximumForClamp<LimitType>()) {
   static_assert(std::numeric_limits<ValueType>::has_quiet_NaN);
-  if (std::isnan(value)) [[unlikely]] {
+  if (UNLIKELY(std::isnan(value)))
     return 0;
-  }
   return ClampTo<LimitType, ValueType>(value);
 }
 

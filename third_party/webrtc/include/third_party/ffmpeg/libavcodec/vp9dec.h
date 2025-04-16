@@ -28,9 +28,10 @@
 #include <stdint.h>
 #include <stdatomic.h>
 
+#include "libavutil/buffer.h"
 #include "libavutil/mem_internal.h"
-#include "libavutil/pixfmt.h"
 #include "libavutil/thread.h"
+#include "libavutil/internal.h"
 
 #include "get_bits.h"
 #include "videodsp.h"
@@ -120,7 +121,7 @@ typedef struct VP9Context {
     int w, h;
     enum AVPixelFormat pix_fmt, last_fmt, gf_fmt;
     unsigned sb_cols, sb_rows, rows, cols;
-    ProgressFrame next_refs[8];
+    ThreadFrame next_refs[8];
 
     struct {
         uint8_t lim_lut[64];
@@ -160,7 +161,7 @@ typedef struct VP9Context {
     uint8_t mvstep[3][2];
 
     // frame specific buffer pools
-    struct AVRefStructPool *frame_extradata_pool;
+    AVBufferPool *frame_extradata_pool;
     int frame_extradata_pool_size;
 } VP9Context;
 
@@ -245,7 +246,7 @@ void ff_vp9_decode_block(VP9TileData *td, int row, int col,
                          VP9Filter *lflvl, ptrdiff_t yoff, ptrdiff_t uvoff,
                          enum BlockLevel bl, enum BlockPartition bp);
 
-void ff_vp9_loopfilter_sb(struct AVCodecContext *avctx, VP9Filter *lflvl,
+void ff_vp9_loopfilter_sb(AVCodecContext *avctx, VP9Filter *lflvl,
                           int row, int col, ptrdiff_t yoff, ptrdiff_t uvoff);
 
 void ff_vp9_intra_recon_8bpp(VP9TileData *td,

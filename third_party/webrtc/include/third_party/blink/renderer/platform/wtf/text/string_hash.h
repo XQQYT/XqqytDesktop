@@ -19,11 +19,6 @@
  *
  */
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/390223051): Remove C-library calls to fix the errors.
-#pragma allow_unsafe_libc_calls
-#endif
-
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TEXT_STRING_HASH_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TEXT_STRING_HASH_H_
 
@@ -68,35 +63,6 @@ struct HashTraits<String> : SimpleClassHashTraits<String> {
   static bool Equal(const String& a, const String& b) {
     return EqualNonNull(a.Impl(), b.Impl());
   }
-
-  // Avoid implicit conversion to String just to hash or compare.
-  // We would like to add overloads for StringView and AtomicString too,
-  // but there are classes (e.g. WebString, V8StringResource) with
-  // implicit conversion operators both to String and one of the others,
-  // which would cause ambiguous overloads.
-  static unsigned GetHash(const char* key) {
-    return StringHasher::ComputeHashAndMaskTop8Bits(key, strlen(key));
-  }
-  static unsigned GetHash(const LChar* key) {
-    return GetHash(reinterpret_cast<const char*>(key));
-  }
-  static unsigned GetHash(const UChar* key) {
-    return ComputeHashForWideString(key, LengthOfNullTerminatedString(key));
-  }
-
-  static bool Equal(const String& a, const char* b) { return a == b; }
-  static bool Equal(const char* a, const String& b) { return a == b; }
-  static bool Equal(const String& a, const LChar* b) {
-    return a == reinterpret_cast<const char*>(b);
-  }
-  static bool Equal(const LChar* a, const String& b) {
-    return reinterpret_cast<const char*>(a) == b;
-  }
-  static bool Equal(const String& a, const UChar* b) { return a == b; }
-  static bool Equal(const UChar* a, const String& b) { return a == b; }
-  // NOTE: There are no String == StringView overloads, so we also make no
-  // Equal() for them.
-
   static constexpr bool kSafeToCompareToEmptyOrDeleted = false;
   static bool IsEmptyValue(const String& s) { return s.IsNull(); }
   static bool IsDeletedValue(const String& s) {

@@ -41,7 +41,6 @@
 
 #include <limits.h>
 
-#include <cstdint>
 #include <limits>
 #include <type_traits>
 
@@ -229,7 +228,7 @@ class SafeIntStrongIntValidator {
     }
   }
   template <typename T>
-  static void ValidateLeftShift(T lhs, int64_t rhs) {
+  static void ValidateLeftShift(T lhs, int64 rhs) {
     if (std::numeric_limits<T>::is_signed) {
       // Signed types only.
       if (lhs < 0) {
@@ -248,7 +247,7 @@ class SafeIntStrongIntValidator {
     }
   }
   template <typename T>
-  static void ValidateRightShift(T lhs, int64_t rhs) {
+  static void ValidateRightShift(T lhs, int64 rhs) {
     if (std::numeric_limits<T>::is_signed) {
       // Signed types only.
       if (lhs < 0) {

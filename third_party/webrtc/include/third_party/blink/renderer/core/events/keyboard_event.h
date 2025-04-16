@@ -65,9 +65,7 @@ class CORE_EXPORT KeyboardEvent final : public UIEventWithKeyState {
   KeyboardEvent(const WebKeyboardEvent&,
                 LocalDOMWindow*,
                 bool cancellable = true);
-  KeyboardEvent(const AtomicString&,
-                const KeyboardEventInit*,
-                base::TimeTicks platform_time_stamp = base::TimeTicks::Now());
+  KeyboardEvent(const AtomicString&, const KeyboardEventInit*);
   ~KeyboardEvent() override;
 
   void initKeyboardEvent(ScriptState*,

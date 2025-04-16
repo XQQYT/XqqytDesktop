@@ -26,12 +26,12 @@ class CSSTimeInterpolationType : public CSSInterpolationType {
                                  const NonInterpolableValue*,
                                  const StyleResolverState&) const final;
 
-  static std::optional<double> GetSeconds(const CSSPropertyID& property,
-                                          const ComputedStyle& style);
+  static absl::optional<double> GetSeconds(const CSSPropertyID& property,
+                                           const ComputedStyle& style);
 
  private:
   InterpolationValue CreateTimeValue(double) const;
-  std::optional<double> GetSeconds(const ComputedStyle& style) const;
+  absl::optional<double> GetSeconds(const ComputedStyle& style) const;
   double ClampTime(const CSSPropertyID& property, double value) const;
   InterpolationValue MaybeConvertStandardPropertyUnderlyingValue(
       const ComputedStyle&) const final;

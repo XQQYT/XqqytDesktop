@@ -41,7 +41,7 @@ class RtpVideoStreamReceiverFrameTransformerDelegate
       RtpVideoFrameReceiver* receiver,
       Clock* clock,
       rtc::scoped_refptr<FrameTransformerInterface> frame_transformer,
-      Thread* network_thread,
+      rtc::Thread* network_thread,
       uint32_t ssrc);
 
   void Init();
@@ -55,8 +55,6 @@ class RtpVideoStreamReceiverFrameTransformerDelegate
   void OnTransformedFrame(
       std::unique_ptr<TransformableFrameInterface> frame) override;
 
-  void StartShortCircuiting() override;
-
   // Delegates the call to RtpVideoFrameReceiver::ManageFrame on the
   // `network_thread_`.
   void ManageFrame(std::unique_ptr<TransformableFrameInterface> frame);
@@ -65,16 +63,13 @@ class RtpVideoStreamReceiverFrameTransformerDelegate
   ~RtpVideoStreamReceiverFrameTransformerDelegate() override = default;
 
  private:
-  void StartShortCircuitingOnNetworkSequence();
-
   RTC_NO_UNIQUE_ADDRESS SequenceChecker network_sequence_checker_;
   RtpVideoFrameReceiver* receiver_ RTC_GUARDED_BY(network_sequence_checker_);
   rtc::scoped_refptr<FrameTransformerInterface> frame_transformer_
       RTC_GUARDED_BY(network_sequence_checker_);
-  Thread* const network_thread_;
+  rtc::Thread* const network_thread_;
   const uint32_t ssrc_;
   Clock* const clock_;
-  bool short_circuit_ RTC_GUARDED_BY(network_sequence_checker_) = false;
 };
 
 }  // namespace webrtc

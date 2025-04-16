@@ -29,8 +29,6 @@ namespace scheduler {
 class MainThreadSchedulerImpl;
 }
 
-// NOTE: This class is deprecated. Please use TestingPlatformSupport for
-// platform support along with blink::TaskEnvironment for scheduler support.
 // This class adds scheduler and threading support to TestingPlatformSupport.
 // See also ScopedTestingPlatformSupport to use this class correctly.
 class TestingPlatformSupportWithMockScheduler : public TestingPlatformSupport {
@@ -58,10 +56,6 @@ class TestingPlatformSupportWithMockScheduler : public TestingPlatformSupport {
   // instead.
   void RunUntilIdle() override;
 
-  const base::Clock* GetClock() const override;
-  const base::TickClock* GetTickClock() const override;
-  base::TimeTicks NowTicks() const override;
-
   // Runs for |seconds| the testing clock is advanced by |seconds|.  Note real
   // time elapsed will typically much less than |seconds| because delays between
   // timers are fast forwarded.
@@ -78,14 +72,17 @@ class TestingPlatformSupportWithMockScheduler : public TestingPlatformSupport {
   // be advanced to the next timer when there's no more immediate work to do.
   void SetAutoAdvanceNowToPendingTasks(bool);
 
+  // Returns the current mock time.
+  base::TimeTicks NowTicks() const;
+
  protected:
   scoped_refptr<base::TestMockTimeTaskRunner> test_task_runner_;
   bool auto_advance_ = true;
 
   std::unique_ptr<scheduler::MainThreadSchedulerImpl> scheduler_;
-  std::unique_ptr<ScopedMainThreadOverrider> main_thread_overrider_;
-  raw_ptr<base::sequence_manager::SequenceManager>
+  raw_ptr<base::sequence_manager::SequenceManager, DanglingUntriaged>
       sequence_manager_;  // Owned by scheduler_.
+  std::unique_ptr<ScopedMainThreadOverrider> main_thread_overrider_;
 };
 
 }  // namespace blink

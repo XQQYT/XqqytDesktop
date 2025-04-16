@@ -148,6 +148,11 @@ void WriteImageToClipboard(SystemClipboard& system_clipboard,
                            const String& title);
 void WriteImageNodeToClipboard(SystemClipboard&, const Node&, const String&);
 
+// boolean functions on Node
+
+// FIXME: editingIgnoresContent, canHaveChildrenForEditing, and isAtomicNode
+// should be renamed to reflect its usage.
+
 // Returns true for nodes that either have no content, or have content that is
 // ignored (skipped over) while editing. There are no VisiblePositions inside
 // these nodes.
@@ -167,13 +172,12 @@ bool IsMailHTMLBlockquoteElement(const Node*);
 // invalid nodes to <table> elements.
 bool IsDisplayInsideTable(const Node*);
 bool IsTableCell(const Node*);
-bool IsTablePartElement(const Node*);
 bool IsHTMLListElement(const Node*);
 bool IsListItem(const Node*);
 bool IsListItemTag(const Node*);
 bool IsListElementTag(const Node*);
 bool IsPresentationalHTMLElement(const Node*);
-CORE_EXPORT bool IsRenderedAsNonInlineTableImageOrHR(const Node*);
+bool IsRenderedAsNonInlineTableImageOrHR(const Node*);
 bool IsNonTableCellHTMLBlockElement(const Node*);
 bool IsBlockFlowElement(const Node&);
 bool IsInPasswordField(const Position&);
@@ -181,10 +185,6 @@ CORE_EXPORT TextDirection DirectionOfEnclosingBlockOf(const Position&);
 CORE_EXPORT TextDirection
 DirectionOfEnclosingBlockOf(const PositionInFlatTree&);
 CORE_EXPORT TextDirection PrimaryDirectionOf(const Node&);
-
-// If the passed in Node is an Element, return Element::GetComputedStyle, if the
-// Node has a LayoutObject, return LayoutObject::Style(), otherwise nullptr.
-const ComputedStyle* GetComputedStyleForElementOrLayoutObject(const Node&);
 
 // -------------------------------------------------------------------------
 // Position
@@ -289,7 +289,6 @@ PositionWithAffinity AdjustForEditingBoundary(const Position&);
 
 CORE_EXPORT Position ComputePositionForNodeRemoval(const Position&,
                                                    const Node&);
-Position ComputePlaceholderToCollapseAt(const Position&);
 
 // TODO(editing-dev): These two functions should be eliminated.
 CORE_EXPORT Position PositionBeforeNode(const Node&);
@@ -387,6 +386,8 @@ gfx::QuadF LocalToAbsoluteQuadOf(const LocalCaretRect&);
 // -------------------------------------------------------------------------
 
 // Functions dispatch InputEvent
+InputEvent::EventCancelable InputTypeIsCancelable(
+    InputEvent::InputType input_type);
 const StaticRangeVector* TargetRangesForInputEvent(const Node&);
 DispatchEventResult DispatchBeforeInputInsertText(
     Node*,
@@ -399,13 +400,6 @@ DispatchEventResult DispatchBeforeInputEditorCommand(Node*,
 DispatchEventResult DispatchBeforeInputDataTransfer(Node*,
                                                     InputEvent::InputType,
                                                     DataTransfer*);
-
-// Helper function to dispatch beforeinput and input events whose inputType is
-// insertReplacementText.
-void InsertTextAndSendInputEventsOfTypeInsertReplacementText(
-    LocalFrame&,
-    const String&,
-    bool allow_edit_context = false);
 }  // namespace blink
 
 #endif  // THIRD_PARTY_BLINK_RENDERER_CORE_EDITING_EDITING_UTILITIES_H_

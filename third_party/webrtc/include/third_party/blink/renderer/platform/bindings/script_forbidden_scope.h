@@ -5,9 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_BINDINGS_SCRIPT_FORBIDDEN_SCOPE_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_BINDINGS_SCRIPT_FORBIDDEN_SCOPE_H_
 
-#include <optional>
-
 #include "base/auto_reset.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/bindings/v8_throw_exception.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
@@ -33,7 +32,7 @@ class PLATFORM_EXPORT ScriptForbiddenScope final {
 
    public:
     AllowUserAgentScript() : saved_counter_(&GetMutableCounter(), 0) {
-      if (IsMainThread()) [[likely]] {
+      if (LIKELY(IsMainThread())) {
         saved_blink_counter_.emplace(&g_blink_lifecycle_counter_, 0);
       }
     }
@@ -43,13 +42,12 @@ class PLATFORM_EXPORT ScriptForbiddenScope final {
 
    private:
     base::AutoReset<unsigned> saved_counter_;
-    std::optional<base::AutoReset<unsigned>> saved_blink_counter_;
+    absl::optional<base::AutoReset<unsigned>> saved_blink_counter_;
   };
 
   static bool IsScriptForbidden() {
-    if (!WTF::MayNotBeMainThread()) [[likely]] {
+    if (LIKELY(!WTF::MayNotBeMainThread()))
       return g_main_thread_counter_ > 0;
-    }
     return GetMutableCounter() > 0;
   }
 
@@ -63,9 +61,8 @@ class PLATFORM_EXPORT ScriptForbiddenScope final {
   // TODO(crbug.com/1196853): Remove this once we have discovered and fixed
   // sources of attempted script execution during blink lifecycle.
   static bool WillBeScriptForbidden() {
-    if (IsMainThread()) [[likely]] {
+    if (LIKELY(IsMainThread()))
       return g_blink_lifecycle_counter_ > 0;
-    }
     // Blink lifecycle scope is never entered on other threads.
     return false;
   }
@@ -76,7 +73,7 @@ class PLATFORM_EXPORT ScriptForbiddenScope final {
 
  private:
   static void Enter() {
-    if (!WTF::MayNotBeMainThread()) [[likely]] {
+    if (LIKELY(!WTF::MayNotBeMainThread())) {
       ++g_main_thread_counter_;
     } else {
       ++GetMutableCounter();
@@ -84,7 +81,7 @@ class PLATFORM_EXPORT ScriptForbiddenScope final {
   }
   static void Exit() {
     DCHECK(IsScriptForbidden());
-    if (!WTF::MayNotBeMainThread()) [[likely]] {
+    if (LIKELY(!WTF::MayNotBeMainThread())) {
       --g_main_thread_counter_;
     } else {
       --GetMutableCounter();

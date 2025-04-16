@@ -11,9 +11,6 @@
 #ifndef API_VOIP_VOIP_STATISTICS_H_
 #define API_VOIP_VOIP_STATISTICS_H_
 
-#include <cstdint>
-#include <optional>
-
 #include "api/neteq/neteq.h"
 #include "api/voip/voip_base.h"
 
@@ -42,7 +39,7 @@ struct RemoteRtcpStatistics {
   double fraction_lost = 0.0;
 
   // https://w3c.github.io/webrtc-stats/#dom-rtcremoteinboundrtpstreamstats-roundtriptime
-  std::optional<double> round_trip_time;
+  absl::optional<double> round_trip_time;
 
   // Last time (not RTP timestamp) when RTCP report received in milliseconds.
   int64_t last_report_received_timestamp_ms;
@@ -69,9 +66,9 @@ struct ChannelStatistics {
 
   // SSRC from remote media endpoint as indicated either by RTP header in RFC
   // 3550 [5.1] or RTCP SSRC of sender in RFC 3550 [6.4.1].
-  std::optional<uint32_t> remote_ssrc;
+  absl::optional<uint32_t> remote_ssrc;
 
-  std::optional<RemoteRtcpStatistics> remote_rtcp;
+  absl::optional<RemoteRtcpStatistics> remote_rtcp;
 };
 
 // VoipStatistics interface provides the interfaces for querying metrics around

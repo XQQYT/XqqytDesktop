@@ -9,7 +9,9 @@
 
 namespace blink {
 
-void MaybeAssociateExceptionMetaData(v8::Local<v8::Value>,
+class ExceptionState;
+
+void MaybeAssociateExceptionMetaData(ExceptionState&,
                                      const String& key,
                                      const String& value);
 

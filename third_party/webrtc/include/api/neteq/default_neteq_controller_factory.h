@@ -13,8 +13,6 @@
 
 #include <memory>
 
-#include "api/environment/environment.h"
-#include "api/neteq/neteq_controller.h"
 #include "api/neteq/neteq_controller_factory.h"
 
 namespace webrtc {
@@ -28,8 +26,7 @@ class DefaultNetEqControllerFactory : public NetEqControllerFactory {
   DefaultNetEqControllerFactory& operator=(
       const DefaultNetEqControllerFactory&) = delete;
 
-  std::unique_ptr<NetEqController> Create(
-      const Environment& env,
+  std::unique_ptr<NetEqController> CreateNetEqController(
       const NetEqController::Config& config) const override;
 };
 

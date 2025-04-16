@@ -5,10 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSS_TEST_HELPERS_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_CSS_TEST_HELPERS_H_
 
-#include <optional>
-
 #include "base/memory/scoped_refptr.h"
-#include "third_party/blink/renderer/core/css/css_selector.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/css/css_selector_list.h"
 #include "third_party/blink/renderer/core/css/rule_set.h"
 #include "third_party/blink/renderer/core/testing/null_execution_context.h"
@@ -51,7 +49,6 @@ class TestStyleSheet {
 };
 
 CSSStyleSheet* CreateStyleSheet(Document& document);
-RuleSet* CreateRuleSet(Document& document, String text);
 
 // Create a PropertyRegistration with the given name. An initial value must
 // be provided when the syntax is not "*".
@@ -68,21 +65,21 @@ PropertyRegistration* CreateLengthRegistration(const String& name, int px);
 void RegisterProperty(Document& document,
                       const String& name,
                       const String& syntax,
-                      const std::optional<String>& initial_value,
+                      const absl::optional<String>& initial_value,
                       bool is_inherited);
 void RegisterProperty(Document& document,
                       const String& name,
                       const String& syntax,
-                      const std::optional<String>& initial_value,
+                      const absl::optional<String>& initial_value,
                       bool is_inherited,
                       ExceptionState&);
 void DeclareProperty(Document& document,
                      const String& name,
                      const String& syntax,
-                     const std::optional<String>& initial_value,
+                     const absl::optional<String>& initial_value,
                      bool is_inherited);
 
-CSSVariableData* CreateVariableData(String);
+scoped_refptr<CSSVariableData> CreateVariableData(String);
 const CSSValue* CreateCustomIdent(const char*);
 const CSSValue* ParseLonghand(Document& document,
                               const CSSProperty&,
@@ -91,10 +88,6 @@ const CSSPropertyValueSet* ParseDeclarationBlock(
     const String& block_text,
     CSSParserMode mode = kHTMLStandardMode);
 StyleRuleBase* ParseRule(Document& document, String text);
-StyleRuleBase* ParseNestedRule(Document& document,
-                               String text,
-                               CSSNestingType,
-                               StyleRule* parent_rule_for_nesting);
 
 // Parse a value according to syntax defined by:
 // https://drafts.css-houdini.org/css-properties-values-api-1/#syntax-strings

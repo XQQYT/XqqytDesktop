@@ -7,8 +7,9 @@
 #  ifndef _LARGEFILE_SOURCE
 #    define _LARGEFILE_SOURCE 1
 #  endif
-#  undef _FILE_OFFSET_BITS
-#  undef _TIME_BITS
+#  ifdef _FILE_OFFSET_BITS
+#    undef _FILE_OFFSET_BITS
+#  endif
 #endif
 
 #ifdef HAVE_HIDDEN

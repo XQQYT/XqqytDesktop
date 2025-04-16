@@ -33,7 +33,6 @@
 
 #include "base/time/time.h"
 #include "third_party/blink/renderer/core/event_type_names.h"
-#include "third_party/blink/renderer/core/typed_arrays/array_buffer_view_helpers.h"
 #include "third_party/blink/renderer/core/typed_arrays/dom_typed_array.h"
 #include "third_party/blink/renderer/modules/event_modules.h"
 
@@ -59,7 +58,7 @@ class MIDIMessageEvent final : public Event {
   MIDIMessageEvent(const AtomicString& type,
                    const MIDIMessageEventInit* initializer);
 
-  NotShared<DOMUint8Array> data() { return data_; }
+  DOMUint8Array* data() { return data_.Get(); }
 
   const AtomicString& InterfaceName() const override {
     return event_interface_names::kMIDIMessageEvent;
@@ -71,7 +70,7 @@ class MIDIMessageEvent final : public Event {
   }
 
  private:
-  NotShared<DOMUint8Array> data_;
+  Member<DOMUint8Array> data_;
 };
 
 }  // namespace blink

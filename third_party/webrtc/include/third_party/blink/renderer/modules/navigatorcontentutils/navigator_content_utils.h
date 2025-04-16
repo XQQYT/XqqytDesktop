@@ -69,7 +69,7 @@ class MODULES_EXPORT NavigatorContentUtils final
   NavigatorContentUtils(Navigator& navigator,
                         NavigatorContentUtilsClient* client)
       : Supplement<Navigator>(navigator), client_(client) {}
-  ~NavigatorContentUtils();
+  virtual ~NavigatorContentUtils();
 
   static void registerProtocolHandler(Navigator&,
                                       const String& scheme,

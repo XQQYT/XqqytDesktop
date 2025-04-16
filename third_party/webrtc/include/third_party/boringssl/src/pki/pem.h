@@ -1,29 +1,21 @@
 // Copyright 2011 The Chromium Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef BSSL_PKI_PEM_H_
 #define BSSL_PKI_PEM_H_
 
+#include "fillins/openssl_util.h"
 #include <stddef.h>
 
 #include <string>
-#include <string_view>
 #include <vector>
 
-#include <openssl/base.h>
+#include <string_view>
 
-BSSL_NAMESPACE_BEGIN
+
+
+namespace bssl {
 
 // PEMTokenizer is a utility class for the parsing of data encapsulated
 // using RFC 1421, Privacy Enhancement for Internet Electronic Mail. It
@@ -35,10 +27,10 @@ class OPENSSL_EXPORT PEMTokenizer {
   // instances of PEM encoded blocks that are of the |allowed_block_types|.
   // |str| must remain valid for the duration of the PEMTokenizer.
   PEMTokenizer(std::string_view str,
-               const std::vector<std::string> &allowed_block_types);
+               const std::vector<std::string>& allowed_block_types);
 
-  PEMTokenizer(const PEMTokenizer &) = delete;
-  PEMTokenizer &operator=(const PEMTokenizer &) = delete;
+  PEMTokenizer(const PEMTokenizer&) = delete;
+  PEMTokenizer& operator=(const PEMTokenizer&) = delete;
 
   ~PEMTokenizer();
 
@@ -50,16 +42,16 @@ class OPENSSL_EXPORT PEMTokenizer {
   // Returns the PEM block type (eg: CERTIFICATE) of the last successfully
   // decoded PEM block.
   // GetNext() must have returned true before calling this method.
-  const std::string &block_type() const { return block_type_; }
+  const std::string& block_type() const { return block_type_; }
 
   // Returns the raw, Base64-decoded data of the last successfully decoded
   // PEM block.
   // GetNext() must have returned true before calling this method.
-  const std::string &data() const { return data_; }
+  const std::string& data() const { return data_; }
 
  private:
   void Init(std::string_view str,
-            const std::vector<std::string> &allowed_block_types);
+            const std::vector<std::string>& allowed_block_types);
 
   // A simple cache of the allowed PEM header and footer for a given PEM
   // block type, so that it is only computed once.
@@ -89,8 +81,8 @@ class OPENSSL_EXPORT PEMTokenizer {
 // Encodes |data| in the encapsulated message format described in RFC 1421,
 // with |type| as the PEM block type (eg: CERTIFICATE).
 OPENSSL_EXPORT std::string PEMEncode(std::string_view data,
-                                     const std::string &type);
+                                         const std::string& type);
 
-BSSL_NAMESPACE_END
+}  // namespace net
 
 #endif  // BSSL_PKI_PEM_H_

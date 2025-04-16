@@ -1,4 +1,4 @@
-(async function(/** @type {import('test_runner').TestRunner} */ testRunner) {
+(async function(testRunner) {
   let {page, session, dp} = await testRunner.startBlank(
         `Tests that Network.requestWillBeSent is dispatched for speculation-rule base prefetch requests.`);
 

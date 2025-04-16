@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<meta name=fuzzy content="maxDifference=0-3; totalPixels=0-1000">
+<html>
+<head>
 <script src="../../../resources/testharness.js"></script>
 <script src="../../../resources/testharnessreport.js"></script>
 <script src="../../../resources/testdriver.js"></script>
@@ -11,7 +12,8 @@
 if (window.internals)
     internals.runtimeFlags.langAttributeAwareFormControlUIEnabled = true;
 </script>
-
+</head>
+<body>
 <input type="time" id="time" value="23:15:00" step="2" lang="ru">
 <script>
 
@@ -35,3 +37,5 @@ t.step(() => {
   .then(t.step_func(selectValue));
 });
 </script>
+</body>
+</html>

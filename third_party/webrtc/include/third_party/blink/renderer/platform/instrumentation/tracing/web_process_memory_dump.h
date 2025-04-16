@@ -25,6 +25,7 @@ class DiscardableMemory;
 namespace trace_event {
 class MemoryAllocatorDump;
 class ProcessMemoryDump;
+class TraceEventMemoryOverhead;
 }  // namespace base
 }  // namespace trace_event
 
@@ -126,6 +127,15 @@ class PLATFORM_EXPORT WebProcessMemoryDump final {
       const std::string& name,
       base::DiscardableMemory* discardable);
 
+  // Dumps heap memory usage. |allocatorName| is used as an absolute name for
+  // base::trace_event::ProcessMemoryDump::DumpHeapUsage().
+  void DumpHeapUsage(
+      const std::unordered_map<base::trace_event::AllocationContext,
+                               base::trace_event::AllocationMetrics>&
+          metrics_by_context,
+      base::trace_event::TraceEventMemoryOverhead& overhead,
+      const char* allocator_name);
+
  private:
   FRIEND_TEST_ALL_PREFIXES(WebProcessMemoryDumpTest, IntegrationTest);
 
@@ -138,7 +148,7 @@ class PLATFORM_EXPORT WebProcessMemoryDump final {
 
   // The underlying ProcessMemoryDump instance to which the
   // createMemoryAllocatorDump() calls will be proxied to.
-  raw_ptr<base::trace_event::ProcessMemoryDump>
+  raw_ptr<base::trace_event::ProcessMemoryDump, ExperimentalRenderer>
       process_memory_dump_;  // Not owned.
 
   // TODO(ssid): Remove it once this information is added to ProcessMemoryDump.

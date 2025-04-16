@@ -7,7 +7,7 @@
 
 #include "third_party/blink/public/mojom/direct_sockets/direct_sockets.mojom-blink.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_property.h"
+#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/core/dom/dom_exception.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_state_observer.h"
@@ -21,14 +21,16 @@
 
 namespace blink {
 
+class ScriptPromise;
 class ExceptionState;
 
 // Base class for TCP and UDP sockets.
 class MODULES_EXPORT Socket : public ExecutionContextLifecycleStateObserver {
  public:
   // IDL definitions
-  virtual ScriptPromise<IDLUndefined> closed(ScriptState*) const;
-  virtual ScriptPromise<IDLUndefined> close(ScriptState*, ExceptionState&) = 0;
+  virtual ScriptPromise opened(ScriptState*) const;
+  virtual ScriptPromise closed(ScriptState*) const;
+  virtual ScriptPromise close(ScriptState*, ExceptionState&) = 0;
 
  public:
   enum class State { kOpening, kOpen, kClosed, kAborted };
@@ -47,9 +49,14 @@ class MODULES_EXPORT Socket : public ExecutionContextLifecycleStateObserver {
  protected:
   ScriptState* GetScriptState() const { return script_state_.Get(); }
 
-  ScriptPromiseProperty<IDLUndefined, IDLAny>& GetClosedProperty() const {
+  ScriptPromiseResolver* GetOpenedPromiseResolver() const {
+    DCHECK_EQ(state_, State::kOpening);
+    return opened_resolver_.Get();
+  }
+
+  ScriptPromiseResolver* GetClosedPromiseResolver() const {
     DCHECK(state_ == State::kOpening || state_ == State::kOpen);
-    return *closed_;
+    return closed_resolver_.Get();
   }
 
   blink::mojom::blink::DirectSocketsService* GetServiceRemote() const {
@@ -57,7 +64,7 @@ class MODULES_EXPORT Socket : public ExecutionContextLifecycleStateObserver {
   }
 
   State GetState() const { return state_; }
-  virtual void SetState(State state) { state_ = state; }
+  void SetState(State state) { state_ = state; }
 
   // Resets |service_| and |feature_handle_for_scheduler_|.
   void ResetServiceAndFeatureHandle();
@@ -75,7 +82,11 @@ class MODULES_EXPORT Socket : public ExecutionContextLifecycleStateObserver {
   FrameOrWorkerScheduler::SchedulingAffectingFeatureHandle
       feature_handle_for_scheduler_;
 
-  Member<ScriptPromiseProperty<IDLUndefined, IDLAny>> closed_;
+  Member<ScriptPromiseResolver> opened_resolver_;
+  const TraceWrapperV8Reference<v8::Promise> opened_;
+
+  Member<ScriptPromiseResolver> closed_resolver_;
+  const TraceWrapperV8Reference<v8::Promise> closed_;
 };
 
 }  // namespace blink

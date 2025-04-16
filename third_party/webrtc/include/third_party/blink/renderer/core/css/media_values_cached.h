@@ -5,12 +5,12 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_CSS_MEDIA_VALUES_CACHED_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_MEDIA_VALUES_CACHED_H_
 
+#include "services/device/public/mojom/device_posture_provider.mojom-blink.h"
 #include "third_party/blink/public/common/css/forced_colors.h"
 #include "third_party/blink/public/common/css/navigation_controls.h"
 #include "third_party/blink/public/common/css/scripting.h"
 #include "third_party/blink/public/mojom/css/preferred_color_scheme.mojom-blink.h"
 #include "third_party/blink/public/mojom/css/preferred_contrast.mojom-blink.h"
-#include "third_party/blink/public/mojom/device_posture/device_posture_provider.mojom-blink.h"
 #include "third_party/blink/public/mojom/manifest/display_mode.mojom-blink.h"
 #include "third_party/blink/public/mojom/webpreferences/web_preferences.mojom-blink.h"
 #include "third_party/blink/renderer/core/core_export.h"
@@ -18,14 +18,16 @@
 #include "third_party/blink/renderer/core/css/media_values.h"
 #include "third_party/blink/renderer/platform/graphics/color_space_gamut.h"
 #include "third_party/blink/renderer/platform/wtf/cross_thread_copier.h"
-#include "ui/base/mojom/window_show_state.mojom-blink.h"
 #include "ui/base/pointer/pointer_device.h"
+#include "ui/base/ui_base_types.h"
 
 namespace blink {
 
 class CORE_EXPORT MediaValuesCached final : public MediaValues {
  public:
   struct CORE_EXPORT MediaValuesCachedData final {
+    USING_FAST_MALLOC(MediaValuesCachedData);
+
    public:
     // Members variables must be thread safe, since they're copied to the parser
     // thread
@@ -66,8 +68,8 @@ class CORE_EXPORT MediaValuesCached final : public MediaValues {
     String media_type;
     mojom::blink::DisplayMode display_mode =
         mojom::blink::DisplayMode::kBrowser;
-    ui::mojom::blink::WindowShowState window_show_state =
-        ui::mojom::blink::WindowShowState::kDefault;
+    ui::WindowShowState window_show_state =
+        ui::WindowShowState::SHOW_STATE_DEFAULT;
     bool resizable = true;
     ColorSpaceGamut color_gamut = ColorSpaceGamut::kUnknown;
     mojom::blink::PreferredColorScheme preferred_color_scheme =
@@ -81,8 +83,8 @@ class CORE_EXPORT MediaValuesCached final : public MediaValues {
     NavigationControls navigation_controls = NavigationControls::kNone;
     int horizontal_viewport_segments = 0;
     int vertical_viewport_segments = 0;
-    mojom::blink::DevicePostureType device_posture =
-        mojom::blink::DevicePostureType::kContinuous;
+    device::mojom::blink::DevicePostureType device_posture =
+        device::mojom::blink::DevicePostureType::kContinuous;
     Scripting scripting = Scripting::kNone;
 
     MediaValuesCachedData();
@@ -114,7 +116,7 @@ class CORE_EXPORT MediaValuesCached final : public MediaValues {
   bool HasValues() const override;
   const String MediaType() const override;
   blink::mojom::DisplayMode DisplayMode() const override;
-  ui::mojom::blink::WindowShowState WindowShowState() const override;
+  ui::WindowShowState WindowShowState() const override;
   bool Resizable() const override;
   ColorSpaceGamut ColorGamut() const override;
   mojom::blink::PreferredColorScheme GetPreferredColorScheme() const override;
@@ -126,7 +128,7 @@ class CORE_EXPORT MediaValuesCached final : public MediaValues {
   NavigationControls GetNavigationControls() const override;
   int GetHorizontalViewportSegments() const override;
   int GetVerticalViewportSegments() const override;
-  mojom::blink::DevicePostureType GetDevicePosture() const override;
+  device::mojom::blink::DevicePostureType GetDevicePosture() const override;
   Scripting GetScripting() const override;
 
   void OverrideViewportDimensions(double width, double height);
@@ -155,8 +157,6 @@ class CORE_EXPORT MediaValuesCached final : public MediaValues {
   double DynamicViewportHeight() const override;
   double ContainerWidth() const override;
   double ContainerHeight() const override;
-  double ContainerWidth(const ScopedCSSName&) const override;
-  double ContainerHeight(const ScopedCSSName&) const override;
   WritingMode GetWritingMode() const override {
     return WritingMode::kHorizontalTb;
   }

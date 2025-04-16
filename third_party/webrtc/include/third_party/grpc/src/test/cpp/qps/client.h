@@ -19,11 +19,6 @@
 #ifndef GRPC_TEST_CPP_QPS_CLIENT_H
 #define GRPC_TEST_CPP_QPS_CLIENT_H
 
-#include <grpc/support/time.h>
-#include <grpcpp/channel.h>
-#include <grpcpp/support/byte_buffer.h>
-#include <grpcpp/support/channel_arguments.h>
-#include <grpcpp/support/slice.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -34,12 +29,19 @@
 #include <unordered_map>
 #include <vector>
 
-#include "absl/log/log.h"
 #include "absl/memory/memory.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
-#include "src/core/util/crash.h"
-#include "src/core/util/env.h"
+
+#include <grpc/support/log.h>
+#include <grpc/support/time.h>
+#include <grpcpp/channel.h>
+#include <grpcpp/support/byte_buffer.h>
+#include <grpcpp/support/channel_arguments.h>
+#include <grpcpp/support/slice.h>
+
+#include "src/core/lib/gprpp/crash.h"
+#include "src/core/lib/gprpp/env.h"
 #include "src/proto/grpc/testing/benchmark_service.grpc.pb.h"
 #include "src/proto/grpc/testing/payloads.pb.h"
 #include "test/cpp/qps/histogram.h"
@@ -201,10 +203,10 @@ class Client {
     if (median_latency_collection_interval_seconds_ > 0) {
       std::vector<double> medians_per_interval =
           threads_[0]->GetMedianPerIntervalList();
-      LOG(INFO) << "Num threads: " << threads_.size();
-      LOG(INFO) << "Number of medians: " << medians_per_interval.size();
+      gpr_log(GPR_INFO, "Num threads: %zu", threads_.size());
+      gpr_log(GPR_INFO, "Number of medians: %zu", medians_per_interval.size());
       for (size_t j = 0; j < medians_per_interval.size(); j++) {
-        LOG(INFO) << medians_per_interval[j];
+        gpr_log(GPR_INFO, "%f", medians_per_interval[j]);
       }
     }
 
@@ -316,8 +318,8 @@ class Client {
           &client_->start_requests_,
           gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),
                        gpr_time_from_seconds(20, GPR_TIMESPAN)))) {
-        LOG(INFO) << idx_ << ": Waiting for benchmark to start (" << wait_loop
-                  << ")";
+        gpr_log(GPR_INFO, "%" PRIdPTR ": Waiting for benchmark to start (%d)",
+                idx_, wait_loop);
         wait_loop++;
       }
 
@@ -461,8 +463,9 @@ class ClientImpl : public Client {
         !channel_connect_timeout_str->empty()) {
       connect_deadline_seconds = atoi(channel_connect_timeout_str->c_str());
     }
-    LOG(INFO) << "Waiting for up to " << connect_deadline_seconds
-              << " seconds for all channels to connect";
+    gpr_log(GPR_INFO,
+            "Waiting for up to %d seconds for all channels to connect",
+            connect_deadline_seconds);
     gpr_timespec connect_deadline = gpr_time_add(
         gpr_now(GPR_CLOCK_REALTIME),
         gpr_time_from_seconds(connect_deadline_seconds, GPR_TIMESPAN));
@@ -473,7 +476,7 @@ class ClientImpl : public Client {
         Channel* channel = c.get_channel();
         grpc_connectivity_state last_observed = channel->GetState(true);
         if (last_observed == GRPC_CHANNEL_READY) {
-          LOG(INFO) << "Channel " << channel << " connected!";
+          gpr_log(GPR_INFO, "Channel %p connected!", channel);
         } else {
           num_remaining++;
           channel->NotifyOnStateChange(last_observed, connect_deadline, &cq,
@@ -492,7 +495,7 @@ class ClientImpl : public Client {
       } else {
         grpc_connectivity_state last_observed = channel->GetState(true);
         if (last_observed == GRPC_CHANNEL_READY) {
-          LOG(INFO) << "Channel " << channel << " connected!";
+          gpr_log(GPR_INFO, "Channel %p connected!", channel);
           num_remaining--;
         } else {
           channel->NotifyOnStateChange(last_observed, connect_deadline, &cq,
@@ -531,7 +534,7 @@ class ClientImpl : public Client {
             target, type, config.security_params().server_host_override(),
             !config.security_params().use_test_ca(),
             std::shared_ptr<CallCredentials>(), args);
-        LOG(INFO) << "Connecting to " << target;
+        gpr_log(GPR_INFO, "Connecting to %s", target.c_str());
         is_inproc_ = false;
       } else {
         std::string tgt = target;
@@ -554,7 +557,7 @@ class ClientImpl : public Client {
         } else if (channel_arg.value_case() == ChannelArg::kIntValue) {
           args->SetInt(channel_arg.name(), channel_arg.int_value());
         } else {
-          LOG(ERROR) << "Empty channel arg value.";
+          gpr_log(GPR_ERROR, "Empty channel arg value.");
         }
       }
     }

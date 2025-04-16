@@ -16,8 +16,6 @@
 
 #include <memory>
 
-#include "api/environment/environment.h"
-#include "api/field_trials_view.h"
 #include "modules/video_coding/internal_defines.h"
 #include "rtc_base/experiments/rate_control_settings.h"
 #include "rtc_base/numerics/exp_filter.h"
@@ -44,6 +42,10 @@ enum FilterPacketLossMode {
 // Thresholds for hybrid NACK/FEC
 // common to media optimization and the jitter buffer.
 constexpr int64_t kLowRttNackMs = 20;
+
+// If the RTT is higher than this an extra RTT wont be added to to the jitter
+// buffer delay.
+constexpr int kMaxRttDelayThreshold = 500;
 
 struct VCMProtectionParameters {
   VCMProtectionParameters();
@@ -151,7 +153,7 @@ class VCMNackMethod : public VCMProtectionMethod {
 
 class VCMFecMethod : public VCMProtectionMethod {
  public:
-  explicit VCMFecMethod(const FieldTrialsView& field_trials);
+  VCMFecMethod();
   ~VCMFecMethod() override;
   bool UpdateParameters(const VCMProtectionParameters* parameters) override;
   // Get the effective packet loss for ER
@@ -188,8 +190,7 @@ class VCMFecMethod : public VCMProtectionMethod {
 
 class VCMNackFecMethod : public VCMFecMethod {
  public:
-  VCMNackFecMethod(const FieldTrialsView& field_trials,
-                   int64_t lowRttNackThresholdMs,
+  VCMNackFecMethod(int64_t lowRttNackThresholdMs,
                    int64_t highRttNackThresholdMs);
   ~VCMNackFecMethod() override;
   bool UpdateParameters(const VCMProtectionParameters* parameters) override;
@@ -212,7 +213,7 @@ class VCMNackFecMethod : public VCMFecMethod {
 
 class VCMLossProtectionLogic {
  public:
-  explicit VCMLossProtectionLogic(const Environment& env);
+  explicit VCMLossProtectionLogic(int64_t nowMs);
   ~VCMLossProtectionLogic();
 
   // Set the protection method to be used
@@ -321,8 +322,6 @@ class VCMLossProtectionLogic {
   // Sets the available loss protection methods.
   void UpdateMaxLossHistory(uint8_t lossPr255, int64_t now);
   uint8_t MaxFilteredLossPr(int64_t nowMs) const;
-
-  const Environment env_;
   std::unique_ptr<VCMProtectionMethod> _selectedMethod;
   VCMProtectionParameters _currentParameters;
   int64_t _rtt;
@@ -335,11 +334,11 @@ class VCMLossProtectionLogic {
   int64_t _lastPrUpdateT;
   int64_t _lastPacketPerFrameUpdateT;
   int64_t _lastPacketPerFrameUpdateTKey;
-  ExpFilter _lossPr255;
+  rtc::ExpFilter _lossPr255;
   VCMLossProbabilitySample _lossPrHistory[kLossPrHistorySize];
   uint8_t _shortMaxLossPr255;
-  ExpFilter _packetsPerFrame;
-  ExpFilter _packetsPerFrameKey;
+  rtc::ExpFilter _packetsPerFrame;
+  rtc::ExpFilter _packetsPerFrameKey;
   size_t _codecWidth;
   size_t _codecHeight;
   int _numLayers;

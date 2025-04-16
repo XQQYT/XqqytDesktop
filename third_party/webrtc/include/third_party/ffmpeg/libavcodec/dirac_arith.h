@@ -28,11 +28,7 @@
 #ifndef AVCODEC_DIRAC_ARITH_H
 #define AVCODEC_DIRAC_ARITH_H
 
-#include "config.h"
-
-#if ARCH_X86
 #include "libavutil/x86/asm.h"
-#endif
 #include "bytestream.h"
 #include "get_bits.h"
 

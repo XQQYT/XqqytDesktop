@@ -51,18 +51,15 @@
 </body>
 <script type="text/javascript">
   async function runTest() {
-
-    const epsilon = 1e-5;
-
     function assert_progress_equals(anim, expected, errorMessage) {
       assert_approx_equals(
           anim.effect.getComputedTiming().progress,
-          expected, epsilon, errorMessage);
+          expected, 1e-6, errorMessage);
     }
 
     function assert_opacity_equals(expected, errorMessage) {
       assert_approx_equals(
-          parseFloat(getComputedStyle(target).opacity), expected, epsilon,
+          parseFloat(getComputedStyle(target).opacity), expected, 1e-6,
                      errorMessage);
     }
 
@@ -73,12 +70,12 @@
       const translateIndex = 4;
       const match = style.match(regex)[captureGroupIndex];
       const translateX = parseFloat(match.split(',')[translateIndex].trim());
-      assert_approx_equals(translateX, expected, epsilon, errorMessage);
+      assert_approx_equals(translateX, expected, 1e-6, errorMessage);
     }
 
     function assert_property_equals(property, expected, errorMessage) {
       const value = parseFloat(getComputedStyle(target)[property]);
-      assert_approx_equals(value, expected, epsilon, errorMessage);
+      assert_approx_equals(value, expected, 1e-6, errorMessage);
     }
 
     promise_test(async t => {

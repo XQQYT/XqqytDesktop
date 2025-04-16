@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_H_
 
-#include "partition_alloc/partition_alloc_base/compiler_specific.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_forward.h"
-#include "partition_alloc/partition_oom.h"
-#include "partition_alloc/partition_root.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/compiler_specific.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_forward.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_oom.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_root.h"
 
 // *** HOUSEKEEPING RULES ***
 //
@@ -66,4 +66,4 @@ struct PA_COMPONENT_EXPORT(PARTITION_ALLOC) PartitionAllocator {
 
 }  // namespace partition_alloc
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_H_

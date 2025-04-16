@@ -15,13 +15,10 @@ namespace internal {
 // An immutable but assignable representation of the priority of a Sequence.
 class BASE_EXPORT TaskSourceSortKey final {
  public:
-  constexpr TaskSourceSortKey() = default;
-  constexpr TaskSourceSortKey(TaskPriority priority,
-                              TimeTicks ready_time,
-                              uint8_t worker_count = 0)
-      : priority_(priority),
-        worker_count_(worker_count),
-        ready_time_(ready_time) {}
+  TaskSourceSortKey() = default;
+  TaskSourceSortKey(TaskPriority priority,
+                    TimeTicks ready_time,
+                    uint8_t worker_count = 0);
 
   TaskPriority priority() const { return priority_; }
   uint8_t worker_count() const { return worker_count_; }

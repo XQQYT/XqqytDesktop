@@ -14,10 +14,15 @@ class StyleAutoColor : public StyleColor {
   DISALLOW_NEW();
 
  public:
-  explicit StyleAutoColor(StyleColor&& color) : StyleColor(color) {}
-
+  explicit StyleAutoColor(Color color) : StyleColor(color) {}
+  explicit StyleAutoColor(CSSValueID keyword) : StyleColor(keyword) {}
+  StyleAutoColor(Color color, CSSValueID keyword)
+      : StyleColor(color, keyword) {}
   static StyleAutoColor AutoColor() {
-    return StyleAutoColor(StyleColor(CSSValueID::kAuto));
+    return StyleAutoColor(CSSValueID::kAuto);
+  }
+  static StyleAutoColor CurrentColor() {
+    return StyleAutoColor(CSSValueID::kCurrentcolor);
   }
 
   bool IsAutoColor() const { return color_keyword_ == CSSValueID::kAuto; }

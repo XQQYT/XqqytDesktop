@@ -41,7 +41,8 @@ namespace blink {
 class ImageInputType final : public BaseButtonInputType {
  public:
   explicit ImageInputType(HTMLInputElement&);
-  void AdjustStyle(ComputedStyleBuilder&) override;
+  const ComputedStyle* CustomStyleForLayoutObject(
+      const ComputedStyle* original_style) const override;
 
  private:
   void CountUsage() override;
@@ -49,7 +50,7 @@ class ImageInputType final : public BaseButtonInputType {
   void AppendToFormData(FormData&) const override;
   String ResultForDialogSubmit() const override;
   bool SupportsValidation() const override;
-  AppearanceValue AutoAppearance() const override;
+  ControlPart AutoAppearance() const override;
   LayoutObject* CreateLayoutObject(const ComputedStyle&) const override;
   void HandleDOMActivateEvent(Event&) override;
   void AltAttributeChanged() override;
@@ -59,7 +60,6 @@ class ImageInputType final : public BaseButtonInputType {
   bool ShouldRespectAlignAttribute() override;
   bool CanBeSuccessfulSubmitButton() override;
   bool IsEnumeratable() override;
-  bool IsAutoDirectionalityFormAssociated() const override;
   bool ShouldRespectHeightAndWidthAttributes() override;
   unsigned Height() const override;
   unsigned Width() const override;

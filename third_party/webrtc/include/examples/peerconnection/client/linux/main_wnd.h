@@ -16,14 +16,12 @@
 #include <memory>
 #include <string>
 
-#include "api/array_view.h"
 #include "api/media_stream_interface.h"
 #include "api/scoped_refptr.h"
 #include "api/video/video_frame.h"
 #include "api/video/video_sink_interface.h"
 #include "examples/peerconnection/client/main_wnd.h"
 #include "examples/peerconnection/client/peer_connection_client.h"
-#include "rtc_base/buffer.h"
 
 // Forward declarations.
 typedef struct _GtkWidget GtkWidget;
@@ -92,7 +90,7 @@ class GtkMainWnd : public MainWindow {
     // VideoSinkInterface implementation
     void OnFrame(const webrtc::VideoFrame& frame) override;
 
-    rtc::ArrayView<const uint8_t> image() const { return image_; }
+    const uint8_t* image() const { return image_.get(); }
 
     int width() const { return width_; }
 
@@ -100,7 +98,7 @@ class GtkMainWnd : public MainWindow {
 
    protected:
     void SetSize(int width, int height);
-    rtc::Buffer image_;
+    std::unique_ptr<uint8_t[]> image_;
     int width_;
     int height_;
     GtkMainWnd* main_wnd_;
@@ -121,9 +119,9 @@ class GtkMainWnd : public MainWindow {
   bool autocall_;
   std::unique_ptr<VideoRenderer> local_renderer_;
   std::unique_ptr<VideoRenderer> remote_renderer_;
-  int width_ = 0;
-  int height_ = 0;
-  rtc::Buffer draw_buffer_;
+  int width_;
+  int height_;
+  std::unique_ptr<uint8_t[]> draw_buffer_;
   int draw_buffer_size_;
 };
 

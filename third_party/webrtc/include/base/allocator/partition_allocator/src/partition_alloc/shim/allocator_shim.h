@@ -2,20 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_H_
-#define PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_H_
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
-#include "partition_alloc/buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/types/strong_alias.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/tagging.h"
+#include "build/build_config.h"
 
-#if PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
-#include "partition_alloc/partition_alloc_base/types/strong_alias.h"
-#include "partition_alloc/shim/allocator_dispatch.h"
-#include "partition_alloc/tagging.h"
+#if BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC) && BUILDFLAG(USE_STARSCAN)
+#include "base/allocator/partition_allocator/src/partition_alloc/starscan/pcscan.h"
+#endif
 
 namespace allocator_shim {
 
@@ -51,137 +52,188 @@ namespace allocator_shim {
 // serialization. This is to route to thread-aware allocators without
 // introducing unnecessary perf hits.
 
+struct AllocatorDispatch {
+  using AllocFn = void*(const AllocatorDispatch* self,
+                        size_t size,
+                        void* context);
+  using AllocUncheckedFn = void*(const AllocatorDispatch* self,
+                                 size_t size,
+                                 void* context);
+  using AllocZeroInitializedFn = void*(const AllocatorDispatch* self,
+                                       size_t n,
+                                       size_t size,
+                                       void* context);
+  using AllocAlignedFn = void*(const AllocatorDispatch* self,
+                               size_t alignment,
+                               size_t size,
+                               void* context);
+  using ReallocFn = void*(const AllocatorDispatch* self,
+                          void* address,
+                          size_t size,
+                          void* context);
+  using FreeFn = void(const AllocatorDispatch* self,
+                      void* address,
+                      void* context);
+  // Returns the allocated size of user data (not including heap overhead).
+  // Can be larger than the requested size.
+  using GetSizeEstimateFn = size_t(const AllocatorDispatch* self,
+                                   void* address,
+                                   void* context);
+  using ClaimedAddressFn = bool(const AllocatorDispatch* self,
+                                void* address,
+                                void* context);
+  using BatchMallocFn = unsigned(const AllocatorDispatch* self,
+                                 size_t size,
+                                 void** results,
+                                 unsigned num_requested,
+                                 void* context);
+  using BatchFreeFn = void(const AllocatorDispatch* self,
+                           void** to_be_freed,
+                           unsigned num_to_be_freed,
+                           void* context);
+  using FreeDefiniteSizeFn = void(const AllocatorDispatch* self,
+                                  void* ptr,
+                                  size_t size,
+                                  void* context);
+  using TryFreeDefaultFn = void(const AllocatorDispatch* self,
+                                void* ptr,
+                                void* context);
+  using AlignedMallocFn = void*(const AllocatorDispatch* self,
+                                size_t size,
+                                size_t alignment,
+                                void* context);
+  using AlignedReallocFn = void*(const AllocatorDispatch* self,
+                                 void* address,
+                                 size_t size,
+                                 size_t alignment,
+                                 void* context);
+  using AlignedFreeFn = void(const AllocatorDispatch* self,
+                             void* address,
+                             void* context);
+
+  AllocFn* const alloc_function;
+  AllocUncheckedFn* const alloc_unchecked_function;
+  AllocZeroInitializedFn* const alloc_zero_initialized_function;
+  AllocAlignedFn* const alloc_aligned_function;
+  ReallocFn* const realloc_function;
+  FreeFn* const free_function;
+  GetSizeEstimateFn* const get_size_estimate_function;
+  // claimed_address, batch_malloc, batch_free, free_definite_size and
+  // try_free_default are specific to the OSX and iOS allocators.
+  ClaimedAddressFn* const claimed_address_function;
+  BatchMallocFn* const batch_malloc_function;
+  BatchFreeFn* const batch_free_function;
+  FreeDefiniteSizeFn* const free_definite_size_function;
+  TryFreeDefaultFn* const try_free_default_function;
+  // _aligned_malloc, _aligned_realloc, and _aligned_free are specific to the
+  // Windows allocator.
+  AlignedMallocFn* const aligned_malloc_function;
+  AlignedReallocFn* const aligned_realloc_function;
+  AlignedFreeFn* const aligned_free_function;
+
+  const AllocatorDispatch* next;
+
+  // |default_dispatch| is statically defined by one (and only one) of the
+  // allocator_shim_default_dispatch_to_*.cc files, depending on the build
+  // configuration.
+  static const AllocatorDispatch default_dispatch;
+};
+
 // When true makes malloc behave like new, w.r.t calling the new_handler if
 // the allocation fails (see set_new_mode() in Windows).
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void SetCallNewHandlerOnMallocFailure(bool value);
 
 // Allocates |size| bytes or returns nullptr. It does NOT call the new_handler,
 // regardless of SetCallNewHandlerOnMallocFailure().
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM) void* UncheckedAlloc(size_t size);
-
-// Reallocates |ptr| to point at |size| bytes with the same alignment as |ptr|,
-// or returns nullptr while leaving the |ptr| unchanged. It does NOT call the
-// new_handler, regardless of SetCallNewHandlerOnMallocFailure().
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
-void* UncheckedRealloc(void* ptr, size_t size);
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) void* UncheckedAlloc(size_t size);
 
 // Frees memory allocated with UncheckedAlloc().
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM) void UncheckedFree(void* ptr);
-
-#if PA_BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
-
-// The aligned allocation functions are only available when PartitionAlloc is
-// acting as malloc. Otherwise there may be nothing to forward them to for the
-// platform allocator.
-
-// Allocates |size| bytes aligned to |align| or returns nullptr. It does NOT
-// call the new_handler, regardless of SetCallNewHandlerOnMallocFailure().
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
-void* UncheckedAlignedAlloc(size_t align, size_t size);
-
-// Reallocates |ptr| to point at |size| bytes with an alignment of |align|,
-// or returns nullptr while leaving the |ptr| unchanged. It does NOT call the
-// new_handler, regardless of SetCallNewHandlerOnMallocFailure().
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
-void* UncheckedAlignedRealloc(void* ptr, size_t size, size_t align);
-
-// Frees memory allocated with UncheckedAlignedAlloc().
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM) void UncheckedAlignedFree(void* ptr);
-
-#endif
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) void UncheckedFree(void* ptr);
 
 // Inserts |dispatch| in front of the allocator chain. This method is
 // thread-safe w.r.t concurrent invocations of InsertAllocatorDispatch().
 // The callers have responsibility for inserting a single dispatch no more
 // than once.
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void InsertAllocatorDispatch(AllocatorDispatch* dispatch);
 
 // Test-only. Rationale: (1) lack of use cases; (2) dealing safely with a
 // removal of arbitrary elements from a singly linked list would require a lock
 // in malloc(), which we really don't want.
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void RemoveAllocatorDispatchForTesting(AllocatorDispatch* dispatch);
 
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
-const AllocatorDispatch* GetAllocatorDispatchChainHeadForTesting();
-
-class PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
-    AutoResetAllocatorDispatchChainForTesting {
- public:
-  AutoResetAllocatorDispatchChainForTesting();
-  ~AutoResetAllocatorDispatchChainForTesting();
-
- private:
-  const allocator_shim::AllocatorDispatch* original_dispatch_;
-};
-
-#if PA_BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_APPLE)
 // The fallback function to be called when try_free_default_function receives a
 // pointer which doesn't belong to the allocator.
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void TryFreeDefaultFallbackToFindZoneAndFree(void* ptr);
-#endif  // PA_BUILDFLAG(IS_APPLE)
+#endif  // BUILDFLAG(IS_APPLE)
 
-#if PA_BUILDFLAG(IS_APPLE)
-#if PA_BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
+#if BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void InitializeDefaultAllocatorPartitionRoot();
 bool IsDefaultAllocatorPartitionRootInitialized();
-#endif  // PA_BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
+#endif  // BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
 // On macOS, the allocator shim needs to be turned on during runtime.
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM) void InitializeAllocatorShim();
-#endif  // PA_BUILDFLAG(IS_APPLE)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) void InitializeAllocatorShim();
+#endif  // BUILDFLAG(IS_APPLE)
 
-#if PA_BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM) void EnablePartitionAllocMemoryReclaimer();
+#if BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) void EnablePartitionAllocMemoryReclaimer();
 
 using EnableBrp =
     partition_alloc::internal::base::StrongAlias<class EnableBrpTag, bool>;
 using EnableMemoryTagging =
     partition_alloc::internal::base::StrongAlias<class EnableMemoryTaggingTag,
                                                  bool>;
+using SplitMainPartition =
+    partition_alloc::internal::base::StrongAlias<class SplitMainPartitionTag,
+                                                 bool>;
+using UseDedicatedAlignedPartition = partition_alloc::internal::base::
+    StrongAlias<class UseDedicatedAlignedPartitionTag, bool>;
 enum class BucketDistribution : uint8_t { kNeutral, kDenser };
-using SchedulerLoopQuarantine = partition_alloc::internal::base::
-    StrongAlias<class SchedulerLoopQuarantineTag, bool>;
-using ZappingByFreeFlags =
-    partition_alloc::internal::base::StrongAlias<class ZappingByFreeFlagsTag,
-                                                 bool>;
-using EventuallyZeroFreedMemory = partition_alloc::internal::base::
-    StrongAlias<class EventuallyZeroFreedMemoryTag, bool>;
-using FewerMemoryRegions =
-    partition_alloc::internal::base::StrongAlias<class FewerMemoryRegionsTag,
-                                                 bool>;
-using UseSmallSingleSlotSpans = partition_alloc::internal::base::
-    StrongAlias<class UseSmallSingleSlotSpansTag, bool>;
 
 // If |thread_cache_on_non_quarantinable_partition| is specified, the
 // thread-cache will be enabled on the non-quarantinable partition. The
 // thread-cache on the main (malloc) partition will be disabled.
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void ConfigurePartitions(
     EnableBrp enable_brp,
-    size_t brp_extra_extras_size,
     EnableMemoryTagging enable_memory_tagging,
     partition_alloc::TagViolationReportingMode memory_tagging_reporting_mode,
-    BucketDistribution distribution,
-    SchedulerLoopQuarantine scheduler_loop_quarantine,
-    size_t scheduler_loop_quarantine_branch_capacity_in_bytes,
-    ZappingByFreeFlags zapping_by_free_flags,
-    EventuallyZeroFreedMemory eventually_zero_freed_memory,
-    FewerMemoryRegions fewer_memory_regions,
-    UseSmallSingleSlotSpans use_small_single_slot_spans);
+    SplitMainPartition split_main_partition,
+    UseDedicatedAlignedPartition use_dedicated_aligned_partition,
+    size_t ref_count_size,
+    BucketDistribution distribution);
 
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM) uint32_t GetMainPartitionRootExtrasSize();
+// If |thread_cache_on_non_quarantinable_partition| is specified, the
+// thread-cache will be enabled on the non-quarantinable partition. The
+// thread-cache on the main (malloc) partition will be disabled.
+// This is the deprecated version of ConfigurePartitions, kept for compatibility
+// with pdfium's test setup, see
+// third_party/pdfium/testing/allocator_shim_config.cpp.
+// TODO(crbug.com/1137393): Remove this functions once pdfium has switched to
+// the new version.
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
+void ConfigurePartitions(
+    EnableBrp enable_brp,
+    EnableMemoryTagging enable_memory_tagging,
+    SplitMainPartition split_main_partition,
+    UseDedicatedAlignedPartition use_dedicated_aligned_partition,
+    size_t ref_count_size,
+    BucketDistribution distribution);
 
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM) void AdjustDefaultAllocatorForForeground();
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM) void AdjustDefaultAllocatorForBackground();
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) uint32_t GetMainPartitionRootExtrasSize();
 
-#endif  // PA_BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
+#if BUILDFLAG(USE_STARSCAN)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
+void EnablePCScan(partition_alloc::internal::PCScan::InitConfig);
+#endif
+#endif  // BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
 
 }  // namespace allocator_shim
 
-#endif  // PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
-
-#endif  // PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_H_

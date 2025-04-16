@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_WORKERS_WORKER_BACKING_THREAD_STARTUP_DATA_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_WORKERS_WORKER_BACKING_THREAD_STARTUP_DATA_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/wtf/cross_thread_copier.h"
 
 namespace blink {
@@ -36,12 +35,12 @@ struct WorkerBackingThreadStartupData {
 
 namespace WTF {
 
-// This allows to pass std::optional<WorkerBackingThreadStartupData> across
+// This allows to pass absl::optional<WorkerBackingThreadStartupData> across
 // threads by PostTask().
 template <>
-struct CrossThreadCopier<std::optional<blink::WorkerBackingThreadStartupData>>
+struct CrossThreadCopier<absl::optional<blink::WorkerBackingThreadStartupData>>
     : public CrossThreadCopierPassThrough<
-          std::optional<blink::WorkerBackingThreadStartupData>> {};
+          absl::optional<blink::WorkerBackingThreadStartupData>> {};
 
 // This allows to pass WorkerBackingThreadStartupData across threads by
 // PostTask().

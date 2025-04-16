@@ -13,10 +13,10 @@
 
 #include <stdint.h>
 
-#include <optional>
 #include <string>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/crypto/frame_decryptor_interface.h"
 #include "api/dtls_transport_interface.h"
 #include "api/frame_transformer_interface.h"
@@ -46,13 +46,13 @@ class VideoRtpReceiver : public RtpReceiverInternal {
  public:
   // An SSRC of 0 will create a receiver that will match the first SSRC it
   // sees. Must be called on signaling thread.
-  VideoRtpReceiver(Thread* worker_thread,
+  VideoRtpReceiver(rtc::Thread* worker_thread,
                    std::string receiver_id,
                    std::vector<std::string> streams_ids);
   // TODO(hbos): Remove this when streams() is removed.
   // https://crbug.com/webrtc/9480
   VideoRtpReceiver(
-      Thread* worker_thread,
+      rtc::Thread* worker_thread,
       const std::string& receiver_id,
       const std::vector<rtc::scoped_refptr<MediaStreamInterface>>& streams);
 
@@ -68,8 +68,8 @@ class VideoRtpReceiver : public RtpReceiverInternal {
   std::vector<std::string> stream_ids() const override;
   std::vector<rtc::scoped_refptr<MediaStreamInterface>> streams()
       const override;
-  webrtc::MediaType media_type() const override {
-    return webrtc::MediaType::VIDEO;
+  cricket::MediaType media_type() const override {
+    return cricket::MEDIA_TYPE_VIDEO;
   }
 
   std::string id() const override { return id_; }
@@ -82,14 +82,14 @@ class VideoRtpReceiver : public RtpReceiverInternal {
   rtc::scoped_refptr<FrameDecryptorInterface> GetFrameDecryptor()
       const override;
 
-  void SetFrameTransformer(
+  void SetDepacketizerToDecoderFrameTransformer(
       rtc::scoped_refptr<FrameTransformerInterface> frame_transformer) override;
 
   // RtpReceiverInternal implementation.
   void Stop() override;
   void SetupMediaChannel(uint32_t ssrc) override;
   void SetupUnsignaledMediaChannel() override;
-  std::optional<uint32_t> ssrc() const override;
+  absl::optional<uint32_t> ssrc() const override;
   void NotifyFirstPacketReceived() override;
   void set_stream_ids(std::vector<std::string> stream_ids) override;
   void set_transport(
@@ -100,7 +100,7 @@ class VideoRtpReceiver : public RtpReceiverInternal {
   void SetObserver(RtpReceiverObserverInterface* observer) override;
 
   void SetJitterBufferMinimumDelay(
-      std::optional<double> delay_seconds) override;
+      absl::optional<double> delay_seconds) override;
 
   void SetMediaChannel(
       cricket::MediaReceiveChannelInterface* media_channel) override;
@@ -111,13 +111,13 @@ class VideoRtpReceiver : public RtpReceiverInternal {
 
   // Combines SetMediaChannel, SetupMediaChannel and
   // SetupUnsignaledMediaChannel.
-  void SetupMediaChannel(std::optional<uint32_t> ssrc,
+  void SetupMediaChannel(absl::optional<uint32_t> ssrc,
                          cricket::MediaReceiveChannelInterface* media_channel);
 
  private:
-  void RestartMediaChannel(std::optional<uint32_t> ssrc)
+  void RestartMediaChannel(absl::optional<uint32_t> ssrc)
       RTC_RUN_ON(&signaling_thread_checker_);
-  void RestartMediaChannel_w(std::optional<uint32_t> ssrc,
+  void RestartMediaChannel_w(absl::optional<uint32_t> ssrc,
                              MediaSourceInterface::SourceState state)
       RTC_RUN_ON(worker_thread_);
   void SetSink(rtc::VideoSinkInterface<VideoFrame>* sink)
@@ -146,12 +146,12 @@ class VideoRtpReceiver : public RtpReceiverInternal {
   } source_callback_{this};
 
   RTC_NO_UNIQUE_ADDRESS SequenceChecker signaling_thread_checker_;
-  Thread* const worker_thread_;
+  rtc::Thread* const worker_thread_;
 
   const std::string id_;
   cricket::VideoMediaReceiveChannelInterface* media_channel_
       RTC_GUARDED_BY(worker_thread_) = nullptr;
-  std::optional<uint32_t> signaled_ssrc_ RTC_GUARDED_BY(worker_thread_);
+  absl::optional<uint32_t> signaled_ssrc_ RTC_GUARDED_BY(worker_thread_);
   // `source_` is held here to be able to change the state of the source when
   // the VideoRtpReceiver is stopped.
   const rtc::scoped_refptr<VideoRtpTrackSource> source_;

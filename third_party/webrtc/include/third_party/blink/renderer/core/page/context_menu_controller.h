@@ -42,7 +42,6 @@ class LocalFrame;
 class MouseEvent;
 class Page;
 struct ContextMenuData;
-struct Impression;
 
 class CORE_EXPORT ContextMenuController final
     : public GarbageCollected<ContextMenuController>,
@@ -71,8 +70,7 @@ class CORE_EXPORT ContextMenuController final
 
   // mojom::blink::ContextMenuClient methods.
   void CustomContextMenuAction(uint32_t action) override;
-  void ContextMenuClosed(const KURL& link_followed,
-                         const std::optional<Impression>&) override;
+  void ContextMenuClosed(const KURL& link_followed) override;
 
   // These values are persisted to logs. Entries should not be renumbered and
   // numeric values should never be reused.  Keep in sync with enum in

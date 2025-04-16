@@ -59,7 +59,7 @@ class SVGListPropertyTearOffHelper : public SVGPropertyTearOff<ListProperty> {
       return;
     }
     ToDerived()->Target()->Clear();
-    ToDerived()->CommitChange(SVGPropertyCommitReason::kListCleared);
+    ToDerived()->CommitChange();
   }
 
   ItemTearOffType* initialize(ItemTearOffType* item,
@@ -75,7 +75,7 @@ class SVGListPropertyTearOffHelper : public SVGPropertyTearOff<ListProperty> {
     ListPropertyType* list = ToDerived()->Target();
     list->Clear();
     list->Append(value);
-    ToDerived()->CommitChange(SVGPropertyCommitReason::kUpdated);
+    ToDerived()->CommitChange();
     return AttachedItemTearOff(value);
   }
 
@@ -108,7 +108,7 @@ class SVGListPropertyTearOffHelper : public SVGPropertyTearOff<ListProperty> {
     // item is number 0. If the index is equal to 0, then the new item is
     // inserted at the front of the list.
     list->Insert(index, value);
-    ToDerived()->CommitChange(SVGPropertyCommitReason::kUpdated);
+    ToDerived()->CommitChange();
     return AttachedItemTearOff(value);
   }
 
@@ -128,7 +128,7 @@ class SVGListPropertyTearOffHelper : public SVGPropertyTearOff<ListProperty> {
     DCHECK(item);
     ItemPropertyType* value = GetValueForInsertionFromTearOff(item);
     list->Replace(index, value);
-    ToDerived()->CommitChange(SVGPropertyCommitReason::kUpdated);
+    ToDerived()->CommitChange();
     return AttachedItemTearOff(value);
   }
 
@@ -153,9 +153,7 @@ class SVGListPropertyTearOffHelper : public SVGPropertyTearOff<ListProperty> {
     }
     ItemPropertyType* value = list->at(index);
     list->Remove(index);
-    ToDerived()->CommitChange(list->IsEmpty()
-                                  ? SVGPropertyCommitReason::kListCleared
-                                  : SVGPropertyCommitReason::kUpdated);
+    ToDerived()->CommitChange();
     return DetachedItemTearOff(value);
   }
 
@@ -168,7 +166,7 @@ class SVGListPropertyTearOffHelper : public SVGPropertyTearOff<ListProperty> {
     DCHECK(item);
     ItemPropertyType* value = GetValueForInsertionFromTearOff(item);
     ToDerived()->Target()->Append(value);
-    ToDerived()->CommitChange(SVGPropertyCommitReason::kUpdated);
+    ToDerived()->CommitChange();
     return AttachedItemTearOff(value);
   }
 

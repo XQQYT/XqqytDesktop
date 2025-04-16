@@ -111,7 +111,7 @@ class AudioParamTimeline {
  private:
   class ParamEvent {
    public:
-    enum class Type {
+    enum Type {
       kSetValue,
       kLinearRampToValue,
       kExponentialRampToValue,
@@ -298,7 +298,7 @@ class AudioParamTimeline {
     const double time2;
 
     // The current event, and its index in the event vector.
-    raw_ptr<const ParamEvent> event;
+    raw_ptr<const ParamEvent, ExperimentalRenderer> event;
     const int event_index;
   };
 

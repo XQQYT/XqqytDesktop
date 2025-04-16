@@ -14,8 +14,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "rtc_base/rate_statistics.h"
 #include "rtc_base/synchronization/mutex.h"
 #include "rtc_base/system/rtc_export.h"
@@ -49,7 +48,7 @@ class RTC_EXPORT BitrateAdjuster {
   uint32_t GetAdjustedBitrateBps() const;
 
   // Returns what we think the current bitrate is.
-  std::optional<uint32_t> GetEstimatedBitrateBps();
+  absl::optional<uint32_t> GetEstimatedBitrateBps();
 
   // This should be called after each frame is encoded. The timestamp at which
   // it is called is used to estimate the output bitrate of the encoder.

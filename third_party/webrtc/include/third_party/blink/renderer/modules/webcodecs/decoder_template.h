@@ -62,10 +62,10 @@ class MODULES_EXPORT DecoderTemplate
   DEFINE_ATTRIBUTE_EVENT_LISTENER(dequeue, kDequeue)
   void configure(const ConfigType*, ExceptionState&);
   void decode(const InputType*, ExceptionState&);
-  ScriptPromise<IDLUndefined> flush(ExceptionState&);
+  ScriptPromise flush(ExceptionState&);
   void reset(ExceptionState&);
   void close(ExceptionState&);
-  V8CodecState state() const { return state_; }
+  String state() const { return state_; }
 
   // EventTarget override.
   ExecutionContext* GetExecutionContext() const override;
@@ -83,9 +83,9 @@ class MODULES_EXPORT DecoderTemplate
   virtual bool IsValidConfig(const ConfigType& config,
                              String* js_error_message) = 0;
 
-  // Convert a configuration to a DecoderConfig. Returns std::nullopt if the
+  // Convert a configuration to a DecoderConfig. Returns absl::nullopt if the
   // configuration is not supported.
-  virtual std::optional<MediaConfigType> MakeMediaConfig(
+  virtual absl::optional<MediaConfigType> MakeMediaConfig(
       const ConfigType& config,
       String* js_error_message) = 0;
 
@@ -101,9 +101,6 @@ class MODULES_EXPORT DecoderTemplate
   // The default implementation does nothing and must be overridden by derived
   // classes if needed.
   virtual void SetHardwarePreference(HardwarePreference preference);
-
-  // Called when the active configuration changes after a configure().
-  virtual void OnActiveConfigChanged(const MediaConfigType& config);
 
   // Virtual for UTs.
   virtual MediaDecoderType* decoder() { return decoder_.get(); }
@@ -147,19 +144,19 @@ class MODULES_EXPORT DecoderTemplate
 
     Type type;
 
-    // For kConfigure Requests. Prefer std::optional<> to ensure values are
+    // For kConfigure Requests. Prefer absl::optional<> to ensure values are
     // only accessed on the proper request type. If `media_config` is null then
     // `js_error_message` will have details on why the config isn't supported.
     std::unique_ptr<MediaConfigType> media_config;
-    std::optional<HardwarePreference> hw_pref;
-    std::optional<bool> low_delay;
+    absl::optional<HardwarePreference> hw_pref;
+    absl::optional<bool> low_delay;
     String js_error_message;
 
     // For kDecode Requests.
     scoped_refptr<media::DecoderBuffer> decoder_buffer;
 
     // For kFlush Requests.
-    Member<ScriptPromiseResolver<IDLUndefined>> resolver;
+    Member<ScriptPromiseResolver> resolver;
 
     // For reporting an error at the time when a request is processed.
     media::DecoderStatus status;
@@ -210,13 +207,6 @@ class MODULES_EXPORT DecoderTemplate
   // aborts the promise attached to request and returns true.
   bool MaybeAbortRequest(Request* request) const;
 
-  // Makes the right type of operation or encoding error based on whether we're
-  // using a platform decoder or not.
-  DOMException* MakeOperationError(std::string error_msg,
-                                   media::DecoderStatus status);
-  DOMException* MakeEncodingError(std::string error_msg,
-                                  media::DecoderStatus status);
-
   bool dequeue_event_pending_ = false;
 
   Member<ScriptState> script_state_;
@@ -244,7 +234,7 @@ class MODULES_EXPORT DecoderTemplate
 
   // Empty - GPU factories haven't been retrieved yet.
   // nullptr - We tried to get GPU factories, but acceleration is unavailable.
-  std::optional<media::GpuVideoAcceleratorFactories*> gpu_factories_;
+  absl::optional<media::GpuVideoAcceleratorFactories*> gpu_factories_;
 
   // Cached config from the last kConfigure request which successfully completed
   // initialization.

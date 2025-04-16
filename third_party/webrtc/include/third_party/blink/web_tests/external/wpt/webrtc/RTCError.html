@@ -61,6 +61,7 @@ test(() => {
 
 // All of these are number types (long or unsigned long).
 const nullableAttributes = ['sdpLineNumber',
+                            'httpRequestStatusCode',
                             'sctpCauseCode',
                             'receivedAlert',
                             'sentAlert'];
@@ -85,8 +86,4 @@ nullableAttributes.forEach(attribute => {
   }, 'RTCError.' + attribute + ' is readonly');
 });
 
-test(function() {
-  assert_false("httpRequestStatusCode" in RTCError.prototype,
-               "Should not be supported on the prototype");
-}, "RTCError httpRequestStatusCode should not be supported.");
 </script>

@@ -9,6 +9,7 @@
 
 namespace gfx {
 class Rect;
+class Vector2d;
 }
 
 namespace blink {
@@ -26,17 +27,17 @@ class ScrollableAreaPainter {
 
  public:
   explicit ScrollableAreaPainter(
-      const PaintLayerScrollableArea& paint_layer_scrollable_area)
-      : scrollable_area_(paint_layer_scrollable_area) {}
+      PaintLayerScrollableArea& paint_layer_scrollable_area)
+      : scrollable_area_(&paint_layer_scrollable_area) {}
   ScrollableAreaPainter(const ScrollableAreaPainter&) = delete;
   ScrollableAreaPainter& operator=(const ScrollableAreaPainter&) = delete;
 
   // Returns true if the overflow controls are painted.
   bool PaintOverflowControls(const PaintInfo&,
-                             const PhysicalOffset& paint_offset,
+                             const gfx::Vector2d& paint_offset,
                              const FragmentData*);
   void PaintResizer(GraphicsContext&,
-                    const PhysicalOffset& paint_offset,
+                    const gfx::Vector2d& paint_offset,
                     const CullRect&);
 
   // Records a scroll hit test data to force main thread handling of events
@@ -47,10 +48,10 @@ class ScrollableAreaPainter {
  private:
   void PaintScrollbar(GraphicsContext&,
                       Scrollbar&,
-                      const PhysicalOffset& paint_offset,
+                      const gfx::Vector2d& paint_offset,
                       const CullRect&);
   void PaintScrollCorner(GraphicsContext&,
-                         const PhysicalOffset& paint_offset,
+                         const gfx::Vector2d& paint_offset,
                          const CullRect&);
 
   void DrawPlatformResizerImage(GraphicsContext&,
@@ -60,7 +61,9 @@ class ScrollableAreaPainter {
                             Scrollbar& scrollbar,
                             gfx::Rect visual_rect);
 
-  const PaintLayerScrollableArea& scrollable_area_;
+  PaintLayerScrollableArea& GetScrollableArea() const;
+
+  PaintLayerScrollableArea* scrollable_area_;
 };
 
 }  // namespace blink

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Alliance for Open Media. All rights reserved.
+ * Copyright (c) 2016, Alliance for Open Media. All rights reserved
  *
  * This source code is subject to the terms of the BSD 2 Clause License and
  * the Alliance for Open Media Patent License 1.0. If the BSD 2 Clause License
@@ -27,7 +27,7 @@
 #include "aom/aom_encoder.h"
 #include "test/acm_random.h"
 #if !defined(_WIN32)
-#include "gtest/gtest.h"
+#include "third_party/googletest/src/googletest/include/gtest/gtest.h"
 #endif
 
 namespace libaom_test {
@@ -64,9 +64,8 @@ inline FILE *OpenTestDataFile(const std::string &file_name) {
   return fopen(path_to_source.c_str(), "rb");
 }
 
-static FILE *GetTempOutFile(std::string *file_name, bool text_mode = false) {
+static FILE *GetTempOutFile(std::string *file_name) {
   file_name->clear();
-  const char *mode = text_mode ? "w+" : "wb+";
 #if defined(_WIN32)
   char fname[MAX_PATH];
   char tmppath[MAX_PATH];
@@ -74,7 +73,7 @@ static FILE *GetTempOutFile(std::string *file_name, bool text_mode = false) {
     // Assume for now that the filename generated is unique per process
     if (GetTempFileNameA(tmppath, "lvx", 0, fname)) {
       file_name->assign(fname);
-      return fopen(fname, mode);
+      return fopen(fname, "wb+");
     }
   }
   return nullptr;
@@ -95,15 +94,13 @@ static FILE *GetTempOutFile(std::string *file_name, bool text_mode = false) {
   const int fd = mkstemp(temp_file_name.get());
   if (fd == -1) return nullptr;
   *file_name = temp_file_name.get();
-  return fdopen(fd, mode);
+  return fdopen(fd, "wb+");
 #endif
 }
 
 class TempOutFile {
  public:
-  explicit TempOutFile(bool text_mode = false) {
-    file_ = GetTempOutFile(&file_name_, text_mode);
-  }
+  TempOutFile() { file_ = GetTempOutFile(&file_name_); }
   ~TempOutFile() {
     CloseFile();
     if (!file_name_.empty()) {
@@ -133,8 +130,7 @@ class VideoSource {
   // Prepare the stream for reading, rewind/open as necessary.
   virtual void Begin() = 0;
 
-  // Advance the cursor to the next frame. For spatial layers this
-  // advances the cursor to the next temporal unit.
+  // Advance the cursor to the next frame
   virtual void Next() = 0;
 
   // Get the current video frame, or nullptr on End-Of-Stream.
@@ -149,8 +145,7 @@ class VideoSource {
   // Get the timebase for the stream
   virtual aom_rational_t timebase() const = 0;
 
-  // Get the current frame counter, starting at 0. For spatial layers
-  // this is the current temporal unit counter.
+  // Get the current frame counter, starting at 0.
   virtual unsigned int frame() const = 0;
 
   // Get the current file limit.

@@ -19,12 +19,7 @@ class LayoutMathMLBlock : public LayoutBlock {
   }
 
  private:
-  bool IsMathML() const final {
-    NOT_DESTROYED();
-    return true;
-  }
-  bool IsMathMLRoot() const final;
-
+  bool IsOfType(LayoutObjectType) const final;
   bool IsChildAllowed(LayoutObject*, const ComputedStyle&) const final;
   bool CanHaveChildren() const final;
   void StyleDidChange(StyleDifference, const ComputedStyle*) final;

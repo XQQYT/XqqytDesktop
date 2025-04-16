@@ -5,12 +5,11 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LOADER_BASE_FETCH_CONTEXT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LOADER_BASE_FETCH_CONTEXT_H_
 
-#include <optional>
-
 #include "base/types/optional_ref.h"
 #include "net/cookies/site_for_cookies.h"
 #include "services/network/public/mojom/referrer_policy.mojom-blink-forward.h"
 #include "services/network/public/mojom/web_client_hints_types.mojom-blink-forward.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/common/user_agent/user_agent_metadata.h"
 #include "third_party/blink/public/mojom/fetch/fetch_api_request.mojom-blink-forward.h"
 #include "third_party/blink/public/platform/web_url_request.h"
@@ -24,6 +23,7 @@
 
 namespace blink {
 
+class ClientHintsPreferences;
 class DetachableConsoleLogger;
 class DOMWrapperWorld;
 class DetachableResourceFetcherProperties;
@@ -31,18 +31,27 @@ class KURL;
 class SubresourceFilter;
 class WebSocketHandshakeThrottle;
 
+// This is information for client hints that only make sense when attached to a
+// frame
+struct ClientHintImageInfo {
+  float dpr;
+  absl::optional<float> resource_width;
+  absl::optional<int> viewport_width;
+  absl::optional<int> viewport_height;
+};
+
 // A core-level implementation of FetchContext that does not depend on
 // Frame. This class provides basic default implementation for some methods.
 class CORE_EXPORT BaseFetchContext : public FetchContext {
  public:
-  std::optional<ResourceRequestBlockedReason> CanRequest(
+  absl::optional<ResourceRequestBlockedReason> CanRequest(
       ResourceType,
       const ResourceRequest&,
       const KURL&,
       const ResourceLoaderOptions&,
       ReportingDisposition,
       base::optional_ref<const ResourceRequest::RedirectInfo>) const override;
-  std::optional<ResourceRequestBlockedReason>
+  absl::optional<ResourceRequestBlockedReason>
   CanRequestBasedOnSubresourceFilterOnly(
       ResourceType,
       const ResourceRequest&,
@@ -50,19 +59,9 @@ class CORE_EXPORT BaseFetchContext : public FetchContext {
       const ResourceLoaderOptions&,
       ReportingDisposition,
       base::optional_ref<const ResourceRequest::RedirectInfo>) const override;
-  std::optional<ResourceRequestBlockedReason> CheckCSPForRequest(
+  absl::optional<ResourceRequestBlockedReason> CheckCSPForRequest(
       mojom::blink::RequestContextType,
       network::mojom::RequestDestination request_destination,
-      network::mojom::RequestMode request_mode,
-      const KURL&,
-      const ResourceLoaderOptions&,
-      ReportingDisposition,
-      const KURL& url_before_redirects,
-      ResourceRequest::RedirectStatus) const override;
-  std::optional<ResourceRequestBlockedReason> CheckAndEnforceCSPForRequest(
-      mojom::blink::RequestContextType,
-      network::mojom::RequestDestination request_destination,
-      network::mojom::RequestMode request_mode,
       const KURL&,
       const ResourceLoaderOptions&,
       ReportingDisposition,
@@ -98,13 +97,25 @@ class CORE_EXPORT BaseFetchContext : public FetchContext {
       ResourceType type,
       const FetchInitiatorInfo& initiator_info) override;
 
+  void AddClientHintsIfNecessary(
+      const ClientHintsPreferences& hints_preferences,
+      const url::Origin& resource_origin,
+      bool is_1p_origin,
+      absl::optional<UserAgentMetadata> ua,
+      const PermissionsPolicy* policy,
+      base::optional_ref<const ClientHintImageInfo> image_info,
+      base::optional_ref<const WTF::AtomicString> prefers_color_scheme,
+      base::optional_ref<const WTF::AtomicString> prefers_reduced_motion,
+      base::optional_ref<const WTF::AtomicString> prefers_reduced_transparency,
+      ResourceRequest& request);
+
  protected:
   BaseFetchContext(const DetachableResourceFetcherProperties& properties,
                    DetachableConsoleLogger* logger)
       : fetcher_properties_(properties), console_logger_(logger) {}
 
   // Used for security checks.
-  virtual bool AllowScript() const = 0;
+  virtual bool AllowScriptFromSource(const KURL&) const = 0;
 
   // Note: subclasses are expected to override following methods.
   // Used in the default implementation for CanRequest, CanFollowRedirect
@@ -117,7 +128,7 @@ class CORE_EXPORT BaseFetchContext : public FetchContext {
   virtual ContentSecurityPolicy* GetContentSecurityPolicyForWorld(
       const DOMWrapperWorld* world) const = 0;
 
-  virtual bool IsIsolatedSVGChromeClient() const = 0;
+  virtual bool IsSVGImageChromeClient() const = 0;
   virtual bool ShouldBlockFetchByMixedContentCheck(
       mojom::blink::RequestContextType request_context,
       network::mojom::blink::IPAddressSpace target_address_space,
@@ -141,7 +152,7 @@ class CORE_EXPORT BaseFetchContext : public FetchContext {
 
   // Utility methods that are used in default implement for CanRequest,
   // CanFollowRedirect and AllowResponse.
-  std::optional<ResourceRequestBlockedReason> CanRequestInternal(
+  absl::optional<ResourceRequestBlockedReason> CanRequestInternal(
       ResourceType,
       const ResourceRequest&,
       const KURL&,
@@ -150,16 +161,21 @@ class CORE_EXPORT BaseFetchContext : public FetchContext {
       base::optional_ref<const ResourceRequest::RedirectInfo> redirect_info)
       const;
 
-  std::optional<ResourceRequestBlockedReason> CheckCSPForRequestInternal(
+  absl::optional<ResourceRequestBlockedReason> CheckCSPForRequestInternal(
       mojom::blink::RequestContextType,
       network::mojom::RequestDestination request_destination,
-      network::mojom::RequestMode request_mode,
       const KURL&,
       const ResourceLoaderOptions&,
       ReportingDisposition,
       const KURL& url_before_redirects,
       ResourceRequest::RedirectStatus redirect_status,
       ContentSecurityPolicy::CheckHeaderType) const;
+
+  bool ShouldSendClientHint(const PermissionsPolicy*,
+                            const url::Origin&,
+                            bool is_1p_origin,
+                            network::mojom::blink::WebClientHintsType,
+                            const ClientHintsPreferences&) const;
 };
 
 }  // namespace blink

@@ -12,8 +12,6 @@
 
 namespace blink {
 
-class CSSProperty;
-
 // Represents a blink::GridLength, converted into a form that can be
 // interpolated from/to.
 // This class is a representation of the <track-breadth> values:
@@ -30,11 +28,11 @@ class CORE_EXPORT InterpolableGridLength final : public InterpolableValue {
     kMaxContent,
   };
 
-  InterpolableGridLength(InterpolableValue* value,
+  InterpolableGridLength(std::unique_ptr<InterpolableValue> value,
                          InterpolableGridLengthType type);
-  static InterpolableGridLength* Create(const Length& grid_length,
-                                        const CSSProperty& property,
-                                        float zoom);
+  static std::unique_ptr<InterpolableGridLength> Create(
+      const Length& grid_length,
+      float zoom);
 
   Length CreateGridLength(
       const CSSToLengthConversionData& conversion_data) const;
@@ -48,11 +46,6 @@ class CORE_EXPORT InterpolableGridLength final : public InterpolableValue {
   void Scale(double scale) final;
   void Add(const InterpolableValue& other) final;
   void AssertCanInterpolateWith(const InterpolableValue& other) const final;
-
-  void Trace(Visitor* v) const override {
-    InterpolableValue::Trace(v);
-    v->Trace(value_);
-  }
 
  private:
   // An |InterpolableGridLength| is content sized when it's 'auto',
@@ -69,7 +62,7 @@ class CORE_EXPORT InterpolableGridLength final : public InterpolableValue {
   // If the type is flex, form is |InterpolableNumber|.
   // If the type is length, form is |InterpolableLength|.
   // Everything else, |value_| is nulllptr.
-  Member<InterpolableValue> value_;
+  std::unique_ptr<InterpolableValue> value_;
   InterpolableGridLengthType type_;
 };
 

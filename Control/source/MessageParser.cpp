@@ -65,6 +65,6 @@ void MessageParser::onTargetStatusResult(std::unique_ptr<Parser> parser)
     //目标在线
     else
     {
-        
+        network_operator.dispatch_void("/network/target_is_online");
     }
 }

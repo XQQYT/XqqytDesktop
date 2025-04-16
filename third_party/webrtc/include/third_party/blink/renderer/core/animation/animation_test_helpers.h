@@ -53,15 +53,15 @@ class TestAnimationProxy : public AnimationProxy {
  public:
   // AnimationProxy interface.
   bool AtScrollTimelineBoundary() const override { return false; }
-  std::optional<AnimationTimeDelta> TimelineDuration() const override {
-    return std::nullopt;
+  absl::optional<AnimationTimeDelta> TimelineDuration() const override {
+    return absl::nullopt;
   }
   AnimationTimeDelta IntrinsicIterationDuration() const override {
     return AnimationTimeDelta();
   }
   double PlaybackRate() const override { return playback_rate_; }
   bool Paused() const override { return false; }
-  std::optional<AnimationTimeDelta> InheritedTime() const override {
+  absl::optional<AnimationTimeDelta> InheritedTime() const override {
     return AnimationTimeDelta();
   }
 

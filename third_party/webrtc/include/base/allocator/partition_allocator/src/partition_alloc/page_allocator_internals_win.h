@@ -2,17 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PAGE_ALLOCATOR_INTERNALS_WIN_H_
-#define PARTITION_ALLOC_PAGE_ALLOCATOR_INTERNALS_WIN_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PAGE_ALLOCATOR_INTERNALS_WIN_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PAGE_ALLOCATOR_INTERNALS_WIN_H_
 
 #include <cstdint>
 
-#include "partition_alloc/buildflags.h"
-#include "partition_alloc/oom.h"
-#include "partition_alloc/page_allocator.h"
-#include "partition_alloc/page_allocator_internal.h"
-#include "partition_alloc/partition_alloc_base/notreached.h"
-#include "partition_alloc/partition_alloc_check.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/oom.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/page_allocator.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/page_allocator_internal.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/notreached.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_buildflags.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_check.h"
 
 namespace partition_alloc::internal {
 
@@ -26,9 +26,9 @@ bool IsOutOfMemory(DWORD error) {
   switch (error) {
     // Page file is being extended.
     case ERROR_COMMITMENT_MINIMUM:
-    // Page file is too small.
+      // Page file is too small.
     case ERROR_COMMITMENT_LIMIT:
-#if PA_BUILDFLAG(HAS_64_BIT_POINTERS)
+#if BUILDFLAG(HAS_64_BIT_POINTERS)
     // Not enough memory resources are available to process this command.
     //
     // It is not entirely clear whether this error pertains to out of address
@@ -92,7 +92,6 @@ int GetAccessFlags(PageAccessibilityConfiguration accessibility) {
     case PageAccessibilityConfiguration::kReadExecuteProtected:
       return PAGE_EXECUTE_READ;
     case PageAccessibilityConfiguration::kReadWriteExecute:
-    case PageAccessibilityConfiguration::kReadWriteExecuteProtected:
       return PAGE_EXECUTE_READWRITE;
     case PageAccessibilityConfiguration::kInaccessible:
     case PageAccessibilityConfiguration::kInaccessibleWillJitLater:
@@ -165,8 +164,7 @@ void SetSystemPagesAccessInternal(
   } else {
     if (!VirtualAllocWithRetry(ptr, length, MEM_COMMIT, access_flag)) {
       int32_t error = GetLastError();
-      if (error == ERROR_COMMITMENT_LIMIT ||
-          error == ERROR_COMMITMENT_MINIMUM) {
+      if (error == ERROR_COMMITMENT_LIMIT) {
         OOM_CRASH(length);
       }
       // We check `GetLastError` for `ERROR_SUCCESS` here so that in a crash
@@ -191,7 +189,7 @@ void DecommitSystemPagesInternal(
                            PageAccessibilityConfiguration::kInaccessible));
 }
 
-bool DecommitAndZeroSystemPagesInternal(uintptr_t address,
+void DecommitAndZeroSystemPagesInternal(uintptr_t address,
                                         size_t length,
                                         PageTag page_tag) {
   // https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualfree:
@@ -203,7 +201,6 @@ bool DecommitAndZeroSystemPagesInternal(uintptr_t address,
   // for MEM_COMMIT: "The function also guarantees that when the caller later
   // initially accesses the memory, the contents will be zero."
   PA_CHECK(VirtualFree(reinterpret_cast<void*>(address), length, MEM_DECOMMIT));
-  return true;
 }
 
 void RecommitSystemPagesInternal(
@@ -238,10 +235,6 @@ void DiscardSystemPagesInternal(uintptr_t address, size_t length) {
   }
 }
 
-bool SealSystemPagesInternal(uintptr_t address, size_t length) {
-  return false;
-}
-
 }  // namespace partition_alloc::internal
 
-#endif  // PARTITION_ALLOC_PAGE_ALLOCATOR_INTERNALS_WIN_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PAGE_ALLOCATOR_INTERNALS_WIN_H_

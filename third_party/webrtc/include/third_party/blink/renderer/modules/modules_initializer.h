@@ -27,6 +27,7 @@ class MODULES_EXPORT ModulesInitializer : public CoreInitializer {
   PictureInPictureController* CreatePictureInPictureController(
       Document&) const override;
   void InitInspectorAgentSession(DevToolsSession*,
+                                 bool,
                                  InspectorDOMAgent*,
                                  InspectedFrames*,
                                  Page*) const override;
@@ -35,7 +36,7 @@ class MODULES_EXPORT ModulesInitializer : public CoreInitializer {
       HTMLMediaElement&,
       const WebMediaPlayerSource&,
       WebMediaPlayerClient*) const override;
-  RemotePlaybackClient* CreateRemotePlaybackClient(
+  WebRemotePlaybackClient* CreateWebRemotePlaybackClient(
       HTMLMediaElement&) const override;
 
   void ProvideModulesToPage(Page&,

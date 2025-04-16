@@ -20,14 +20,10 @@ promise_test(async t => {
 
   let detector = new frameIdleDetector();
   document.body.outerHTML = "";
-
-  await promise_rejects_dom(t, 'InvalidStateError', frameDOMException,
-                            frameIdleDetector.requestPermission());
-
   await promise_rejects_dom(t, 'InvalidStateError', frameDOMException, detector.start());
 
   detector = new frameIdleDetector();
-  await promise_rejects_dom(t, 'InvalidStateError', frameDOMException, detector.start());
+  return promise_rejects_dom(t, 'InvalidStateError', frameDOMException, detector.start());
 }, 'Using an IdleDetector from a detached frame');
 
 </script>

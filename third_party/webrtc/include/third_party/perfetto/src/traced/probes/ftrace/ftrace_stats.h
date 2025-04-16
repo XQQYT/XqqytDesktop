@@ -27,7 +27,6 @@ namespace protos {
 namespace pbzero {
 class FtraceStats;
 class FtraceCpuStats;
-class FtraceKprobeStats;
 }  // namespace pbzero
 }  // namespace protos
 
@@ -36,18 +35,13 @@ struct FtraceCpuStats {
   uint64_t entries;
   uint64_t overrun;
   uint64_t commit_overrun;
-  uint64_t bytes;
+  uint64_t bytes_read;
   double oldest_event_ts;
   double now_ts;
   uint64_t dropped_events;
   uint64_t read_events;
 
   void Write(protos::pbzero::FtraceCpuStats*) const;
-};
-
-struct FtraceKprobeStats {
-  int64_t hits;
-  int64_t misses;
 };
 
 struct FtraceSetupErrors {
@@ -61,7 +55,6 @@ struct FtraceStats {
   FtraceSetupErrors setup_errors;
   uint32_t kernel_symbols_parsed = 0;
   uint32_t kernel_symbols_mem_kb = 0;
-  FtraceKprobeStats kprobe_stats = {};
 
   void Write(protos::pbzero::FtraceStats*) const;
 };

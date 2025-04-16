@@ -14,7 +14,7 @@
 
 #include <cstddef>
 
-#include "api/transport/bandwidth_usage.h"
+#include "api/network_state_predictor.h"
 
 namespace webrtc {
 

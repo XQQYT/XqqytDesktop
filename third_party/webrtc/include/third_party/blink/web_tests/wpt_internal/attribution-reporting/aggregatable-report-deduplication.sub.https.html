@@ -31,10 +31,17 @@ attribution_reporting_promise_test(async t => {
       campaignCounts: '0x159',
     },
     debug_key: '456',
+    debug_reporting: true,
     filter_data: {
       'x': ['y', 'z'],
     }
   };
+  await registerAttributionSrc({
+    source,
+    method: 'open',
+    cookie: attributionDebugCookie,
+  });
+  await waitForSourceToBeRegistered(source.source_event_id);
 
   const trigger = {
     aggregatable_trigger_data: [{
@@ -50,10 +57,9 @@ attribution_reporting_promise_test(async t => {
     debug_reporting: true,
   };
 
-  registerAttributionSrcByImg(createRedirectChain([
-    { source },
-    { trigger },
-  ]));
+  await registerAttributionSrc({
+    trigger,
+  });
 
   const payload = await pollAggregatableReports();
   assert_equals(payload.reports.length, 1);
@@ -64,8 +70,9 @@ attribution_reporting_promise_test(async t => {
 
   trigger.aggregatable_deduplication_keys = inputJSON.aggregatable_deduplication_keys;
 
-  registerAttributionSrc({
-    trigger
+  await registerAttributionSrc({
+    trigger,
+    cookie: attributionDebugCookie,
   });
 
   if (inputJSON.expect_deduplicated) {

@@ -37,7 +37,7 @@
 #include "third_party/blink/renderer/core/typed_arrays/array_buffer_view_helpers.h"
 #include "third_party/blink/renderer/core/typed_arrays/dom_typed_array.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
-#include "third_party/blink/renderer/platform/graphics/predefined_color_space.h"
+#include "third_party/blink/renderer/platform/graphics/canvas_color_params.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/skia/include/core/SkPixmap.h"
@@ -47,8 +47,6 @@ namespace blink {
 
 class ExceptionState;
 class ImageBitmapOptions;
-class V8ImageDataPixelFormat;
-class V8PredefinedColorSpace;
 
 class CORE_EXPORT ImageData final : public ScriptWrappable,
                                     public ImageBitmapSource {
@@ -59,14 +57,14 @@ class CORE_EXPORT ImageData final : public ScriptWrappable,
   static ImageData* Create(unsigned width,
                            unsigned height,
                            ExceptionState& exception_state) {
-    return ValidateAndCreate(width, height, std::nullopt, /*settings=*/nullptr,
+    return ValidateAndCreate(width, height, absl::nullopt, /*settings=*/nullptr,
                              ValidateAndCreateParams(), exception_state);
   }
   static ImageData* Create(unsigned width,
                            unsigned height,
                            const ImageDataSettings* settings,
                            ExceptionState& exception_state) {
-    return ValidateAndCreate(width, height, std::nullopt, settings,
+    return ValidateAndCreate(width, height, absl::nullopt, settings,
                              ValidateAndCreateParams(), exception_state);
   }
 
@@ -75,7 +73,7 @@ class CORE_EXPORT ImageData final : public ScriptWrappable,
   static ImageData* Create(NotShared<DOMUint8ClampedArray> data,
                            unsigned width,
                            ExceptionState& exception_state) {
-    return ValidateAndCreate(width, std::nullopt, data, nullptr,
+    return ValidateAndCreate(width, absl::nullopt, data, nullptr,
                              ValidateAndCreateParams(), exception_state);
   }
   static ImageData* Create(NotShared<DOMUint8ClampedArray> data,
@@ -94,17 +92,17 @@ class CORE_EXPORT ImageData final : public ScriptWrappable,
                              ValidateAndCreateParams(), exception_state);
   }
 
-  // Constructor that takes DOMFloat16Array, width, optional height, and
-  // optional ImageDataSettings.
-  static ImageData* Create(NotShared<DOMFloat16Array> data,
+  // Constructor that takes DOMUint16Array, width, optional height, and optional
+  // ImageDataSettings.
+  static ImageData* Create(NotShared<DOMUint16Array> data,
                            unsigned width,
                            ExceptionState& exception_state) {
     ValidateAndCreateParams params;
     params.require_canvas_floating_point = true;
-    return ValidateAndCreate(width, std::nullopt, data, nullptr, params,
+    return ValidateAndCreate(width, absl::nullopt, data, nullptr, params,
                              exception_state);
   }
-  static ImageData* Create(NotShared<DOMFloat16Array> data,
+  static ImageData* Create(NotShared<DOMUint16Array> data,
                            unsigned width,
                            unsigned height,
                            const ImageDataSettings* settings,
@@ -122,7 +120,7 @@ class CORE_EXPORT ImageData final : public ScriptWrappable,
                            ExceptionState& exception_state) {
     ValidateAndCreateParams params;
     params.require_canvas_floating_point = true;
-    return ValidateAndCreate(width, std::nullopt, data, nullptr, params,
+    return ValidateAndCreate(width, absl::nullopt, data, nullptr, params,
                              exception_state);
   }
   static ImageData* Create(NotShared<DOMFloat32Array> data,
@@ -159,8 +157,8 @@ class CORE_EXPORT ImageData final : public ScriptWrappable,
   };
   static ImageData* ValidateAndCreate(
       unsigned width,
-      std::optional<unsigned> height,
-      std::optional<NotShared<DOMArrayBufferView>> data,
+      absl::optional<unsigned> height,
+      absl::optional<NotShared<DOMArrayBufferView>> data,
       const ImageDataSettings* settings,
       ValidateAndCreateParams params,
       ExceptionState& exception_state);
@@ -171,18 +169,18 @@ class CORE_EXPORT ImageData final : public ScriptWrappable,
   static ImageData* CreateForTest(const gfx::Size&,
                                   NotShared<DOMArrayBufferView>,
                                   PredefinedColorSpace,
-                                  SkColorType);
+                                  ImageDataStorageFormat);
 
   ImageData(const gfx::Size&,
             NotShared<DOMArrayBufferView>,
             PredefinedColorSpace,
-            SkColorType);
+            ImageDataStorageFormat);
 
   gfx::Size Size() const { return size_; }
   int width() const { return size_.width(); }
   int height() const { return size_.height(); }
-  V8PredefinedColorSpace colorSpace() const;
-  V8ImageDataPixelFormat pixelFormat() const;
+  String colorSpace() const;
+  String storageFormat() const;
 
   // TODO(https://crbug.com/1198606): Remove this.
   ImageDataSettings* getSettings() const;
@@ -190,19 +188,18 @@ class CORE_EXPORT ImageData final : public ScriptWrappable,
   const V8ImageDataArray* data() const { return data_.Get(); }
 
   bool IsBufferBaseDetached() const;
-  PredefinedColorSpace GetPredefinedColorSpace() const { return color_space_; }
-  SkColorType GetSkColorType() const { return color_type_; }
+  PredefinedColorSpace GetPredefinedColorSpace() const;
+  ImageDataStorageFormat GetImageDataStorageFormat() const;
 
   // Return an SkPixmap that references this data directly.
   SkPixmap GetSkPixmap() const;
 
   // ImageBitmapSource implementation
-  ImageBitmapSourceStatus CheckUsability() const override { return base::ok(); }
-  ScriptPromise<ImageBitmap> CreateImageBitmap(
-      ScriptState*,
-      std::optional<gfx::Rect> crop_rect,
-      const ImageBitmapOptions*,
-      ExceptionState&) override;
+  gfx::Size BitmapSourceSize() const override { return size_; }
+  ScriptPromise CreateImageBitmap(ScriptState*,
+                                  absl::optional<gfx::Rect> crop_rect,
+                                  const ImageBitmapOptions*,
+                                  ExceptionState&) override;
 
   void Trace(Visitor*) const override;
 
@@ -217,14 +214,14 @@ class CORE_EXPORT ImageData final : public ScriptWrappable,
   Member<ImageDataSettings> settings_;
   Member<V8ImageDataArray> data_;
   NotShared<DOMUint8ClampedArray> data_u8_;
-  NotShared<DOMFloat16Array> data_f16_;
+  NotShared<DOMUint16Array> data_u16_;
   NotShared<DOMFloat32Array> data_f32_;
   PredefinedColorSpace color_space_ = PredefinedColorSpace::kSRGB;
-  SkColorType color_type_ = kRGBA_8888_SkColorType;
+  ImageDataStorageFormat storage_format_ = ImageDataStorageFormat::kUint8;
 
   static NotShared<DOMArrayBufferView> AllocateAndValidateDataArray(
       const unsigned&,
-      SkColorType,
+      ImageDataStorageFormat,
       bool initialize,
       ExceptionState&);
 };

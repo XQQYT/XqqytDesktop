@@ -17,13 +17,14 @@
 
 #include <grpc/support/port_platform.h>
 
+#include <type_traits>
 #include <utility>
 
 namespace grpc_core {
 
-/// Run all the promises, return the first result that's available.
-/// If two results are simultaneously available, bias towards the first result
-/// listed.
+namespace promise_detail {
+
+// Implementation type for Race combinator.
 template <typename... Promises>
 class Race;
 
@@ -32,11 +33,10 @@ class Race<Promise, Promises...> {
  public:
   using Result = decltype(std::declval<Promise>()());
 
-  GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION explicit Race(Promise promise,
-                                                     Promises... promises)
+  explicit Race(Promise promise, Promises... promises)
       : promise_(std::move(promise)), next_(std::move(promises)...) {}
 
-  GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION Result operator()() {
+  Result operator()() {
     // Check our own promise.
     auto r = promise_();
     if (r.pending()) {
@@ -58,18 +58,22 @@ template <typename Promise>
 class Race<Promise> {
  public:
   using Result = decltype(std::declval<Promise>()());
-  GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION explicit Race(Promise promise)
-      : promise_(std::move(promise)) {}
-  GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION Result operator()() {
-    return promise_();
-  }
+  explicit Race(Promise promise) : promise_(std::move(promise)) {}
+  Result operator()() { return promise_(); }
 
  private:
   Promise promise_;
 };
 
+}  // namespace promise_detail
+
+/// Run all the promises, return the first result that's available.
+/// If two results are simultaneously available, bias towards the first result
+/// listed.
 template <typename... Promises>
-Race(Promises...) -> Race<Promises...>;
+promise_detail::Race<Promises...> Race(Promises... promises) {
+  return promise_detail::Race<Promises...>(std::move(promises)...);
+}
 
 }  // namespace grpc_core
 

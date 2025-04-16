@@ -37,21 +37,23 @@
 #include "base/memory/ptr_util.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
+#include "third_party/blink/renderer/platform/wtf/forward.h"
 #include "third_party/blink/renderer/platform/wtf/hash_map.h"
 #include "third_party/blink/renderer/platform/wtf/text/string_hash.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/blink/renderer/platform/wtf/type_traits.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 
-namespace WTF {
-class StringBuilder;
-}  // namespace WTF
+namespace blink {
+
+class JSONValue;
+
+}  // namespace blink
 
 namespace blink {
 
 class JSONArray;
 class JSONObject;
-class JSONValue;
 
 class PLATFORM_EXPORT JSONValue {
   USING_FAST_MALLOC(JSONValue);
@@ -88,8 +90,8 @@ class PLATFORM_EXPORT JSONValue {
 
   String ToJSONString() const;
   String ToPrettyJSONString() const;
-  virtual void WriteJSON(WTF::StringBuilder* output) const;
-  virtual void PrettyWriteJSON(WTF::StringBuilder* output) const;
+  virtual void WriteJSON(StringBuilder* output) const;
+  virtual void PrettyWriteJSON(StringBuilder* output) const;
   virtual std::unique_ptr<JSONValue> Clone() const;
 
   static String QuoteString(const String&);
@@ -97,8 +99,7 @@ class PLATFORM_EXPORT JSONValue {
  protected:
   JSONValue() : type_(kTypeNull) {}
   explicit JSONValue(ValueType type) : type_(type) {}
-  virtual void PrettyWriteJSONInternal(WTF::StringBuilder* output,
-                                       int depth) const;
+  virtual void PrettyWriteJSONInternal(StringBuilder* output, int depth) const;
 
  private:
   friend class JSONObject;
@@ -119,7 +120,7 @@ class PLATFORM_EXPORT JSONBasicValue : public JSONValue {
   bool AsBoolean(bool* output) const override;
   bool AsDouble(double* output) const override;
   bool AsInteger(int* output) const override;
-  void WriteJSON(WTF::StringBuilder* output) const override;
+  void WriteJSON(StringBuilder* output) const override;
   std::unique_ptr<JSONValue> Clone() const override;
 
  private:
@@ -138,7 +139,7 @@ class PLATFORM_EXPORT JSONString : public JSONValue {
       : JSONValue(kTypeString), string_value_(value) {}
 
   bool AsString(String* output) const override;
-  void WriteJSON(WTF::StringBuilder* output) const override;
+  void WriteJSON(StringBuilder* output) const override;
   std::unique_ptr<JSONValue> Clone() const override;
 
  private:
@@ -173,19 +174,18 @@ class PLATFORM_EXPORT JSONObject : public JSONValue {
   static void Cast(JSONObject*) = delete;
   static void Cast(std::unique_ptr<JSONObject>) = delete;
 
-  void WriteJSON(WTF::StringBuilder* output) const override;
+  void WriteJSON(StringBuilder* output) const override;
   std::unique_ptr<JSONValue> Clone() const override;
 
   wtf_size_t size() const { return data_.size(); }
 
-  // Return true if the key was newly added (it did not already exist).
-  bool SetBoolean(const String& name, bool);
-  bool SetInteger(const String& name, int);
-  bool SetDouble(const String& name, double);
-  bool SetString(const String& name, const String&);
-  bool SetValue(const String& name, std::unique_ptr<JSONValue>);
-  bool SetObject(const String& name, std::unique_ptr<JSONObject>);
-  bool SetArray(const String& name, std::unique_ptr<JSONArray>);
+  void SetBoolean(const String& name, bool);
+  void SetInteger(const String& name, int);
+  void SetDouble(const String& name, double);
+  void SetString(const String& name, const String&);
+  void SetValue(const String& name, std::unique_ptr<JSONValue>);
+  void SetObject(const String& name, std::unique_ptr<JSONObject>);
+  void SetArray(const String& name, std::unique_ptr<JSONArray>);
 
   bool GetBoolean(const String& name, bool* output) const;
   bool GetInteger(const String& name, int* output) const;
@@ -207,18 +207,14 @@ class PLATFORM_EXPORT JSONObject : public JSONValue {
   ~JSONObject() override;
 
  protected:
-  void PrettyWriteJSONInternal(WTF::StringBuilder* output,
-                               int depth) const override;
+  void PrettyWriteJSONInternal(StringBuilder* output, int depth) const override;
 
  private:
   template <typename T>
-  bool Set(const String& key, std::unique_ptr<T>& value) {
+  void Set(const String& key, std::unique_ptr<T>& value) {
     DCHECK(value);
-    if (data_.Set(key, std::move(value)).is_new_entry) {
+    if (data_.Set(key, std::move(value)).is_new_entry)
       order_.push_back(key);
-      return true;
-    }
-    return false;
   }
 
   using Dictionary = HashMap<String, std::unique_ptr<JSONValue>>;
@@ -254,7 +250,7 @@ class PLATFORM_EXPORT JSONArray : public JSONValue {
   JSONArray();
   ~JSONArray() override;
 
-  void WriteJSON(WTF::StringBuilder* output) const override;
+  void WriteJSON(StringBuilder* output) const override;
   std::unique_ptr<JSONValue> Clone() const override;
 
   void PushBoolean(bool);
@@ -269,19 +265,18 @@ class PLATFORM_EXPORT JSONArray : public JSONValue {
   wtf_size_t size() const { return data_.size(); }
 
  protected:
-  void PrettyWriteJSONInternal(WTF::StringBuilder* output,
-                               int depth) const override;
+  void PrettyWriteJSONInternal(StringBuilder* output, int depth) const override;
 
  private:
   Vector<std::unique_ptr<JSONValue>> data_;
 };
 
-inline constexpr char kJSONNullString[] = "null";
-inline constexpr char kJSONTrueString[] = "true";
-inline constexpr char kJSONFalseString[] = "false";
+extern const char kJSONNullString[];
+extern const char kJSONTrueString[];
+extern const char kJSONFalseString[];
 
-PLATFORM_EXPORT void EscapeStringForJSON(const String&, WTF::StringBuilder*);
-void DoubleQuoteStringForJSON(const String&, WTF::StringBuilder*);
+PLATFORM_EXPORT void EscapeStringForJSON(const String&, StringBuilder*);
+void DoubleQuoteStringForJSON(const String&, StringBuilder*);
 
 }  // namespace blink
 

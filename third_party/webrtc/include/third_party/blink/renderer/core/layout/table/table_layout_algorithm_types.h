@@ -5,13 +5,12 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_TABLE_TABLE_LAYOUT_ALGORITHM_TYPES_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_TABLE_TABLE_LAYOUT_ALGORITHM_TYPES_H_
 
-#include <optional>
-
 #include "base/memory/scoped_refptr.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/layout/block_node.h"
 #include "third_party/blink/renderer/core/layout/geometry/box_strut.h"
 #include "third_party/blink/renderer/core/layout/min_max_sizes.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_block_node.h"
 #include "third_party/blink/renderer/core/style/computed_style_constants.h"
 #include "third_party/blink/renderer/platform/geometry/length.h"
 #include "third_party/blink/renderer/platform/wtf/ref_counted.h"
@@ -20,6 +19,8 @@
 namespace blink {
 
 class ComputedStyle;
+class NGBlockNode;
+class NGLayoutInputNode;
 
 // Define constraint classes for TableLayoutAlgorithm.
 class CORE_EXPORT TableTypes {
@@ -33,7 +34,7 @@ class CORE_EXPORT TableTypes {
     DISALLOW_NEW();
     LayoutUnit min_inline_size;
     LayoutUnit max_inline_size;
-    std::optional<float> percent;       // 100% is stored as 100.0f
+    absl::optional<float> percent;      // 100% is stored as 100.0f
     LayoutUnit percent_border_padding;  // Border/padding used for percentage
                                         // size resolution.
     bool is_constrained;  // True if this cell has a specified inline-size.
@@ -58,9 +59,9 @@ class CORE_EXPORT TableTypes {
   // Constraint for a column.
   struct Column {
     DISALLOW_NEW();
-    Column(const std::optional<LayoutUnit>& min_inline_size,
-           const std::optional<LayoutUnit>& max_inline_size,
-           const std::optional<float>& percent,
+    Column(const absl::optional<LayoutUnit>& min_inline_size,
+           const absl::optional<LayoutUnit>& max_inline_size,
+           const absl::optional<float>& percent,
            LayoutUnit percent_border_padding,
            bool is_constrained,
            bool is_collapsed,
@@ -90,9 +91,9 @@ class CORE_EXPORT TableTypes {
 
     // These members are initialized from <col> and <colgroup>, then they
     // accumulate data from |CellInlineConstraint|s.
-    std::optional<LayoutUnit> min_inline_size;
-    std::optional<LayoutUnit> max_inline_size;
-    std::optional<float> percent;       // 100% is stored as 100.0f
+    absl::optional<LayoutUnit> min_inline_size;
+    absl::optional<LayoutUnit> max_inline_size;
+    absl::optional<float> percent;      // 100% is stored as 100.0f
     LayoutUnit percent_border_padding;  // Border/padding used for percentage
                                         // size resolution.
     // True if any cell for this column is constrained.
@@ -101,7 +102,7 @@ class CORE_EXPORT TableTypes {
     bool is_table_fixed = false;
     bool is_mergeable = false;
 
-    void Encompass(const std::optional<TableTypes::CellInlineConstraint>&);
+    void Encompass(const absl::optional<TableTypes::CellInlineConstraint>&);
     LayoutUnit ResolvePercentInlineSize(
         LayoutUnit percentage_resolution_inline_size) const {
       return std::max(
@@ -185,8 +186,8 @@ class CORE_EXPORT TableTypes {
     LayoutUnit block_size;
     wtf_size_t start_cell_index;
     wtf_size_t cell_count;
-    std::optional<LayoutUnit> baseline;
-    std::optional<float> percent;  // 100% is stored as 100.0f
+    absl::optional<LayoutUnit> baseline;
+    absl::optional<float> percent;  // 100% is stored as 100.0f
     // |is_constrained| is true if row has specified block-size, or contains
     // constrained cells.
     bool is_constrained;
@@ -198,24 +199,24 @@ class CORE_EXPORT TableTypes {
     wtf_size_t start_row;
     wtf_size_t row_count;
     LayoutUnit block_size;
-    std::optional<float> percent;
+    absl::optional<float> percent;
     bool is_constrained;
     bool is_tbody;
     bool needs_redistribution;
   };
 
   static Column CreateColumn(const ComputedStyle&,
-                             std::optional<LayoutUnit> default_inline_size,
+                             absl::optional<LayoutUnit> default_inline_size,
                              bool is_table_fixed);
 
   static CellInlineConstraint CreateCellInlineConstraint(
-      const BlockNode&,
+      const NGBlockNode&,
       WritingDirectionMode table_writing_direction,
       bool is_fixed_layout,
       const BoxStrut& cell_border,
       const BoxStrut& cell_padding);
 
-  static Section CreateSection(const LayoutInputNode&,
+  static Section CreateSection(const NGLayoutInputNode&,
                                wtf_size_t start_row,
                                wtf_size_t row_count,
                                LayoutUnit block_size,
@@ -225,7 +226,7 @@ class CORE_EXPORT TableTypes {
   typedef base::RefCountedData<WTF::Vector<Column>> Columns;
   // Inline constraints are optional because we need to distinguish between an
   // empty cell, and a non-existent cell.
-  using CellInlineConstraints = Vector<std::optional<CellInlineConstraint>>;
+  using CellInlineConstraints = Vector<absl::optional<CellInlineConstraint>>;
   using ColspanCells = Vector<ColspanCell>;
   using Caption = MinMaxSizes;
   using CellBlockConstraints = Vector<CellBlockConstraint>;
@@ -242,7 +243,7 @@ struct TableGroupedChildren {
   DISALLOW_NEW();
 
  public:
-  explicit TableGroupedChildren(const BlockNode& table);
+  explicit TableGroupedChildren(const NGBlockNode& table);
   ~TableGroupedChildren() {
     captions.clear();
     columns.clear();
@@ -251,16 +252,16 @@ struct TableGroupedChildren {
 
   void Trace(Visitor*) const;
 
-  HeapVector<BlockNode> captions;  // CAPTION
-  HeapVector<BlockNode> columns;   // COLGROUP, COL
+  HeapVector<NGBlockNode> captions;  // CAPTION
+  HeapVector<NGBlockNode> columns;   // COLGROUP, COL
 
-  BlockNode header;  // first THEAD
+  NGBlockNode header;          // first THEAD
 
   // These cannot be modified except in ctor to ensure
   // TableGroupedChildrenIterator works correctly.
-  HeapVector<BlockNode> bodies;  // TBODY/multiple THEAD/TFOOT
+  HeapVector<NGBlockNode> bodies;  // TBODY/multiple THEAD/TFOOT
 
-  BlockNode footer;  // first TFOOT
+  NGBlockNode footer;          // first TFOOT
 
   // Default iterators iterate over tbody-like (THEAD/TBODY/TFOOT) elements.
   TableGroupedChildrenIterator begin() const;
@@ -281,7 +282,7 @@ class TableGroupedChildrenIterator {
 
   TableGroupedChildrenIterator& operator++();
   TableGroupedChildrenIterator& operator--();
-  BlockNode operator*() const;
+  NGBlockNode operator*() const;
   bool operator==(const TableGroupedChildrenIterator& rhs) const;
   bool operator!=(const TableGroupedChildrenIterator& rhs) const;
   // True if section should be treated as tbody
@@ -295,7 +296,7 @@ class TableGroupedChildrenIterator {
 
   // |body_vector_| can be modified only in ctor and
   // |AdvanceToNonEmptySection()|.
-  const HeapVector<BlockNode>* body_vector_ = nullptr;
+  const HeapVector<NGBlockNode>* body_vector_ = nullptr;
   wtf_size_t position_ = 0;
 };
 

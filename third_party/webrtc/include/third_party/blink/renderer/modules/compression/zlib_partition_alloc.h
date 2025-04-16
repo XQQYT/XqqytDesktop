@@ -6,7 +6,7 @@
 
 namespace blink {
 
-// Use PartitionAlloc for zlib allocations.
+// Use partition alloc for zlib allocations.
 class ZlibPartitionAlloc {
   STATIC_ONLY(ZlibPartitionAlloc);
 

@@ -16,24 +16,28 @@
 #define GRPC_SRC_CORE_LIB_PROMISE_INTERCEPTOR_LIST_H
 
 #include <grpc/support/port_platform.h>
+
 #include <stddef.h>
 
 #include <algorithm>
 #include <new>
-#include <optional>
 #include <string>
 #include <utility>
 
-#include "absl/log/check.h"
-#include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/types/optional.h"
+
+#include <grpc/support/log.h>
+
+#include "src/core/lib/debug/trace.h"
+#include "src/core/lib/gprpp/construct_destruct.h"
+#include "src/core/lib/gprpp/debug_location.h"
 #include "src/core/lib/promise/context.h"
 #include "src/core/lib/promise/detail/promise_factory.h"
 #include "src/core/lib/promise/poll.h"
+#include "src/core/lib/promise/trace.h"
 #include "src/core/lib/resource_quota/arena.h"
-#include "src/core/util/construct_destruct.h"
-#include "src/core/util/debug_location.h"
 
 namespace grpc_core {
 
@@ -58,13 +62,13 @@ class InterceptorList {
     // Poll a promise constructed at memory.
     // Resolves to an optional<T> -- if nullopt it means terminate the chain and
     // resolve.
-    virtual Poll<std::optional<T>> PollOnce(void* memory) = 0;
+    virtual Poll<absl::optional<T>> PollOnce(void* memory) = 0;
     virtual ~Map() = default;
 
     // Update the next pointer stored with this map.
     // This is only valid to call once, and only before the map is used.
     void SetNext(Map* next) {
-      DCHECK_EQ(next_, nullptr);
+      GPR_DEBUG_ASSERT(next_ == nullptr);
       next_ = next;
     }
 
@@ -83,28 +87,19 @@ class InterceptorList {
   // The result of Run: a promise that will execute the entire chain.
   class RunPromise {
    public:
-    RunPromise(size_t memory_required, Map** factory, std::optional<T> value) {
-      if (!value.has_value() || *factory == nullptr) {
-        GRPC_TRACE_VLOG(promise_primitives, 2)
-            << "InterceptorList::RunPromise[" << this << "]: create immediate";
+    RunPromise(size_t memory_required, Map* factory, absl::optional<T> value) {
+      if (!value.has_value() || factory == nullptr) {
         is_immediately_resolved_ = true;
         Construct(&result_, std::move(value));
       } else {
         is_immediately_resolved_ = false;
         Construct(&async_resolution_, memory_required);
-        (*factory)->MakePromise(std::move(*value),
-                                async_resolution_.space.get());
-        async_resolution_.current_factory = *factory;
-        async_resolution_.first_factory = factory;
-        GRPC_TRACE_VLOG(promise_primitives, 2)
-            << "InterceptorList::RunPromise[" << this
-            << "]: create async; mem=" << async_resolution_.space.get();
+        factory->MakePromise(std::move(*value), async_resolution_.space.get());
+        async_resolution_.current_factory = factory;
       }
     }
 
     ~RunPromise() {
-      GRPC_TRACE_VLOG(promise_primitives, 2)
-          << "InterceptorList::RunPromise[" << this << "]: destroy";
       if (is_immediately_resolved_) {
         Destruct(&result_);
       } else {
@@ -121,9 +116,6 @@ class InterceptorList {
 
     RunPromise(RunPromise&& other) noexcept
         : is_immediately_resolved_(other.is_immediately_resolved_) {
-      GRPC_TRACE_VLOG(promise_primitives, 2)
-          << "InterceptorList::RunPromise[" << this << "]: move from "
-          << &other;
       if (is_immediately_resolved_) {
         Construct(&result_, std::move(other.result_));
       } else {
@@ -133,15 +125,13 @@ class InterceptorList {
 
     RunPromise& operator=(RunPromise&& other) noexcept = delete;
 
-    Poll<std::optional<T>> operator()() {
-      GRPC_TRACE_VLOG(promise_primitives, 2)
-          << "InterceptorList::RunPromise[" << this << "]: " << DebugString();
+    Poll<absl::optional<T>> operator()() {
+      if (grpc_trace_promise_primitives.enabled()) {
+        gpr_log(GPR_DEBUG, "InterceptorList::RunPromise: %s",
+                DebugString().c_str());
+      }
       if (is_immediately_resolved_) return std::move(result_);
       while (true) {
-        if (*async_resolution_.first_factory == nullptr) {
-          // Cancelled whilst polling
-          return std::nullopt;
-        }
         auto r = async_resolution_.current_factory->PollOnce(
             async_resolution_.space.get());
         if (auto* p = r.value_if_ready()) {
@@ -149,11 +139,7 @@ class InterceptorList {
               async_resolution_.space.get());
           async_resolution_.current_factory =
               async_resolution_.current_factory->next();
-          if (!p->has_value()) async_resolution_.current_factory = nullptr;
-          GRPC_TRACE_VLOG(promise_primitives, 2)
-              << "InterceptorList::RunPromise[" << this
-              << "]: " << DebugString();
-          if (async_resolution_.current_factory == nullptr) {
+          if (async_resolution_.current_factory == nullptr || !p->has_value()) {
             return std::move(*p);
           }
           async_resolution_.current_factory->MakePromise(
@@ -186,15 +172,13 @@ class InterceptorList {
       AsyncResolution& operator=(const AsyncResolution&) = delete;
       AsyncResolution(AsyncResolution&& other) noexcept
           : current_factory(std::exchange(other.current_factory, nullptr)),
-            first_factory(std::exchange(other.first_factory, nullptr)),
             space(std::move(other.space)) {}
       Map* current_factory;
-      Map** first_factory;
       Arena::PoolPtr<char[]> space;
     };
     union {
       AsyncResolution async_resolution_;
-      std::optional<T> result_;
+      absl::optional<T> result_;
     };
     // If true, the result_ union is valid, otherwise async_resolution_ is.
     // Indicates whether the promise resolved immediately at construction or if
@@ -207,21 +191,23 @@ class InterceptorList {
   InterceptorList& operator=(const InterceptorList&) = delete;
   ~InterceptorList() { DeleteFactories(); }
 
-  RunPromise Run(std::optional<T> initial_value) {
-    return RunPromise(promise_memory_required_, &first_map_,
+  RunPromise Run(absl::optional<T> initial_value) {
+    return RunPromise(promise_memory_required_, first_map_,
                       std::move(initial_value));
   }
 
   // Append a new map to the end of the chain.
   template <typename Fn>
   void AppendMap(Fn fn, DebugLocation from) {
-    Append(MakeMapToAdd(std::move(fn), [] {}, from));
+    Append(MakeMapToAdd(
+        std::move(fn), [] {}, from));
   }
 
   // Prepend a new map to the beginning of the chain.
   template <typename Fn>
   void PrependMap(Fn fn, DebugLocation from) {
-    Prepend(MakeMapToAdd(std::move(fn), [] {}, from));
+    Prepend(MakeMapToAdd(
+        std::move(fn), [] {}, from));
   }
 
   // Append a new map to the end of the chain, with a cleanup function to be
@@ -263,8 +249,8 @@ class InterceptorList {
     void Destroy(void* memory) override {
       static_cast<Promise*>(memory)->~Promise();
     }
-    Poll<std::optional<T>> PollOnce(void* memory) override {
-      return poll_cast<std::optional<T>>((*static_cast<Promise*>(memory))());
+    Poll<absl::optional<T>> PollOnce(void* memory) override {
+      return poll_cast<absl::optional<T>>((*static_cast<Promise*>(memory))());
     }
 
    private:

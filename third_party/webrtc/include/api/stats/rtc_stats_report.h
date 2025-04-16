@@ -24,6 +24,9 @@
 #include "api/scoped_refptr.h"
 #include "api/stats/rtc_stats.h"
 #include "api/units/timestamp.h"
+// TODO(tommi): Remove this include after fixing iwyu issue in chromium.
+// See: third_party/blink/renderer/platform/peerconnection/rtc_stats.cc
+#include "rtc_base/ref_counted_object.h"
 #include "rtc_base/system/rtc_export.h"
 
 namespace webrtc {
@@ -121,7 +124,7 @@ class RTC_EXPORT RTCStatsReport final
   std::string ToJson() const;
 
  protected:
-  friend class RefCountedNonVirtual<RTCStatsReport>;
+  friend class rtc::RefCountedNonVirtual<RTCStatsReport>;
   ~RTCStatsReport() = default;
 
  private:

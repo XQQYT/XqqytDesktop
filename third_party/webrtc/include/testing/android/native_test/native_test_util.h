@@ -6,11 +6,8 @@
 #define TESTING_ANDROID_NATIVE_TEST_NATIVE_TEST_UTIL_H_
 
 #include <stdio.h>
-
 #include <string>
 #include <vector>
-
-#include "base/compiler_specific.h"
 
 // Helper methods for setting up environment for running gtest tests
 // inside an APK.
@@ -25,15 +22,8 @@ class ScopedMainEntryLogger {
 
   ~ScopedMainEntryLogger() {
     printf("<<ScopedMainEntryLogger\n");
-    // SAFETY: On Android with __ANDROID_API__ <= 22 (Lollipop MR1), `stdout` is
-    // a macro that accesses a buffer of unknown length, triggering the
-    // `-Wunsafe-buffer-usage` warning. This usage is sound, as it accesses a
-    // fixed position in a system-provided array.
-    // While Lollipop is no longer officially supported by Chromium, Cronet
-    // currently maintains compatibility with this older Android version. Check
-    // for optional bot `android-cronet-arm64-dbg` before removing this.
-    fflush(UNSAFE_BUFFERS(stdout));
-    fflush(UNSAFE_BUFFERS(stderr));
+    fflush(stdout);
+    fflush(stderr);
   }
 };
 

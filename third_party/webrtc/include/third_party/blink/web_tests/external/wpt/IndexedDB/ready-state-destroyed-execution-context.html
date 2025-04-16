@@ -21,7 +21,7 @@ promise_test(async t => {
     const openRequest = iframe.contentWindow.indexedDB.open(dbname);
     assert_equals(openRequest.readyState, 'pending');
     iframe.remove();
-    assert_equals(typeof openRequest.readyState, 'string');
+    assert_equals(openRequest.readyState, 'done');
 }, 'readyState accessor is valid after execution context is destroyed');
 
 </script>

@@ -5,8 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LOADER_URL_MATCHER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LOADER_URL_MATCHER_H_
 
-#include <string_view>
-
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/weborigin/security_origin.h"
@@ -38,17 +36,17 @@ namespace blink {
 // contain it or not.
 class CORE_EXPORT UrlMatcher final {
  public:
-  explicit UrlMatcher(const std::string_view& encoded_url_list_string);
+  explicit UrlMatcher(const base::StringPiece& encoded_url_list_string);
   ~UrlMatcher();
 
   bool Match(const KURL& url) const;
 
  private:
   using UrlList = Vector<
-      std::pair<scoped_refptr<const SecurityOrigin>, std::optional<String>>>;
+      std::pair<scoped_refptr<const SecurityOrigin>, absl::optional<String>>>;
   UrlList url_list_;
 
-  void ParseFieldTrialParam(const std::string_view& encoded_url_list_string);
+  void ParseFieldTrialParam(const base::StringPiece& encoded_url_list_string);
 };
 }  // namespace blink
 

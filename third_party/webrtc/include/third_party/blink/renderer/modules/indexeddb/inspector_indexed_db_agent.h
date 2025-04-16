@@ -59,59 +59,59 @@ class MODULES_EXPORT InspectorIndexedDBAgent final
   protocol::Response enable() override;
   protocol::Response disable() override;
   void requestDatabaseNames(
-      std::optional<String> security_origin,
-      std::optional<String> storage_key,
-      std::unique_ptr<protocol::Storage::StorageBucket> storage_bucket,
+      protocol::Maybe<String> security_origin,
+      protocol::Maybe<String> storage_key,
+      protocol::Maybe<protocol::Storage::StorageBucket> storage_bucket,
       std::unique_ptr<RequestDatabaseNamesCallback>) override;
   void requestDatabase(
-      std::optional<String> security_origin,
-      std::optional<String> storage_key,
-      std::unique_ptr<protocol::Storage::StorageBucket> in_storageBucket,
+      protocol::Maybe<String> security_origin,
+      protocol::Maybe<String> storage_key,
+      protocol::Maybe<protocol::Storage::StorageBucket> in_storageBucket,
       const String& database_name,
       std::unique_ptr<RequestDatabaseCallback>) override;
   void requestData(
-      std::optional<String> security_origin,
-      std::optional<String> storage_key,
-      std::unique_ptr<protocol::Storage::StorageBucket> storage_bucket,
+      protocol::Maybe<String> security_origin,
+      protocol::Maybe<String> storage_key,
+      protocol::Maybe<protocol::Storage::StorageBucket> storage_bucket,
       const String& database_name,
       const String& object_store_name,
       const String& index_name,
       int skip_count,
       int page_size,
-      std::unique_ptr<protocol::IndexedDB::KeyRange>,
+      protocol::Maybe<protocol::IndexedDB::KeyRange>,
       std::unique_ptr<RequestDataCallback>) override;
   void getMetadata(
-      std::optional<String> security_origin,
-      std::optional<String> storage_key,
-      std::unique_ptr<protocol::Storage::StorageBucket> storage_bucket,
+      protocol::Maybe<String> security_origin,
+      protocol::Maybe<String> storage_key,
+      protocol::Maybe<protocol::Storage::StorageBucket> storage_bucket,
       const String& database_name,
       const String& object_store_name,
       std::unique_ptr<GetMetadataCallback>) override;
   void deleteObjectStoreEntries(
-      std::optional<String> security_origin,
-      std::optional<String> storage_key,
-      std::unique_ptr<protocol::Storage::StorageBucket> storage_bucket,
+      protocol::Maybe<String> security_origin,
+      protocol::Maybe<String> storage_key,
+      protocol::Maybe<protocol::Storage::StorageBucket> storage_bucket,
       const String& database_name,
       const String& object_store_name,
       std::unique_ptr<protocol::IndexedDB::KeyRange>,
       std::unique_ptr<DeleteObjectStoreEntriesCallback>) override;
   void clearObjectStore(
-      std::optional<String> security_origin,
-      std::optional<String> storage_key,
-      std::unique_ptr<protocol::Storage::StorageBucket> storage_bucket,
+      protocol::Maybe<String> security_origin,
+      protocol::Maybe<String> storage_key,
+      protocol::Maybe<protocol::Storage::StorageBucket> storage_bucket,
       const String& database_name,
       const String& object_store_name,
       std::unique_ptr<ClearObjectStoreCallback>) override;
   void deleteDatabase(
-      std::optional<String> security_origin,
-      std::optional<String> storage_key,
-      std::unique_ptr<protocol::Storage::StorageBucket> storage_bucket,
+      protocol::Maybe<String> security_origin,
+      protocol::Maybe<String> storage_key,
+      protocol::Maybe<protocol::Storage::StorageBucket> storage_bucket,
       const String& database_name,
       std::unique_ptr<DeleteDatabaseCallback>) override;
 
  private:
   Member<InspectedFrames> inspected_frames_;
-  raw_ptr<v8_inspector::V8InspectorSession, DanglingUntriaged> v8_session_;
+  raw_ptr<v8_inspector::V8InspectorSession, ExperimentalRenderer> v8_session_;
   InspectorAgentState::Boolean enabled_;
 };
 

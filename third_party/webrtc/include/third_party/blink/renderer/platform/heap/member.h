@@ -13,7 +13,7 @@
 #include "third_party/blink/renderer/platform/wtf/hash_functions.h"
 #include "third_party/blink/renderer/platform/wtf/hash_traits.h"
 #include "third_party/blink/renderer/platform/wtf/type_traits.h"
-#include "v8/include/cppgc/member.h"  // IWYU pragma: export
+#include "v8/include/cppgc/member.h"
 
 namespace blink {
 
@@ -64,12 +64,6 @@ inline void swap(Member<T>& a, Member<T>& b) {
 static constexpr bool kBlinkMemberGCHasDebugChecks =
     !std::is_same<cppgc::internal::DefaultMemberCheckingPolicy,
                   cppgc::internal::DisabledCheckingPolicy>::value;
-
-// We should never bloat the Member<> wrapper.
-// NOTE: The Member<void*> works as we never use this Member in a trace method.
-static_assert(kBlinkMemberGCHasDebugChecks ||
-                  sizeof(Member<void*>) <= sizeof(void*),
-              "Member<> should stay small!");
 
 }  // namespace blink
 
@@ -180,7 +174,6 @@ struct BaseMemberHashTraits : SimpleClassHashTraits<MemberType> {
 template <typename T>
 struct MemberHashTraits : BaseMemberHashTraits<T, blink::Member<T>> {
   static constexpr bool kCanTraceConcurrently = true;
-  static constexpr bool kSupportsCompaction = true;
 };
 template <typename T>
 struct HashTraits<blink::Member<T>> : MemberHashTraits<T> {};
@@ -189,7 +182,6 @@ struct HashTraits<blink::Member<T>> : MemberHashTraits<T> {};
 template <typename T>
 struct WeakMemberHashTraits : BaseMemberHashTraits<T, blink::WeakMember<T>> {
   static constexpr bool kCanTraceConcurrently = true;
-  static constexpr bool kSupportsCompaction = true;
 };
 template <typename T>
 struct HashTraits<blink::WeakMember<T>> : WeakMemberHashTraits<T> {};
@@ -228,15 +220,15 @@ class MemberConstructTraits {
     blink::WriteBarrier::DispatchForObject(element);
   }
 
-  static void NotifyNewElements(base::span<T> members) {
+  static void NotifyNewElements(T* array, size_t len) {
     // Checking the first element is sufficient for determining whether a
     // marking or generational barrier is required.
-    if (members.empty() ||
-               !blink::WriteBarrier::IsWriteBarrierNeeded(&members.front())) [[likely]] {
+    if (LIKELY((len == 0) || !blink::WriteBarrier::IsWriteBarrierNeeded(array)))
       return;
-    }
-    for (auto& member : members) {
-      blink::WriteBarrier::DispatchForObject(&member);
+
+    while (len-- > 0) {
+      blink::WriteBarrier::DispatchForObject(array);
+      array++;
     }
   }
 };

@@ -35,33 +35,36 @@ class SizeF;
 
 namespace blink {
 
+class LayoutUnit;
 class Length;
 class LengthSize;
 
 struct LengthPoint;
 
 PLATFORM_EXPORT int IntValueForLength(const Length&, int maximum_value);
-PLATFORM_EXPORT float FloatValueForLength(const Length&,
-                                          float maximum_value,
-                                          const EvaluationInput& = {});
+PLATFORM_EXPORT float FloatValueForLength(
+    const Length&,
+    float maximum_value,
+    const Length::AnchorEvaluator* anchor_evaluator = nullptr);
 PLATFORM_EXPORT LayoutUnit
 MinimumValueForLengthInternal(const Length&,
                               LayoutUnit maximum_value,
-                              const EvaluationInput&);
+                              const Length::AnchorEvaluator*);
 
-inline LayoutUnit MinimumValueForLength(const Length& length,
-                                        LayoutUnit maximum_value,
-                                        const EvaluationInput& input = {}) {
-  if (length.IsFixed()) [[likely]] {
-    return LayoutUnit(length.Pixels());
-  }
+inline LayoutUnit MinimumValueForLength(
+    const Length& length,
+    LayoutUnit maximum_value,
+    const Length::AnchorEvaluator* anchor_evaluator = nullptr) {
+  if (LIKELY(length.IsFixed()))
+    return LayoutUnit(length.Value());
 
-  return MinimumValueForLengthInternal(length, maximum_value, input);
+  return MinimumValueForLengthInternal(length, maximum_value, anchor_evaluator);
 }
 
-PLATFORM_EXPORT LayoutUnit ValueForLength(const Length&,
-                                          LayoutUnit maximum_value,
-                                          const EvaluationInput& input = {});
+PLATFORM_EXPORT LayoutUnit
+ValueForLength(const Length&,
+               LayoutUnit maximum_value,
+               const Length::AnchorEvaluator* anchor_evaluator = nullptr);
 PLATFORM_EXPORT gfx::SizeF SizeForLengthSize(const LengthSize&,
                                              const gfx::SizeF& box_size);
 PLATFORM_EXPORT gfx::PointF PointForLengthPoint(const LengthPoint&,

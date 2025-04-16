@@ -85,7 +85,6 @@ class CORE_EXPORT WebSettingsImpl final : public WebSettings {
   void SetDontSendKeyEventsToJavascript(bool) override;
   void SetDoubleTapToZoomEnabled(bool) override;
   void SetDownloadableBinaryFontsEnabled(bool) override;
-  void SetDynamicSafeAreaInsetsEnabled(bool) override;
   void SetEditingBehavior(mojom::blink::EditingBehavior) override;
   void SetEnableScrollAnimator(bool) override;
   void SetPrefersReducedMotion(bool) override;
@@ -127,7 +126,6 @@ class CORE_EXPORT WebSettingsImpl final : public WebSettings {
   void SetMinimumFontSize(int) override;
   void SetMinimumLogicalFontSize(int) override;
   void SetHideScrollbars(bool) override;
-  void SetPrefersDefaultScrollbarStyles(bool) override;
   void SetPasswordEchoDurationInSeconds(double) override;
   void SetPasswordEchoEnabled(bool) override;
   void SetPluginsEnabled(bool) override;
@@ -187,6 +185,7 @@ class CORE_EXPORT WebSettingsImpl final : public WebSettings {
   void SetTouchDragDropEnabled(bool) override;
   void SetTouchDragEndContextMenu(bool) override;
   void SetBarrelButtonForDragEnabled(bool) override;
+  void SetUseLegacyBackgroundSizeShorthandBehavior(bool) override;
   void SetViewportStyle(mojom::blink::ViewportStyle) override;
   void SetUseWideViewport(bool) override;
   void SetV8CacheOptions(mojom::blink::V8CacheOptions) override;
@@ -207,36 +206,30 @@ class CORE_EXPORT WebSettingsImpl final : public WebSettings {
 
   // TODO(rajendrant): Remove these lazyload distance threshold settings for
   // frames and images, once the values are finalized from the experiment.
-  void SetLazyLoadingFrameMarginPxUnknown(int) override;
-  void SetLazyLoadingFrameMarginPxOffline(int) override;
-  void SetLazyLoadingFrameMarginPxSlow2G(int) override;
-  void SetLazyLoadingFrameMarginPx2G(int) override;
-  void SetLazyLoadingFrameMarginPx3G(int) override;
-  void SetLazyLoadingFrameMarginPx4G(int) override;
-  void SetLazyLoadingImageMarginPxUnknown(int) override;
-  void SetLazyLoadingImageMarginPxOffline(int) override;
-  void SetLazyLoadingImageMarginPxSlow2G(int) override;
-  void SetLazyLoadingImageMarginPx2G(int) override;
-  void SetLazyLoadingImageMarginPx3G(int) override;
-  void SetLazyLoadingImageMarginPx4G(int) override;
+  void SetLazyFrameLoadingDistanceThresholdPxUnknown(int) override;
+  void SetLazyFrameLoadingDistanceThresholdPxOffline(int) override;
+  void SetLazyFrameLoadingDistanceThresholdPxSlow2G(int) override;
+  void SetLazyFrameLoadingDistanceThresholdPx2G(int) override;
+  void SetLazyFrameLoadingDistanceThresholdPx3G(int) override;
+  void SetLazyFrameLoadingDistanceThresholdPx4G(int) override;
+  void SetLazyImageLoadingDistanceThresholdPxUnknown(int) override;
+  void SetLazyImageLoadingDistanceThresholdPxOffline(int) override;
+  void SetLazyImageLoadingDistanceThresholdPxSlow2G(int) override;
+  void SetLazyImageLoadingDistanceThresholdPx2G(int) override;
+  void SetLazyImageLoadingDistanceThresholdPx3G(int) override;
+  void SetLazyImageLoadingDistanceThresholdPx4G(int) override;
 
   void SetForceDarkModeEnabled(bool) override;
-  void SetInForcedColors(bool) override;
-  void SetIsForcedColorsDisabled(bool) override;
-  void SetPreferredRootScrollbarColorScheme(
-      mojom::blink::PreferredColorScheme) override;
   void SetPreferredColorScheme(mojom::blink::PreferredColorScheme) override;
   void SetPreferredContrast(mojom::blink::PreferredContrast) override;
   void SetNavigationControls(NavigationControls) override;
 
   void SetAriaModalPrunesAXTree(bool) override;
+  void SetUseAXMenuList(bool) override;
   void SetSelectionClipboardBufferAvailable(bool) override;
   void SetAccessibilityIncludeSvgGElement(bool) override;
   void SetWebXRImmersiveArAllowed(bool webxr_immersive_ar_allowed) override;
   void SetModalContextMenu(bool) override;
-  void SetRequireTransientActivationAndAuthorizationForSubAppsAPIs(
-      bool) override;
-  void SetRootScrollbarThemeColor(std::optional<SkColor>) override;
 
   bool RenderVSyncNotificationEnabled() const {
     return render_v_sync_notification_enabled_;

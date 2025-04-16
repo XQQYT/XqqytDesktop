@@ -23,6 +23,11 @@ class MockPolicyContainerHost : public mojom::blink::PolicyContainerHost {
               AddContentSecurityPolicies,
               (Vector<network::mojom::blink::ContentSecurityPolicyPtr>),
               (override));
+  MOCK_METHOD(
+      void,
+      IssueKeepAliveHandle,
+      (mojo::PendingReceiver<mojom::blink::PolicyContainerHostKeepAliveHandle>),
+      (override));
   MockPolicyContainerHost() = default;
 
   // Wrapper around AssociatedReceiver::BindNewEndpointAndPassDedicatedRemote.

@@ -26,7 +26,8 @@ class MaplikeReadAcccess {
     if (!GetMapEntry(script_state, key, value.content, exception_state)) {
       return v8::Undefined(script_state->GetIsolate());
     }
-    return ToV8Traits<IDLValueType>::ToV8(script_state, value.content);
+    return ToV8Traits<IDLValueType>::ToV8(script_state, value.content)
+        .ToLocalChecked();
   }
 
   // https://webidl.spec.whatwg.org/#es-map-has

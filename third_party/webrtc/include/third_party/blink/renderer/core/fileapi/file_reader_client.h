@@ -66,7 +66,8 @@ class CORE_EXPORT FileReaderClient : public GarbageCollectedMixin {
   // called with the returned error.
   // Clients must not make re-entrant calls to the FileReaderLoader in this
   // method.
-  virtual FileErrorCode DidReceiveData(base::span<const uint8_t> data) = 0;
+  virtual FileErrorCode DidReceiveData(const char* data,
+                                       unsigned data_length) = 0;
   // Clients must implement this method to be informed about when the loading
   // ended.
   virtual void DidFinishLoading() = 0;
@@ -104,7 +105,7 @@ class CORE_EXPORT FileReaderAccumulator : public FileReaderClient {
 
  private:
   FileErrorCode DidStartLoading(uint64_t total_bytes) final;
-  FileErrorCode DidReceiveData(base::span<const uint8_t> data) final;
+  FileErrorCode DidReceiveData(const char* data, unsigned data_length) final;
   void DidFinishLoading() final;
 
   uint64_t bytes_loaded_ = 0;

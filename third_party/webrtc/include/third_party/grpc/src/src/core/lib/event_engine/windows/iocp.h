@@ -18,19 +18,21 @@
 
 #ifdef GPR_WINDOWS
 
+#include "absl/status/status.h"
+
 #include <grpc/event_engine/event_engine.h>
 
-#include "absl/status/status.h"
+#include "src/core/lib/event_engine/executor/executor.h"
 #include "src/core/lib/event_engine/poller.h"
-#include "src/core/lib/event_engine/thread_pool/thread_pool.h"
 #include "src/core/lib/event_engine/windows/win_socket.h"
 
-namespace grpc_event_engine::experimental {
+namespace grpc_event_engine {
+namespace experimental {
 
 class IOCP final : public Poller {
  public:
-  explicit IOCP(ThreadPool* thread_pool) noexcept;
-  ~IOCP() override;
+  explicit IOCP(Executor* executor) noexcept;
+  ~IOCP();
   // Not copyable
   IOCP(const IOCP&) = delete;
   IOCP& operator=(const IOCP&) = delete;
@@ -52,14 +54,15 @@ class IOCP final : public Poller {
   // Initialize default flags via checking platform support
   static DWORD WSASocketFlagsInit();
 
-  ThreadPool* thread_pool_;
+  Executor* executor_;
   HANDLE iocp_handle_;
   OVERLAPPED kick_overlap_;
   ULONG kick_token_;
   std::atomic<int> outstanding_kicks_{0};
 };
 
-}  // namespace grpc_event_engine::experimental
+}  // namespace experimental
+}  // namespace grpc_event_engine
 
 #endif
 

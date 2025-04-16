@@ -9,11 +9,10 @@
 #include <winnt.h>
 #include <wrl/implements.h>
 
-#include <optional>
-
 #include "base/base_export.h"
 #include "base/threading/thread_checker.h"
 #include "base/win/windows_types.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base {
 namespace win {
@@ -63,7 +62,7 @@ class BASE_EXPORT ComInitBalancer
   // call made to CoInitialize or CoUninitialize.
   DWORD reference_count_ = 0;
 
-  std::optional<ULARGE_INTEGER> spy_cookie_;
+  absl::optional<ULARGE_INTEGER> spy_cookie_;
   THREAD_CHECKER(thread_checker_);
 };
 

@@ -5,8 +5,8 @@
 #ifndef BASE_TRACE_EVENT_BASE_TRACING_FORWARD_H_
 #define BASE_TRACE_EVENT_BASE_TRACING_FORWARD_H_
 
-// This header is a wrapper around perfetto's traced_value_forward.h that
-// handles Chromium's ENABLE_BASE_TRACING buildflag.
+// Proxy header that provides //base code access to forward-declarations for
+// classes and functions defined in base_tracing.h.
 
 #include "base/tracing_buildflags.h"
 
@@ -33,5 +33,14 @@ struct check_traced_value_support {
 }  // namespace perfetto
 
 #endif  // !BUILDFLAG(ENABLE_BASE_TRACING)
+
+namespace base {
+namespace trace_event {
+
+class ConvertableToTraceFormat;
+class TracedValue;
+
+}  // namespace trace_event
+}  // namespace base
 
 #endif  // BASE_TRACE_EVENT_BASE_TRACING_FORWARD_H_

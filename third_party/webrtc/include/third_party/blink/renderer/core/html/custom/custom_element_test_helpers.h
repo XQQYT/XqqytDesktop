@@ -109,7 +109,6 @@ class TestCustomElementDefinition : public CustomElementDefinition {
 
   bool HasConnectedCallback() const override { return false; }
   bool HasDisconnectedCallback() const override { return false; }
-  bool HasConnectedMoveCallback() const override { return false; }
   bool HasAdoptedCallback() const override { return false; }
   bool HasFormAssociatedCallback() const override { return false; }
   bool HasFormResetCallback() const override { return false; }
@@ -121,10 +120,6 @@ class TestCustomElementDefinition : public CustomElementDefinition {
   }
 
   void RunDisconnectedCallback(Element&) override {
-    NOTREACHED() << "definition does not have disconnected callback";
-  }
-
-  void RunConnectedMoveCallback(Element&) override {
     NOTREACHED() << "definition does not have disconnected callback";
   }
 

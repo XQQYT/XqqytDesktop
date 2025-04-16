@@ -8,9 +8,10 @@
         let lastCallbackId = 0;
         const callbacks = {};
 
-        function postMessageToFrame(frame, cb, id) {
+        function postMessageToFrame(frame, cb) {
+          var id = ++lastCallbackId;
           callbacks[id] = cb;
-          frame.contentWindow.postMessage('test', '*');
+          frame.contentWindow.postMessage({id:id}, '*');
           step_timeout(() => {
             if (id in callbacks) {
               callbacks[id]('timeout');
@@ -39,16 +40,14 @@
           iframe_post_nav_callback,
           result_handler, test_name) {
           async_test((t) => {
-            var id = ++lastCallbackId;
             const iframe = document.createElement('iframe');
             document.body.appendChild(iframe);
-            callbacks[id] = t.step_func((result) => {
-              assert_equals(result, 'ready');
-              iframe_post_nav_callback(iframe);
-              postMessageToFrame(iframe, t.step_func_done(result_handler), id);
-            });
             iframe_pre_nav_callback(iframe);
-            iframe.src = url + '?id=' + id;
+            iframe.src = url;
+            iframe_post_nav_callback(iframe);
+            iframe.onload = t.step_func(() => {
+              postMessageToFrame(iframe, t.step_func_done(result_handler));
+            });
           }, test_name);
         }
 

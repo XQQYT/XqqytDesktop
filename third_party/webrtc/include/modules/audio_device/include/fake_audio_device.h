@@ -11,7 +11,7 @@
 #ifndef MODULES_AUDIO_DEVICE_INCLUDE_FAKE_AUDIO_DEVICE_H_
 #define MODULES_AUDIO_DEVICE_INCLUDE_FAKE_AUDIO_DEVICE_H_
 
-#include "api/audio/audio_device.h"
+#include "modules/audio_device/include/audio_device.h"
 #include "modules/audio_device/include/audio_device_default.h"
 
 namespace webrtc {
@@ -23,8 +23,8 @@ class FakeAudioDeviceModule
   // references using scoped_refptr. Current code doesn't always use refcounting
   // for this class.
   void AddRef() const override {}
-  webrtc::RefCountReleaseStatus Release() const override {
-    return webrtc::RefCountReleaseStatus::kDroppedLastRef;
+  rtc::RefCountReleaseStatus Release() const override {
+    return rtc::RefCountReleaseStatus::kDroppedLastRef;
   }
 };
 

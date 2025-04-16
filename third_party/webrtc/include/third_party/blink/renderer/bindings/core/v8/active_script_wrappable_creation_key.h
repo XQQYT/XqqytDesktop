@@ -106,7 +106,6 @@ class ActiveScriptWrappableCreationKey final {
   friend class TCPSocket;
   friend class UDPSocket;
   friend class WakeLockSentinel;
-  friend class WebPrintJob;
   friend class WebSocketStream;
   friend class WebTransport;
   friend class WorkerGlobalScope;

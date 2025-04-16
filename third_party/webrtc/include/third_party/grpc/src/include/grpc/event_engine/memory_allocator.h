@@ -14,15 +14,17 @@
 #ifndef GRPC_EVENT_ENGINE_MEMORY_ALLOCATOR_H
 #define GRPC_EVENT_ENGINE_MEMORY_ALLOCATOR_H
 
-#include <grpc/event_engine/internal/memory_allocator_impl.h>
-#include <grpc/slice.h>
 #include <grpc/support/port_platform.h>
+
 #include <stdlib.h>  // for abort()
 
 #include <algorithm>
 #include <memory>
 #include <type_traits>
 #include <vector>
+
+#include <grpc/event_engine/internal/memory_allocator_impl.h>
+#include <grpc/slice.h>
 
 namespace grpc_event_engine {
 namespace experimental {
@@ -54,8 +56,8 @@ class MemoryAllocator {
   /// The object will not be usable after this call unless it's a valid
   /// allocator is moved into it.
   void Reset() {
-    auto a = std::move(allocator_);
-    if (a != nullptr) a->Shutdown();
+    if (allocator_ != nullptr) allocator_->Shutdown();
+    allocator_.reset();
   }
 
   /// Reserve bytes from the quota.
@@ -132,9 +134,7 @@ class MemoryAllocator {
   /// bytes. For a variable length request, check the returned slice length to
   /// verify how much memory was allocated. Takes care of reserving memory for
   /// any relevant control structures also.
-  grpc_slice MakeSlice(MemoryRequest request) {
-    return allocator_->MakeSlice(request);
-  }
+  grpc_slice MakeSlice(MemoryRequest request);
 
   /// A C++ allocator for containers of T.
   template <typename T>

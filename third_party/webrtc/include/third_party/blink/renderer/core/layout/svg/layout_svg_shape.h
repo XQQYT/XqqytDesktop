@@ -183,16 +183,15 @@ class LayoutSVGShape : public LayoutSVGModelObject {
                     const WindRule fill_rule = RULE_NONZERO);
   bool StrokeContains(const HitTestLocation&, bool requires_stroke = true);
 
-  bool IsSVGShape() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectSVGShape ||
+           LayoutSVGModelObject::IsOfType(type);
   }
-
-  SVGLayoutResult UpdateSVGLayout(const SVGLayoutInfo&) final;
+  void UpdateLayout() final;
   // Update LayoutObject state after layout has completed. Returns true if
   // boundaries needs to be propagated (because of a change to the transform).
-  bool UpdateAfterSVGLayout(const SVGLayoutInfo&, bool bbox_changed);
-
+  bool UpdateAfterLayout(bool bbox_changed);
   void Paint(const PaintInfo&) const final;
 
   bool NodeAtPoint(HitTestResult&,

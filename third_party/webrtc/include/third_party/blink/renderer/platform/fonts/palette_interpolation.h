@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_PALETTE_INTERPOLATION_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_PALETTE_INTERPOLATION_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/fonts/font_palette.h"
 #include "third_party/blink/renderer/platform/graphics/color.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
@@ -19,7 +18,7 @@ class PLATFORM_EXPORT PaletteInterpolation {
  public:
   explicit PaletteInterpolation(sk_sp<SkTypeface> typeface)
       : typeface_(typeface) {}
-  std::optional<uint16_t> RetrievePaletteIndex(
+  absl::optional<uint16_t> RetrievePaletteIndex(
       const FontPalette* palette) const;
   Vector<FontPalette::FontPaletteOverride> ComputeInterpolableFontPalette(
       const FontPalette* palette) const;
@@ -34,7 +33,7 @@ class PLATFORM_EXPORT PaletteInterpolation {
       double percentage,
       double alpha_multiplier,
       Color::ColorSpace color_interpolation_space,
-      std::optional<Color::HueInterpolationMethod> hue_interpolation_method);
+      absl::optional<Color::HueInterpolationMethod> hue_interpolation_method);
   sk_sp<SkTypeface> typeface_;
 };
 

@@ -31,7 +31,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_HTML_TRACK_VTT_VTT_REGION_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_HTML_TRACK_VTT_VTT_REGION_H_
 
-#include "third_party/blink/renderer/bindings/core/v8/v8_scroll_setting.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/timer.h"
@@ -78,12 +77,12 @@ class VTTRegion final : public ScriptWrappable {
   double viewportAnchorY() const { return viewport_anchor_.y(); }
   void setViewportAnchorY(double, ExceptionState&);
 
-  V8ScrollSetting scroll() const;
-  void setScroll(const V8ScrollSetting&);
+  const AtomicString scroll() const;
+  void setScroll(const AtomicString&);
 
   void SetRegionSettings(const String&);
 
-  bool IsScrollingRegion() { return scroll_ != V8ScrollSetting::Enum::k; }
+  bool IsScrollingRegion() { return scroll_; }
 
   HTMLDivElement* GetDisplayTree(Document&);
 
@@ -120,7 +119,7 @@ class VTTRegion final : public ScriptWrappable {
   unsigned lines_;
   gfx::PointF region_anchor_;
   gfx::PointF viewport_anchor_;
-  V8ScrollSetting::Enum scroll_ = V8ScrollSetting::Enum::k;
+  bool scroll_;
 
   // The cue container is the container that is scrolled up to obtain the
   // effect of scrolling cues when this is enabled for the regions.

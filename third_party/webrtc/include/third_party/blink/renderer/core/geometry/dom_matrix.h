@@ -34,11 +34,11 @@ class CORE_EXPORT DOMMatrix : public DOMMatrixReadOnly {
   static DOMMatrix* fromFloat64Array(NotShared<DOMFloat64Array>,
                                      ExceptionState&);
   static DOMMatrix* fromMatrix(DOMMatrixInit*, ExceptionState&);
-  static DOMMatrix* CreateForSerialization(base::span<const double>);
+  static DOMMatrix* CreateForSerialization(double[], int size);
 
   explicit DOMMatrix(const gfx::Transform&, bool is2d = true);
   template <typename T>
-  explicit DOMMatrix(base::span<T> sequence);
+  DOMMatrix(T sequence, int size);
 
   void setA(double value) { setM11(value); }
   void setB(double value) { setM12(value); }

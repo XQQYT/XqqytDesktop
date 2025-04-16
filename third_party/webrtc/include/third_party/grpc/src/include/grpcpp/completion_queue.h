@@ -32,20 +32,19 @@
 #ifndef GRPCPP_COMPLETION_QUEUE_H
 #define GRPCPP_COMPLETION_QUEUE_H
 
+#include <list>
+
 #include <grpc/grpc.h>
 #include <grpc/support/atm.h>
+#include <grpc/support/log.h>
 #include <grpc/support/time.h>
 #include <grpcpp/impl/codegen/rpc_service_method.h>
+#include <grpcpp/impl/codegen/status.h>
 #include <grpcpp/impl/codegen/sync.h>
 #include <grpcpp/impl/codegen/time.h>
 #include <grpcpp/impl/completion_queue_tag.h>
 #include <grpcpp/impl/grpc_library.h>
 #include <grpcpp/impl/sync.h>
-#include <grpcpp/support/status.h>
-
-#include <list>
-
-#include "absl/log/absl_check.h"
 
 struct grpc_completion_queue;
 
@@ -324,7 +323,7 @@ class CompletionQueue : private grpc::internal::GrpcLibrary {
       bool ok = ev.success != 0;
       void* ignored = tag;
       if (tag->FinalizeResult(&ignored, &ok)) {
-        ABSL_CHECK(ignored == tag);
+        GPR_ASSERT(ignored == tag);
         return ok;
       }
     }
@@ -345,7 +344,7 @@ class CompletionQueue : private grpc::internal::GrpcLibrary {
     bool ok = ev.success != 0;
     void* ignored = tag;
     // the tag must be swallowed if using TryPluck
-    ABSL_CHECK(!tag->FinalizeResult(&ignored, &ok));
+    GPR_ASSERT(!tag->FinalizeResult(&ignored, &ok));
   }
 
   /// Performs a single polling pluck on \a tag. Calls tag->FinalizeResult if
@@ -362,7 +361,7 @@ class CompletionQueue : private grpc::internal::GrpcLibrary {
 
     bool ok = ev.success != 0;
     void* ignored = tag;
-    ABSL_CHECK(!tag->FinalizeResult(&ignored, &ok));
+    GPR_ASSERT(!tag->FinalizeResult(&ignored, &ok));
   }
 
   /// Manage state of avalanching operations : completion queue tags that

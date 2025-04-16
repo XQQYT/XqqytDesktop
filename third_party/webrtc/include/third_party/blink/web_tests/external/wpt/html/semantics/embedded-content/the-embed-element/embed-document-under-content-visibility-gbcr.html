@@ -11,9 +11,7 @@
 <body>
   <script>
   async_test(t => {
-    addEventListener('load', t.step_func_done(() => {
-      assert_true(window.childLoaded);
-    }));
+    window.onload = () => t.done();
   }, "ensure onload happens");
   </script>
   <div class=hidden>

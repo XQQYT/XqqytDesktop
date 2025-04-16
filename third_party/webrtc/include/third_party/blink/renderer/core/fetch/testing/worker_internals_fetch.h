@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_FETCH_TESTING_WORKER_INTERNALS_FETCH_H_
 
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
@@ -16,19 +15,20 @@ namespace blink {
 class WorkerGlobalScope;
 class WorkerInternals;
 class Response;
+class ScriptPromiseResolver;
 
 class WorkerInternalsFetch {
   STATIC_ONLY(WorkerInternalsFetch);
 
  public:
   static Vector<String> getInternalResponseURLList(WorkerInternals&, Response*);
-  static ScriptPromise<IDLLong> getInitialResourcePriority(ScriptState*,
-                                                           WorkerInternals&,
-                                                           const String& url,
-                                                           WorkerGlobalScope*);
+  static ScriptPromise getInitialResourcePriority(ScriptState*,
+                                                  WorkerInternals&,
+                                                  const String& url,
+                                                  WorkerGlobalScope*);
 
  private:
-  static void ResolveResourcePriority(ScriptPromiseResolver<IDLLong>*,
+  static void ResolveResourcePriority(ScriptPromiseResolver*,
                                       int resource_load_priority);
 };
 

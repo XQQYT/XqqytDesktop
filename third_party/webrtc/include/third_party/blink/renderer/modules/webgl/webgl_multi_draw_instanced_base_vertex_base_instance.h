@@ -26,28 +26,70 @@ class WebGLMultiDrawInstancedBaseVertexBaseInstance final
 
   void multiDrawArraysInstancedBaseInstanceWEBGL(
       GLenum mode,
-      base::span<const int32_t> firsts_list,
+      const V8UnionInt32ArrayAllowSharedOrLongSequence* firsts_list,
       GLuint firsts_offset,
-      base::span<const int32_t> counts_list,
+      const V8UnionInt32ArrayAllowSharedOrLongSequence* counts_list,
       GLuint counts_offset,
-      base::span<const int32_t> instance_counts_list,
+      const V8UnionInt32ArrayAllowSharedOrLongSequence* instance_counts_list,
       GLuint instance_counts_offset,
-      base::span<const uint32_t> baseinstances_list,
+      const V8UnionUint32ArrayAllowSharedOrUnsignedLongSequence*
+          baseinstances_list,
       GLuint baseinstances_offset,
-      GLsizei drawcount);
+      GLsizei drawcount) {
+    multiDrawArraysInstancedBaseInstanceImpl(
+        mode, MakeSpan(firsts_list), firsts_offset, MakeSpan(counts_list),
+        counts_offset, MakeSpan(instance_counts_list), instance_counts_offset,
+        MakeSpan(baseinstances_list), baseinstances_offset, drawcount);
+  }
 
   void multiDrawElementsInstancedBaseVertexBaseInstanceWEBGL(
       GLenum mode,
-      base::span<const int32_t> counts_list,
+      const V8UnionInt32ArrayAllowSharedOrLongSequence* counts_list,
       GLuint counts_offset,
       GLenum type,
-      base::span<const int32_t> offsets_list,
+      const V8UnionInt32ArrayAllowSharedOrLongSequence* offsets_list,
       GLuint offsets_offset,
-      base::span<const int32_t> instance_counts_list,
+      const V8UnionInt32ArrayAllowSharedOrLongSequence* instance_counts_list,
       GLuint instance_counts_offset,
-      base::span<const int32_t> basevertices_list,
+      const V8UnionInt32ArrayAllowSharedOrLongSequence* basevertices_list,
       GLuint basevertices_offset,
-      base::span<const uint32_t> baseinstances_list,
+      const V8UnionUint32ArrayAllowSharedOrUnsignedLongSequence*
+          baseinstances_list,
+      GLuint baseinstances_offset,
+      GLsizei drawcount) {
+    multiDrawElementsInstancedBaseVertexBaseInstanceImpl(
+        mode, MakeSpan(counts_list), counts_offset, type,
+        MakeSpan(offsets_list), offsets_offset, MakeSpan(instance_counts_list),
+        instance_counts_offset, MakeSpan(basevertices_list),
+        basevertices_offset, MakeSpan(baseinstances_list), baseinstances_offset,
+        drawcount);
+  }
+
+ private:
+  void multiDrawArraysInstancedBaseInstanceImpl(
+      GLenum mode,
+      const base::span<const int32_t> firsts,
+      GLuint firsts_offset,
+      const base::span<const int32_t> counts,
+      GLuint counts_offset,
+      const base::span<const int32_t> instance_counts,
+      GLuint instance_counts_offset,
+      const base::span<const uint32_t> baseinstances,
+      GLuint baseinstances_offset,
+      GLsizei drawcount);
+
+  void multiDrawElementsInstancedBaseVertexBaseInstanceImpl(
+      GLenum mode,
+      const base::span<const int32_t> counts,
+      GLuint counts_offset,
+      GLenum type,
+      const base::span<const int32_t> offsets,
+      GLuint offsets_offset,
+      const base::span<const int32_t> instance_counts,
+      GLuint instance_counts_offset,
+      const base::span<const int32_t> basevertices,
+      GLuint basevertices_offset,
+      const base::span<const uint32_t> baseinstances,
       GLuint baseinstances_offset,
       GLsizei drawcount);
 };

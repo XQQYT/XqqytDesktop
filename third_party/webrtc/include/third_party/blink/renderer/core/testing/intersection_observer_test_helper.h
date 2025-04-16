@@ -6,6 +6,7 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_TESTING_INTERSECTION_OBSERVER_TEST_HELPER_H_
 
 #include "third_party/blink/renderer/core/dom/document.h"
+#include "third_party/blink/renderer/core/frame/local_frame_ukm_aggregator.h"
 #include "third_party/blink/renderer/core/intersection_observer/intersection_observer_delegate.h"
 #include "third_party/blink/renderer/core/intersection_observer/intersection_observer_entry.h"
 
@@ -13,11 +14,17 @@ namespace blink {
 
 class TestIntersectionObserverDelegate : public IntersectionObserverDelegate {
  public:
-  explicit TestIntersectionObserverDelegate(Document& document)
-      : document_(document), call_count_(0) {}
+  explicit TestIntersectionObserverDelegate(
+      Document& document,
+      LocalFrameUkmAggregator::MetricId metric_id =
+          LocalFrameUkmAggregator::kJavascriptIntersectionObserver)
+      : document_(document), metric_id_(metric_id), call_count_(0) {}
   // TODO(szager): Add tests for the synchronous delivery code path. There is
   // already some indirect coverage by unit tests exercising features that rely
   // on it, but we should have some direct coverage in here.
+  LocalFrameUkmAggregator::MetricId GetUkmMetricId() const override {
+    return metric_id_;
+  }
   IntersectionObserver::DeliveryBehavior GetDeliveryBehavior() const override {
     return IntersectionObserver::kPostTaskToDeliver;
   }
@@ -41,9 +48,9 @@ class TestIntersectionObserverDelegate : public IntersectionObserverDelegate {
     entries_.clear();
     call_count_ = 0;
   }
-  gfx::RectF LastIntersectionRect() const {
+  PhysicalRect LastIntersectionRect() const {
     if (entries_.empty())
-      return gfx::RectF();
+      return PhysicalRect();
     const IntersectionGeometry& geometry = entries_.back()->GetGeometry();
     return geometry.IntersectionRect();
   }
@@ -56,6 +63,7 @@ class TestIntersectionObserverDelegate : public IntersectionObserverDelegate {
 
  private:
   Member<Document> document_;
+  LocalFrameUkmAggregator::MetricId metric_id_;
   HeapVector<Member<IntersectionObserverEntry>> entries_;
   int call_count_;
 };

@@ -41,9 +41,13 @@ class CORE_EXPORT LayoutIFrame : public LayoutEmbeddedContent {
   }
 
  private:
-  bool IsLayoutIFrame() const final {
+  bool IsInlineBlockOrInlineTable() const override;
+
+  void UpdateLayout() override;
+
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectIFrame || LayoutEmbeddedContent::IsOfType(type);
   }
 };
 

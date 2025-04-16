@@ -9,15 +9,15 @@
 // a loadable module.
 
 #include <string>
-#include <string_view>
 
 #include "base/base_export.h"
 #include "base/files/file_path.h"
 #include "base/memory/raw_ptr_exclusion.h"
+#include "base/strings/string_piece.h"
 #include "build/build_config.h"
 
 #if BUILDFLAG(IS_WIN)
-#include "base/win/windows_types.h"
+#include <windows.h>
 #elif BUILDFLAG(IS_APPLE)
 #import <CoreFoundation/CoreFoundation.h>
 #endif  // OS_*
@@ -27,9 +27,18 @@ namespace base {
 #if BUILDFLAG(IS_WIN)
 using NativeLibrary = HMODULE;
 #elif BUILDFLAG(IS_APPLE)
-enum NativeLibraryType { BUNDLE, DYNAMIC_LIB };
+enum NativeLibraryType {
+  BUNDLE,
+  DYNAMIC_LIB
+};
+enum NativeLibraryObjCStatus {
+  OBJC_UNKNOWN,
+  OBJC_PRESENT,
+  OBJC_NOT_PRESENT,
+};
 struct NativeLibraryStruct {
   NativeLibraryType type;
+  NativeLibraryObjCStatus objc_status;
   union {
     CFBundleRef bundle;
     //// This field is not a raw_ptr<> because it was filtered by the rewriter
@@ -78,7 +87,7 @@ BASE_EXPORT NativeLibrary LoadNativeLibrary(const FilePath& library_path,
 // get a handle if so. This method results in a lock that may block the calling
 // thread.
 BASE_EXPORT NativeLibrary
-LoadSystemLibrary(FilePath::StringViewType name,
+LoadSystemLibrary(FilePath::StringPieceType name,
                   NativeLibraryLoadError* error = nullptr);
 
 // Gets the module handle for the specified system library and pins it to
@@ -87,17 +96,17 @@ LoadSystemLibrary(FilePath::StringViewType name,
 // method returns null and includes the error. This method results in a lock
 // that may block the calling thread.
 BASE_EXPORT NativeLibrary
-PinSystemLibrary(FilePath::StringViewType name,
+PinSystemLibrary(FilePath::StringPieceType name,
                  NativeLibraryLoadError* error = nullptr);
 #endif
 
 // Loads a native library from disk.  Release it with UnloadNativeLibrary when
 // you're done.  Returns NULL on failure.
 // If |error| is not NULL, it may be filled in on load error.
-BASE_EXPORT NativeLibrary
-LoadNativeLibraryWithOptions(const FilePath& library_path,
-                             const NativeLibraryOptions& options,
-                             NativeLibraryLoadError* error);
+BASE_EXPORT NativeLibrary LoadNativeLibraryWithOptions(
+    const FilePath& library_path,
+    const NativeLibraryOptions& options,
+    NativeLibraryLoadError* error);
 
 // Unloads a native library.
 BASE_EXPORT void UnloadNativeLibrary(NativeLibrary library);
@@ -113,13 +122,13 @@ BASE_EXPORT void* GetFunctionPointerFromNativeLibrary(NativeLibrary library,
 // - "mylib.dll" on Windows
 // - "libmylib.so" on Linux
 // - "libmylib.dylib" on Mac
-BASE_EXPORT std::string GetNativeLibraryName(std::string_view name);
+BASE_EXPORT std::string GetNativeLibraryName(StringPiece name);
 
 // Returns the full platform-specific name for a gn |loadable_module| target.
 // See tools/gn/docs/reference.md#loadable_module
 // The returned name is the same as GetNativeLibraryName() on all platforms
 // except for Mac where for "mylib" it returns "mylib.so".
-BASE_EXPORT std::string GetLoadableModuleName(std::string_view name);
+BASE_EXPORT std::string GetLoadableModuleName(StringPiece name);
 
 }  // namespace base
 

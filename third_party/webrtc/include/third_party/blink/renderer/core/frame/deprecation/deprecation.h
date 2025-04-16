@@ -52,7 +52,7 @@ class CORE_EXPORT Deprecation final {
 
   // To minimize the report/console spam from frames coming and going, report
   // each deprecation at most once per page load per renderer process.
-  std::bitset<static_cast<size_t>(WebFeature::kMaxValue) + 1>
+  std::bitset<static_cast<size_t>(WebFeature::kNumberOfFeatures)>
       features_deprecation_bits_;
   unsigned mute_count_;
 };

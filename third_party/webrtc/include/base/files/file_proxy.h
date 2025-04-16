@@ -8,7 +8,6 @@
 #include <stdint.h>
 
 #include "base/base_export.h"
-#include "base/containers/span.h"
 #include "base/files/file.h"
 #include "base/files/file_path.h"
 #include "base/functional/callback_forward.h"
@@ -34,7 +33,7 @@ class Time;
 //   proxy.Write(...);
 //
 // means the second Write will always fail.
-class BASE_EXPORT FileProxy final {
+class BASE_EXPORT FileProxy : public SupportsWeakPtr<FileProxy> {
  public:
   // This callback is used by methods that report only an error code. It is
   // valid to pass a null callback to some functions that takes a
@@ -45,7 +44,7 @@ class BASE_EXPORT FileProxy final {
   using GetFileInfoCallback =
       OnceCallback<void(File::Error, const File::Info&)>;
   using ReadCallback =
-      OnceCallback<void(File::Error, base::span<const char> data)>;
+      OnceCallback<void(File::Error, const char* data, int bytes_read)>;
   using WriteCallback = OnceCallback<void(File::Error, int bytes_written)>;
 
   explicit FileProxy(TaskRunner* task_runner);
@@ -110,7 +109,8 @@ class BASE_EXPORT FileProxy final {
   // This returns false if |bytes_to_write| is less than or equal to zero,
   // if |buffer| is NULL, or if task posting to |task_runner| has failed.
   bool Write(int64_t offset,
-             base::span<const uint8_t> data,
+             const char* buffer,
+             int bytes_to_write,
              WriteCallback callback);
 
   // Proxies File::SetTimes. The callback can be null.
@@ -133,8 +133,6 @@ class BASE_EXPORT FileProxy final {
 
   scoped_refptr<TaskRunner> task_runner_;
   File file_;
-
-  base::WeakPtrFactory<FileProxy> weak_ptr_factory_{this};
 };
 
 }  // namespace base

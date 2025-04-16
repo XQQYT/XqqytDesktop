@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_NETWORK_PARSED_CONTENT_HEADER_FIELD_PARAMETERS_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_NETWORK_PARSED_CONTENT_HEADER_FIELD_PARAMETERS_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
@@ -42,10 +41,10 @@ class PLATFORM_EXPORT ParsedContentHeaderFieldParameters final {
     kRelaxed,
   };
 
-  // We use std::optional instead of WTF::Optional which requires its content
+  // We use absl::optional instead of WTF::Optional which requires its content
   // type to be fully defined. They are essentially same, so uses of this class
   // can (and should) use WTF::Optional to store the returned value.
-  static std::optional<ParsedContentHeaderFieldParameters> Parse(
+  static absl::optional<ParsedContentHeaderFieldParameters> Parse(
       HeaderFieldTokenizer,
       Mode);
 

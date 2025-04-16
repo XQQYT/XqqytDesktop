@@ -15,49 +15,58 @@
 
 #include <vector>
 
-#include "api/array_view.h"
 #include "api/field_trials_view.h"
 #include "api/units/data_rate.h"
-#include "api/video/resolution.h"
 #include "video/config/video_encoder_config.h"
 
-namespace webrtc {
+namespace cricket {
 
 // Gets the total maximum bitrate for the `streams`.
-DataRate GetTotalMaxBitrate(const std::vector<VideoStream>& streams);
+webrtc::DataRate GetTotalMaxBitrate(
+    const std::vector<webrtc::VideoStream>& streams);
 
 // Adds any bitrate of `max_bitrate` that is above the total maximum bitrate for
 // the `layers` to the highest quality layer.
-void BoostMaxSimulcastLayer(DataRate max_bitrate,
-                            std::vector<VideoStream>* layers);
+void BoostMaxSimulcastLayer(webrtc::DataRate max_bitrate,
+                            std::vector<webrtc::VideoStream>* layers);
 
-// Returns number of simulcast streams. The value depends on the resolution and
-// is restricted to the range from `min_num_layers` to `max_num_layers`,
-// inclusive.
-size_t LimitSimulcastLayerCount(size_t min_num_layers,
-                                size_t max_num_layers,
-                                int width,
-                                int height,
-                                const FieldTrialsView& trials,
-                                VideoCodecType codec);
+// Round size to nearest simulcast-friendly size
+int NormalizeSimulcastSize(int size, size_t simulcast_layers);
 
 // Gets simulcast settings.
-std::vector<VideoStream> GetSimulcastConfig(
-    rtc::ArrayView<const Resolution> resolutions,
+std::vector<webrtc::VideoStream> GetSimulcastConfig(
+    size_t min_layers,
+    size_t max_layers,
+    int width,
+    int height,
+    double bitrate_priority,
+    int max_qp,
     bool is_screenshare_with_conference_mode,
     bool temporal_layers_supported,
-    const FieldTrialsView& trials,
-    VideoCodecType codec);
+    const webrtc::FieldTrialsView& trials);
 
-}  //  namespace webrtc
+// Gets the simulcast config layers for a non-screensharing case.
+std::vector<webrtc::VideoStream> GetNormalSimulcastLayers(
+    size_t max_layers,
+    int width,
+    int height,
+    double bitrate_priority,
+    int max_qp,
+    bool temporal_layers_supported,
+    bool base_heavy_tl3_rate_alloc,
+    const webrtc::FieldTrialsView& trials);
 
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace cricket {
-using ::webrtc::BoostMaxSimulcastLayer;
-using ::webrtc::GetSimulcastConfig;
-using ::webrtc::GetTotalMaxBitrate;
-using ::webrtc::LimitSimulcastLayerCount;
+// Gets simulcast config layers for screenshare settings.
+std::vector<webrtc::VideoStream> GetScreenshareLayers(
+    size_t max_layers,
+    int width,
+    int height,
+    double bitrate_priority,
+    int max_qp,
+    bool temporal_layers_supported,
+    bool base_heavy_tl3_rate_alloc,
+    const webrtc::FieldTrialsView& trials);
+
 }  // namespace cricket
 
 #endif  // VIDEO_CONFIG_SIMULCAST_H_

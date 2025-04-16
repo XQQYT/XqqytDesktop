@@ -13,14 +13,13 @@
 
 #include <algorithm>
 #include <array>
-#include <cstddef>
 #include <iterator>
 #include <type_traits>
 
 #include "rtc_base/checks.h"
 #include "rtc_base/type_traits.h"
 
-namespace webrtc {
+namespace rtc {
 
 // tl;dr: rtc::ArrayView is the same thing as gsl::span from the Guideline
 //        Support Library.
@@ -97,7 +96,7 @@ class ArrayViewBase {
   static_assert(Size > 0, "ArrayView size must be variable or non-negative");
 
  public:
-  ArrayViewBase(T* data, size_t /* size */) : data_(data) {}
+  ArrayViewBase(T* data, size_t size) : data_(data) {}
 
   static constexpr size_t size() { return Size; }
   static constexpr bool empty() { return false; }
@@ -114,7 +113,7 @@ class ArrayViewBase {
 template <typename T>
 class ArrayViewBase<T, 0> {
  public:
-  explicit ArrayViewBase(T* /* data */, size_t /* size */) {}
+  explicit ArrayViewBase(T* data, size_t size) {}
 
   static constexpr size_t size() { return 0; }
   static constexpr bool empty() { return true; }
@@ -330,16 +329,6 @@ inline ArrayView<U, Size> reinterpret_array_view(ArrayView<T, Size> view) {
   return ArrayView<U, Size>(reinterpret_cast<U*>(view.data()), view.size());
 }
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace rtc {
-template <typename T,
-          std::ptrdiff_t Size = webrtc::array_view_internal::kArrayViewVarSize>
-using ArrayView = ::webrtc::ArrayView<T, Size>;
-using ::webrtc::MakeArrayView;
-using ::webrtc::reinterpret_array_view;
 }  // namespace rtc
 
 #endif  // API_ARRAY_VIEW_H_

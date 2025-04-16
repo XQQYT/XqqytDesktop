@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 
+#include "api/rtc_event_log/rtc_event_log.h"
 #include "api/test/video/function_video_decoder_factory.h"
 #include "api/video_codecs/video_decoder.h"
 #include "call/call.h"
@@ -79,7 +80,7 @@ class RtpReplayer final {
       size_t rtp_dump_size);
 
   // Replays each packet to from the RtpDump.
-  static void ReplayPackets(FakeClock* clock,
+  static void ReplayPackets(rtc::FakeClock* clock,
                             Call* call,
                             test::RtpFileReader* rtp_reader,
                             const RtpHeaderExtensionMap& extensions);

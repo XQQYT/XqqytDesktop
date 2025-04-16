@@ -96,8 +96,7 @@ class CORE_EXPORT SMILTimeContainer final
 
   bool IsTimelineRunning() const;
   void SynchronizeToDocumentTimeline();
-  void ScheduleAnimationFrame(base::TimeDelta delay_time,
-                              bool disable_throttling);
+  void ScheduleAnimationFrame(base::TimeDelta delay_time);
   void CancelAnimationFrame();
   void WakeupTimerFired(TimerBase*);
   mojom::blink::ImageAnimationPolicy AnimationPolicy() const;
@@ -108,9 +107,8 @@ class CORE_EXPORT SMILTimeContainer final
   void ResetIntervals();
   void UpdateIntervals(TimingUpdate&);
   void UpdateTimedElements(TimingUpdate&);
-  bool ApplyTimedEffects(SMILTime elapsed);
-  SMILTime NextProgressTime(SMILTime presentation_time,
-                            bool disable_throttling) const;
+  void ApplyTimedEffects(SMILTime elapsed);
+  SMILTime NextProgressTime(SMILTime presentation_time) const;
   void ServiceOnNextFrame();
   void ScheduleWakeUp(base::TimeDelta delay_time, FrameSchedulingState);
   bool HasPendingSynchronization() const;
@@ -121,6 +119,8 @@ class CORE_EXPORT SMILTimeContainer final
 
   SVGSVGElement& OwnerSVGElement() const;
   Document& GetDocument() const;
+
+  bool ShouldThrottleSVGAnimation() const;
 
   // The latest "restart" time for the time container's timeline. If the
   // timeline has not been manipulated (seeked, paused) this will be zero.

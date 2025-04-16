@@ -19,9 +19,6 @@
 #ifndef GRPC_TEST_CPP_EXT_FILTERS_CENSUS_LIBRARY_H
 #define GRPC_TEST_CPP_EXT_FILTERS_CENSUS_LIBRARY_H
 
-#include <grpc++/grpc++.h>
-#include <grpcpp/opencensus.h>
-
 #include <string>
 #include <thread>  // NOLINT
 #include <vector>
@@ -30,12 +27,14 @@
 #include "gtest/gtest.h"
 #include "opencensus/stats/stats.h"
 #include "opencensus/trace/exporter/span_exporter.h"
-#include "src/core/config/core_configuration.h"
-#include "src/cpp/client/client_stats_interceptor.h"
-#include "src/cpp/ext/filters/census/client_filter.h"
+
+#include <grpc++/grpc++.h>
+#include <grpcpp/opencensus.h>
+
+#include "src/core/lib/config/core_configuration.h"
 #include "src/cpp/ext/filters/census/context.h"
 #include "src/proto/grpc/testing/echo.grpc.pb.h"
-#include "test/core/test_util/test_lb_policies.h"
+#include "test/core/util/test_lb_policies.h"
 #include "test/cpp/end2end/test_service_impl.h"
 
 namespace opencensus {
@@ -60,8 +59,6 @@ class EchoServer final : public TestServiceImpl {
   Status Echo(ServerContext* context, const EchoRequest* request,
               EchoResponse* response) override {
     CheckMetadata(context);
-    // Enabled for compression trace annotation tests.
-    context->set_compression_algorithm(GRPC_COMPRESS_GZIP);
     return TestServiceImpl::Echo(context, request, response);
   }
 
@@ -96,7 +93,7 @@ class ExportedTracesRecorder
   ExportedTracesRecorder() : is_recording_(false) {}
   void Export(const std::vector<::opencensus::trace::exporter::SpanData>& spans)
       override {
-    grpc_core::MutexLock lock(&mutex_);
+    absl::MutexLock lock(&mutex_);
     if (is_recording_) {
       for (auto const& span : spans) {
         recorded_spans_.push_back(span);
@@ -105,32 +102,30 @@ class ExportedTracesRecorder
   }
 
   void StartRecording() {
-    grpc_core::MutexLock lock(&mutex_);
+    absl::MutexLock lock(&mutex_);
     ASSERT_FALSE(is_recording_);
     is_recording_ = true;
   }
 
   void StopRecording() {
-    grpc_core::MutexLock lock(&mutex_);
+    absl::MutexLock lock(&mutex_);
     ASSERT_TRUE(is_recording_);
     is_recording_ = false;
   }
 
   std::vector<::opencensus::trace::exporter::SpanData> GetAndClearSpans() {
-    grpc_core::MutexLock lock(&mutex_);
+    absl::MutexLock lock(&mutex_);
     return std::move(recorded_spans_);
   }
 
  private:
   // This mutex is necessary as the SpanExporter runs a loop on a separate
   // thread which periodically exports spans.
-  grpc_core::Mutex mutex_;
+  absl::Mutex mutex_;
   bool is_recording_ ABSL_GUARDED_BY(mutex_);
   std::vector<::opencensus::trace::exporter::SpanData> recorded_spans_
       ABSL_GUARDED_BY(mutex_);
 };
-
-extern ExportedTracesRecorder* traces_recorder_;
 
 class StatsPluginEnd2EndTest : public ::testing::Test {
  protected:
@@ -140,8 +135,6 @@ class StatsPluginEnd2EndTest : public ::testing::Test {
         [](grpc_core::CoreConfiguration::Builder* builder) {
           grpc_core::RegisterQueueOnceLoadBalancingPolicy(builder);
         });
-    grpc::internal::RegisterGlobalClientStatsInterceptorFactory(
-        new grpc::internal::OpenCensusClientInterceptorFactory);
     RegisterOpenCensusPlugin();
     // OpenCensus C++ has no API to unregister a previously-registered handler,
     // therefore we register this handler once, and enable/disable recording in
@@ -198,6 +191,7 @@ class StatsPluginEnd2EndTest : public ::testing::Test {
   std::thread server_thread_;
 
   std::unique_ptr<EchoTestService::Stub> stub_;
+  static ExportedTracesRecorder* traces_recorder_;
 };
 
 }  // namespace testing

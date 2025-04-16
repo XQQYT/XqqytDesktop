@@ -5,13 +5,13 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_ACCESSIBILITY_AX_MEDIA_CONTROL_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_ACCESSIBILITY_AX_MEDIA_CONTROL_H_
 
-#include "third_party/blink/renderer/modules/accessibility/ax_node_object.h"
+#include "third_party/blink/renderer/modules/accessibility/ax_layout_object.h"
 
 namespace blink {
 
 class AXObjectCacheImpl;
 
-class AccessibilityMediaControl : public AXNodeObject {
+class AccessibilityMediaControl : public AXLayoutObject {
  public:
   static AXObject* Create(LayoutObject*, AXObjectCacheImpl&);
 
@@ -21,10 +21,9 @@ class AccessibilityMediaControl : public AXNodeObject {
       delete;
   ~AccessibilityMediaControl() override = default;
 
-  // AXNodeObject:
+  // AXLayoutObject:
   bool InternalSetAccessibilityFocusAction() override;
   bool InternalClearAccessibilityFocusAction() override;
-  bool OnNativeSetValueAction(const String&) final;
 };
 
 }  // namespace blink

@@ -12,8 +12,6 @@ namespace blink {
 struct WebPictureInPictureWindowOptions {
   uint64_t width = 0;
   uint64_t height = 0;
-  bool disallow_return_to_opener = false;
-  bool prefer_initial_window_placement = false;
 };
 
 }  // namespace blink

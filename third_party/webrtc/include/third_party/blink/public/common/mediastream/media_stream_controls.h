@@ -36,7 +36,7 @@ struct BLINK_COMMON_EXPORT TrackControls {
 
   // An empty string represents the default device.
   // A nonempty string represents a specific device.
-  std::vector<std::string> device_ids;
+  std::string device_id;
 };
 
 // StreamControls describes what is sent to the browser process

@@ -9,7 +9,6 @@
 #include <stdint.h>
 
 #include <memory>
-#include <optional>
 
 #include "base/memory/scoped_refptr.h"
 #include "base/memory/weak_ptr.h"
@@ -18,10 +17,11 @@
 #include "base/time/time.h"
 #include "gpu/GLES2/gl2extchromium.h"
 #include "media/base/video_frame_pool.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
 #include "third_party/blink/renderer/platform/video_capture/video_capturer_source.h"
 #include "third_party/skia/include/core/SkImageInfo.h"
-#include "third_party/skia/include/gpu/ganesh/GrTypes.h"
+#include "third_party/skia/include/gpu/GrTypes.h"
 
 class SkImage;
 
@@ -120,7 +120,7 @@ class MODULES_EXPORT CanvasCaptureHandler {
   media::VideoCaptureFormat capture_format_;
   bool can_discard_alpha_ = false;
   bool ask_for_new_frame_ = false;
-  std::optional<base::TimeTicks> first_frame_ticks_;
+  absl::optional<base::TimeTicks> first_frame_ticks_;
   scoped_refptr<media::VideoFrame> last_frame_;
 
   // The following attributes ensure that CanvasCaptureHandler emits

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<meta name=fuzzy content="maxDifference=0-3; totalPixels=0-1000">
+<html>
+<head>
 <script src="../../../resources/testharness.js"></script>
 <script src="../../../resources/testharnessreport.js"></script>
 <script src="../../../resources/testdriver.js"></script>
@@ -7,7 +8,8 @@
 <script src="../resources/common.js"></script>
 <script src="../resources/picker-common.js"></script>
 <script src="../calendar-picker/resources/calendar-picker-common.js"></script>
-
+</head>
+<body>
 <input type="time" id="time" value="14:15:02" oninput="inputEventCount++;" onchange="changeEventCount++">
 <script>
 'use strict';
@@ -82,3 +84,5 @@ promise_test(() => {
 }, "Test that change does not fire if popup value is modified and then restored to original value.");
 
 </script>
+</body>
+</html>

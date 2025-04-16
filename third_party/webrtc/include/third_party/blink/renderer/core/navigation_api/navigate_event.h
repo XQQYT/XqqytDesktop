@@ -5,16 +5,14 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_NAVIGATION_API_NAVIGATE_EVENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_NAVIGATION_API_NAVIGATE_EVENT_H_
 
-#include <optional>
-
 #include "base/time/time.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/web/web_frame_load_type.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
 #include "third_party/blink/renderer/bindings/core/v8/serialization/serialized_script_value.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_navigation_commit_behavior.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_navigation_focus_reset.h"
 #include "third_party/blink/renderer/bindings/core/v8/v8_navigation_scroll_behavior.h"
-#include "third_party/blink/renderer/bindings/core/v8/v8_navigation_type.h"
 #include "third_party/blink/renderer/core/dom/events/event.h"
 #include "third_party/blink/renderer/core/dom/focused_element_change_observer.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
@@ -34,6 +32,7 @@ class NavigateEventInit;
 class NavigationInterceptOptions;
 class ExceptionState;
 class FormData;
+class ScriptPromise;
 class V8NavigationInterceptHandler;
 
 class NavigateEvent final : public Event,
@@ -58,9 +57,7 @@ class NavigateEvent final : public Event,
     dispatch_params_ = dispatch_params;
   }
 
-  V8NavigationType navigationType() {
-    return V8NavigationType(navigation_type_);
-  }
+  String navigationType() { return navigation_type_; }
   NavigationDestination* destination() { return destination_.Get(); }
   bool canIntercept() const { return can_intercept_; }
   bool userInitiated() const { return user_initiated_; }
@@ -73,7 +70,6 @@ class NavigateEvent final : public Event,
   Element* sourceElement() const { return source_element_.Get(); }
   void intercept(NavigationInterceptOptions*, ExceptionState&);
   void commit(ExceptionState&);
-  void redirect(const String& url, ExceptionState&);
 
   // If intercept() was called, this is called after dispatch to either commit
   // the navigation or set the appropritate state for a deferred commit.
@@ -88,7 +84,7 @@ class NavigateEvent final : public Event,
   }
   void FinalizeNavigationActionPromisesList();
 
-  void Abort(ScriptState*, ScriptValue error, CancelNavigationReason);
+  void Abort(ScriptState* script_state, ScriptValue error);
 
   // FocusedElementChangeObserver implementation:
   void DidChangeFocus() final;
@@ -98,7 +94,6 @@ class NavigateEvent final : public Event,
 
  private:
   bool PerformSharedChecks(const String& function_name, ExceptionState&);
-  bool PerformSharedCommitChecks(const String& function_name, ExceptionState&);
 
   bool ShouldCommitImmediately();
   void CommitNow();
@@ -107,13 +102,12 @@ class NavigateEvent final : public Event,
   void PotentiallyProcessScrollBehavior();
   void ProcessScrollBehavior();
 
-  class FulfillReaction;
-  class RejectReaction;
+  class Reaction;
   void ReactDone(ScriptValue, bool did_fulfill);
 
   void DelayedLoadStartTimerFired();
 
-  V8NavigationType::Enum navigation_type_;
+  String navigation_type_;
   Member<NavigationDestination> destination_;
   bool can_intercept_;
   bool user_initiated_;
@@ -125,9 +119,9 @@ class NavigateEvent final : public Event,
   ScriptValue info_;
   bool has_ua_visual_transition_ = false;
   Member<Element> source_element_;
-  std::optional<V8NavigationFocusReset> focus_reset_behavior_ = std::nullopt;
-  std::optional<V8NavigationScrollBehavior> scroll_behavior_ = std::nullopt;
-  std::optional<V8NavigationCommitBehavior> commit_behavior_ = std::nullopt;
+  absl::optional<V8NavigationFocusReset> focus_reset_behavior_ = absl::nullopt;
+  absl::optional<V8NavigationScrollBehavior> scroll_behavior_ = absl::nullopt;
+  absl::optional<V8NavigationCommitBehavior> commit_behavior_ = absl::nullopt;
 
   Member<NavigateEventDispatchParams> dispatch_params_;
 
@@ -140,8 +134,7 @@ class NavigateEvent final : public Event,
   };
   InterceptState intercept_state_ = InterceptState::kNone;
 
-  HeapVector<MemberScriptPromise<IDLUndefined>>
-      navigation_action_promises_list_;
+  HeapVector<ScriptPromise> navigation_action_promises_list_;
   HeapVector<Member<V8NavigationInterceptHandler>>
       navigation_action_handlers_list_;
   bool did_change_focus_during_intercept_ = false;

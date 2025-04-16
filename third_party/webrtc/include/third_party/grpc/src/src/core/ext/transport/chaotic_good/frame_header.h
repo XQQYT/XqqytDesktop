@@ -16,57 +16,56 @@
 #define GRPC_SRC_CORE_EXT_TRANSPORT_CHAOTIC_GOOD_FRAME_HEADER_H
 
 #include <grpc/support/port_platform.h>
-#include <stddef.h>
 
 #include <cstdint>
 
 #include "absl/status/statusor.h"
-#include "src/core/util/bitset.h"
+
+#include "src/core/lib/gprpp/bitset.h"
 
 namespace grpc_core {
 namespace chaotic_good {
 
-// Remember to add new frame types to frame_fuzzer.cc
 enum class FrameType : uint8_t {
   kSettings = 0x00,
-  kClientInitialMetadata = 0x80,
-  kClientEndOfStream = 0x81,
-  kServerInitialMetadata = 0x91,
-  kServerTrailingMetadata = 0x92,
-  kMessage = 0xa0,
-  kBeginMessage = 0xa1,
-  kMessageChunk = 0xa2,
-  kCancel = 0xff,
+  kFragment = 0x80,
+  kCancel = 0x81,
 };
 
-std::string FrameTypeString(FrameType type);
+struct FrameSizes {
+  uint64_t message_offset;
+  uint64_t trailer_offset;
+  uint64_t frame_length;
 
-inline std::ostream& operator<<(std::ostream& out, FrameType type) {
-  return out << FrameTypeString(type);
-}
-
-template <typename Sink>
-void AbslStringify(Sink& sink, FrameType type) {
-  sink.Append(FrameTypeString(type));
-}
-
-struct FrameHeader {
-  FrameType type = FrameType::kCancel;
-  uint32_t stream_id = 0;
-  uint32_t payload_length = 0;
-
-  // Report contents as a string
-  std::string ToString() const;
-
-  bool operator==(const FrameHeader& h) const {
-    return type == h.type && stream_id == h.stream_id &&
-           payload_length == h.payload_length;
+  bool operator==(const FrameSizes& other) const {
+    return message_offset == other.message_offset &&
+           trailer_offset == other.trailer_offset &&
+           frame_length == other.frame_length;
   }
 };
 
-inline std::ostream& operator<<(std::ostream& out, const FrameHeader& h) {
-  return out << h.ToString();
-}
+struct FrameHeader {
+  FrameType type;
+  BitSet<3> flags;
+  uint32_t stream_id;
+  uint32_t header_length;
+  uint32_t message_length;
+  uint32_t trailer_length;
+
+  // Parses a frame header from a buffer of 64 bytes. All 64 bytes are consumed.
+  static absl::StatusOr<FrameHeader> Parse(const uint8_t* data);
+  // Serializes a frame header into a buffer of 64 bytes.
+  void Serialize(uint8_t* data) const;
+  // Compute frame sizes from the header.
+  FrameSizes ComputeFrameSizes() const;
+
+  bool operator==(const FrameHeader& h) const {
+    return type == h.type && flags == h.flags && stream_id == h.stream_id &&
+           header_length == h.header_length &&
+           message_length == h.message_length &&
+           trailer_length == h.trailer_length;
+  }
+};
 
 }  // namespace chaotic_good
 }  // namespace grpc_core

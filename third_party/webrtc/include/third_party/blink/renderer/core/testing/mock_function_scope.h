@@ -23,12 +23,12 @@ class MockFunctionScope {
   explicit MockFunctionScope(ScriptState*);
   ~MockFunctionScope();
 
-  ScriptFunction* ExpectCall();
-  ScriptFunction* ExpectCall(String* captor);
-  ScriptFunction* ExpectNoCall();
+  v8::Local<v8::Function> ExpectCall();
+  v8::Local<v8::Function> ExpectCall(String* captor);
+  v8::Local<v8::Function> ExpectNoCall();
 
  private:
-  class MockFunction : public ScriptFunction {
+  class MockFunction : public ScriptFunction::Callable {
    public:
     MockFunction();
     // TODO(http://crbug.com/1159794): add other convenience methods that allow

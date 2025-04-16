@@ -21,7 +21,7 @@
 //
 // Example usage:
 //
-// class TestInterface : public RefCountInterface {
+// class TestInterface : public rtc::RefCountInterface {
 //  public:
 //   std::string FooA() = 0;
 //   std::string FooB(bool arg1) const = 0;
@@ -64,20 +64,30 @@
 #include <type_traits>
 #include <utility>
 
-#include "api/make_ref_counted.h"
 #include "api/scoped_refptr.h"
 #include "api/task_queue/task_queue_base.h"
 #include "rtc_base/event.h"
 #include "rtc_base/string_utils.h"
 #include "rtc_base/system/rtc_export.h"
 #include "rtc_base/thread.h"
-#include "rtc_base/trace_event.h"
 
 #if !defined(RTC_DISABLE_PROXY_TRACE_EVENTS) && !defined(WEBRTC_CHROMIUM_BUILD)
 #define RTC_DISABLE_PROXY_TRACE_EVENTS
 #endif
 
 namespace webrtc {
+namespace proxy_internal {
+
+// Class for tracing the lifetime of MethodCall::Marshal.
+class ScopedTrace {
+ public:
+  explicit ScopedTrace(const char* class_and_method_name);
+  ~ScopedTrace();
+
+ private:
+  [[maybe_unused]] const char* const class_and_method_name_;
+};
+}  // namespace proxy_internal
 
 template <typename R>
 class ReturnType {
@@ -113,7 +123,7 @@ class MethodCall {
         m_(m),
         args_(std::forward_as_tuple(std::forward<Args>(args)...)) {}
 
-  R Marshal(Thread* t) {
+  R Marshal(rtc::Thread* t) {
     if (t->IsCurrent()) {
       Invoke(std::index_sequence_for<Args...>());
     } else {
@@ -121,7 +131,7 @@ class MethodCall {
         Invoke(std::index_sequence_for<Args...>());
         event_.Set();
       });
-      event_.Wait(Event::kForever);
+      event_.Wait(rtc::Event::kForever);
     }
     return r_.moved_result();
   }
@@ -136,7 +146,7 @@ class MethodCall {
   Method m_;
   ReturnType<R> r_;
   std::tuple<Args&&...> args_;
-  Event event_;
+  rtc::Event event_;
 };
 
 template <typename C, typename R, typename... Args>
@@ -148,7 +158,7 @@ class ConstMethodCall {
         m_(m),
         args_(std::forward_as_tuple(std::forward<Args>(args)...)) {}
 
-  R Marshal(Thread* t) {
+  R Marshal(rtc::Thread* t) {
     if (t->IsCurrent()) {
       Invoke(std::index_sequence_for<Args...>());
     } else {
@@ -156,7 +166,7 @@ class ConstMethodCall {
         Invoke(std::index_sequence_for<Args...>());
         event_.Set();
       });
-      event_.Wait(Event::kForever);
+      event_.Wait(rtc::Event::kForever);
     }
     return r_.moved_result();
   }
@@ -171,7 +181,7 @@ class ConstMethodCall {
   Method m_;
   ReturnType<R> r_;
   std::tuple<Args&&...> args_;
-  Event event_;
+  rtc::Event event_;
 };
 
 #define PROXY_STRINGIZE_IMPL(x) #x
@@ -324,7 +334,7 @@ class ConstMethodCall {
       rtc::MakeCompileTimeString(proxy_name_)           \
           .Concat(rtc::MakeCompileTimeString("::"))     \
           .Concat(rtc::MakeCompileTimeString(#method)); \
-  TRACE_EVENT0("webrtc", class_and_method_name.string)
+  proxy_internal::ScopedTrace scoped_trace(class_and_method_name.string)
 
 #endif  // if defined(RTC_DISABLE_PROXY_TRACE_EVENTS)
 

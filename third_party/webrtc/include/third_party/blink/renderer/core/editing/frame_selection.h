@@ -32,38 +32,36 @@
 #include "base/check_op.h"
 #include "base/dcheck_is_on.h"
 #include "third_party/blink/renderer/core/core_export.h"
+#include "third_party/blink/renderer/core/dom/synchronous_mutation_observer.h"
 #include "third_party/blink/renderer/core/editing/ephemeral_range.h"
 #include "third_party/blink/renderer/core/editing/forward.h"
 #include "third_party/blink/renderer/core/editing/set_selection_options.h"
 #include "third_party/blink/renderer/core/editing/visible_units.h"
 #include "third_party/blink/renderer/core/scroll/scroll_alignment.h"
+#include "third_party/blink/renderer/platform/geometry/layout_rect.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "ui/gfx/geometry/rect.h"
 
 namespace blink {
 
-class CharacterData;
-class Document;
 class EffectPaintPropertyNode;
 class Element;
+class LayoutBlock;
+class LayoutText;
+class LocalFrame;
 class FrameCaret;
 class GranularityStrategy;
 class GraphicsContext;
 class InlineCursor;
 class InlineCursorPosition;
-class LayoutBlock;
-class LayoutSelection;
-class LayoutText;
-class LocalFrame;
-class NodeWithIndex;
-class PhysicalBoxFragment;
+class NGPhysicalBoxFragment;
 class Range;
 class SelectionEditor;
-class Text;
-class TextIteratorBehavior;
+class LayoutSelection;
 enum class SelectionModifyAlteration;
 enum class SelectionModifyDirection;
 enum class SelectionState;
+class TextIteratorBehavior;
 struct PaintInvalidatorContext;
 struct PhysicalOffset;
 struct PhysicalRect;
@@ -85,7 +83,7 @@ enum class SelectSoftLineBreak { kNotSelected, kSelected };
 // |line_break| : This value represents If this fragment is selected and
 // selection wraps soft line break.
 struct LayoutSelectionStatus {
-  DISALLOW_NEW();
+  STACK_ALLOCATED();
 
  public:
   LayoutSelectionStatus(unsigned passed_start,
@@ -131,7 +129,8 @@ struct LayoutTextSelectionStatus {
 };
 
 class CORE_EXPORT FrameSelection final
-    : public GarbageCollected<FrameSelection> {
+    : public GarbageCollected<FrameSelection>,
+      public SynchronousMutationObserver {
  public:
   explicit FrameSelection(LocalFrame&);
   FrameSelection(const FrameSelection&) = delete;
@@ -142,8 +141,6 @@ class CORE_EXPORT FrameSelection final
   // You should not call |document()| when |!isAvailable()|.
   Document& GetDocument() const;
   LocalFrame* GetFrame() const { return frame_.Get(); }
-  // Note that RootEditableElementOrDocumentElement can return null if the
-  // documentElement is null.
   Element* RootEditableElementOrDocumentElement() const;
   wtf_size_t CharacterIndexForPoint(const gfx::Point&) const;
 
@@ -161,7 +158,7 @@ class CORE_EXPORT FrameSelection final
 
   void SetSelection(const SelectionInDOMTree&, const SetSelectionOptions&);
   void SetSelectionAndEndTyping(const SelectionInDOMTree&);
-  void SelectAll(SetSelectionBy, bool canonicalize_selection = false);
+  void SelectAll(SetSelectionBy);
   void SelectAll();
   void SelectSubString(const Element&, int offset, int count);
   void Clear();
@@ -204,7 +201,7 @@ class CORE_EXPORT FrameSelection final
   // Returns true if specified layout block should paint caret. This function is
   // called during painting only.
   bool ShouldPaintCaret(const LayoutBlock&) const;
-  bool ShouldPaintCaret(const PhysicalBoxFragment&) const;
+  bool ShouldPaintCaret(const NGPhysicalBoxFragment&) const;
 
   // Bounds of (possibly transformed) caret in absolute coords
   gfx::Rect AbsoluteCaretBounds() const;
@@ -235,7 +232,6 @@ class CORE_EXPORT FrameSelection final
   void LayoutBlockWillBeDestroyed(const LayoutBlock&);
   void UpdateStyleAndLayoutIfNeeded();
   void InvalidatePaint(const LayoutBlock&, const PaintInvalidatorContext&);
-  void EnsureInvalidationOfPreviousLayoutBlock();
 
   void PaintCaret(GraphicsContext&, const PhysicalOffset&);
 
@@ -320,21 +316,7 @@ class CORE_EXPORT FrameSelection final
   SelectionState ComputePaintingSelectionStateForCursor(
       const InlineCursorPosition& position) const;
 
-  // Notifications from the Document.
-  void ContextDestroyed();
-  void DidChangeChildren(const ContainerNode::ChildrenChange& change);
-  void DidMergeTextNodes(const Text& merged_node,
-                         const NodeWithIndex& node_to_be_removed_with_index,
-                         unsigned old_length);
-  void DidSplitTextNode(const Text&);
-  void DidUpdateCharacterData(CharacterData*,
-                              unsigned offset,
-                              unsigned old_length,
-                              unsigned new_length);
-  void NodeChildrenWillBeRemoved(ContainerNode&);
-  void NodeWillBeRemoved(Node&);
-
-  void Trace(Visitor*) const;
+  void Trace(Visitor*) const override;
 
  private:
   friend class CaretDisplayItemClientTest;
@@ -356,6 +338,11 @@ class CORE_EXPORT FrameSelection final
 
   void MoveRangeSelectionInternal(const SelectionInDOMTree&, TextGranularity);
 
+  // Implementation of |SynchronousMutationObserver| member functions.
+  void ContextDestroyed() final;
+  void NodeChildrenWillBeRemoved(ContainerNode&) final;
+  void NodeWillBeRemoved(Node&) final;
+
   // Returns the range corresponding to a |text_granularity| selection around
   // the caret. Returns a null range if the selection failed, either because
   // the current selection was not a caret or if a |text_granularity| selection
@@ -368,7 +355,6 @@ class CORE_EXPORT FrameSelection final
       WordSide word_side) const;
 
   Member<LocalFrame> frame_;
-  WeakMember<Document> document_;
   const Member<LayoutSelection> layout_selection_;
   const Member<SelectionEditor> selection_editor_;
 

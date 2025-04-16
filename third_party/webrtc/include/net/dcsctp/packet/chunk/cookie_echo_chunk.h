@@ -36,7 +36,7 @@ class CookieEchoChunk : public Chunk, public TLVTrait<CookieEchoChunkConfig> {
   explicit CookieEchoChunk(rtc::ArrayView<const uint8_t> cookie)
       : cookie_(cookie.begin(), cookie.end()) {}
 
-  static std::optional<CookieEchoChunk> Parse(
+  static absl::optional<CookieEchoChunk> Parse(
       rtc::ArrayView<const uint8_t> data);
 
   void SerializeTo(std::vector<uint8_t>& out) const override;

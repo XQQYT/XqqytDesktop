@@ -13,7 +13,7 @@
 
 #include <memory>
 
-#include "api/audio/audio_processing.h"
+#include "modules/audio_processing/include/audio_processing.h"
 #include "test/fuzzers/fuzz_data_helper.h"
 namespace webrtc {
 

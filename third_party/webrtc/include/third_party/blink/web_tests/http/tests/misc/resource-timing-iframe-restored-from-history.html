@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <script src="/js-test-resources/js-test.js"></script>
-<script src="/resources/prevent-bfcache.js"></script>
 <script>
 description('Tests that iframe restored from history without explicit navigation does not report resource timing.');
 window.jsTestIsAsync = true;
 
-async function runTest() {
-    await preventBFCache();
+function runTest() {
     if (!sessionStorage.didNav) {
         sessionStorage.didNav = true;
         // Navigate a timeout to make sure we generate a history entry that we can go back to.
@@ -16,9 +14,8 @@ async function runTest() {
     } else {
         delete sessionStorage.didNav;
         resources = performance.getEntriesByType('resource');
-        shouldBe('resources.length', '2');
+        shouldBe('resources.length', '1');
         shouldBeEqualToString('resources[0].name', 'http://127.0.0.1:8000/js-test-resources/js-test.js');
-        shouldBeEqualToString('resources[1].name', 'http://127.0.0.1:8000/resources/prevent-bfcache.js');
         if (window.testRunner)
             finishJSTest();
     }

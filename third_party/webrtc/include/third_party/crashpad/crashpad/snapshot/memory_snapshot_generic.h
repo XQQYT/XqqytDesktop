@@ -18,7 +18,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include "base/containers/heap_array.h"
 #include "base/logging.h"
 #include "base/numerics/safe_math.h"
 #include "snapshot/memory_snapshot.h"
@@ -80,11 +79,11 @@ class MemorySnapshotGeneric final : public MemorySnapshot {
       return delegate->MemorySnapshotDelegateRead(nullptr, size_);
     }
 
-    auto buffer = base::HeapArray<uint8_t>::Uninit(size_);
-    if (!process_memory_->Read(address_, buffer.size(), buffer.data())) {
+    std::unique_ptr<uint8_t[]> buffer(new uint8_t[size_]);
+    if (!process_memory_->Read(address_, size_, buffer.get())) {
       return false;
     }
-    return delegate->MemorySnapshotDelegateRead(buffer.data(), buffer.size());
+    return delegate->MemorySnapshotDelegateRead(buffer.get(), size_);
   }
 
   const MemorySnapshot* MergeWithOtherSnapshot(

@@ -5,7 +5,6 @@
 #ifndef BASE_TEST_REPEATING_TEST_FUTURE_H_
 #define BASE_TEST_REPEATING_TEST_FUTURE_H_
 
-#include <optional>
 #include <utility>
 
 #include "base/check.h"
@@ -15,6 +14,7 @@
 #include "base/sequence_checker.h"
 #include "base/test/test_future_internal.h"
 #include "base/thread_annotations.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace base::test {
 
@@ -111,8 +111,7 @@ class RepeatingTestFuture {
   // Wait for an element to arrive, and move its value out.
   //
   // Will DCHECK if a timeout happens.
-  template <typename T = TupleType>
-    requires(internal::IsSingleValuedTuple<T>)
+  template <typename T = TupleType, internal::EnableIfSingleValue<T> = true>
   auto Take() {
     return std::get<0>(TakeTuple());
   }
@@ -125,8 +124,7 @@ class RepeatingTestFuture {
   // Wait for an element to arrive, and move a tuple with its values out.
   //
   // Will DCHECK if a timeout happens.
-  template <typename T = TupleType>
-    requires(internal::IsMultiValuedTuple<T>)
+  template <typename T = TupleType, internal::EnableIfMultiValue<T> = true>
   TupleType Take() {
     return TakeTuple();
   }
@@ -164,7 +162,7 @@ class RepeatingTestFuture {
   base::queue<TupleType> elements_ GUARDED_BY_CONTEXT(sequence_checker_);
 
   // Used by Wait() to know when AddValue() is called.
-  std::optional<base::RunLoop> run_loop_ GUARDED_BY_CONTEXT(sequence_checker_);
+  absl::optional<base::RunLoop> run_loop_ GUARDED_BY_CONTEXT(sequence_checker_);
 
   SEQUENCE_CHECKER(sequence_checker_);
 

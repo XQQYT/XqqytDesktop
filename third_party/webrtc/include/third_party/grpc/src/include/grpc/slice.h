@@ -19,8 +19,9 @@
 #ifndef GRPC_SLICE_H
 #define GRPC_SLICE_H
 
-#include <grpc/impl/slice_type.h>  // IWYU pragma: export
 #include <grpc/support/port_platform.h>
+
+#include <grpc/impl/slice_type.h>  // IWYU pragma: export
 #include <grpc/support/sync.h>
 
 #ifdef __cplusplus

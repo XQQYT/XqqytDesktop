@@ -53,9 +53,9 @@
 namespace {
 
 char* breakpad_mkdtemp(char* path) {
-  if (path == nullptr) {
+  if (path == NULL) {
     errno = EINVAL;
-    return nullptr;
+    return NULL;
   }
 
   // 'path' must be terminated with six 'X'
@@ -66,23 +66,23 @@ char* breakpad_mkdtemp(char* path) {
   if (static_cast<size_t>(path_end - path) < kSuffixLen ||
       memcmp(path_end - kSuffixLen, kSuffix, kSuffixLen) != 0) {
     errno = EINVAL;
-    return nullptr;
+    return NULL;
   }
 
   // If 'path' contains a directory separator, check that it exists to
   // avoid looping later.
   char* sep = strrchr(path, '/');
-  if (sep != nullptr) {
+  if (sep != NULL) {
     struct stat st;
     int ret;
     *sep = '\0';  // temporarily zero-terminate the dirname.
     ret = stat(path, &st);
     *sep = '/';   // restore full path.
     if (ret < 0)
-      return nullptr;
+      return NULL;
     if (!S_ISDIR(st.st_mode)) {
       errno = ENOTDIR;
-      return nullptr;
+      return NULL;
     }
   }
 
@@ -97,11 +97,11 @@ char* breakpad_mkdtemp(char* path) {
       return path;  // Success
 
     if (errno != EEXIST)
-      return nullptr;
+      return NULL;
   }
 
   assert(errno == EEXIST);
-  return nullptr;
+  return NULL;
 }
 
 }  // namespace

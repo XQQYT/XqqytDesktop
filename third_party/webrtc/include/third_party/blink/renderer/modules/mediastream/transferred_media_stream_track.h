@@ -5,7 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_MEDIASTREAM_TRANSFERRED_MEDIA_STREAM_TRACK_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_MEDIASTREAM_TRANSFERRED_MEDIA_STREAM_TRACK_H_
 
-#include "build/build_config.h"
 #include "third_party/blink/renderer/bindings/core/v8/active_script_wrappable.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_capture_handle.h"
@@ -26,6 +25,7 @@
 
 namespace blink {
 
+class MediaStreamTrackVideoStats;
 class MediaTrackCapabilities;
 class MediaTrackConstraints;
 class MediaTrackSettings;
@@ -49,18 +49,16 @@ class MODULES_EXPORT TransferredMediaStreamTrack : public MediaStreamTrack {
   bool muted() const override;
   String ContentHint() const override;
   void SetContentHint(const String&) override;
-  V8MediaStreamTrackState readyState() const override;
+  String readyState() const override;
   MediaStreamTrack* clone(ExecutionContext*) override;
   void stopTrack(ExecutionContext*) override;
   MediaTrackCapabilities* getCapabilities() const override;
   MediaTrackConstraints* getConstraints() const override;
   MediaTrackSettings* getSettings() const override;
-  V8UnionMediaStreamTrackAudioStatsOrMediaStreamTrackVideoStats* stats()
-      override;
+  MediaStreamTrackVideoStats* stats() override;
   CaptureHandle* getCaptureHandle() const override;
-  ScriptPromise<IDLUndefined> applyConstraints(
-      ScriptState*,
-      const MediaTrackConstraints*) override;
+  ScriptPromise applyConstraints(ScriptState*,
+                                 const MediaTrackConstraints*) override;
 
   bool HasImplementation() const { return !!track_; }
   // TODO(1288839): access to track_ is a baby-step toward removing
@@ -84,7 +82,6 @@ class MODULES_EXPORT TransferredMediaStreamTrack : public MediaStreamTrack {
 
   void RegisterMediaStream(MediaStream*) override;
   void UnregisterMediaStream(MediaStream*) override;
-  void RegisterSink(SpeechRecognitionMediaStreamAudioSink*) override;
 
   // EventTarget
   const AtomicString& InterfaceName() const override;
@@ -96,11 +93,10 @@ class MODULES_EXPORT TransferredMediaStreamTrack : public MediaStreamTrack {
   bool HasPendingActivity() const override;
 
   std::unique_ptr<AudioSourceProvider> CreateWebAudioSource(
-      int context_sample_rate,
-      base::TimeDelta platform_buffer_duration) override;
+      int context_sample_rate) override;
 
   ImageCapture* GetImageCapture() override;
-  std::optional<const MediaStreamDevice> device() const override;
+  absl::optional<const MediaStreamDevice> device() const override;
   void BeingTransferred(const base::UnguessableToken& transfer_id) override;
   bool TransferAllowed(String& message) const override;
 
@@ -117,7 +113,7 @@ class MODULES_EXPORT TransferredMediaStreamTrack : public MediaStreamTrack {
     CLONE
   };
 
-  void applyConstraints(ScriptPromiseResolver<IDLUndefined>*,
+  void applyConstraints(ScriptPromiseResolver*,
                         const MediaTrackConstraints*) override;
 
   // Helper class to register as an event listener on the underlying
@@ -135,11 +131,11 @@ class MODULES_EXPORT TransferredMediaStreamTrack : public MediaStreamTrack {
   };
 
   struct ConstraintsPair : GarbageCollected<ConstraintsPair> {
-    ConstraintsPair(ScriptPromiseResolver<IDLUndefined>* resolver,
+    ConstraintsPair(ScriptPromiseResolver* resolver,
                     const MediaTrackConstraints* constraints);
     void Trace(Visitor*) const;
 
-    const Member<ScriptPromiseResolver<IDLUndefined>> resolver;
+    const Member<ScriptPromiseResolver> resolver;
     const Member<const MediaTrackConstraints> constraints;
   };
 

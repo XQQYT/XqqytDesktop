@@ -19,9 +19,7 @@ class WebThemeEngineMac : public WebThemeEngineDefault {
              const gfx::Rect& rect,
              const WebThemeEngine::ExtraParams* extra_params,
              mojom::ColorScheme color_scheme,
-             bool in_forced_colors,
-             const ui::ColorProvider* color_provider,
-             const std::optional<SkColor>& accent_color) override;
+             const absl::optional<SkColor>& accent_color) override;
 
   static bool IsScrollbarPart(WebThemeEngine::Part part);
   static void PaintMacScrollBarParts(

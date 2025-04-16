@@ -5,17 +5,15 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_NON_INTERPOLABLE_VALUE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_NON_INTERPOLABLE_VALUE_H_
 
-#include "third_party/blink/renderer/platform/heap/garbage_collected.h"
+#include "third_party/blink/renderer/platform/wtf/ref_counted.h"
 
 namespace blink {
 
 // Represents components of a PropertySpecificKeyframe's value that either do
 // not change or 50% flip when interpolating with an adjacent value.
-class NonInterpolableValue : public GarbageCollected<NonInterpolableValue> {
+class NonInterpolableValue : public RefCounted<NonInterpolableValue> {
  public:
   virtual ~NonInterpolableValue() = default;
-
-  virtual void Trace(Visitor*) const {}
 
   typedef const void* Type;
   virtual Type GetType() const = 0;

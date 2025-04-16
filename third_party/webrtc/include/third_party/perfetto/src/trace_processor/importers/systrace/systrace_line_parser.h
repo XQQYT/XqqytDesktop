@@ -31,7 +31,7 @@ class SystraceLineParser {
  public:
   explicit SystraceLineParser(TraceProcessorContext*);
 
-  base::Status ParseLine(const SystraceLine&);
+  util::Status ParseLine(const SystraceLine&);
 
  private:
   TraceProcessorContext* const context_;
@@ -39,6 +39,8 @@ class SystraceLineParser {
 
   const StringId sched_wakeup_name_id_ = kNullStringId;
   const StringId sched_waking_name_id_ = kNullStringId;
+  const StringId cpufreq_name_id_ = kNullStringId;
+  const StringId cpuidle_name_id_ = kNullStringId;
   const StringId workqueue_name_id_ = kNullStringId;
   const StringId sched_blocked_reason_id_ = kNullStringId;
   const StringId io_wait_id_ = kNullStringId;

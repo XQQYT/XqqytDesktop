@@ -5,7 +5,6 @@
 #ifndef BASE_TASK_SEQUENCE_MANAGER_ATOMIC_FLAG_SET_H_
 #define BASE_TASK_SEQUENCE_MANAGER_ATOMIC_FLAG_SET_H_
 
-#include <array>
 #include <atomic>
 #include <memory>
 
@@ -14,7 +13,9 @@
 #include "base/memory/raw_ptr.h"
 #include "base/task/sequence_manager/associated_thread_id.h"
 
-namespace base::sequence_manager::internal {
+namespace base {
+namespace sequence_manager {
+namespace internal {
 
 // This class maintains a set of AtomicFlags which can be activated or
 // deactivated at any time by any thread. When a flag is created a callback is
@@ -99,7 +100,7 @@ class BASE_EXPORT AtomicFlagSet {
 
     std::atomic<size_t> flags = {0};
     size_t allocated_flags = 0;
-    std::array<RepeatingClosure, kNumFlags> flag_callbacks;
+    RepeatingClosure flag_callbacks[kNumFlags];
     raw_ptr<Group> prev = nullptr;
     std::unique_ptr<Group> next;
     raw_ptr<Group> partially_free_list_prev = nullptr;
@@ -111,11 +112,11 @@ class BASE_EXPORT AtomicFlagSet {
 
     // Returns the index of the first unallocated flag. Must not be called when
     // all flags are set.
-    size_t FindFirstUnallocatedFlag() const;
+    int FindFirstUnallocatedFlag() const;
 
     // Computes the index of the |flag_callbacks| based on the number of leading
     // zero bits in |flag|.
-    static size_t IndexOfFirstFlagSet(size_t flag);
+    static int IndexOfFirstFlagSet(size_t flag);
   };
 
  private:
@@ -134,6 +135,8 @@ class BASE_EXPORT AtomicFlagSet {
   raw_ptr<Group> partially_free_list_head_ = nullptr;
 };
 
-}  // namespace base::sequence_manager::internal
+}  // namespace internal
+}  // namespace sequence_manager
+}  // namespace base
 
 #endif  // BASE_TASK_SEQUENCE_MANAGER_ATOMIC_FLAG_SET_H_

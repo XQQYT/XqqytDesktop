@@ -10,8 +10,6 @@
 
 namespace blink {
 
-class V8AudioSinkType;
-
 class AudioSinkInfo : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
 
@@ -21,7 +19,7 @@ class AudioSinkInfo : public ScriptWrappable {
   explicit AudioSinkInfo(const String&);
   ~AudioSinkInfo() override;
 
-  V8AudioSinkType type() const;
+  String type() const;
 };
 
 }  // namespace blink

@@ -21,7 +21,7 @@
 // no control, and all information is passed via callbacks on the Delegate.
 
 // The proxy thread = the Blink main thread
-// The host thread = the webrtc network thread (the one that gets callbacks)
+// The host thread = the webrtc signalling thread (the one that gets callbacks)
 
 namespace blink {
 
@@ -68,7 +68,7 @@ class DtlsTransportProxy : public webrtc::DtlsTransportObserverInterface {
 
   const scoped_refptr<base::SingleThreadTaskRunner> proxy_thread_;
   const scoped_refptr<base::SingleThreadTaskRunner> host_thread_;
-  raw_ptr<webrtc::DtlsTransportInterface> dtls_transport_;
+  raw_ptr<webrtc::DtlsTransportInterface, ExperimentalRenderer> dtls_transport_;
   CrossThreadHandle<Delegate> delegate_;
 };
 

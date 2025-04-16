@@ -5,15 +5,13 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_CONSOLE_LOGGER_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_CONSOLE_LOGGER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/mojom/devtools/console_message.mojom-blink-forward.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/heap/visitor.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
-#include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
 namespace blink {
 
@@ -32,8 +30,8 @@ class PLATFORM_EXPORT ConsoleLogger : public GarbageCollectedMixin {
                          mojom::blink::ConsoleMessageLevel level,
                          const String& message,
                          bool discard_duplicates = false,
-                         std::optional<mojom::blink::ConsoleMessageCategory>
-                             category = std::nullopt) {
+                         absl::optional<mojom::blink::ConsoleMessageCategory>
+                             category = absl::nullopt) {
     AddConsoleMessageImpl(source, level, message, discard_duplicates, category);
   }
 
@@ -48,7 +46,7 @@ class PLATFORM_EXPORT ConsoleLogger : public GarbageCollectedMixin {
       mojom::blink::ConsoleMessageLevel,
       const String& message,
       bool discard_duplicates,
-      std::optional<mojom::blink::ConsoleMessageCategory> category) = 0;
+      absl::optional<mojom::blink::ConsoleMessageCategory> category) = 0;
   virtual void AddConsoleMessageImpl(ConsoleMessage* message,
                                      bool discard_duplicates) = 0;
 };
@@ -80,7 +78,7 @@ class PLATFORM_EXPORT DetachableConsoleLogger final
       mojom::blink::ConsoleMessageLevel level,
       const String& message,
       bool discard_duplicates,
-      std::optional<mojom::blink::ConsoleMessageCategory> category) override {
+      absl::optional<mojom::blink::ConsoleMessageCategory> category) override {
     if (!logger_) {
       return;
     }

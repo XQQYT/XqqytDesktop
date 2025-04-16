@@ -14,8 +14,6 @@ namespace blink {
 // blink/renderer/platform/graphics/gpu.
 using gpu::webgpu::BindWGPUOnceCallback;
 using gpu::webgpu::BindWGPURepeatingCallback;
-using gpu::webgpu::MakeWGPUOnceCallback;
-using gpu::webgpu::MakeWGPURepeatingCallback;
 using gpu::webgpu::WGPUOnceCallback;
 using gpu::webgpu::WGPURepeatingCallback;
 

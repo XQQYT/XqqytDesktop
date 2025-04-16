@@ -6,6 +6,7 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_CSS_PARSER_FONT_VARIANT_EAST_ASIAN_PARSER_H_
 
 #include "third_party/blink/renderer/core/css/css_value_list.h"
+#include "third_party/blink/renderer/core/css/parser/css_parser_token_range.h"
 #include "third_party/blink/renderer/core/css/properties/css_parsing_utils.h"
 
 namespace blink {
@@ -21,8 +22,8 @@ class FontVariantEastAsianParser {
 
   enum class ParseResult { kConsumedValue, kDisallowedValue, kUnknownValue };
 
-  ParseResult ConsumeEastAsian(CSSParserTokenStream& stream) {
-    CSSValueID value_id = stream.Peek().Id();
+  ParseResult ConsumeEastAsian(CSSParserTokenRange& range) {
+    CSSValueID value_id = range.Peek().Id();
     switch (value_id) {
       case CSSValueID::kJis78:
       case CSSValueID::kJis83:
@@ -33,20 +34,20 @@ class FontVariantEastAsianParser {
         if (east_asian_form_value_) {
           return ParseResult::kDisallowedValue;
         }
-        east_asian_form_value_ = css_parsing_utils::ConsumeIdent(stream);
+        east_asian_form_value_ = css_parsing_utils::ConsumeIdent(range);
         return ParseResult::kConsumedValue;
       case CSSValueID::kFullWidth:
       case CSSValueID::kProportionalWidth:
         if (east_asian_width_value_) {
           return ParseResult::kDisallowedValue;
         }
-        east_asian_width_value_ = css_parsing_utils::ConsumeIdent(stream);
+        east_asian_width_value_ = css_parsing_utils::ConsumeIdent(range);
         return ParseResult::kConsumedValue;
       case CSSValueID::kRuby:
         if (ruby_value_) {
           return ParseResult::kDisallowedValue;
         }
-        ruby_value_ = css_parsing_utils::ConsumeIdent(stream);
+        ruby_value_ = css_parsing_utils::ConsumeIdent(range);
         return ParseResult::kConsumedValue;
       default:
         return ParseResult::kUnknownValue;

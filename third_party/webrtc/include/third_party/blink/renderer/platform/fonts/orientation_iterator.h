@@ -5,7 +5,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_ORIENTATION_ITERATOR_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_FONTS_ORIENTATION_ITERATOR_H_
 
-#include "base/containers/span.h"
+#include <memory>
+
 #include "third_party/blink/renderer/platform/fonts/font_orientation.h"
 #include "third_party/blink/renderer/platform/fonts/script_run_iterator.h"
 #include "third_party/blink/renderer/platform/fonts/utf16_text_iterator.h"
@@ -14,20 +15,17 @@
 namespace blink {
 
 class PLATFORM_EXPORT OrientationIterator {
-  STACK_ALLOCATED();
+  USING_FAST_MALLOC(OrientationIterator);
 
  public:
   enum RenderOrientation {
     kOrientationKeep,
     kOrientationRotateSideways,
-    kOrientationInvalid,
-
-    // When adding values, ensure `kMaxEnumValue` is the largest value to store
-    // (values that can be returned for non-empty inputs).
-    kMaxEnumValue = kOrientationRotateSideways,
+    kOrientationInvalid
   };
 
-  OrientationIterator(base::span<const UChar> buffer,
+  OrientationIterator(const UChar* buffer,
+                      unsigned buffer_size,
                       FontOrientation run_orientation);
   OrientationIterator(const OrientationIterator&) = delete;
   OrientationIterator& operator=(const OrientationIterator&) = delete;
@@ -35,7 +33,8 @@ class PLATFORM_EXPORT OrientationIterator {
   bool Consume(unsigned* orientation_limit, RenderOrientation*);
 
  private:
-  UTF16TextIterator utf16_iterator_;
+  std::unique_ptr<UTF16TextIterator> utf16_iterator_;
+  unsigned buffer_size_;
   bool at_end_;
 };
 

@@ -16,6 +16,8 @@ limitations under the License.
 #ifndef MEDIAPIPE_TASKS_C_TEXT_LANGUAGE_DETECTOR_LANGUAGE_DETECTOR_H_
 #define MEDIAPIPE_TASKS_C_TEXT_LANGUAGE_DETECTOR_LANGUAGE_DETECTOR_H_
 
+#include <cstdint>
+
 #include "mediapipe/tasks/c/components/processors/classifier_options.h"
 #include "mediapipe/tasks/c/core/base_options.h"
 
@@ -58,29 +60,29 @@ struct LanguageDetectorOptions {
 // Creates a LanguageDetector from the provided `options`.
 // Returns a pointer to the language detector on success.
 // If an error occurs, returns `nullptr` and sets the error parameter to an
-// an error message (if `error_msg` is not `nullptr`). You must free the memory
+// an error message (if `error_msg` is not nullptr). You must free the memory
 // allocated for the error message.
 MP_EXPORT void* language_detector_create(
-    struct LanguageDetectorOptions* options, char** error_msg);
+    struct LanguageDetectorOptions* options, char** error_msg = nullptr);
 
 // Performs language detection on the input `text`. Returns `0` on success.
 // If an error occurs, returns an error code and sets the error parameter to an
-// an error message (if `error_msg` is not `nullptr`). You must free the memory
+// an error message (if `error_msg` is not nullptr). You must free the memory
 // allocated for the error message.
 MP_EXPORT int language_detector_detect(void* detector, const char* utf8_str,
-                                       struct LanguageDetectorResult* result,
-                                       char** error_msg);
+                                       LanguageDetectorResult* result,
+                                       char** error_msg = nullptr);
 
 // Frees the memory allocated inside a LanguageDetectorResult result. Does not
 // free the result pointer itself.
-MP_EXPORT void language_detector_close_result(
-    struct LanguageDetectorResult* result);
+MP_EXPORT void language_detector_close_result(LanguageDetectorResult* result);
 
 // Shuts down the LanguageDetector when all the work is done. Frees all memory.
 // If an error occurs, returns an error code and sets the error parameter to an
-// an error message (if `error_msg` is not `nullptr`). You must free the memory
+// an error message (if `error_msg` is not nullptr). You must free the memory
 // allocated for the error message.
-MP_EXPORT int language_detector_close(void* detector, char** error_msg);
+MP_EXPORT int language_detector_close(void* detector,
+                                      char** error_msg = nullptr);
 
 #ifdef __cplusplus
 }  // extern C

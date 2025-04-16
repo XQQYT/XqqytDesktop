@@ -22,9 +22,6 @@ class FakeBlob : public mojom::blink::Blob {
   FakeBlob(const String& uuid,
            const String& body = String(),
            State* state = nullptr);
-  FakeBlob(const String& uuid,
-           const Vector<uint8_t>& body_bytes,
-           State* state = nullptr);
 
   void Clone(mojo::PendingReceiver<mojom::blink::Blob>) override;
   void AsDataPipeGetter(
@@ -46,7 +43,7 @@ class FakeBlob : public mojom::blink::Blob {
 
  protected:
   String uuid_;
-  Vector<uint8_t> body_;
+  String body_;
   raw_ptr<State, DanglingUntriaged> state_;
 };
 

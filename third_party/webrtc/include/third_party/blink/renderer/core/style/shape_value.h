@@ -51,16 +51,16 @@ class ShapeValue final : public GarbageCollected<ShapeValue> {
     kImage
   };
 
-  explicit ShapeValue(ShapeValueType type)
+  ShapeValue(scoped_refptr<const BasicShape> shape, CSSBoxType css_box)
+      : type_(kShape), shape_(std::move(shape)), css_box_(css_box) {}
+  ShapeValue(ShapeValueType type)
       : type_(type), css_box_(CSSBoxType::kMissing) {}
-  explicit ShapeValue(StyleImage* image)
+  ShapeValue(StyleImage* image)
       : type_(kImage), image_(image), css_box_(CSSBoxType::kContent) {}
-  explicit ShapeValue(CSSBoxType css_box) : type_(kBox), css_box_(css_box) {}
-  ShapeValue(const BasicShape* shape, CSSBoxType css_box)
-      : type_(kShape), shape_(shape), css_box_(css_box) {}
+  ShapeValue(CSSBoxType css_box) : type_(kBox), css_box_(css_box) {}
 
   ShapeValueType GetType() const { return type_; }
-  const BasicShape* Shape() const { return shape_.Get(); }
+  const BasicShape* Shape() const { return shape_.get(); }
 
   StyleImage* GetImage() const { return image_.Get(); }
   void SetImage(StyleImage* image) {
@@ -73,14 +73,11 @@ class ShapeValue final : public GarbageCollected<ShapeValue> {
 
   bool operator==(const ShapeValue& other) const;
 
-  virtual void Trace(Visitor* visitor) const {
-    visitor->Trace(shape_);
-    visitor->Trace(image_);
-  }
+  virtual void Trace(Visitor* visitor) const { visitor->Trace(image_); }
 
  private:
   ShapeValueType type_;
-  Member<const BasicShape> shape_;
+  scoped_refptr<const BasicShape> shape_;
   Member<StyleImage> image_;
   CSSBoxType css_box_;
 };
@@ -101,6 +98,7 @@ inline bool ShapeValue::operator==(const ShapeValue& other) const {
   }
 
   NOTREACHED();
+  return false;
 }
 
 }  // namespace blink

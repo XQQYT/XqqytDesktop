@@ -31,10 +31,9 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_IMAGE_H_
 #define THIRD_PARTY_BLINK_PUBLIC_WEB_WEB_IMAGE_H_
 
-#include <vector>
-
 #include "base/time/time.h"
 #include "third_party/blink/public/platform/web_common.h"
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/skia/include/core/SkBitmap.h"
 
 namespace gfx {
@@ -73,10 +72,10 @@ class BLINK_EXPORT WebImage {
 
   // Returns a list of all frames in the image. Only the first frame at each
   // pixel size will be returned.
-  static std::vector<SkBitmap> FramesFromData(const WebData&);
+  static WebVector<SkBitmap> FramesFromData(const WebData&);
 
   // Returns a list of all animation frames in the image.
-  static std::vector<AnimationFrame> AnimationFromData(const WebData&);
+  static WebVector<AnimationFrame> AnimationFromData(const WebData&);
 
   WebImage() = delete;
 };

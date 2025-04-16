@@ -24,7 +24,6 @@
 #include <__ranges/access.h>
 #include <__ranges/concepts.h>
 #include <__ranges/subrange.h>
-#include <__type_traits/remove_cvref.h>
 #include <__utility/forward.h>
 #include <__utility/move.h>
 #include <__utility/pair.h>
@@ -33,15 +32,14 @@
 #  pragma GCC system_header
 #endif
 
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
-
 #if _LIBCPP_STD_VER >= 20
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 namespace ranges {
-struct __partition {
+namespace __partition {
+
+struct __fn {
   template <class _Iter, class _Sent, class _Proj, class _Pred>
   _LIBCPP_HIDE_FROM_ABI static constexpr subrange<__remove_cvref_t<_Iter>>
   __partition_fn_impl(_Iter&& __first, _Sent&& __last, _Pred&& __pred, _Proj&& __proj) {
@@ -71,15 +69,15 @@ struct __partition {
   }
 };
 
+} // namespace __partition
+
 inline namespace __cpo {
-inline constexpr auto partition = __partition{};
+inline constexpr auto partition = __partition::__fn{};
 } // namespace __cpo
 } // namespace ranges
 
 _LIBCPP_END_NAMESPACE_STD
 
 #endif // _LIBCPP_STD_VER >= 20
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___ALGORITHM_RANGES_PARTITION_H

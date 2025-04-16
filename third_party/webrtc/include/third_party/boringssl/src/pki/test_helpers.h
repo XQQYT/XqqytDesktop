@@ -1,16 +1,6 @@
 // Copyright 2015 The Chromium Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef BSSL_PKI_TEST_HELPERS_H_
 #define BSSL_PKI_TEST_HELPERS_H_
@@ -22,19 +12,19 @@
 #include <string_view>
 #include <vector>
 
-#include <gtest/gtest.h>
-#include "input.h"
 #include "parsed_certificate.h"
 #include "simple_path_builder_delegate.h"
 #include "trust_store.h"
 #include "verify_certificate_chain.h"
+#include "input.h"
+#include <gtest/gtest.h>
 
-BSSL_NAMESPACE_BEGIN
+namespace bssl {
 
 namespace der {
 
 // This function is used by GTest to support EXPECT_EQ() for der::Input.
-void PrintTo(Input data, ::std::ostream *os);
+void PrintTo(const Input& data, ::std::ostream* os);
 
 }  // namespace der
 
@@ -50,10 +40,10 @@ der::Input SequenceValueFromString(std::string_view s);
 // the destination where the value for that block should be written.
 struct PemBlockMapping {
   // The name of the PEM header. Example "CERTIFICATE".
-  const char *block_name;
+  const char* block_name;
 
   // The destination where the read value should be written to.
-  std::string *value;
+  std::string* value;
 
   // True to indicate that the block is not required to be present. If the
   // block is optional and is not present, then |value| will not be modified.
@@ -75,7 +65,8 @@ struct PemBlockMapping {
 // once. In other words, the header must be present (unless marked as
 // optional=true), have valid data, and appear no more than once.
 ::testing::AssertionResult ReadTestDataFromPemFile(
-    const std::string &file_path_ascii, const PemBlockMapping *mappings,
+    const std::string& file_path_ascii,
+    const PemBlockMapping* mappings,
     size_t mappings_length);
 
 // This is the same as the variant above, however it uses template magic so an
@@ -83,7 +74,8 @@ struct PemBlockMapping {
 // inferred).
 template <size_t N>
 ::testing::AssertionResult ReadTestDataFromPemFile(
-    const std::string &file_path_ascii, const PemBlockMapping (&mappings)[N]) {
+    const std::string& file_path_ascii,
+    const PemBlockMapping (&mappings)[N]) {
   return ReadTestDataFromPemFile(file_path_ascii, mappings, N);
 }
 
@@ -133,45 +125,45 @@ struct VerifyCertChainTest {
 // Reads a test case from |file_path_ascii| (which is relative to //src).
 // Generally |file_path_ascii| will start with:
 //   net/data/verify_certificate_chain_unittest/
-bool ReadVerifyCertChainTestFromFile(const std::string &file_path_ascii,
-                                     VerifyCertChainTest *test);
+bool ReadVerifyCertChainTestFromFile(const std::string& file_path_ascii,
+                                     VerifyCertChainTest* test);
 
 // Reads a certificate chain from |file_path_ascii|
-bool ReadCertChainFromFile(const std::string &file_path_ascii,
-                           ParsedCertificateList *chain);
+bool ReadCertChainFromFile(const std::string& file_path_ascii,
+                           ParsedCertificateList* chain);
 
 // Reads a certificate from |file_path_ascii|. Returns nullptr if the file
 // contained more that one certificate.
 std::shared_ptr<const ParsedCertificate> ReadCertFromFile(
-    const std::string &file_path_ascii);
+    const std::string& file_path_ascii);
 
 // Reads a data file relative to the src root directory.
-std::string ReadTestFileToString(const std::string &file_path_ascii);
+std::string ReadTestFileToString(const std::string& file_path_ascii);
 
 // Asserts that |actual_errors| matches |expected_errors_str|.
 //
 // This is a helper function to simplify rebasing the error expectations when
 // they originate from a test file.
-void VerifyCertPathErrors(const std::string &expected_errors_str,
-                          const CertPathErrors &actual_errors,
-                          const ParsedCertificateList &chain,
-                          const std::string &errors_file_path);
+void VerifyCertPathErrors(const std::string& expected_errors_str,
+                          const CertPathErrors& actual_errors,
+                          const ParsedCertificateList& chain,
+                          const std::string& errors_file_path);
 
 // Asserts that |actual_errors| matches |expected_errors_str|.
 //
 // This is a helper function to simplify rebasing the error expectations when
 // they originate from a test file.
-void VerifyCertErrors(const std::string &expected_errors_str,
-                      const CertErrors &actual_errors,
-                      const std::string &errors_file_path);
+void VerifyCertErrors(const std::string& expected_errors_str,
+                      const CertErrors& actual_errors,
+                      const std::string& errors_file_path);
 
 // Asserts that |actual_user_constrained_policy_set| matches
 // |expected_user_constrained_policy_set|.
 void VerifyUserConstrainedPolicySet(
-    const std::set<std::string> &expected_user_constrained_policy_str_set,
-    const std::set<der::Input> &actual_user_constrained_policy_set,
-    const std::string &errors_file_path);
+    const std::set<std::string>& expected_user_constrained_policy_str_set,
+    const std::set<der::Input>& actual_user_constrained_policy_set,
+    const std::string& errors_file_path);
 
-BSSL_NAMESPACE_END
+}  // namespace net
 
 #endif  // BSSL_PKI_TEST_HELPERS_H_

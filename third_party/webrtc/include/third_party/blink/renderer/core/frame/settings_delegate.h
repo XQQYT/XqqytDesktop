@@ -70,10 +70,9 @@ class CORE_EXPORT SettingsDelegate {
     kPaint,
     kScrollbarLayout,
     kColorScheme,
+    kSpatialNavigation,
     kUniversalAccess,
     kVisionDeficiency,
-    kForcedColors,
-    kFontScaleFactor,
   };
 
   virtual void SettingsChanged(ChangeType) = 0;

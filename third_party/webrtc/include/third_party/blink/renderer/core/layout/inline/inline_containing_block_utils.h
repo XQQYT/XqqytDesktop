@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_INLINE_INLINE_CONTAINING_BLOCK_UTILS_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_INLINE_INLINE_CONTAINING_BLOCK_UTILS_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/core/layout/geometry/physical_rect.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/heap/persistent.h"
@@ -14,9 +13,9 @@
 
 namespace blink {
 
-class BoxFragmentBuilder;
 class LayoutBox;
 class LayoutObject;
+class NGBoxFragmentBuilder;
 
 class InlineContainingBlockUtils {
   STATIC_ONLY(InlineContainingBlockUtils);
@@ -38,7 +37,7 @@ class InlineContainingBlockUtils {
   // It is safe to use Persistent here because this is used only on stack.
   using InlineContainingBlockMap =
       HashMap<Persistent<const LayoutObject>,
-              std::optional<InlineContainingBlockGeometry>>;
+              absl::optional<InlineContainingBlockGeometry>>;
 
   // Computes the geometry required for any inline containing blocks.
   // |inline_containing_block_map| is a map whose keys specify which objects we
@@ -46,7 +45,7 @@ class InlineContainingBlockUtils {
   // is the builder of the containing block of the inline containers.
   static void ComputeInlineContainerGeometry(
       InlineContainingBlockMap* inline_containing_block_map,
-      BoxFragmentBuilder* container_builder);
+      NGBoxFragmentBuilder* container_builder);
 
   // Computes the geometry required for any inline containing blocks inside a
   // fragmentation context. |box| is the containing block the inline containers

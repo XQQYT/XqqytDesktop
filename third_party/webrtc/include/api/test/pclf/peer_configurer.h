@@ -13,13 +13,12 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <variant>
 #include <vector>
 
 #include "absl/strings/string_view.h"
+#include "absl/types/variant.h"
 #include "api/async_dns_resolver.h"
 #include "api/audio/audio_mixer.h"
-#include "api/audio/audio_processing.h"
 #include "api/audio_codecs/audio_decoder_factory.h"
 #include "api/audio_codecs/audio_encoder_factory.h"
 #include "api/fec_controller.h"
@@ -37,6 +36,7 @@
 #include "api/transport/network_control.h"
 #include "api/video_codecs/video_decoder_factory.h"
 #include "api/video_codecs/video_encoder_factory.h"
+#include "modules/audio_processing/include/audio_processing.h"
 #include "rtc_base/rtc_certificate_generator.h"
 #include "rtc_base/ssl_certificate.h"
 
@@ -47,10 +47,10 @@ namespace webrtc_pc_e2e {
 class PeerConfigurer {
  public:
   using VideoSource =
-      std::variant<std::unique_ptr<test::FrameGeneratorInterface>,
-                   CapturingDeviceIndex>;
+      absl::variant<std::unique_ptr<test::FrameGeneratorInterface>,
+                    CapturingDeviceIndex>;
 
-  explicit PeerConfigurer(PeerNetworkDependencies& network);
+  explicit PeerConfigurer(const PeerNetworkDependencies& network_dependencies);
 
   // Sets peer name that will be used to report metrics related to this peer.
   // If not set, some default name will be assigned. All names have to be
@@ -93,25 +93,15 @@ class PeerConfigurer {
       std::unique_ptr<webrtc::AsyncDnsResolverFactoryInterface>
           async_dns_resolver_factory);
   PeerConfigurer* SetRTCCertificateGenerator(
-      std::unique_ptr<RTCCertificateGeneratorInterface> cert_generator);
+      std::unique_ptr<rtc::RTCCertificateGeneratorInterface> cert_generator);
   PeerConfigurer* SetSSLCertificateVerifier(
       std::unique_ptr<rtc::SSLCertificateVerifier> tls_cert_verifier);
   PeerConfigurer* SetIceTransportFactory(
       std::unique_ptr<IceTransportFactory> factory);
   // Flags to set on `cricket::PortAllocator`. These flags will be added
-  // to the cricket::kDefaultPortAllocatorFlags with
-  // cricket::PORTALLOCATOR_DISABLE_TCP disabled. For possible values check
-  // p2p/base/port_allocator.h.
-  PeerConfigurer* SetPortAllocatorExtraFlags(uint32_t extra_flags);
-  // Flags to set on `cricket::PortAllocator`. These flags will override
-  // the default ones that are presented on the port allocator.
-  //
+  // to the default ones that are presented on the port allocator.
   // For possible values check p2p/base/port_allocator.h.
-  //
-  // IMPORTANT: if you use WebRTC Network Emulation
-  // (api/test/network_emulation_manager.h) and set this field, remember to set
-  // cricket::PORTALLOCATOR_DISABLE_TCP to 0.
-  PeerConfigurer* SetPortAllocatorFlags(uint32_t flags);
+  PeerConfigurer* SetPortAllocatorExtraFlags(uint32_t extra_flags);
 
   // Add new video stream to the call that will be sent from this peer.
   // Default implementation of video frames generator will be used.
@@ -168,8 +158,6 @@ class PeerConfigurer {
   // If is set, an AEC dump will be saved in that location and it will be
   // available for further analysis.
   PeerConfigurer* SetAecDumpPath(absl::string_view path);
-  PeerConfigurer* SetPCFOptions(
-      PeerConnectionFactoryInterface::Options options);
   PeerConfigurer* SetRTCConfiguration(
       PeerConnectionInterface::RTCConfiguration configuration);
   PeerConfigurer* SetRTCOfferAnswerOptions(

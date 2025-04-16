@@ -271,8 +271,7 @@ class TestMockTimeTaskRunner : public SingleThreadTaskRunner,
 
   typedef std::priority_queue<TestOrderedPendingTask,
                               std::vector<TestOrderedPendingTask>,
-                              TemporalOrder>
-      TaskPriorityQueue;
+                              TemporalOrder> TaskPriorityQueue;
 
   // Core of the implementation for all flavors of fast-forward methods. Given a
   // non-negative |max_delta|, processes up to |limit| tasks with a remaining

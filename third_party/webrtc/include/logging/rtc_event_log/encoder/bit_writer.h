@@ -15,6 +15,7 @@
 #include <stdint.h>
 
 #include <string>
+#include <utility>
 
 #include "absl/strings/string_view.h"
 #include "rtc_base/bit_buffer.h"
@@ -47,7 +48,7 @@ class BitWriter final {
 
  private:
   std::string buffer_;
-  BitBufferWriter bit_writer_;
+  rtc::BitBufferWriter bit_writer_;
   // Note: Counting bits instead of bytes wraps around earlier than it has to,
   // which means the maximum length is lower than it could be. We don't expect
   // to go anywhere near the limit, though, so this is good enough.

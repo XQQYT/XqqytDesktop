@@ -10,7 +10,9 @@
 <div id="reference"></div>
 <script>
 function test_angle_equals(value, expected) {
-  test_math_used(value, expected, {type: "angle"});
+  test_math_used(`rotate(${value})`, `rotate(${expected})`,
+	{prop:'transform', base:'none',
+     msg: `${value} should be used-value-equivalent to ${expected}`});
 }
 
 // Identity tests

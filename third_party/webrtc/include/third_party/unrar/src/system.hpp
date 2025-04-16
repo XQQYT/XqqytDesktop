@@ -21,10 +21,7 @@ void InitSystemOptions(int SleepTime);
 void SetPriority(int Priority);
 clock_t MonoClock();
 void Wait();
-bool EmailFile(const std::wstring &FileName,std::wstring MailToW);
-#ifdef _WIN_ALL
-bool SetPrivilege(LPCTSTR PrivName);
-#endif
+bool EmailFile(const wchar *FileName,const wchar *MailToW);
 void Shutdown(POWER_MODE Mode);
 bool ShutdownCheckAnother(bool Open);
 
@@ -32,6 +29,7 @@ bool ShutdownCheckAnother(bool Open);
 HMODULE WINAPI LoadSysLibrary(const wchar *Name);
 bool IsUserAdmin();
 #endif
+
 
 #ifdef USE_SSE
 enum SSE_VERSION {SSE_NONE,SSE_SSE,SSE_SSE2,SSE_SSSE3,SSE_SSE41,SSE_AVX2};

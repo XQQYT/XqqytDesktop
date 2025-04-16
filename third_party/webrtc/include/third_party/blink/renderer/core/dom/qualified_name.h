@@ -21,7 +21,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_DOM_QUALIFIED_NAME_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_DOM_QUALIFIED_NAME_H_
 
-#include "base/containers/span.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/hash_table_deleted_value_type.h"
@@ -47,22 +46,8 @@ struct QualifiedNameData {
   bool is_static_;
 };
 
-class CORE_EXPORT QualifiedName;
-
-}  // namespace blink
-
-// `QualifiedName`'s only field is an interned pointer, so it's safe to hash;
-// allow conversion to a byte span to facilitate this.
-namespace base {
-template <>
-inline constexpr bool kCanSafelyConvertToByteSpan<::blink::QualifiedName> =
-    true;
-}
-
-namespace blink {
-
-CORE_EXPORT extern const QualifiedName& g_any_name;
-CORE_EXPORT extern const QualifiedName& g_null_name;
+CORE_EXPORT extern const class QualifiedName& g_any_name;
+CORE_EXPORT extern const class QualifiedName& g_null_name;
 
 class CORE_EXPORT QualifiedName {
   USING_FAST_MALLOC(QualifiedName);
@@ -82,34 +67,22 @@ class CORE_EXPORT QualifiedName {
 
     unsigned ComputeHash() const;
 
-    bool IsStatic() const {
-      return is_static_and_html_attribute_triggers_index_ != kNotStatic;
-    }
-
     void AddRef() {
-      if (IsStatic()) {
+      if (is_static_)
         return;
-      }
       RefCounted<QualifiedNameImpl>::AddRef();
     }
 
     void Release() {
-      if (IsStatic()) {
+      if (is_static_)
         return;
-      }
       RefCounted<QualifiedNameImpl>::Release();
     }
 
-    enum StaticAndAttributeTriggersConstants {
-      kLargestAllowedIndex = 253,
-      kNotStatic = 254,
-      kStaticWithNoIndex = 255
-    };
-
-    // We rely on HashComponents() clearing out the top 8 bits when
+    // We rely on StringHasher's HashMemory clearing out the top 8 bits when
     // doing hashing and use one of the bits for the is_static_ value.
     mutable unsigned existing_hash_ : 24;
-    mutable unsigned is_static_and_html_attribute_triggers_index_ : 8;
+    unsigned is_static_ : 1;
     const AtomicString prefix_;
     const AtomicString local_name_;
     const AtomicString namespace_;
@@ -121,8 +94,7 @@ class CORE_EXPORT QualifiedName {
                       StringImpl* namespace_uri,
                       bool is_static)
         : existing_hash_(0),
-          is_static_and_html_attribute_triggers_index_(
-              is_static ? kStaticWithNoIndex : kNotStatic),
+          is_static_(is_static),
           prefix_(prefix),
           local_name_(local_name),
           namespace_(namespace_uri)
@@ -178,27 +150,9 @@ class CORE_EXPORT QualifiedName {
 
   const AtomicString& LocalNameUpperSlow() const;
 
-  void RegisterHTMLAttributeTriggersIndex(unsigned index) const {
-    using enum QualifiedNameImpl::StaticAndAttributeTriggersConstants;
-    CHECK_EQ(impl_->is_static_and_html_attribute_triggers_index_,
-             kStaticWithNoIndex);
-    CHECK_LE(index, kLargestAllowedIndex);
-    impl_->is_static_and_html_attribute_triggers_index_ = index;
-    CHECK_EQ(*HTMLAttributeTriggersIndex(), index);
-  }
-
-  std::optional<unsigned> HTMLAttributeTriggersIndex() const {
-    using enum QualifiedNameImpl::StaticAndAttributeTriggersConstants;
-    if (impl_->is_static_and_html_attribute_triggers_index_ >
-        kLargestAllowedIndex) {
-      return std::nullopt;
-    }
-    return unsigned{impl_->is_static_and_html_attribute_triggers_index_};
-  }
-
   // Returns true if this is a built-in name. That is, one of the names defined
   // at build time (such as <img>).
-  bool IsDefinedName() const { return impl_ && impl_->IsStatic(); }
+  bool IsDefinedName() const { return impl_ && impl_->is_static_; }
 
   String ToString() const;
 
@@ -247,7 +201,7 @@ inline bool operator!=(const QualifiedName& q, const AtomicString& a) {
 }
 
 inline unsigned HashComponents(const QualifiedNameComponents& buf) {
-  return StringHasher::HashMemory(base::byte_span_from_ref(buf)) & 0xFFFFFF;
+  return StringHasher::HashMemory<sizeof(QualifiedNameComponents)>(&buf);
 }
 
 CORE_EXPORT std::ostream& operator<<(std::ostream&, const QualifiedName&);

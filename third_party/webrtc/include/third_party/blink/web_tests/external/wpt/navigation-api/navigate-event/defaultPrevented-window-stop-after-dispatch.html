@@ -6,12 +6,11 @@ async_test(t => {
   window.onload = t.step_func_done(() => {
     let navigateEvent;
     navigation.onnavigate = e => navigateEvent = e;
-    let committed_promise = navigation.navigate("?1").committed;
+    navigation.navigate("?1");
     assert_false(navigateEvent.defaultPrevented);
 
     window.stop();
     assert_false(navigateEvent.defaultPrevented);
-    promise_rejects_dom(t, "AbortError", committed_promise);
   });
 }, "window.stop() doesn't affect navigateEvent.defaultPrevented after dispatch");
 </script>

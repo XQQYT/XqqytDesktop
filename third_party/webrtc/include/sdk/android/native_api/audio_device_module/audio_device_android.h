@@ -13,7 +13,7 @@
 
 #include <jni.h>
 
-#include "api/audio/audio_device.h"
+#include "modules/audio_device/include/audio_device.h"
 
 namespace webrtc {
 
@@ -32,12 +32,14 @@ rtc::scoped_refptr<AudioDeviceModule> CreateOpenSLESAudioDeviceModule(
     jobject application_context);
 
 rtc::scoped_refptr<AudioDeviceModule>
-CreateJavaInputAndOpenSLESOutputAudioDeviceModule(JNIEnv* env,
-                                                  jobject application_context);
+CreateJavaInputAndOpenSLESOutputAudioDeviceModule(
+    JNIEnv* env,
+    jobject application_context);
 
 rtc::scoped_refptr<AudioDeviceModule>
-CreateJavaInputAndAAudioOutputAudioDeviceModule(JNIEnv* env,
-                                                jobject application_context);
+CreateJavaInputAndAAudioOutputAudioDeviceModule(
+    JNIEnv* env,
+    jobject application_context);
 
 rtc::scoped_refptr<AudioDeviceModule> CreateAndroidAudioDeviceModule(
     AudioDeviceModule::AudioLayer audio_layer);

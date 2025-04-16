@@ -8,12 +8,13 @@
 #include <algorithm>
 
 #include "components/viz/common/view_transition_element_resource_id.h"
-#include "third_party/blink/renderer/platform/graphics/compositing_reasons.h"
 #include "third_party/blink/renderer/platform/graphics/compositor_element_id.h"
 #include "third_party/blink/renderer/platform/graphics/compositor_filter_operations.h"
 #include "third_party/blink/renderer/platform/graphics/paint/paint_property_node.h"
+#include "third_party/blink/renderer/platform/graphics/paint/transform_paint_property_node.h"
+#include "third_party/blink/renderer/platform/graphics/view_transition_element_id.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
-#include "third_party/blink/renderer/platform/restriction_target_id.h"
+#include "third_party/blink/renderer/platform/region_capture_crop_id.h"
 #include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/geometry/rrect_f.h"
 
@@ -21,7 +22,6 @@ namespace blink {
 
 class ClipPaintPropertyNodeOrAlias;
 class PropertyTreeState;
-class TransformPaintPropertyNodeOrAlias;
 
 // Effect nodes are abstraction of isolated groups, along with optional effects
 // that can be applied to the composited output of the group.
@@ -31,8 +31,8 @@ class TransformPaintPropertyNodeOrAlias;
 class EffectPaintPropertyNode;
 
 class PLATFORM_EXPORT EffectPaintPropertyNodeOrAlias
-    : public PaintPropertyNodeBase<EffectPaintPropertyNodeOrAlias,
-                                   EffectPaintPropertyNode> {
+    : public PaintPropertyNode<EffectPaintPropertyNodeOrAlias,
+                               EffectPaintPropertyNode> {
  public:
   // Checks if the accumulated effect from |this| to |relative_to_state
   // .Effect()| has changed, at least significance of |change|, in the space of
@@ -48,31 +48,26 @@ class PLATFORM_EXPORT EffectPaintPropertyNodeOrAlias
       const PropertyTreeState& relative_to_state,
       const TransformPaintPropertyNodeOrAlias* transform_not_to_check) const;
 
-  // See PaintPropertyNode::ChangedSequenceNumber().
   void ClearChangedToRoot(int sequence_number) const;
 
  protected:
-  using PaintPropertyNodeBase::PaintPropertyNodeBase;
+  using PaintPropertyNode::PaintPropertyNode;
 };
 
-class EffectPaintPropertyNodeAlias final
-    : public EffectPaintPropertyNodeOrAlias {
+class EffectPaintPropertyNodeAlias : public EffectPaintPropertyNodeOrAlias {
  public:
-  static EffectPaintPropertyNodeAlias* Create(
+  static scoped_refptr<EffectPaintPropertyNodeAlias> Create(
       const EffectPaintPropertyNodeOrAlias& parent) {
-    return MakeGarbageCollected<EffectPaintPropertyNodeAlias>(kParentAlias,
-                                                              parent);
+    return base::AdoptRef(new EffectPaintPropertyNodeAlias(parent));
   }
 
-  // These are public required by MakeGarbageCollected, but the protected tags
-  // prevent these from being called from outside.
+ private:
   explicit EffectPaintPropertyNodeAlias(
-      ParentAliasTag,
       const EffectPaintPropertyNodeOrAlias& parent)
-      : EffectPaintPropertyNodeOrAlias(kParentAlias, parent) {}
+      : EffectPaintPropertyNodeOrAlias(parent, kParentAlias) {}
 };
 
-class PLATFORM_EXPORT EffectPaintPropertyNode final
+class PLATFORM_EXPORT EffectPaintPropertyNode
     : public EffectPaintPropertyNodeOrAlias {
  public:
   struct AnimationState {
@@ -81,13 +76,6 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
     bool is_running_filter_animation_on_compositor = false;
     bool is_running_backdrop_filter_animation_on_compositor = false;
     STACK_ALLOCATED();
-  };
-
-  struct FilterInfo {
-    CompositorFilterOperations operations;
-    gfx::Rect output_bounds;
-
-    USING_FAST_MALLOC(FilterInfo);
   };
 
   struct BackdropFilterInfo {
@@ -111,14 +99,15 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
     //    and effects under the same parent.
     // 2. Some effects are spatial (namely blur filter and reflection), the
     //    effect parameters will be specified in the local space.
-    Member<const TransformPaintPropertyNodeOrAlias> local_transform_space;
+    scoped_refptr<const TransformPaintPropertyNodeOrAlias>
+        local_transform_space;
     // The output of the effect can be optionally clipped when composited onto
     // the current backdrop.
-    Member<const ClipPaintPropertyNodeOrAlias> output_clip;
+    scoped_refptr<const ClipPaintPropertyNodeOrAlias> output_clip;
     // Optionally a number of effects can be applied to the composited output.
     // The chain of effects will be applied in the following order:
     // === Begin of effects ===
-    std::unique_ptr<FilterInfo> filter_info;
+    CompositorFilterOperations filter;
     std::unique_ptr<BackdropFilterInfo> backdrop_filter_info;
     float opacity = 1;
     SkBlendMode blend_mode = SkBlendMode::kSrcOver;
@@ -126,13 +115,19 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
     CompositingReasons direct_compositing_reasons = CompositingReason::kNone;
     CompositorElementId compositor_element_id;
 
+    // An identifier for a view transition element. `id.valid()` returns true if
+    // this has been set, and false otherwise.
+    blink::ViewTransitionElementId view_transition_element_id;
+
     // An identifier to tag transition element resources generated and cached in
     // the Viz process. This generated resource can be used as content for other
     // elements.
     viz::ViewTransitionElementResourceId view_transition_element_resource_id;
 
     // Used to associate this effect node with its originating Element.
-    RestrictionTargetId restriction_target_id;
+    // TODO(https://crbug.com/1418194): rename crop ID type to a name suitable
+    // for both element-level and region capture.
+    RegionCaptureCropId element_capture_id;
 
     // When set, the affected elements should avoid doing clipping for
     // optimization purposes (like off-screen clipping). This is set by view
@@ -141,8 +136,6 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
     // resize the painted output of the element. Note that this bit is
     // propagated to the subtree of the effect tree.
     bool self_or_ancestor_participates_in_view_transition = false;
-
-    bool has_2d_scale_transform = false;
 
     PaintPropertyChangeType ComputeChange(
         const State& other,
@@ -163,23 +156,16 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
         float new_opacity,
         CompositingReasons direct_compositing_reasons,
         CompositingReasons new_direct_compositing_reasons);
-
-    void Trace(Visitor*) const;
   };
 
   // This node is really a sentinel, and does not represent a real effect.
   static const EffectPaintPropertyNode& Root();
 
-  static EffectPaintPropertyNode* Create(
+  static scoped_refptr<EffectPaintPropertyNode> Create(
       const EffectPaintPropertyNodeOrAlias& parent,
       State&& state) {
-    return MakeGarbageCollected<EffectPaintPropertyNode>(
-        kNonParentAlias, parent, std::move(state));
-  }
-
-  void Trace(Visitor* visitor) const final {
-    PaintPropertyNodeBase::Trace(visitor);
-    visitor->Trace(state_);
+    return base::AdoptRef(
+        new EffectPaintPropertyNode(&parent, std::move(state)));
   }
 
   PaintPropertyChangeType Update(
@@ -206,18 +192,12 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
     return *state_.local_transform_space;
   }
   const ClipPaintPropertyNodeOrAlias* OutputClip() const {
-    return state_.output_clip.Get();
+    return state_.output_clip.get();
   }
 
   SkBlendMode BlendMode() const { return state_.blend_mode; }
   float Opacity() const { return state_.opacity; }
-  const CompositorFilterOperations* Filter() const {
-    return state_.filter_info ? &state_.filter_info->operations : nullptr;
-  }
-  const gfx::Rect& FilterOutputBounds() const {
-    CHECK(state_.filter_info);
-    return state_.filter_info->output_bounds;
-  }
+  const CompositorFilterOperations& Filter() const { return state_.filter; }
 
   const CompositorFilterOperations* BackdropFilter() const {
     if (!state_.backdrop_filter_info) {
@@ -237,28 +217,23 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
     return state_.backdrop_filter_info->mask_element_id;
   }
 
-  bool HasReferenceFilter() const {
-    return state_.filter_info &&
-           state_.filter_info->operations.HasReferenceFilter();
-  }
   bool HasFilterThatMovesPixels() const {
-    return state_.filter_info &&
-           state_.filter_info->operations.HasFilterThatMovesPixels();
+    return state_.filter.HasFilterThatMovesPixels();
   }
 
   bool HasRealEffects() const {
     return Opacity() != 1.0f || BlendMode() != SkBlendMode::kSrcOver ||
-           Filter() || BackdropFilter();
+           !Filter().IsEmpty() || BackdropFilter();
   }
 
   bool IsOpacityOnly() const {
-    return BlendMode() == SkBlendMode::kSrcOver && !Filter() &&
+    return BlendMode() == SkBlendMode::kSrcOver && Filter().IsEmpty() &&
            !BackdropFilter();
   }
 
   // Returns a rect covering the pixels that can be affected by pixels in
-  // `input_rect`. The rects are in the space of `LocalTransformSpace`.
-  gfx::Rect MapRect(const gfx::Rect& input_rect) const;
+  // |inputRect|. The rects are in the space of localTransformSpace.
+  gfx::RectF MapRect(const gfx::RectF& input_rect) const;
 
   bool HasDirectCompositingReasons() const {
     return state_.direct_compositing_reasons != CompositingReason::kNone;
@@ -308,7 +283,7 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
   // True if the filter is not empty, or could become non-empty without a
   // compositing update via a compositor animation or direct update.
   bool MayHaveFilter() const {
-    return Filter() || HasActiveFilterAnimation() ||
+    return !Filter().IsEmpty() || HasActiveFilterAnimation() ||
            RequiresCompositingForWillChangeFilter();
   }
   // True if the backdrop filter is not empty, or could become non-empty
@@ -316,12 +291,6 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
   bool MayHaveBackdropFilter() const {
     return BackdropFilter() || HasActiveBackdropFilterAnimation() ||
            RequiresCompositingForWillChangeBackdropFilter();
-  }
-
-  bool NeedsPixelMovingFilterClipExpander() const {
-    return HasActiveFilterAnimation() ||
-           RequiresCompositingForWillChangeFilter() ||
-           HasFilterThatMovesPixels();
   }
 
   // Whether the effect node uses the backdrop as an input. This includes
@@ -335,8 +304,7 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
   // is entirely empty.
   bool DrawsContent() const {
     return MayHaveFilter() || MayHaveBackdropEffect() ||
-           ViewTransitionElementResourceId().IsValid() ||
-           !ElementCaptureId()->is_zero();
+           ViewTransitionElementId().valid() || !ElementCaptureId()->is_zero();
   }
 
   CompositingReasons DirectCompositingReasonsForDebugging() const {
@@ -347,33 +315,30 @@ class PLATFORM_EXPORT EffectPaintPropertyNode final
     return state_.compositor_element_id;
   }
 
+  const blink::ViewTransitionElementId& ViewTransitionElementId() const {
+    return state_.view_transition_element_id;
+  }
+
   const viz::ViewTransitionElementResourceId& ViewTransitionElementResourceId()
       const {
     return state_.view_transition_element_resource_id;
   }
 
-  const RestrictionTargetId& ElementCaptureId() const {
-    return state_.restriction_target_id;
+  const RegionCaptureCropId& ElementCaptureId() const {
+    return state_.element_capture_id;
   }
 
   bool SelfOrAncestorParticipatesInViewTransition() const {
     return state_.self_or_ancestor_participates_in_view_transition;
   }
 
-  bool Has2DScaleTransform() const { return state_.has_2d_scale_transform; }
-
-  std::unique_ptr<JSONObject> ToJSON() const final;
-
-  // These are public required by MakeGarbageCollected, but the protected tags
-  // prevent these from being called from outside.
-  explicit EffectPaintPropertyNode(RootTag);
-  EffectPaintPropertyNode(NonParentAliasTag,
-                          const EffectPaintPropertyNodeOrAlias& parent,
-                          State&& state)
-      : EffectPaintPropertyNodeOrAlias(kNonParentAlias, parent),
-        state_(std::move(state)) {}
+  std::unique_ptr<JSONObject> ToJSON() const;
 
  private:
+  EffectPaintPropertyNode(const EffectPaintPropertyNodeOrAlias* parent,
+                          State&& state)
+      : EffectPaintPropertyNodeOrAlias(parent), state_(std::move(state)) {}
+
   State state_;
 };
 

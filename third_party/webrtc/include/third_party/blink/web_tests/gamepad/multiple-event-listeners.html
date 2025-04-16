@@ -10,14 +10,17 @@ if (!window.gamepadController) {
     debug("This test cannot work without gamepadController.");
 }
 
-let listenerToRemove = function () {}
-window.addEventListener('gamepadconnected', listenerToRemove);
-
+var listenerToRemove = window.addEventListener('gamepadconnected', function() {});
 window.addEventListener('gamepadconnected', function() {
     testPassed("gamepadconnected event received");
     finishJSTest();
 });
 window.removeEventListener('gamepadconnected', listenerToRemove);
+
+setTimeout(function() {
+    testFailed("gamepadconnected event should have been received.");
+    finishJSTest();
+}, 100);
 
 if (gamepadController) {
     gamepadController.connect(0);

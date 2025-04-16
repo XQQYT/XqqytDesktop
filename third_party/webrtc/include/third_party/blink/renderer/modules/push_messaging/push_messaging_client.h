@@ -5,9 +5,12 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_PUSH_MESSAGING_PUSH_MESSAGING_CLIENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_PUSH_MESSAGING_PUSH_MESSAGING_CLIENT_H_
 
+#include <stdint.h>
+#include <memory>
+
 #include "third_party/blink/public/mojom/manifest/manifest.mojom-blink-forward.h"
 #include "third_party/blink/public/mojom/push_messaging/push_messaging.mojom-blink.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
+#include "third_party/blink/renderer/modules/push_messaging/push_subscription_callbacks.h"
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_remote.h"
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_wrapper_mode.h"
 #include "third_party/blink/renderer/platform/supplementable.h"
@@ -20,7 +23,6 @@ enum class PushRegistrationStatus;
 
 class KURL;
 class LocalDOMWindow;
-class PushSubscription;
 class PushSubscriptionOptions;
 class ServiceWorkerRegistration;
 
@@ -41,7 +43,7 @@ class PushMessagingClient final : public GarbageCollected<PushMessagingClient>,
   void Subscribe(ServiceWorkerRegistration* service_worker_registration,
                  PushSubscriptionOptions* options,
                  bool user_gesture,
-                 ScriptPromiseResolver<PushSubscription>* resolver);
+                 std::unique_ptr<PushSubscriptionCallbacks> callbacks);
   void Trace(Visitor*) const override;
 
  private:
@@ -52,18 +54,17 @@ class PushMessagingClient final : public GarbageCollected<PushMessagingClient>,
   void DidGetManifest(ServiceWorkerRegistration* service_worker_registration,
                       mojom::blink::PushSubscriptionOptionsPtr options,
                       bool user_gesture,
-                      ScriptPromiseResolver<PushSubscription>* resolver,
-                      mojom::blink::ManifestRequestResult result,
+                      std::unique_ptr<PushSubscriptionCallbacks> callbacks,
                       const KURL& manifest_url,
                       mojom::blink::ManifestPtr manifest);
 
   void DoSubscribe(ServiceWorkerRegistration* service_worker_registration,
                    mojom::blink::PushSubscriptionOptionsPtr options,
                    bool user_gesture,
-                   ScriptPromiseResolver<PushSubscription>* resolver);
+                   std::unique_ptr<PushSubscriptionCallbacks> callbacks);
 
   void DidSubscribe(ServiceWorkerRegistration* service_worker_registration,
-                    ScriptPromiseResolver<PushSubscription>* resolver,
+                    std::unique_ptr<PushSubscriptionCallbacks> callbacks,
                     mojom::blink::PushRegistrationStatus status,
                     mojom::blink::PushSubscriptionPtr subscription);
 

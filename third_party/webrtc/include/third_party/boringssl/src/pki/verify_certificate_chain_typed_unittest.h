@@ -1,34 +1,24 @@
 // Copyright 2016 The Chromium Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef BSSL_PKI_VERIFY_CERTIFICATE_CHAIN_TYPED_UNITTEST_H_
 #define BSSL_PKI_VERIFY_CERTIFICATE_CHAIN_TYPED_UNITTEST_H_
 
-#include <gtest/gtest.h>
-#include "input.h"
 #include "parsed_certificate.h"
 #include "simple_path_builder_delegate.h"
 #include "test_helpers.h"
 #include "trust_store.h"
 #include "verify_certificate_chain.h"
+#include "input.h"
+#include <gtest/gtest.h>
 
-BSSL_NAMESPACE_BEGIN
+namespace bssl {
 
 template <typename TestDelegate>
 class VerifyCertificateChainTest : public ::testing::Test {
  public:
-  void RunTest(const char *file_name) {
+  void RunTest(const char* file_name) {
     VerifyCertChainTest test;
 
     std::string path =
@@ -129,10 +119,6 @@ TYPED_TEST_P(VerifyCertificateChainSingleRootTest, WeakPublicKey) {
   this->RunTest("target-has-512bit-rsa-key/main.test");
 }
 
-TYPED_TEST_P(VerifyCertificateChainSingleRootTest, InvalidPublicKey) {
-  this->RunTest("intermediate-invalid-spki/main.test");
-}
-
 TYPED_TEST_P(VerifyCertificateChainSingleRootTest, TargetSignedUsingEcdsa) {
   this->RunTest("target-signed-using-ecdsa/main.test");
 }
@@ -154,7 +140,6 @@ TYPED_TEST_P(VerifyCertificateChainSingleRootTest, Expired) {
 TYPED_TEST_P(VerifyCertificateChainSingleRootTest, TargetNotEndEntity) {
   this->RunTest("target-not-end-entity/main.test");
   this->RunTest("target-not-end-entity/strict.test");
-  this->RunTest("target-not-end-entity/strict-leaf.test");
 }
 
 TYPED_TEST_P(VerifyCertificateChainSingleRootTest, KeyUsage) {
@@ -181,34 +166,12 @@ TYPED_TEST_P(VerifyCertificateChainSingleRootTest, ExtendedKeyUsage) {
   this->RunTest("intermediate-eku-clientauth/serverauth.test");
   this->RunTest("intermediate-eku-clientauth/clientauth.test");
   this->RunTest("intermediate-eku-clientauth/serverauth-strict.test");
-  this->RunTest("intermediate-eku-clientauth/serverauth-strict-leaf.test");
   this->RunTest("intermediate-eku-clientauth/clientauth-strict.test");
-  this->RunTest("intermediate-eku-clientauth/clientauth-strict-leaf.test");
-  this->RunTest("intermediate-eku-mlsclientauth/any.test");
-  this->RunTest("intermediate-eku-mlsclientauth/serverauth.test");
-  this->RunTest("intermediate-eku-mlsclientauth/clientauth.test");
-  this->RunTest("intermediate-eku-mlsclientauth/mlsclientauth.test");
-  this->RunTest("intermediate-eku-mlsclientauth-extra/any.test");
-  this->RunTest("intermediate-eku-mlsclientauth-extra/mlsclientauth.test");
-  this->RunTest("intermediate-eku-mlsclientauth-extra/any.test");
-  this->RunTest("intermediate-eku-mlsclientauth-extra/mlsclientauth.test");
-  this->RunTest("intermediate-eku-c2patimestamping/any.test");
-  this->RunTest("intermediate-eku-c2patimestamping/serverauth.test");
-  this->RunTest("intermediate-eku-c2patimestamping/clientauth.test");
-  this->RunTest("intermediate-eku-c2patimestamping/c2patimestamp.test");
-  this->RunTest("intermediate-eku-c2patimestamping/c2pamanifest.test");
-  this->RunTest("intermediate-eku-c2pamanifest/any.test");
-  this->RunTest("intermediate-eku-c2pamanifest/serverauth.test");
-  this->RunTest("intermediate-eku-c2pamanifest/clientauth.test");
-  this->RunTest("intermediate-eku-c2pamanifest/c2patimestamp.test");
-  this->RunTest("intermediate-eku-c2pamanifest/c2pamanifest.test");
   this->RunTest("intermediate-eku-any-and-clientauth/any.test");
   this->RunTest("intermediate-eku-any-and-clientauth/serverauth.test");
   this->RunTest("intermediate-eku-any-and-clientauth/serverauth-strict.test");
-  this->RunTest("intermediate-eku-any-and-clientauth/serverauth-strict-leaf.test");
   this->RunTest("intermediate-eku-any-and-clientauth/clientauth.test");
   this->RunTest("intermediate-eku-any-and-clientauth/clientauth-strict.test");
-  this->RunTest("intermediate-eku-any-and-clientauth/clientauth-strict-leaf.test");
   this->RunTest("target-eku-clientauth/any.test");
   this->RunTest("target-eku-clientauth/serverauth.test");
   this->RunTest("target-eku-clientauth/clientauth.test");
@@ -216,27 +179,19 @@ TYPED_TEST_P(VerifyCertificateChainSingleRootTest, ExtendedKeyUsage) {
   this->RunTest("target-eku-clientauth/clientauth-strict.test");
   this->RunTest("target-eku-any/any.test");
   this->RunTest("target-eku-any/serverauth.test");
-  this->RunTest("target-eku-any/serverauth-strict-leaf.test");
   this->RunTest("target-eku-any/clientauth.test");
   this->RunTest("target-eku-any/serverauth-strict.test");
   this->RunTest("target-eku-any/clientauth-strict.test");
-  this->RunTest("target-eku-any/clientauth-strict-leaf.test");
-  this->RunTest("target-eku-any/mlsclientauth.test");
   this->RunTest("target-eku-many/any.test");
   this->RunTest("target-eku-many/serverauth.test");
   this->RunTest("target-eku-many/clientauth.test");
   this->RunTest("target-eku-many/serverauth-strict.test");
-  this->RunTest("target-eku-many/serverauth-strict-leaf.test");
   this->RunTest("target-eku-many/clientauth-strict.test");
-  this->RunTest("target-eku-many/clientauth-strict-leaf.test");
-  this->RunTest("target-eku-many/mlsclientauth.test");
   this->RunTest("target-eku-none/any.test");
   this->RunTest("target-eku-none/serverauth.test");
   this->RunTest("target-eku-none/clientauth.test");
   this->RunTest("target-eku-none/serverauth-strict.test");
   this->RunTest("target-eku-none/clientauth-strict.test");
-  this->RunTest("target-eku-none/clientauth-strict-leaf.test");
-  this->RunTest("target-eku-none/mlsclientauth.test");
   this->RunTest("root-eku-clientauth/serverauth.test");
   this->RunTest("root-eku-clientauth/serverauth-strict.test");
   this->RunTest("root-eku-clientauth/serverauth-ta-with-constraints.test");
@@ -363,17 +318,29 @@ TYPED_TEST_P(VerifyCertificateChainSingleRootTest, TargetSelfSigned) {
 // TODO(eroman): Add test that invalid validity dates where the day or month
 // ordinal not in range, like "March 39, 2016" are rejected.
 
-REGISTER_TYPED_TEST_SUITE_P(VerifyCertificateChainSingleRootTest, Simple,
-                            BasicConstraintsCa, BasicConstraintsPathlen,
-                            UnknownExtension, MSApplicationPolicies,
-                            WeakSignature, WrongSignature,
-                            LastCertificateNotTrusted, WeakPublicKey,
-                            InvalidPublicKey, TargetSignedUsingEcdsa, Expired,
-                            TargetNotEndEntity, KeyUsage, ExtendedKeyUsage,
+REGISTER_TYPED_TEST_SUITE_P(VerifyCertificateChainSingleRootTest,
+                            Simple,
+                            BasicConstraintsCa,
+                            BasicConstraintsPathlen,
+                            UnknownExtension,
+                            MSApplicationPolicies,
+                            WeakSignature,
+                            WrongSignature,
+                            LastCertificateNotTrusted,
+                            WeakPublicKey,
+                            TargetSignedUsingEcdsa,
+                            Expired,
+                            TargetNotEndEntity,
+                            KeyUsage,
+                            ExtendedKeyUsage,
                             IssuerAndSubjectNotByteForByteEqual,
-                            TrustAnchorNotSelfSigned, KeyRollover, Policies,
-                            ManyNames, TargetOnly, TargetSelfSigned);
+                            TrustAnchorNotSelfSigned,
+                            KeyRollover,
+                            Policies,
+                            ManyNames,
+                            TargetOnly,
+                            TargetSelfSigned);
 
-BSSL_NAMESPACE_END
+}  // namespace net
 
 #endif  // BSSL_PKI_VERIFY_CERTIFICATE_CHAIN_TYPED_UNITTEST_H_

@@ -5,8 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_CONTENT_DECRYPTION_MODULE_RESULT_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_CONTENT_DECRYPTION_MODULE_RESULT_H_
 
-#include <memory>
-
 #include "third_party/blink/public/platform/web_common.h"
 #include "third_party/blink/public/platform/web_content_decryption_module_exception.h"
 #include "third_party/blink/public/platform/web_encrypted_media_key_information.h"
@@ -49,8 +47,7 @@ class BLINK_PLATFORM_EXPORT WebContentDecryptionModuleResult {
   void Complete();
 
   // Called when a CDM is created.
-  void CompleteWithContentDecryptionModule(
-      std::unique_ptr<WebContentDecryptionModule>);
+  void CompleteWithContentDecryptionModule(WebContentDecryptionModule*);
 
   // Called when the CDM completes a session operation.
   void CompleteWithSession(SessionStatus);

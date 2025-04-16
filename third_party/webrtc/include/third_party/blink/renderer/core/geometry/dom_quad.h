@@ -41,7 +41,7 @@ class CORE_EXPORT DOMQuad : public ScriptWrappable {
 
   DOMRect* getBounds();
 
-  ScriptObject toJSONForBinding(ScriptState*) const;
+  ScriptValue toJSONForBinding(ScriptState*) const;
 
   void Trace(Visitor* visitor) const override {
     visitor->Trace(p1_);

@@ -10,8 +10,7 @@
 #ifndef RTC_BASE_EXPERIMENTS_QUALITY_SCALING_EXPERIMENT_H_
 #define RTC_BASE_EXPERIMENTS_QUALITY_SCALING_EXPERIMENT_H_
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/field_trials_view.h"
 #include "api/video_codecs/video_encoder.h"
 
@@ -45,11 +44,11 @@ class QualityScalingExperiment {
   static bool Enabled(const FieldTrialsView& field_trials);
 
   // Returns settings from field trial.
-  static std::optional<Settings> ParseSettings(
+  static absl::optional<Settings> ParseSettings(
       const FieldTrialsView& field_trials);
 
   // Returns QpThresholds for the `codec_type`.
-  static std::optional<VideoEncoder::QpThresholds> GetQpThresholds(
+  static absl::optional<VideoEncoder::QpThresholds> GetQpThresholds(
       VideoCodecType codec_type,
       const FieldTrialsView& field_trials);
 

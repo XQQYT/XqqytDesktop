@@ -33,8 +33,6 @@
 #ifndef GOOGLETEST_INCLUDE_GTEST_GTEST_SPI_H_
 #define GOOGLETEST_INCLUDE_GTEST_GTEST_SPI_H_
 
-#include <string>
-
 #include "gtest/gtest.h"
 
 GTEST_DISABLE_MSC_WARNINGS_PUSH_(4251 \
@@ -87,10 +85,7 @@ class GTEST_API_ ScopedFakeTestPartResultReporter
   TestPartResultReporterInterface* old_reporter_;
   TestPartResultArray* const result_;
 
-  ScopedFakeTestPartResultReporter(const ScopedFakeTestPartResultReporter&) =
-      delete;
-  ScopedFakeTestPartResultReporter& operator=(
-      const ScopedFakeTestPartResultReporter&) = delete;
+  GTEST_DISALLOW_COPY_AND_ASSIGN_(ScopedFakeTestPartResultReporter);
 };
 
 namespace internal {
@@ -112,8 +107,7 @@ class GTEST_API_ SingleFailureChecker {
   const TestPartResult::Type type_;
   const std::string substr_;
 
-  SingleFailureChecker(const SingleFailureChecker&) = delete;
-  SingleFailureChecker& operator=(const SingleFailureChecker&) = delete;
+  GTEST_DISALLOW_COPY_AND_ASSIGN_(SingleFailureChecker);
 };
 
 }  // namespace internal
@@ -123,8 +117,7 @@ class GTEST_API_ SingleFailureChecker {
 GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
 
 // A set of macros for testing Google Test assertions or code that's expected
-// to generate Google Test fatal failures (e.g. a failure from an ASSERT_EQ, but
-// not a non-fatal failure, as from EXPECT_EQ).  It verifies that the given
+// to generate Google Test fatal failures.  It verifies that the given
 // statement will cause exactly one fatal Google Test failure with 'substr'
 // being part of the failure message.
 //
@@ -182,10 +175,9 @@ GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
   } while (::testing::internal::AlwaysFalse())
 
 // A macro for testing Google Test assertions or code that's expected to
-// generate Google Test non-fatal failures (e.g. a failure from an EXPECT_EQ,
-// but not from an ASSERT_EQ). It asserts that the given statement will cause
-// exactly one non-fatal Google Test failure with 'substr' being part of the
-// failure message.
+// generate Google Test non-fatal failures.  It asserts that the given
+// statement will cause exactly one non-fatal Google Test failure with 'substr'
+// being part of the failure message.
 //
 // There are two different versions of this macro. EXPECT_NONFATAL_FAILURE only
 // affects and considers failures generated in the current thread and

@@ -29,7 +29,7 @@ PROXY_METHOD1(bool, SetTrack, MediaStreamTrackInterface*)
 PROXY_CONSTMETHOD0(rtc::scoped_refptr<MediaStreamTrackInterface>, track)
 PROXY_CONSTMETHOD0(rtc::scoped_refptr<DtlsTransportInterface>, dtls_transport)
 PROXY_CONSTMETHOD0(uint32_t, ssrc)
-BYPASS_PROXY_CONSTMETHOD0(webrtc::MediaType, media_type)
+BYPASS_PROXY_CONSTMETHOD0(cricket::MediaType, media_type)
 BYPASS_PROXY_CONSTMETHOD0(std::string, id)
 PROXY_CONSTMETHOD0(std::vector<std::string>, stream_ids)
 PROXY_CONSTMETHOD0(std::vector<RtpEncodingParameters>, init_send_encodings)
@@ -43,12 +43,11 @@ PROXY_CONSTMETHOD0(rtc::scoped_refptr<DtmfSenderInterface>, GetDtmfSender)
 PROXY_METHOD1(void,
               SetFrameEncryptor,
               rtc::scoped_refptr<FrameEncryptorInterface>)
-PROXY_METHOD1(void, SetObserver, RtpSenderObserverInterface*)
 PROXY_CONSTMETHOD0(rtc::scoped_refptr<FrameEncryptorInterface>,
                    GetFrameEncryptor)
 PROXY_METHOD1(void, SetStreams, const std::vector<std::string>&)
 PROXY_METHOD1(void,
-              SetFrameTransformer,
+              SetEncoderToPacketizerFrameTransformer,
               rtc::scoped_refptr<FrameTransformerInterface>)
 PROXY_METHOD1(void,
               SetEncoderSelector,

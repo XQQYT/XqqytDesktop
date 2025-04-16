@@ -33,11 +33,17 @@ class SurfaceFlingerLayersParser {
   void Parse(int64_t timestamp, protozero::ConstBytes);
 
  private:
-  void ParseLayer(int64_t timestamp,
-                  protozero::ConstBytes blob,
+  const std::vector<std::uint32_t> kLayersSnapshotFieldsToArgsParse{1, 2, 4, 5,
+                                                                    6, 7, 8};
+  static constexpr auto* kLayersSnapshotProtoName =
+      ".perfetto.protos.LayersSnapshotProto";
+  static constexpr auto* kLayerProtoName = ".perfetto.protos.LayerProto";
+
+  void ParseLayer(protozero::ConstBytes blob,
                   tables::SurfaceFlingerLayersSnapshotTable::Id);
 
   TraceProcessorContext* const context_;
+  DescriptorPool pool_;
   util::ProtoToArgsParser args_parser_;
 };
 }  // namespace trace_processor

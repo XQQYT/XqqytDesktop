@@ -56,7 +56,7 @@ struct VariationValueRecord
 
   public:
   Tag		valueTag;	/* Four-byte tag identifying a font-wide measure. */
-  VarIdx	varIdx;		/* Outer/inner index into ItemVariationStore item. */
+  VarIdx	varIdx;		/* Outer/inner index into VariationStore item. */
 
   public:
   DEFINE_SIZE_STATIC (8);
@@ -77,10 +77,8 @@ struct MVAR
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
-		  hb_barrier () &&
 		  likely (version.major == 1) &&
 		  c->check_struct (this) &&
-		  hb_barrier () &&
 		  valueRecordSize >= VariationValueRecord::static_size &&
 		  varStore.sanitize (c, this) &&
 		  c->check_range (valuesZ.arrayZ,
@@ -106,7 +104,7 @@ struct MVAR
     out->valueRecordCount = valueRecordCount;
 
     item_variations_t item_vars;
-    const ItemVariationStore& src_var_store = this+varStore;
+    const VariationStore& src_var_store = this+varStore;
 
     if (!item_vars.instantiate (src_var_store, c->plan))
       return_trace (false);
@@ -159,7 +157,7 @@ protected:
   HBUINT16	valueRecordSize;/* The size in bytes of each value record —
 				 * must be greater than zero. */
   HBUINT16	valueRecordCount;/* The number of value records — may be zero. */
-  Offset16To<ItemVariationStore>
+  Offset16To<VariationStore>
 		varStore;	/* Offset to item variation store table. */
   UnsizedArrayOf<HBUINT8>
 		valuesZ;	/* Array of value records. The records must be

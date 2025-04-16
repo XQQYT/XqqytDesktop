@@ -19,33 +19,37 @@ namespace Foundation {
 
 template <>
 struct __declspec(uuid("3895C200-8F26-4F5A-B29D-2B5D72E68F99"))
-IAsyncOperation<IUnknown*> : IAsyncOperation_impl<IUnknown*> {};
+    ABI::Windows::Foundation::IAsyncOperation<IUnknown*>
+    : ABI::Windows::Foundation::IAsyncOperation_impl<IUnknown*> {};
 
 template <>
 struct __declspec(uuid("CD99A253-6473-4810-AF0D-763DAB79AC42"))
-IAsyncOperationCompletedHandler<IUnknown*>
-    : IAsyncOperationCompletedHandler_impl<IUnknown*> {};
+    ABI::Windows::Foundation::IAsyncOperationCompletedHandler<IUnknown*>
+    : ABI::Windows::Foundation::IAsyncOperationCompletedHandler_impl<
+          IUnknown*> {};
 
 template <>
 struct __declspec(uuid("CB52D855-8121-4AC8-A164-084A27FB377E"))
-IAsyncOperation<int*> : IAsyncOperation_impl<int*> {};
+    ABI::Windows::Foundation::IAsyncOperation<int*>
+    : ABI::Windows::Foundation::IAsyncOperation_impl<int*> {};
 
 template <>
 struct __declspec(uuid("EA868415-A724-40BC-950A-C7DB6B1723C6"))
-IAsyncOperationCompletedHandler<int*>
-    : IAsyncOperationCompletedHandler_impl<int*> {};
+    ABI::Windows::Foundation::IAsyncOperationCompletedHandler<int*>
+    : ABI::Windows::Foundation::IAsyncOperationCompletedHandler_impl<int*> {};
 
 // These specialization templates were included in windows.foundation.h, but
 // removed in 10.0.19041.0 SDK, so are included here conditionally
 #ifdef NTDDI_WIN10_VB  // Windows 10.0.19041
 template <>
 struct __declspec(uuid("968b9665-06ed-5774-8f53-8edeabd5f7b5"))
-IAsyncOperation<int> : IAsyncOperation_impl<int> {};
+    ABI::Windows::Foundation::IAsyncOperation<int>
+    : ABI::Windows::Foundation::IAsyncOperation_impl<int> {};
 
 template <>
 struct __declspec(uuid("d60cae9d-88cb-59f1-8576-3fba44796be8"))
-IAsyncOperationCompletedHandler<int>
-    : IAsyncOperationCompletedHandler_impl<int> {};
+    ABI::Windows::Foundation::IAsyncOperationCompletedHandler<int>
+    : ABI::Windows::Foundation::IAsyncOperationCompletedHandler_impl<int> {};
 #endif
 
 }  // namespace Foundation

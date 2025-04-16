@@ -10,13 +10,12 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <string_view>
 #include <unordered_set>
 #include <vector>
 
 #include "base/base_export.h"
-#include "base/compiler_specific.h"
 #include "base/gtest_prod_util.h"
+#include "base/strings/string_piece.h"
 #include "base/trace_event/memory_dump_request_args.h"
 #include "base/trace_event/trace_config_category_filter.h"
 #include "base/values.h"
@@ -56,8 +55,11 @@ class BASE_EXPORT TraceConfig {
 
     // Specifies the triggers in the memory dump config.
     struct Trigger {
-      friend bool operator==(const Trigger&, const Trigger&) = default;
-
+      bool operator==(const Trigger& rhs) const {
+        return min_time_between_dumps_ms == rhs.min_time_between_dumps_ms &&
+               level_of_detail == rhs.level_of_detail &&
+               trigger_type == rhs.trigger_type;
+      }
       uint32_t min_time_between_dumps_ms;
       MemoryDumpLevelOfDetail level_of_detail;
       MemoryDumpType trigger_type;
@@ -73,14 +75,15 @@ class BASE_EXPORT TraceConfig {
       // Reset the options to default.
       void Clear();
 
-      friend bool operator==(const HeapProfiler&,
-                             const HeapProfiler&) = default;
-
       uint32_t breakdown_threshold_bytes;
     };
 
-    friend bool operator==(const MemoryDumpConfig&,
-                           const MemoryDumpConfig&) = default;
+    bool operator==(const MemoryDumpConfig& rhs) const {
+      return allowed_dump_modes == rhs.allowed_dump_modes &&
+             triggers == rhs.triggers &&
+             heap_profiler_options.breakdown_threshold_bytes ==
+                 rhs.heap_profiler_options.breakdown_threshold_bytes;
+    }
 
     // Reset the values in the config.
     void Clear();
@@ -117,8 +120,9 @@ class BASE_EXPORT TraceConfig {
       return included_process_ids_;
     }
 
-    friend bool operator==(const ProcessFilterConfig&,
-                           const ProcessFilterConfig&) = default;
+    bool operator==(const ProcessFilterConfig& other) const {
+      return included_process_ids_ == other.included_process_ids_;
+    }
 
    private:
     std::unordered_set<base::ProcessId> included_process_ids_;
@@ -143,13 +147,11 @@ class BASE_EXPORT TraceConfig {
 
     bool GetArgAsSet(const char* key, std::unordered_set<std::string>*) const;
 
-    bool IsCategoryGroupEnabled(std::string_view category_group_name) const;
+    bool IsCategoryGroupEnabled(const StringPiece& category_group_name) const;
 
-    const std::string& predicate_name() const LIFETIME_BOUND {
-      return predicate_name_;
-    }
-    const Value::Dict& filter_args() const LIFETIME_BOUND { return args_; }
-    const TraceConfigCategoryFilter& category_filter() const LIFETIME_BOUND {
+    const std::string& predicate_name() const { return predicate_name_; }
+    const Value::Dict& filter_args() const { return args_; }
+    const TraceConfigCategoryFilter& category_filter() const {
       return category_filter_;
     }
 
@@ -196,11 +198,10 @@ class BASE_EXPORT TraceConfig {
   //          would disable everything but webkit; and use default options.
   // Example: TraceConfig("-webkit", "");
   //          would enable everything but webkit; and use default options.
-  TraceConfig(std::string_view category_filter_string,
-              std::string_view trace_options_string);
+  TraceConfig(StringPiece category_filter_string,
+              StringPiece trace_options_string);
 
-  TraceConfig(std::string_view category_filter_string,
-              TraceRecordMode record_mode);
+  TraceConfig(StringPiece category_filter_string, TraceRecordMode record_mode);
 
   // Create TraceConfig object from the trace config string.
   //
@@ -228,7 +229,7 @@ class BASE_EXPORT TraceConfig {
   //
   // Note: memory_dump_config can be specified only if
   // disabled-by-default-memory-infra category is enabled.
-  explicit TraceConfig(std::string_view config_string);
+  explicit TraceConfig(StringPiece config_string);
 
   // Functionally identical to the above, but takes a parsed dictionary as input
   // instead of its JSON serialization.
@@ -275,15 +276,17 @@ class BASE_EXPORT TraceConfig {
   // filters, or memory dump configs.
   std::string ToTraceOptionsString() const;
 
+#if BUILDFLAG(USE_PERFETTO_CLIENT_LIBRARY)
   // Write the serialized perfetto::TrackEventConfig corresponding to this
   // TraceConfig.
   std::string ToPerfettoTrackEventConfigRaw(
       bool privacy_filtering_enabled) const;
+#endif  // BUILDFLAG(USE_PERFETTO_CLIENT_LIBRARY)
 
   // Returns true if at least one category in the list is enabled by this
   // trace config. This is used to determine if the category filters are
   // enabled in the TRACE_* macros.
-  bool IsCategoryGroupEnabled(std::string_view category_group_name) const;
+  bool IsCategoryGroupEnabled(const StringPiece& category_group_name) const;
 
   // Merges config with the current TraceConfig
   void Merge(const TraceConfig& config);
@@ -293,22 +296,20 @@ class BASE_EXPORT TraceConfig {
   // Clears and resets the memory dump config.
   void ResetMemoryDumpConfig(const MemoryDumpConfig& memory_dump_config);
 
-  const TraceConfigCategoryFilter& category_filter() const LIFETIME_BOUND {
+  const TraceConfigCategoryFilter& category_filter() const {
     return category_filter_;
   }
 
-  const MemoryDumpConfig& memory_dump_config() const LIFETIME_BOUND {
+  const MemoryDumpConfig& memory_dump_config() const {
     return memory_dump_config_;
   }
 
-  const ProcessFilterConfig& process_filter_config() const LIFETIME_BOUND {
+  const ProcessFilterConfig& process_filter_config() const {
     return process_filter_config_;
   }
   void SetProcessFilterConfig(const ProcessFilterConfig&);
 
-  const EventFilters& event_filters() const LIFETIME_BOUND {
-    return event_filters_;
-  }
+  const EventFilters& event_filters() const { return event_filters_; }
   void SetEventFilters(const EventFilters& filter_configs) {
     event_filters_ = filter_configs;
   }
@@ -346,11 +347,11 @@ class BASE_EXPORT TraceConfig {
   void InitializeFromConfigDict(const Value::Dict& dict);
 
   // Initialize from a config string.
-  void InitializeFromConfigString(std::string_view config_string);
+  void InitializeFromConfigString(StringPiece config_string);
 
   // Initialize from category filter and trace options strings
-  void InitializeFromStrings(std::string_view category_filter_string,
-                             std::string_view trace_options_string);
+  void InitializeFromStrings(StringPiece category_filter_string,
+                             StringPiece trace_options_string);
 
   void SetMemoryDumpConfigFromConfigDict(const Value::Dict& memory_dump_config);
   void SetDefaultMemoryDumpConfig();

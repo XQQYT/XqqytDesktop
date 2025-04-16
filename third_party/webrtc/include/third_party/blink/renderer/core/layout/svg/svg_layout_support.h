@@ -26,7 +26,7 @@
 
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/layout_object.h"
-#include "third_party/blink/renderer/platform/geometry/dash_array.h"
+#include "third_party/blink/renderer/platform/graphics/dash_array.h"
 #include "third_party/blink/renderer/platform/transforms/affine_transform.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 
@@ -96,6 +96,12 @@ class CORE_EXPORT SVGLayoutSupport {
                                        const ComputedStyle&,
                                        const SVGViewportResolver&);
 
+  // Determines if any ancestor has adjusted the scale factor.
+  static bool ScreenScaleFactorChanged(const LayoutObject*);
+
+  // Determines if any ancestor's layout size has changed.
+  static bool LayoutSizeOfNearestViewportChanged(const LayoutObject*);
+
   // Helper method for determining if a LayoutObject marked as text (isText()==
   // true) can/will be laid out as part of a <text>.
   static bool IsLayoutableTextNode(const LayoutObject*);
@@ -107,7 +113,7 @@ class CORE_EXPORT SVGLayoutSupport {
 
   static float CalculateScreenFontSizeScalingFactor(const LayoutObject*);
 
-  // This returns a LayoutSVGText or nullptr.
+  // This returns a LayoutSVGText, a LayoutNGSVGText, or nullptr.
   static LayoutObject* FindClosestLayoutSVGText(const LayoutObject*,
                                                 const gfx::PointF&);
 };

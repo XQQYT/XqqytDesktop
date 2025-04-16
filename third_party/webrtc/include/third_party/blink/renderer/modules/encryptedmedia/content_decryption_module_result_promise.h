@@ -13,9 +13,8 @@
 
 namespace blink {
 
-void WebCdmExceptionToPromiseRejection(ScriptPromiseResolverBase*,
-                                       WebContentDecryptionModuleException,
-                                       const String& message);
+ExceptionCode WebCdmExceptionToExceptionCode(
+    WebContentDecryptionModuleException);
 
 // This class wraps the promise resolver to simplify creation of
 // ContentDecryptionModuleResult objects. The default implementations of the
@@ -39,7 +38,7 @@ class ContentDecryptionModuleResultPromise
   // ContentDecryptionModuleResult implementation.
   void Complete() override;
   void CompleteWithContentDecryptionModule(
-      std::unique_ptr<WebContentDecryptionModule>) override;
+      WebContentDecryptionModule*) override;
   void CompleteWithSession(
       WebContentDecryptionModuleResult::SessionStatus) override;
   void CompleteWithKeyStatus(
@@ -48,24 +47,29 @@ class ContentDecryptionModuleResultPromise
                          uint32_t system_code,
                          const WebString&) override;
 
+  // It is only valid to call this before completion.
+  ScriptPromise Promise();
+
   void Trace(Visitor*) const override;
 
  protected:
   // |interface_name| and |property_name| must have static life time.
-  ContentDecryptionModuleResultPromise(ScriptPromiseResolverBase*,
+  ContentDecryptionModuleResultPromise(ScriptState*,
                                        const MediaKeysConfig&,
                                        EmeApiType api_type);
 
   // Resolves the promise with |value|. Used by subclasses to resolve the
   // promise.
-  template <typename IDLType, typename... BlinkType>
-  void Resolve(BlinkType&&... value) {
+  template <typename... T>
+  void Resolve(T... value) {
     DCHECK(IsValidToFulfillPromise());
 
-    resolver_->DowncastTo<IDLType>()->Resolve(
-        std::forward<BlinkType>(value)...);
+    resolver_->Resolve(value...);
     resolver_.Clear();
   }
+
+  // Rejects the promise with a DOMException.
+  void Reject(ExceptionCode, const String& error_message);
 
   ExecutionContext* GetExecutionContext() const;
 
@@ -76,7 +80,7 @@ class ContentDecryptionModuleResultPromise
   MediaKeysConfig GetMediaKeysConfig();
 
  private:
-  Member<ScriptPromiseResolverBase> resolver_;
+  Member<ScriptPromiseResolver> resolver_;
   const MediaKeysConfig config_;
   const EmeApiType api_type_;
 };

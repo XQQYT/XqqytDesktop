@@ -10,7 +10,7 @@
 
 #import <GLKit/GLKit.h>
 
-#import "sdk/objc/base/RTCMacros.h"
+#import "base/RTCMacros.h"
 
 @class RTC_OBJC_TYPE(RTCVideoFrame);
 
@@ -22,8 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) GLuint uvTexture;
 
 - (instancetype)init NS_UNAVAILABLE;
-- (nullable instancetype)initWithContext:(EAGLContext *)context
-    NS_DESIGNATED_INITIALIZER;
+- (nullable instancetype)initWithContext:(EAGLContext *)context NS_DESIGNATED_INITIALIZER;
 
 - (BOOL)uploadFrameToTextures:(RTC_OBJC_TYPE(RTCVideoFrame) *)frame;
 

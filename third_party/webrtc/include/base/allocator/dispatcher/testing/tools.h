@@ -47,4 +47,4 @@ CreateTupleOfPointers(std::array<Type, Size>& items) {
 
 }  // namespace base::allocator::dispatcher::testing
 
-#endif  // BASE_ALLOCATOR_DISPATCHER_TESTING_TOOLS_H_
+#endif

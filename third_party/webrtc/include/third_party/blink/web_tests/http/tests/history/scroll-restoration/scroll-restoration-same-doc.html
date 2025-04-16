@@ -30,14 +30,10 @@
     window.onpopstate = () => {
       document.body.appendChild(bigdiv);
       setTimeout(() => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            t.step(() => {
-              assert_equals(window.scrollY, 100);
-            });
-            t.done();
-          });
+        t.step(() => {
+          assert_equals(window.scrollY, 100);
         });
+        t.done();
       }, 0);
     };
 

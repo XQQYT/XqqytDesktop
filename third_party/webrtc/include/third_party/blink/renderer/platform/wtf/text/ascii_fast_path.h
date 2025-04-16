@@ -19,11 +19,6 @@
  *
  */
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/351564777): Remove this and convert code to safer constructs.
-#pragma allow_unsafe_buffers
-#endif
-
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TEXT_ASCII_FAST_PATH_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_TEXT_ASCII_FAST_PATH_H_
 
@@ -167,7 +162,7 @@ ALWAYS_INLINE typename Allocator::ResultStringType ConvertASCIICase(
       return allocator.CoerceOriginal(string);
     }
 
-    base::span<LChar> data8;
+    LChar* data8;
     auto new_impl = allocator.Alloc(length, data8);
 
     for (wtf_size_t i = 0; i < length; ++i) {
@@ -180,7 +175,7 @@ ALWAYS_INLINE typename Allocator::ResultStringType ConvertASCIICase(
     return allocator.CoerceOriginal(string);
   }
 
-  base::span<UChar> data16;
+  UChar* data16;
   auto new_impl = allocator.Alloc(length, data16);
 
   for (wtf_size_t i = 0; i < length; ++i) {

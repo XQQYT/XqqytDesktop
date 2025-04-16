@@ -40,7 +40,6 @@ typedef struct LLVidDSPContext {
 } LLVidDSPContext;
 
 void ff_llviddsp_init(LLVidDSPContext *llviddsp);
-void ff_llviddsp_init_riscv(LLVidDSPContext *llviddsp);
 void ff_llviddsp_init_x86(LLVidDSPContext *llviddsp);
 void ff_llviddsp_init_ppc(LLVidDSPContext *llviddsp);
 

@@ -14,39 +14,32 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <optional>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/video_codecs/bitstream_parser.h"
 #include "common_video/h265/h265_pps_parser.h"
 #include "common_video/h265/h265_sps_parser.h"
 #include "common_video/h265/h265_vps_parser.h"
 #include "rtc_base/containers/flat_map.h"
-#include "rtc_base/system/rtc_export.h"
 
 namespace webrtc {
 
 // Stateful H265 bitstream parser (due to VPS/SPS/PPS). Used to parse out QP
 // values from the bitstream.
-class RTC_EXPORT H265BitstreamParser : public BitstreamParser {
+class H265BitstreamParser : public BitstreamParser {
  public:
   H265BitstreamParser();
   ~H265BitstreamParser() override;
 
   // New interface.
   void ParseBitstream(rtc::ArrayView<const uint8_t> bitstream) override;
-  std::optional<int> GetLastSliceQp() const override;
+  absl::optional<int> GetLastSliceQp() const override;
 
-  std::optional<uint32_t> GetLastSlicePpsId() const;
-
-  static std::optional<uint32_t> ParsePpsIdFromSliceSegmentLayerRbsp(
-      rtc::ArrayView<const uint8_t> data,
+  static absl::optional<uint32_t> ParsePpsIdFromSliceSegmentLayerRbsp(
+      const uint8_t* data,
+      size_t length,
       uint8_t nalu_type);
-
-  // Returns true if the slice segment is the first in the picture; otherwise
-  // return false. If parse failed, return nullopt.
-  static std::optional<bool> IsFirstSliceSegmentInPic(
-      rtc::ArrayView<const uint8_t> data);
 
  protected:
   enum Result {
@@ -54,8 +47,9 @@ class RTC_EXPORT H265BitstreamParser : public BitstreamParser {
     kInvalidStream,
     kUnsupportedStream,
   };
-  void ParseSlice(rtc::ArrayView<const uint8_t> slice);
-  Result ParseNonParameterSetNalu(rtc::ArrayView<const uint8_t> source,
+  void ParseSlice(const uint8_t* slice, size_t length);
+  Result ParseNonParameterSetNalu(const uint8_t* source,
+                                  size_t source_length,
                                   uint8_t nalu_type);
 
   const H265PpsParser::PpsState* GetPPS(uint32_t id) const;
@@ -68,8 +62,8 @@ class RTC_EXPORT H265BitstreamParser : public BitstreamParser {
   flat_map<uint32_t, H265PpsParser::PpsState> pps_;
 
   // Last parsed slice QP.
-  std::optional<int32_t> last_slice_qp_delta_;
-  std::optional<uint32_t> last_slice_pps_id_;
+  absl::optional<int32_t> last_slice_qp_delta_;
+  absl::optional<uint32_t> last_slice_pps_id_;
 };
 
 }  // namespace webrtc

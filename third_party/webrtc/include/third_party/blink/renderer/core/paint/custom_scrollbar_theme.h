@@ -39,32 +39,33 @@ class CustomScrollbarTheme final : public ScrollbarTheme {
   ~CustomScrollbarTheme() override = default;
 
   int ScrollbarThickness(float scale_from_dip,
-                         EScrollbarWidth scrollbar_width) const override {
+                         EScrollbarWidth scrollbar_width) override {
     return GetTheme().ScrollbarThickness(scale_from_dip, scrollbar_width);
   }
 
-  bool NativeThemeHasButtons() const override {
+  bool NativeThemeHasButtons() override {
     return GetTheme().NativeThemeHasButtons();
   }
 
   void PaintScrollCorner(GraphicsContext&,
-                         const ScrollableArea&,
+                         const Scrollbar* vertical_scrollbar,
                          const DisplayItemClient&,
-                         const gfx::Rect& corner_rect) override;
+                         const gfx::Rect& corner_rect,
+                         mojom::blink::ColorScheme color_scheme) override;
 
   bool ShouldCenterOnThumb(const Scrollbar& scrollbar,
-                           const WebMouseEvent& event) const override {
+                           const WebMouseEvent& event) override {
     return GetTheme().ShouldCenterOnThumb(scrollbar, event);
   }
   bool ShouldSnapBackToDragOrigin(const Scrollbar& scrollbar,
-                                  const WebMouseEvent& event) const override {
+                                  const WebMouseEvent& event) override {
     return GetTheme().ShouldSnapBackToDragOrigin(scrollbar, event);
   }
 
-  base::TimeDelta InitialAutoscrollTimerDelay() const override {
+  base::TimeDelta InitialAutoscrollTimerDelay() override {
     return GetTheme().InitialAutoscrollTimerDelay();
   }
-  base::TimeDelta AutoscrollTimerDelay() const override {
+  base::TimeDelta AutoscrollTimerDelay() override {
     return GetTheme().AutoscrollTimerDelay();
   }
 
@@ -72,11 +73,11 @@ class CustomScrollbarTheme final : public ScrollbarTheme {
     return GetTheme().RegisterScrollbar(scrollbar);
   }
 
-  int MinimumThumbLength(const Scrollbar&) const override;
+  int MinimumThumbLength(const Scrollbar&) override;
 
   void ButtonSizesAlongTrackAxis(const Scrollbar&,
                                  int& before_size,
-                                 int& after_size) const;
+                                 int& after_size);
 
   static CustomScrollbarTheme* GetCustomScrollbarTheme();
 
@@ -85,18 +86,18 @@ class CustomScrollbarTheme final : public ScrollbarTheme {
                             const PhysicalRect&);
 
  protected:
-  ScrollbarPart HitTest(const Scrollbar&, const gfx::Point&) const override;
+  ScrollbarPart HitTest(const Scrollbar&, const gfx::Point&) override;
 
-  bool HasButtons(const Scrollbar&) const override;
-  bool HasThumb(const Scrollbar&) const override;
+  bool HasButtons(const Scrollbar&) override;
+  bool HasThumb(const Scrollbar&) override;
 
-  gfx::Rect BackButtonRect(const Scrollbar&) const override;
-  gfx::Rect ForwardButtonRect(const Scrollbar&) const override;
-  gfx::Rect TrackRect(const Scrollbar&) const override;
+  gfx::Rect BackButtonRect(const Scrollbar&) override;
+  gfx::Rect ForwardButtonRect(const Scrollbar&) override;
+  gfx::Rect TrackRect(const Scrollbar&) override;
 
-  void PaintTrackBackgroundAndButtons(GraphicsContext&,
-                                      const Scrollbar&,
-                                      const gfx::Rect&) override;
+  void PaintTrackAndButtons(GraphicsContext&,
+                            const Scrollbar&,
+                            const gfx::Vector2d&) override;
   void PaintButton(GraphicsContext&,
                    const Scrollbar&,
                    const gfx::Rect&,
@@ -109,10 +110,18 @@ class CustomScrollbarTheme final : public ScrollbarTheme {
                       const gfx::Rect&) override;
 
   gfx::Rect ConstrainTrackRectToTrackPieces(const Scrollbar&,
-                                            const gfx::Rect&) const override;
+                                            const gfx::Rect&) override;
 
  private:
-  gfx::Rect ButtonRect(const Scrollbar&, ScrollbarPart) const;
+  gfx::Rect ButtonRect(const Scrollbar&, ScrollbarPart);
+  void PaintScrollbarBackground(GraphicsContext&, const Scrollbar&);
+  void PaintTrackBackground(GraphicsContext&,
+                            const Scrollbar&,
+                            const gfx::Rect&);
+  void PaintTrackPiece(GraphicsContext&,
+                       const Scrollbar&,
+                       const gfx::Rect&,
+                       ScrollbarPart);
   void PaintPart(GraphicsContext&,
                  const Scrollbar&,
                  const gfx::Rect&,

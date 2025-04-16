@@ -23,7 +23,7 @@ namespace base::win {
 //
 class BASE_EXPORT HStringReference {
  public:
-  // Creates an HStringReference from `str`, which must be null terminated.
+  HStringReference(const wchar_t* str, size_t len);
   explicit HStringReference(const wchar_t* str);
 
   HSTRING Get() const { return hstring_; }

@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_RANDOM_H_
-#define PARTITION_ALLOC_RANDOM_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_RANDOM_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_RANDOM_H_
 
-#include <cstdint>
+#include <stdint.h>
 
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
 
 namespace partition_alloc {
 
@@ -28,4 +28,4 @@ PA_COMPONENT_EXPORT(PARTITION_ALLOC) void SetMmapSeedForTesting(uint64_t seed);
 
 }  // namespace partition_alloc
 
-#endif  // PARTITION_ALLOC_RANDOM_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_RANDOM_H_

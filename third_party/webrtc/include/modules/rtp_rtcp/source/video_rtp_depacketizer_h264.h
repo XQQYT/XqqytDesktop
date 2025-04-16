@@ -11,8 +11,7 @@
 #ifndef MODULES_RTP_RTCP_SOURCE_VIDEO_RTP_DEPACKETIZER_H264_H_
 #define MODULES_RTP_RTCP_SOURCE_VIDEO_RTP_DEPACKETIZER_H264_H_
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "modules/rtp_rtcp/source/video_rtp_depacketizer.h"
 #include "rtc_base/copy_on_write_buffer.h"
 
@@ -21,7 +20,7 @@ class VideoRtpDepacketizerH264 : public VideoRtpDepacketizer {
  public:
   ~VideoRtpDepacketizerH264() override = default;
 
-  std::optional<ParsedRtpPayload> Parse(
+  absl::optional<ParsedRtpPayload> Parse(
       rtc::CopyOnWriteBuffer rtp_payload) override;
 };
 }  // namespace webrtc

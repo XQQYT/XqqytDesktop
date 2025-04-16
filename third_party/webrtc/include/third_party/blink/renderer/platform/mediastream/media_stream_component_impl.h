@@ -33,11 +33,11 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_MEDIASTREAM_MEDIA_STREAM_COMPONENT_IMPL_H_
 
 #include <memory>
-#include <vector>
 
 #include "base/memory/raw_ptr.h"
 #include "base/synchronization/lock.h"
 #include "third_party/blink/public/platform/modules/mediastream/web_media_stream_track.h"
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_vector.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/prefinalizer.h"
@@ -46,6 +46,7 @@
 #include "third_party/blink/renderer/platform/mediastream/media_stream_track_platform.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
+#include "third_party/blink/renderer/platform/wtf/threading_primitives.h"
 
 namespace blink {
 
@@ -99,12 +100,9 @@ class PLATFORM_EXPORT MediaStreamComponentImpl final
   void GetSettings(MediaStreamTrackPlatform::Settings&) override;
   MediaStreamTrackPlatform::CaptureHandle GetCaptureHandle() override;
 
-  WebLocalFrame* CreationFrame() override {
-    return creation_frame_getter_ ? creation_frame_getter_.Run() : nullptr;
-  }
-  void SetCreationFrameGetter(base::RepeatingCallback<WebLocalFrame*()>
-                                  creation_frame_getter) override {
-    creation_frame_getter_ = std::move(creation_frame_getter);
+  WebLocalFrame* CreationFrame() override { return creation_frame_; }
+  void SetCreationFrame(WebLocalFrame* creation_frame) override {
+    creation_frame_ = creation_frame;
   }
 
   void AddSourceObserver(MediaStreamSource::Observer* observer) override;
@@ -127,12 +125,8 @@ class PLATFORM_EXPORT MediaStreamComponentImpl final
   WebMediaStreamTrack::ContentHintType content_hint_ =
       WebMediaStreamTrack::ContentHintType::kNone;
   std::unique_ptr<MediaStreamTrackPlatform> platform_track_;
-  // Getter returning the frame where the referenced platform track was created,
-  // if it's still alive.
-  // Stored as a callback in which code in modules/ can bind a weak pointer to
-  // the GCed core class LocalFrame, as this platform/ class can't depend on
-  // core/.
-  base::RepeatingCallback<WebLocalFrame*()> creation_frame_getter_;
+  // Frame where the referenced platform track was created, if applicable.
+  raw_ptr<WebLocalFrame, ExperimentalRenderer> creation_frame_ = nullptr;
 };
 
 }  // namespace blink

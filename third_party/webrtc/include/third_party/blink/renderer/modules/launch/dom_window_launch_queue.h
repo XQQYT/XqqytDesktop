@@ -28,7 +28,7 @@ class DOMWindowLaunchQueue final
   explicit DOMWindowLaunchQueue(LocalDOMWindow& window);
 
   // IDL Interface.
-  static LaunchQueue* launchQueue(LocalDOMWindow&);
+  static Member<LaunchQueue> launchQueue(LocalDOMWindow&);
 
   static void UpdateLaunchFiles(LocalDOMWindow*,
                                 HeapVector<Member<FileSystemHandle>>);

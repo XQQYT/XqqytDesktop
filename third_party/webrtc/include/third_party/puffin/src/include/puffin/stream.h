@@ -5,8 +5,6 @@
 #ifndef SRC_INCLUDE_PUFFIN_STREAM_H_
 #define SRC_INCLUDE_PUFFIN_STREAM_H_
 
-#include <stddef.h>
-
 #include <memory>
 
 #include "puffin/common.h"

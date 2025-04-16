@@ -33,8 +33,10 @@
 // load, while a real global could be referenced directly by absolute or
 // relative addressing.
 
-#define DEFINE_GLOBAL(export_decl, type, name)                \
-  alignas(type) export_decl char name##Storage[sizeof(type)]; \
-  const type& name = *std::launder(reinterpret_cast<type*>(name##Storage))
+// Use an array of pointers instead of an array of char in case there is some
+// alignment issue.
+#define DEFINE_GLOBAL(type, name)                                          \
+  std::aligned_storage_t<sizeof(type), alignof(type)> name##Storage; \
+  const type& name = *std::launder(reinterpret_cast<type*>(&name##Storage))
 
 #endif  // THIRD_PARTY_BLINK_RENDERER_PLATFORM_WTF_STATIC_CONSTRUCTORS_H_

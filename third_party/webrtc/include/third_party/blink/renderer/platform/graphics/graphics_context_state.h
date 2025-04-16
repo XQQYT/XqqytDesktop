@@ -33,16 +33,15 @@
 
 #include "base/check_op.h"
 #include "base/memory/ptr_util.h"
-#include "cc/paint/draw_looper.h"
 #include "cc/paint/paint_flags.h"
 #include "third_party/blink/renderer/platform/graphics/color.h"
-#include "third_party/blink/renderer/platform/graphics/graphics_context_types.h"
+#include "third_party/blink/renderer/platform/graphics/graphics_types.h"
+#include "third_party/blink/renderer/platform/graphics/stroke_data.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
+#include "third_party/skia/include/core/SkDrawLooper.h"
 #include "third_party/skia/include/core/SkRefCnt.h"
 
 namespace blink {
-
-class StrokeData;
 
 // Encapsulates the state information we store for each pushed graphics state.
 // Only GraphicsContext can use this class.
@@ -59,8 +58,11 @@ class PLATFORM_EXPORT GraphicsContextState final {
 
   void Copy(const GraphicsContextState&);
 
-  // cc::PaintFlags objects that reflect the current state.
-  const cc::PaintFlags& StrokeFlags() const { return stroke_flags_; }
+  // cc::PaintFlags objects that reflect the current state. If the length of the
+  // path to be stroked is known, pass it in for correct dash or dot placement.
+  const cc::PaintFlags& StrokeFlags(const int stroked_path_length = 0,
+                                    const int dash_thickness = 0,
+                                    const bool closed_path = false) const;
   const cc::PaintFlags& FillFlags() const { return fill_flags_; }
 
   uint16_t SaveCount() const { return save_count_; }
@@ -75,10 +77,13 @@ class PLATFORM_EXPORT GraphicsContextState final {
   }
   void SetStrokeColor(const Color&);
 
-  float GetStrokeThickness() const { return stroke_flags_.getStrokeWidth(); }
+  const StrokeData& GetStrokeData() const { return stroke_data_; }
+  void SetStrokeStyle(StrokeStyle);
   void SetStrokeThickness(float);
-
-  void SetStroke(const StrokeData& stroke_data);
+  void SetLineCap(LineCap);
+  void SetLineJoin(LineJoin);
+  void SetMiterLimit(float);
+  void SetLineDash(const DashArray&, float);
 
   // Fill data
   Color FillColor() const {
@@ -88,15 +93,12 @@ class PLATFORM_EXPORT GraphicsContextState final {
   }
   void SetFillColor(const Color&);
 
-  void SetTextPaintOrder(TextPaintOrder order) { text_paint_order_ = order; }
-  TextPaintOrder GetTextPaintOrder() const { return text_paint_order_; }
-
   // Shadow. (This will need tweaking if we use draw loopers for other things.)
-  cc::DrawLooper* DrawLooper() const {
+  SkDrawLooper* DrawLooper() const {
     DCHECK_EQ(fill_flags_.getLooper(), stroke_flags_.getLooper());
     return fill_flags_.getLooper().get();
   }
-  void SetDrawLooper(sk_sp<cc::DrawLooper>);
+  void SetDrawLooper(sk_sp<SkDrawLooper>);
 
   // Text. (See TextModeFill & friends.)
   TextDrawingModeFlags TextDrawingMode() const { return text_drawing_mode_; }
@@ -110,10 +112,10 @@ class PLATFORM_EXPORT GraphicsContextState final {
   }
   void SetInterpolationQuality(InterpolationQuality);
 
-  DynamicRangeLimit GetDynamicRangeLimit() const {
+  cc::PaintFlags::DynamicRangeLimit GetDynamicRangeLimit() const {
     return dynamic_range_limit_;
   }
-  void SetDynamicRangeLimit(DynamicRangeLimit limit);
+  void SetDynamicRangeLimit(cc::PaintFlags::DynamicRangeLimit limit);
 
   bool ShouldAntialias() const { return should_antialias_; }
   void SetShouldAntialias(bool);
@@ -122,20 +124,21 @@ class PLATFORM_EXPORT GraphicsContextState final {
   explicit GraphicsContextState(const GraphicsContextState&);
   GraphicsContextState& operator=(const GraphicsContextState&) = delete;
 
-  cc::PaintFlags stroke_flags_;
+  // This is mutable to enable dash path effect updates when the paint is
+  // fetched for use.
+  mutable cc::PaintFlags stroke_flags_;
   cc::PaintFlags fill_flags_;
-  TextPaintOrder text_paint_order_ = kFillStroke;
 
-  TextDrawingModeFlags text_drawing_mode_ = kTextModeFill;
+  StrokeData stroke_data_;
 
-  InterpolationQuality interpolation_quality_ =
-      GetDefaultInterpolationQuality();
-  DynamicRangeLimit dynamic_range_limit_{
-      cc::PaintFlags::DynamicRangeLimit::kHigh};
+  TextDrawingModeFlags text_drawing_mode_;
 
-  uint16_t save_count_ = 0;
+  InterpolationQuality interpolation_quality_;
+  cc::PaintFlags::DynamicRangeLimit dynamic_range_limit_;
 
-  bool should_antialias_ : 1 = true;
+  uint16_t save_count_;
+
+  bool should_antialias_ : 1;
 };
 
 }  // namespace blink

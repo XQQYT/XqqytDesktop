@@ -6,21 +6,17 @@
 // once the win-specific allocation shim has been removed, and the generic shim
 // has becaome the default.
 
-#ifndef PARTITION_ALLOC_SHIM_WINHEAP_STUBS_WIN_H_
-#define PARTITION_ALLOC_SHIM_WINHEAP_STUBS_WIN_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_WINHEAP_STUBS_WIN_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_WINHEAP_STUBS_WIN_H_
 
-#include <cstdint>
+#include <stdint.h>
 
-#include "partition_alloc/buildflags.h"
-
-#if PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
 
 namespace allocator_shim {
 
 // Set to true if the link-time magic has successfully hooked into the CRT's
 // heap initialization.
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
 extern bool g_is_win_shim_layer_initialized;
 
 // Thin wrappers to implement the standard C allocation semantics on the
@@ -39,14 +35,12 @@ bool WinCallNewHandler(size_t size);
 
 // Wrappers to implement the interface for the _aligned_* functions on top of
 // the CRT's Windows heap. Exported for tests.
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void* WinHeapAlignedMalloc(size_t size, size_t alignment);
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM)
+PA_COMPONENT_EXPORT(PARTITION_ALLOC)
 void* WinHeapAlignedRealloc(void* ptr, size_t size, size_t alignment);
-PA_COMPONENT_EXPORT(ALLOCATOR_SHIM) void WinHeapAlignedFree(void* ptr);
+PA_COMPONENT_EXPORT(PARTITION_ALLOC) void WinHeapAlignedFree(void* ptr);
 
 }  // namespace allocator_shim
 
-#endif  // PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
-
-#endif  // PARTITION_ALLOC_SHIM_WINHEAP_STUBS_WIN_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_WINHEAP_STUBS_WIN_H_

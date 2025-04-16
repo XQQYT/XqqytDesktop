@@ -8,15 +8,15 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
-#include <bit>
 #include <cstdint>
 
-#include "base/allocator/dispatcher/notification_data.h"
+#include "base/allocator/dispatcher/subsystem.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/pointers/raw_ptr_exclusion.h"
 #include "base/base_export.h"
+#include "base/bits.h"
 #include "base/compiler_specific.h"
 #include "base/debug/debugging_buildflags.h"
 #include "base/debug/stack_trace.h"
-#include "base/memory/raw_ptr_exclusion.h"
 #include "build/build_config.h"
 
 namespace base::debug::tracer {
@@ -66,7 +66,7 @@ class BASE_EXPORT OperationRecord {
   // Number of allocated bytes. Returns 0 for free operations.
   size_t GetSize() const;
   // The stacktrace as taken by the Initialize*-functions.
-  const StackTraceContainer& GetStackTrace() const LIFETIME_BOUND;
+  const StackTraceContainer& GetStackTrace() const;
 
   // Initialize the record with data for another operation. Data from any
   // previous operation will be silently overwritten. These functions are
@@ -117,7 +117,7 @@ class BASE_EXPORT OperationRecord {
   //
   // The value is mutable since pre C++20 there is no const getter in
   // atomic_flag. All ways to get the value involve setting it.
-  // TODO(crbug.com/42050406): Remove mutable and make IsRecording() use
+  // TODO(https://crbug.com/1284275): Remove mutable and make IsRecording() use
   // atomic_flag::test();
   mutable std::atomic_flag is_recording_ = ATOMIC_FLAG_INIT;
 };
@@ -146,12 +146,13 @@ ALWAYS_INLINE void OperationRecord::StoreStackTrace() {
 #if BUILDFLAG(CAN_UNWIND_WITH_FRAME_POINTERS)
   // Currently we limit ourselves to use TraceStackFramePointers. We know that
   // TraceStackFramePointers has an acceptable performance impact on Android.
-  base::debug::TraceStackFramePointers(stack_trace_, 0);
+  base::debug::TraceStackFramePointers(&stack_trace_[0], stack_trace_.size(),
+                                       0);
 #elif BUILDFLAG(IS_LINUX)
   // Use base::debug::CollectStackTrace as an alternative for tests on Linux. We
   // still have a check in /base/debug/debug.gni to prevent that
   // AllocationStackTraceRecorder is enabled accidentally on Linux.
-  base::debug::CollectStackTrace(stack_trace_);
+  base::debug::CollectStackTrace(&stack_trace_[0], stack_trace_.size());
 #else
 #error "No supported stack tracer found."
 #endif
@@ -201,7 +202,7 @@ struct BASE_EXPORT AllocationTraceRecorderStatistics {
 // Note: As a process might be terminated for whatever reason while stack
 // traces are being written, the recorded data may contain some garbage.
 //
-// TODO(crbug.com/40258550): Evaluate the impact of the shared cache
+// TODO(https://crbug.com/1419908): Evaluate the impact of the shared cache
 // lines between entries.
 class BASE_EXPORT AllocationTraceRecorder {
  public:
@@ -214,13 +215,16 @@ class BASE_EXPORT AllocationTraceRecorder {
   // details. The functions are marked NO_INLINE. All other functions called but
   // the one taking the call stack are marked ALWAYS_INLINE. This way we ensure
   // the number of frames recorded from these functions is fixed.
-  inline void OnAllocation(
-      const base::allocator::dispatcher::AllocationNotificationData&
-          allocation_data);
+
+  // Handle all allocation events.
+  NOINLINE void OnAllocation(
+      const void* allocated_address,
+      size_t allocated_size,
+      base::allocator::dispatcher::AllocationSubsystem subsystem,
+      const char* type);
 
   // Handle all free events.
-  inline void OnFree(
-      const base::allocator::dispatcher::FreeNotificationData& free_data);
+  NOINLINE void OnFree(const void* freed_address);
 
   // Access functions to retrieve the current content of the recorder.
   // Note: Since the recorder is usually updated upon each allocation or free,
@@ -245,13 +249,6 @@ class BASE_EXPORT AllocationTraceRecorder {
   AllocationTraceRecorderStatistics GetRecorderStatistics() const;
 
  private:
-  // Handle all allocation events.
-  NOINLINE void OnAllocation(const void* allocated_address,
-                             size_t allocated_size);
-
-  // Handle all free events.
-  NOINLINE void OnFree(const void* freed_address);
-
   ALWAYS_INLINE size_t GetNextIndex();
 
   ALWAYS_INLINE static constexpr size_t WrapIdxIfNeeded(size_t idx);
@@ -268,18 +265,6 @@ class BASE_EXPORT AllocationTraceRecorder {
 #endif
 };
 
-inline void AllocationTraceRecorder::OnAllocation(
-    const base::allocator::dispatcher::AllocationNotificationData&
-        allocation_data) {
-  OnAllocation(allocation_data.address(), allocation_data.size());
-}
-
-// Handle all free events.
-inline void AllocationTraceRecorder::OnFree(
-    const base::allocator::dispatcher::FreeNotificationData& free_data) {
-  OnFree(free_data.address());
-}
-
 ALWAYS_INLINE constexpr size_t AllocationTraceRecorder::WrapIdxIfNeeded(
     size_t idx) {
   // Wrapping around counter, e.g. for BUFFER_SIZE = 256, the counter will
@@ -287,7 +272,7 @@ ALWAYS_INLINE constexpr size_t AllocationTraceRecorder::WrapIdxIfNeeded(
   // optimized code we assert |kMaximumNumberOfMemoryOperationTraces| is a power
   // of two .
   static_assert(
-      std::has_single_bit(kMaximumNumberOfMemoryOperationTraces),
+      base::bits::IsPowerOfTwo(kMaximumNumberOfMemoryOperationTraces),
       "kMaximumNumberOfMemoryOperationTraces should be a power of 2 to "
       "allow for fast modulo operation.");
 

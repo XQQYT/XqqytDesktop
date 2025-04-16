@@ -23,7 +23,6 @@
 
 // TODO: Move protos in another CL after the C++ code migration.
 #include "absl/base/macros.h"
-#include "absl/status/status.h"
 #include "mediapipe/framework/calculator.pb.h"
 #include "mediapipe/framework/counter.h"
 #include "mediapipe/framework/counter_factory.h"
@@ -33,7 +32,6 @@
 #include "mediapipe/framework/packet_set.h"
 #include "mediapipe/framework/port.h"
 #include "mediapipe/framework/port/any_proto.h"
-#include "mediapipe/framework/resources.h"
 #include "mediapipe/framework/tool/options_map.h"
 
 namespace mediapipe {
@@ -50,8 +48,7 @@ class CalculatorState {
   CalculatorState(const std::string& node_name, int node_id,
                   const std::string& calculator_type,
                   const CalculatorGraphConfig::Node& node_config,
-                  std::shared_ptr<ProfilingContext> profiling_context,
-                  const GraphServiceManager* graph_service_manager);
+                  std::shared_ptr<ProfilingContext> profiling_context);
   CalculatorState(const CalculatorState&) = delete;
   CalculatorState& operator=(const CalculatorState&) = delete;
   ~CalculatorState();
@@ -95,15 +92,6 @@ class CalculatorState {
     return profiling_context_;
   }
 
-  // Returns the graph-level service manager for sharing its services with
-  // calculator-nested MP graphs.
-  const GraphServiceManager* GetGraphServiceManager() const {
-    return graph_service_manager_;
-  }
-
-  // Returns calculator interface for loading resources.
-  const Resources& GetResources() { return *resources_; }
-
   ////////////////////////////////////////
   // Interface for CalculatorNode.
   ////////////////////////////////////////
@@ -118,12 +106,12 @@ class CalculatorState {
 
   absl::Status SetServicePacket(const GraphServiceBase& service,
                                 Packet packet) {
-    return calculator_service_manager_.SetServicePacket(service, packet);
+    return graph_service_manager_.SetServicePacket(service, packet);
   }
 
   template <typename T>
   std::shared_ptr<T> GetServiceObject(const GraphService<T>& service) {
-    return calculator_service_manager_.GetServiceObject(service);
+    return graph_service_manager_.GetServiceObject(service);
   }
 
  private:
@@ -143,15 +131,7 @@ class CalculatorState {
   // The graph tracing and profiling interface.
   std::shared_ptr<ProfilingContext> profiling_context_;
 
-  // Const pointer to the graph-level service manager.
-  const GraphServiceManager* graph_service_manager_ = nullptr;
-
-  // calculator_service_manager_ contains only the services that are requested
-  // by the calculator in UpdateContract() via cc->UseService(...).
-  GraphServiceManager calculator_service_manager_;
-
-  // Graph/calculator resource loading interface.
-  std::shared_ptr<Resources> resources_;
+  GraphServiceManager graph_service_manager_;
 
   ////////////////////////////////////////
   // Variables which ARE cleared by ResetBetweenRuns().

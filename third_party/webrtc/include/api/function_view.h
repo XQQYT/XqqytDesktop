@@ -11,7 +11,6 @@
 #ifndef API_FUNCTION_VIEW_H_
 #define API_FUNCTION_VIEW_H_
 
-#include <cstddef>
 #include <type_traits>
 #include <utility>
 
@@ -37,7 +36,7 @@
 // copyable, so it's probably cheaper to pass it by value than by const
 // reference.
 
-namespace webrtc {
+namespace rtc {
 
 template <typename T>
 class FunctionView;  // Undefined.
@@ -86,7 +85,7 @@ class FunctionView<RetT(ArgT...)> final {
             typename std::enable_if<std::is_same<
                 std::nullptr_t,
                 typename std::remove_cv<F>::type>::value>::type* = nullptr>
-  FunctionView(F&& /* f */) : call_(nullptr) {}
+  FunctionView(F&& f) : call_(nullptr) {}
 
   // Default constructor. Creates an empty FunctionView.
   FunctionView() : call_(nullptr) {}
@@ -126,12 +125,6 @@ class FunctionView<RetT(ArgT...)> final {
   RetT (*call_)(VoidUnion, ArgT...);
 };
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace rtc {
-using ::webrtc::FunctionView;
 }  // namespace rtc
 
 #endif  // API_FUNCTION_VIEW_H_

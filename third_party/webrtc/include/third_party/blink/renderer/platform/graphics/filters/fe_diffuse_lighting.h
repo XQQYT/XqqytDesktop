@@ -41,8 +41,8 @@ class PLATFORM_EXPORT FEDiffuseLighting final : public FELighting {
   float DiffuseConstant() const;
   bool SetDiffuseConstant(float);
 
-  StringBuilder& ExternalRepresentation(StringBuilder&,
-                                        wtf_size_t indent) const override;
+  WTF::TextStream& ExternalRepresentation(WTF::TextStream&,
+                                          int indention) const override;
 };
 
 }  // namespace blink

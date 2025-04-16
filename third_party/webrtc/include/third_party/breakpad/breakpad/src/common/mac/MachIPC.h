@@ -164,7 +164,7 @@ class MachMessage {
 
   // The receiver of the message can retrieve the raw data this way
   uint8_t* GetData() {
-    return GetDataLength() > 0 ? GetDataPacket()->data : nullptr;
+    return GetDataLength() > 0 ? GetDataPacket()->data : NULL;
   }
 
   uint32_t GetDataLength() {

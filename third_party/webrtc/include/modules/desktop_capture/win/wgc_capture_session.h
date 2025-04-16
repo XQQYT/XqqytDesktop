@@ -12,7 +12,6 @@
 #define MODULES_DESKTOP_CAPTURE_WIN_WGC_CAPTURE_SESSION_H_
 
 #include <d3d11.h>
-#include <shellscalingapi.h>
 #include <windows.graphics.capture.h>
 #include <windows.graphics.h>
 #include <wrl/client.h>
@@ -30,12 +29,7 @@ namespace webrtc {
 
 class WgcCaptureSession final {
  public:
-  // WgcCaptureSession supports capturing a window as well as a screen.
-  // If it is a window, `source_id` is the HWND of the window to be
-  // captured, which is never `0`'. If it is a screen, `source_id` is a number
-  // in a 0-based monitor index.
   WgcCaptureSession(
-      intptr_t source_id,
       Microsoft::WRL::ComPtr<ID3D11Device> d3d11_device,
       Microsoft::WRL::ComPtr<
           ABI::Windows::Graphics::Capture::IGraphicsCaptureItem> item,
@@ -151,13 +145,6 @@ class WgcCaptureSession final {
   // captured or an empty region. Will always be empty if `allow_zero_hertz_` is
   // false.
   DesktopRegion damage_region_;
-
-  // The unique id to represent a Source of current DesktopCapturer.
-  intptr_t source_id_;
-
-  // The source type of the capture session. It can be either a window or a
-  // screen.
-  bool is_window_source_;
 
   SequenceChecker sequence_checker_;
 };

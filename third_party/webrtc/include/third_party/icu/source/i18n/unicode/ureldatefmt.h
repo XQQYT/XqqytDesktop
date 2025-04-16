@@ -12,7 +12,7 @@
 
 #include "unicode/utypes.h"
 
-#if !UCONFIG_NO_FORMATTING
+#if !UCONFIG_NO_FORMATTING && !UCONFIG_NO_BREAK_ITERATION
 
 #include "unicode/unum.h"
 #include "unicode/udisplaycontext.h"
@@ -505,6 +505,6 @@ ureldatefmt_combineDateAndTime( const URelativeDateTimeFormatter* reldatefmt,
                     int32_t           resultCapacity,
                     UErrorCode*       status );
 
-#endif /* !UCONFIG_NO_FORMATTING */
+#endif /* !UCONFIG_NO_FORMATTING && !UCONFIG_NO_BREAK_ITERATION */
 
 #endif

@@ -11,30 +11,27 @@
 namespace blink {
 
 class GPUQuerySetDescriptor;
-class V8GPUQueryType;
 
-class GPUQuerySet : public DawnObject<wgpu::QuerySet> {
+class GPUQuerySet : public DawnObject<WGPUQuerySet> {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
   static GPUQuerySet* Create(GPUDevice* device,
                              const GPUQuerySetDescriptor* webgpu_desc);
-  explicit GPUQuerySet(GPUDevice* device,
-                       wgpu::QuerySet querySet,
-                       const String& label);
+  explicit GPUQuerySet(GPUDevice* device, WGPUQuerySet querySet);
 
   GPUQuerySet(const GPUQuerySet&) = delete;
   GPUQuerySet& operator=(const GPUQuerySet&) = delete;
 
   // gpu_queryset.idl
   void destroy();
-  V8GPUQueryType type() const;
+  String type() const;
   uint32_t count() const;
 
  private:
   void setLabelImpl(const String& value) override {
     std::string utf8_label = value.Utf8();
-    GetHandle().SetLabel(utf8_label.c_str());
+    GetProcs().querySetSetLabel(GetHandle(), utf8_label.c_str());
   }
 };
 

@@ -19,6 +19,7 @@
 #include "DemangleConfig.h"
 
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -158,7 +159,7 @@ public:
   }
 
   void insert(size_t Pos, const char *S, size_t N) {
-    DEMANGLE_ASSERT(Pos <= CurrentPosition, "");
+    assert(Pos <= CurrentPosition);
     if (N == 0)
       return;
     grow(N);
@@ -171,7 +172,7 @@ public:
   void setCurrentPosition(size_t NewPos) { CurrentPosition = NewPos; }
 
   char back() const {
-    DEMANGLE_ASSERT(CurrentPosition, "");
+    assert(CurrentPosition);
     return Buffer[CurrentPosition - 1];
   }
 

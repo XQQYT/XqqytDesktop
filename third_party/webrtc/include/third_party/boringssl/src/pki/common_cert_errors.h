@@ -1,21 +1,11 @@
 // Copyright 2017 The Chromium Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef BSSL_PKI_COMMON_CERT_ERRORS_H_
 #define BSSL_PKI_COMMON_CERT_ERRORS_H_
 
-#include <openssl/base.h>
+#include "fillins/openssl_util.h"
 
 #include "cert_errors.h"
 
@@ -23,8 +13,7 @@
 // defined by the core verification/path building code).
 //
 // Errors may be defined for other domains.
-BSSL_NAMESPACE_BEGIN
-namespace cert_errors {
+namespace bssl::cert_errors {
 
 // An internal error occurred which prevented path building or verification
 // from finishing.
@@ -57,10 +46,6 @@ OPENSSL_EXPORT extern const CertErrorId kTargetCertShouldNotBeCa;
 // The certificate is being used to sign other certificates, however the
 // keyCertSign KeyUsage was not set.
 OPENSSL_EXPORT extern const CertErrorId kKeyCertSignBitNotSet;
-
-// The certificate is being used for RCS MLS but the required digitalSignature
-// bit was either not set, or was not the only bit set.
-OPENSSL_EXPORT extern const CertErrorId kKeyUsageIncorrectForRcsMlsClient;
 
 // The chain violates the max_path_length from BasicConstraints.
 OPENSSL_EXPORT extern const CertErrorId kMaxPathLengthViolated;
@@ -123,6 +108,10 @@ OPENSSL_EXPORT extern const CertErrorId kUnacceptableSignatureAlgorithm;
 // What constitutes as "acceptable" is determined by the verification delegate.
 OPENSSL_EXPORT extern const CertErrorId kUnacceptablePublicKey;
 
+// The certificate's EKU is missing serverAuth. However Netscape Server Gated
+// Crypto is present instead.
+OPENSSL_EXPORT extern const CertErrorId kEkuLacksServerAuthButHasGatedCrypto;
+
 // The certificate's EKU is missing serverAuth. However EKU ANY is present
 // instead.
 OPENSSL_EXPORT extern const CertErrorId kEkuLacksServerAuthButHasAnyEKU;
@@ -142,15 +131,6 @@ OPENSSL_EXPORT extern const CertErrorId kEkuHasProhibitedTimeStamping;
 
 // The certificate's EKU has Code Signing when it should not.
 OPENSSL_EXPORT extern const CertErrorId kEkuHasProhibitedCodeSigning;
-
-// The certificate's EKU is incorrect for an RcsMlsClient.
-OPENSSL_EXPORT extern const CertErrorId kEkuIncorrectForRcsMlsClient;
-
-// The certificate's EKU is incorrect for C2PA Time Stamping
-OPENSSL_EXPORT extern const CertErrorId kEkuIncorrectForC2PATimeStamping;
-
-// The certificate's EKU is incorrect for C2PA Manifest Signing
-OPENSSL_EXPORT extern const CertErrorId kEkuIncorrectForC2PAManifest;
 
 // The certificate does not have EKU.
 OPENSSL_EXPORT extern const CertErrorId kEkuNotPresent;
@@ -179,7 +159,6 @@ OPENSSL_EXPORT extern const CertErrorId kIterationLimitExceeded;
 // Depth limit was reached during path building.
 OPENSSL_EXPORT extern const CertErrorId kDepthLimitExceeded;
 
-}  // namespace cert_errors
-BSSL_NAMESPACE_END
+}  // namespace bssl::cert_errors
 
 #endif  // BSSL_PKI_COMMON_CERT_ERRORS_H_

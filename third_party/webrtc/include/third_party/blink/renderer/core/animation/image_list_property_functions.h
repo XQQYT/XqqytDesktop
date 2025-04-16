@@ -29,11 +29,12 @@ class ImageListPropertyFunctions {
       case CSSPropertyID::kBackgroundImage:
         fill_layer = &style.BackgroundLayers();
         break;
-      case CSSPropertyID::kMaskImage:
+      case CSSPropertyID::kWebkitMaskImage:
         fill_layer = &style.MaskLayers();
         break;
       default:
         NOTREACHED();
+        return;
     }
 
     result->clear();
@@ -51,11 +52,12 @@ class ImageListPropertyFunctions {
       case CSSPropertyID::kBackgroundImage:
         fill_layer = &builder.AccessBackgroundLayers();
         break;
-      case CSSPropertyID::kMaskImage:
+      case CSSPropertyID::kWebkitMaskImage:
         fill_layer = &builder.AccessMaskLayers();
         break;
       default:
         NOTREACHED();
+        return;
     }
 
     FillLayer* prev = nullptr;

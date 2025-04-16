@@ -13,20 +13,18 @@
 
 #include <memory>
 
-#include "api/environment/environment.h"
+#include "modules/audio_coding/acm2/acm_receiver.h"
 #include "modules/audio_coding/include/audio_coding_module.h"
 #include "modules/audio_coding/test/PCMFile.h"
 
 namespace webrtc {
-
-class NetEq;
 
 class TestPack : public AudioPacketizationCallback {
  public:
   TestPack();
   ~TestPack();
 
-  void RegisterReceiverNetEq(NetEq* neteq);
+  void RegisterReceiverACM(acm2::AcmReceiver* acm_receiver);
 
   int32_t SendData(AudioFrameType frame_type,
                    uint8_t payload_type,
@@ -40,7 +38,7 @@ class TestPack : public AudioPacketizationCallback {
   void reset_payload_size();
 
  private:
-  NetEq* neteq_;
+  acm2::AcmReceiver* receiver_acm_;
   uint16_t sequence_number_;
   uint8_t payload_data_[60 * 32 * 2 * 2];
   uint32_t timestamp_diff_;
@@ -70,9 +68,8 @@ class TestAllCodecs {
   void Run(TestPack* channel);
   void OpenOutFile(int test_number);
 
-  const Environment env_;
   std::unique_ptr<AudioCodingModule> acm_a_;
-  std::unique_ptr<NetEq> neteq_;
+  std::unique_ptr<acm2::AcmReceiver> acm_b_;
   TestPack* channel_a_to_b_;
   PCMFile infile_a_;
   PCMFile outfile_b_;

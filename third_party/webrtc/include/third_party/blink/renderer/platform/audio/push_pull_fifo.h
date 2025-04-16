@@ -11,6 +11,7 @@
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/functional.h"
 #include "third_party/blink/renderer/platform/wtf/threading.h"
+#include "third_party/blink/renderer/platform/wtf/threading_primitives.h"
 
 namespace blink {
 
@@ -37,15 +38,14 @@ struct PushPullFIFOStateForTest {
 // and fifo_Bus_) so the thread safety must be handled with care.
 //
 // TODO(hongchan): add a unit test for multi-thread access.
-class PLATFORM_EXPORT PushPullFIFO final {
+class PLATFORM_EXPORT PushPullFIFO {
   USING_FAST_MALLOC(PushPullFIFO);
 
  public:
-  struct PullResult {
-    uint32_t frames_provided = 0;
-    size_t frames_to_render = 0;
-  };
+  // Maximum FIFO length. (512 render quanta)
+  static const uint32_t kMaxFIFOLength;
 
+  // |fifo_length| cannot exceed |kMaxFIFOLength|. Otherwise it crashes.
   // ||render_quantum_frames| is the render size used by the audio graph.  It
   // |defaults to 128, the original and default render size.
   explicit PushPullFIFO(unsigned number_of_channels,
@@ -74,13 +74,10 @@ class PLATFORM_EXPORT PushPullFIFO final {
   //    the request from the consumer without causing error, but with a glitch.
   size_t Pull(AudioBus* output_bus, uint32_t frames_requested);
 
-  // Pull and update `earmark_frames_` to make the dual thread rendering mode
-  // (i.e. AudioWorklet) more smooth. (The single thread rendering does not need
-  // this treatment.) Returns the number of frames which are pulled (guaranteed
-  // to not exceed `frames_requested`) and the number of frames to be rendered
-  // by the source (i.e. WebAudio graph).
-  PullResult PullAndUpdateEarmark(AudioBus* output_bus,
-                                  uint32_t frames_requested);
+  // Pull and update |ear_mark_frames_| to make the dual thread rendering mode
+  // (i.e. AudioWorklet) more smooth. The single thread rendering does not need
+  // this treatment.
+  size_t PullAndUpdateEarmark(AudioBus* output_bus, uint32_t frames_requested);
 
   void SetEarmarkFrames(size_t earmark_frames) {
     DCHECK(IsMainThread());

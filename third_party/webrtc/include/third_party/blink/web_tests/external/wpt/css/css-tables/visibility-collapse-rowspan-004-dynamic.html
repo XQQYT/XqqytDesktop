@@ -70,114 +70,105 @@ table td {
                 tests[i][2]);
         };
     }
-    function width(element) {
-        return element.getBoundingClientRect().width;
-    }
-    function height(element) {
-        return element.getBoundingClientRect().height;
-    }
     document.getElementById("thirdRow").style.visibility = "collapse";
     tests = [
         [
-            width(document.getElementById('two')),
-            width(document.getElementById('one')),
+            document.getElementById('two').offsetWidth,
+            document.getElementById('one').offsetWidth,
             "spanning row visibility:collapse doesn't change table width"
         ],
         [
-            height(document.getElementById('firstRow')),
-            height(document.getElementById('firstRowRef')),
+            document.getElementById('firstRow').offsetHeight,
+            document.getElementById('firstRowRef').offsetHeight,
             "when third row is collapsed, first row stays the same height"
         ],
         [
-            height(document.getElementById('secondRow')),
-            height(document.getElementById('secondRowRef')),
+            document.getElementById('secondRow').offsetHeight,
+            document.getElementById('secondRowRef').offsetHeight,
             "when third row is collapsed, second row stays the same height"
         ],
-        [
-            height(document.getElementById('thirdRow')),
+        [   document.getElementById('thirdRow').offsetHeight,
             0,
             "third row visibility:collapse makes row height 0"
         ],
-        [
-            height(document.getElementById('fourthRow')),
-            height(document.getElementById('fourthRowRef')),
+           [
+               document.getElementById('fourthRow').offsetHeight,
+            document.getElementById('fourthRowRef').offsetHeight,
             "when third row is collapsed, fourth row stays the same height"
         ],
         [
-            height(document.getElementById('spanningCell')),
-            height(document.getElementById('firstRow')) +
-            height(document.getElementById('secondRow')) +
-            height(document.getElementById('fourthRow')) +
-            height(document.getElementById('fifthRow')),
+            document.getElementById('spanningCell').offsetHeight,
+            document.getElementById('firstRow').offsetHeight +
+            document.getElementById('secondRow').offsetHeight +
+            document.getElementById('fourthRow').offsetHeight +
+            document.getElementById('fifthRow').offsetHeight,
             "spanning cell shrinks to sum of remaining three rows' height"
         ]];
     runTests();
     document.getElementById("thirdRow").style.visibility = "visible";
     tests = [
         [
-            height(document.getElementById('firstRow')),
-            height(document.getElementById('firstRowRef')),
+            document.getElementById('firstRow').offsetHeight,
+            document.getElementById('firstRowRef').offsetHeight,
             "when third row is visible, first row stays the same height"
         ],
         [
-            height(document.getElementById('secondRow')),
-            height(document.getElementById('secondRowRef')),
+            document.getElementById('secondRow').offsetHeight,
+            document.getElementById('secondRowRef').offsetHeight,
             "when third row is visible, second row stays the same height"
         ],
-        [
-            height(document.getElementById('thirdRow')),
-            height(document.getElementById('secondRowRef')),
+        [   document.getElementById('thirdRow').offsetHeight,
+            document.getElementById('secondRowRef').offsetHeight,
             "when third row is visible, third row stays the same height"
         ],
         [
-            height(document.getElementById('fourthRow')),
-            height(document.getElementById('fourthRowRef')),
+            document.getElementById('fourthRow').offsetHeight,
+            document.getElementById('fourthRowRef').offsetHeight,
             "when third row is visible, fourth row stays the same height"
         ],
         [
-            height(document.getElementById('fifthRow')),
-            height(document.getElementById('fifthRowRef')),
+            document.getElementById('fifthRow').offsetHeight,
+            document.getElementById('fifthRowRef').offsetHeight,
             "when third row is visible, fifth row stays the same height"
         ],
         [
-            height(document.getElementById('spanningCell')),
-            height(document.getElementById('spanningCellRef')),
+            document.getElementById('spanningCell').offsetHeight,
+            document.getElementById('spanningCellRef').offsetHeight,
             "when third row is visible, spanning cell stays the same height"
         ]];
     runTests();
     document.getElementById("thirdRow").style.visibility = "collapse";
     tests = [
         [
-            width(document.getElementById('two')),
-            width(document.getElementById('one')),
+            document.getElementById('two').offsetWidth,
+            document.getElementById('one').offsetWidth,
             "(2nd collapse) spanning row visibility:collapse doesn't change table width"
         ],
         [
-            height(document.getElementById('firstRow')),
-            height(document.getElementById('firstRowRef')),
+            document.getElementById('firstRow').offsetHeight,
+            document.getElementById('firstRowRef').offsetHeight,
             "when third row is collapsed again, first row stays the same height"
         ],
         [
-            height(document.getElementById('secondRow')),
-            height(document.getElementById('secondRowRef')),
+            document.getElementById('secondRow').offsetHeight,
+            document.getElementById('secondRowRef').offsetHeight,
             "when third row is collapsed again, second row stays the same height"
         ],
-        [
-            height(document.getElementById('thirdRow')),
+        [   document.getElementById('thirdRow').offsetHeight,
             0,
             "(2nd collapse) third row visibility:collapse makes row height 0"
         ],
         [
-            height(document.getElementById('fourthRow')),
-            height(document.getElementById('fourthRowRef')),
+            document.getElementById('fourthRow').offsetHeight,
+            document.getElementById('fourthRowRef').offsetHeight,
             "when third row is collapsed again, fourth row stays the same height"
         ],
         [
-            height(document.getElementById('spanningCell')),
-            height(document.getElementById('firstRow')) +
-            height(document.getElementById('secondRow')) +
-            height(document.getElementById('fourthRow')) +
-            height(document.getElementById('fifthRow')),
+            document.getElementById('spanningCell').offsetHeight,
+            document.getElementById('firstRow').offsetHeight +
+            document.getElementById('secondRow').offsetHeight +
+            document.getElementById('fourthRow').offsetHeight +
+            document.getElementById('fifthRow').offsetHeight,
             "(2nd collapse) spanning cell shrinks to sum of remaining three rows' height"
         ]];
     runTests();

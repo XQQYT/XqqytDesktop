@@ -11,32 +11,30 @@
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/dom/events/event_dispatcher.h"
 #include "third_party/blink/renderer/core/dom/events/event_target.h"
-#include "third_party/blink/renderer/core/fileapi/blob.h"
 #include "third_party/blink/renderer/core/html/canvas/canvas_image_source.h"
 #include "third_party/blink/renderer/core/html/canvas/ukm_parameters.h"
 #include "third_party/blink/renderer/platform/bindings/exception_state.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_resource_host.h"
 #include "third_party/blink/renderer/platform/graphics/canvas_resource_provider.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
-#include "third_party/blink/renderer/platform/text/text_direction.h"
 #include "ui/gfx/geometry/size.h"
+
+class SkColorInfo;
 
 namespace blink {
 
 class CanvasRenderingContext;
 class CanvasResource;
 class CanvasResourceDispatcher;
-class ComputedStyle;
+class FontSelector;
+class ImageEncodeOptions;
 class KURL;
-class LayoutLocale;
-class PlainTextPainter;
+class ScriptState;
 class StaticBitmapImage;
-class UniqueFontSelector;
 
-class CORE_EXPORT CanvasRenderingContextHost : public GarbageCollectedMixin,
-                                               public CanvasResourceHost,
+class CORE_EXPORT CanvasRenderingContextHost : public CanvasResourceHost,
                                                public CanvasImageSource,
-                                               public ImageBitmapSource {
+                                               public GarbageCollectedMixin {
  public:
   enum class HostType {
     kNone,
@@ -44,7 +42,6 @@ class CORE_EXPORT CanvasRenderingContextHost : public GarbageCollectedMixin,
     kOffscreenCanvasHost,
   };
   CanvasRenderingContextHost(HostType host_type, const gfx::Size& size);
-  void Trace(Visitor* visitor) const override;
 
   void RecordCanvasSizeToUMA();
 
@@ -75,12 +72,7 @@ class CORE_EXPORT CanvasRenderingContextHost : public GarbageCollectedMixin,
   virtual bool IsWebGLBlocked() const = 0;
   virtual void SetContextCreationWasBlocked() {}
 
-  // The ComputedStyle argument is optional. Use it if you already have the
-  // computed style for the host. If nullptr is passed, the style will be
-  // computed within the method.
-  virtual TextDirection GetTextDirection(const ComputedStyle*) = 0;
-  virtual const LayoutLocale* GetLocale() const = 0;
-  virtual UniqueFontSelector* GetFontSelector() = 0;
+  virtual FontSelector* GetFontSelector() = 0;
 
   virtual bool ShouldAccelerate2dContext() const = 0;
 
@@ -88,6 +80,13 @@ class CORE_EXPORT CanvasRenderingContextHost : public GarbageCollectedMixin,
                       const SkIRect& damage_rect);
 
   virtual UkmParameters GetUkmParameters() = 0;
+
+  // For deferred canvases this will have the side effect of drawing recorded
+  // commands in order to finalize the frame.
+  ScriptPromise convertToBlob(ScriptState*,
+                              const ImageEncodeOptions*,
+                              ExceptionState&,
+                              const CanvasRenderingContext* const context);
 
   bool IsPaintable() const;
 
@@ -110,29 +109,12 @@ class CORE_EXPORT CanvasRenderingContextHost : public GarbageCollectedMixin,
   bool IsRenderingContext2D() const;
   bool IsImageBitmapRenderingContext() const;
 
-  SkAlphaType GetRenderingContextAlphaType() const;
-  SkColorType GetRenderingContextSkColorType() const;
-  viz::SharedImageFormat GetRenderingContextFormat() const;
-  sk_sp<SkColorSpace> GetRenderingContextSkColorSpace() const;
-  gfx::ColorSpace GetRenderingContextColorSpace() const;
-  PlainTextPainter& GetPlainTextPainter();
+  // Returns an SkColorInfo that best represents the canvas rendering context's
+  // contents.
+  SkColorInfo GetRenderingContextSkColorInfo() const;
 
   // blink::CanvasImageSource
   bool IsOffscreenCanvas() const override;
-
-  // ImageBitmapSource implementation
-  ImageBitmapSourceStatus CheckUsability() const override;
-
-  // This method attempts to ensure that the canvas' resource exists on the GPU.
-  // A HTMLCanvasElement can downgrade itself from GPU to CPU when readback
-  // occurs too frequently, so a canvas may exist on the CPU even if the browser
-  // is normally GPU-capable.
-  // Returns true if the canvas resources live on the GPU. If the canvas needed
-  // to be migrated off of the CPU, the canvas resource provider and canvas 2D
-  // layer bridge will be destroyed and recreated; when this occurs, any
-  // existing pointers to these objects will be invalidated. If the canvas
-  // resource provider did not exist at all, it may be created.
-  virtual bool EnableAcceleration() = 0;
 
  protected:
   ~CanvasRenderingContextHost() override = default;
@@ -144,18 +126,12 @@ class CORE_EXPORT CanvasRenderingContextHost : public GarbageCollectedMixin,
   void CreateCanvasResourceProviderWebGL();
   void CreateCanvasResourceProviderWebGPU();
 
-  bool ContextHasOpenLayers(const CanvasRenderingContext*) const;
-
   // Computes the digest that corresponds to the "input" of this canvas,
   // including the context type, and if applicable, canvas digest, and taint
   // bits.
   IdentifiableToken IdentifiabilityInputDigest(
       const CanvasRenderingContext* const context) const;
 
-  Member<PlainTextPainter> plain_text_painter_;
-  Member<UniqueFontSelector> unique_font_selector_;
-  // `did_fail_to_create_resource_provider_` prevents repeated attempts in
-  // allocating resources after the first attempt failed.
   bool did_fail_to_create_resource_provider_ = false;
   bool did_record_canvas_size_to_uma_ = false;
   HostType host_type_ = HostType::kNone;

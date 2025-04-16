@@ -20,65 +20,67 @@
 #define GRPC_SRC_CORE_LIB_IOMGR_BUFFER_LIST_H
 
 #include <grpc/support/port_platform.h>
+
+#include "absl/types/optional.h"
+
+#include <grpc/grpc.h>
 #include <grpc/support/time.h>
 
-#include <optional>
-
+#include "src/core/lib/gprpp/sync.h"
 #include "src/core/lib/iomgr/error.h"
 #include "src/core/lib/iomgr/internal_errqueue.h"
 #include "src/core/lib/iomgr/port.h"
-#include "src/core/util/sync.h"
 
 namespace grpc_core {
 
 struct ConnectionMetrics {
   // Delivery rate in Bytes/s.
-  std::optional<uint64_t> delivery_rate;
+  absl::optional<uint64_t> delivery_rate;
   // If the delivery rate is limited by the application, this is set to true.
-  std::optional<bool> is_delivery_rate_app_limited;
+  absl::optional<bool> is_delivery_rate_app_limited;
   // Total packets retransmitted.
-  std::optional<uint32_t> packet_retx;
+  absl::optional<uint32_t> packet_retx;
   // Total packets retransmitted spuriously. This metric is smaller than or
   // equal to packet_retx.
-  std::optional<uint32_t> packet_spurious_retx;
+  absl::optional<uint32_t> packet_spurious_retx;
   // Total packets sent.
-  std::optional<uint32_t> packet_sent;
+  absl::optional<uint32_t> packet_sent;
   // Total packets delivered.
-  std::optional<uint32_t> packet_delivered;
+  absl::optional<uint32_t> packet_delivered;
   // Total packets delivered with ECE marked. This metric is smaller than or
   // equal to packet_delivered.
-  std::optional<uint32_t> packet_delivered_ce;
+  absl::optional<uint32_t> packet_delivered_ce;
   // Total bytes lost so far.
-  std::optional<uint64_t> data_retx;
+  absl::optional<uint64_t> data_retx;
   // Total bytes sent so far.
-  std::optional<uint64_t> data_sent;
+  absl::optional<uint64_t> data_sent;
   // Total bytes in write queue but not sent.
-  std::optional<uint64_t> data_notsent;
+  absl::optional<uint64_t> data_notsent;
   // Pacing rate of the connection in Bps
-  std::optional<uint64_t> pacing_rate;
+  absl::optional<uint64_t> pacing_rate;
   // Minimum RTT observed in usec.
-  std::optional<uint32_t> min_rtt;
+  absl::optional<uint32_t> min_rtt;
   // Smoothed RTT in usec
-  std::optional<uint32_t> srtt;
+  absl::optional<uint32_t> srtt;
   // Send congestion window.
-  std::optional<uint32_t> congestion_window;
+  absl::optional<uint32_t> congestion_window;
   // Slow start threshold in packets.
-  std::optional<uint32_t> snd_ssthresh;
+  absl::optional<uint32_t> snd_ssthresh;
   // Maximum degree of reordering (i.e., maximum number of packets reodered)
   // on the connection.
-  std::optional<uint32_t> reordering;
+  absl::optional<uint32_t> reordering;
   // Represents the number of recurring retransmissions of the first sequence
   // that is not acknowledged yet.
-  std::optional<uint8_t> recurring_retrans;
+  absl::optional<uint8_t> recurring_retrans;
   // The cumulative time (in usec) that the transport protocol was busy
   // sending data.
-  std::optional<uint64_t> busy_usec;
+  absl::optional<uint64_t> busy_usec;
   // The cumulative time (in usec) that the transport protocol was limited by
   // the receive window size.
-  std::optional<uint64_t> rwnd_limited_usec;
+  absl::optional<uint64_t> rwnd_limited_usec;
   // The cumulative time (in usec) that the transport protocol was limited by
   // the send buffer size.
-  std::optional<uint64_t> sndbuf_limited_usec;
+  absl::optional<uint64_t> sndbuf_limited_usec;
 };
 
 struct BufferTimestamp {

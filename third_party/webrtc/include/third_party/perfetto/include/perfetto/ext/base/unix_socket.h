@@ -25,10 +25,8 @@
 #include <utility>
 
 #include "perfetto/base/build_config.h"
-#include "perfetto/base/compiler.h"
 #include "perfetto/base/export.h"
 #include "perfetto/base/logging.h"
-#include "perfetto/base/platform_handle.h"
 #include "perfetto/ext/base/scoped_file.h"
 #include "perfetto/ext/base/utils.h"
 #include "perfetto/ext/base/weak_ptr.h"
@@ -38,13 +36,23 @@ struct msghdr;
 namespace perfetto {
 namespace base {
 
-// Define the ScopedSocketHandle type.
+// Define the SocketHandle and ScopedSocketHandle types.
+// On POSIX OSes, a SocketHandle is really just an int (a file descriptor).
+// On Windows, sockets are have their own type (SOCKET) which is neither a
+// HANDLE nor an int. However Windows SOCKET(s) can have a event HANDLE attached
+// to them (which in Perfetto is a PlatformHandle), and that can be used in
+// WaitForMultipleObjects, hence in base::TaskRunner.AddFileDescriptorWatch().
 
 #if PERFETTO_BUILDFLAG(PERFETTO_OS_WIN)
-int CloseSocket(SocketHandle);  // A wrapper around ::closesocket().
+// uintptr_t really reads as SOCKET here (Windows headers typedef to that).
+// As usual we don't just use SOCKET here to avoid leaking Windows.h includes
+// in our headers.
+using SocketHandle = uintptr_t;  // SOCKET
+int CloseSocket(SocketHandle);   // A wrapper around ::closesocket().
 using ScopedSocketHandle =
     ScopedResource<SocketHandle, CloseSocket, static_cast<SocketHandle>(-1)>;
 #else
+using SocketHandle = int;
 using ScopedSocketHandle = ScopedFile;
 #endif
 
@@ -85,17 +93,7 @@ SockFamily GetSockFamily(const char* addr);
 
 // Returns whether inter-process shared memory is supported for the socket.
 inline bool SockShmemSupported(SockFamily sock_family) {
-#if !PERFETTO_BUILDFLAG(PERFETTO_OS_WIN)
   return sock_family == SockFamily::kUnix;
-#else
-  base::ignore_result(sock_family);
-  // On Windows shm is negotiated by sharing an unguessable token
-  // over TCP sockets. In theory works on any socket type, in practice
-  // we need to tell the difference between a local and a remote
-  // connection. For now we assume everything is local.
-  // See comments on r.android.com/2951909 .
-  return true;
-#endif
 }
 inline bool SockShmemSupported(const char* addr) {
   return SockShmemSupported(GetSockFamily(addr));
@@ -400,7 +398,7 @@ class PERFETTO_EXPORT_COMPONENT UnixSocket {
   }
 #endif
 
-#if PERFETTO_BUILDFLAG(PERFETTO_OS_LINUX_BUT_NOT_QNX) || \
+#if PERFETTO_BUILDFLAG(PERFETTO_OS_LINUX) || \
     PERFETTO_BUILDFLAG(PERFETTO_OS_ANDROID)
   // Process ID of the peer, as returned by the kernel. If the client
   // disconnects and the socket goes into the kDisconnected state, it

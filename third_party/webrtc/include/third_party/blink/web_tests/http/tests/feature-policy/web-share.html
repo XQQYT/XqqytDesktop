@@ -2,8 +2,8 @@
 <script src="../../resources/testharness.js"></script>
 <script src="../../resources/testharnessreport.js"></script>
 <script src="resources/helper.js"></script>
-<iframe allow="focus-without-user-activation"></iframe>
-<iframe allow="web-share; focus-without-user-activation;"></iframe>
+<iframe></iframe>
+<iframe allow="web-share"></iframe>
 <script>
 var srcs = [
   "resources/feature-policy-web-share.html",
@@ -11,7 +11,7 @@ var srcs = [
 ];
 
 function loadFrame(iframe, src) {
-  const allowWebShare = hasAllowAttributeWithValue(iframe, 'web-share');
+  const allowWebShare = iframe.hasAttribute('allow');
   promise_test(function() {
     iframe.src = src;
     return new Promise(function(resolve, reject) {

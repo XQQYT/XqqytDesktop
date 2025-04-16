@@ -5,7 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_TABLE_LAYOUT_TABLE_COLUMN_VISITOR_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_TABLE_LAYOUT_TABLE_COLUMN_VISITOR_H_
 
-#include "third_party/blink/renderer/core/layout/block_node.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_block_node.h"
 #include "third_party/blink/renderer/core/layout/table/layout_table_column.h"
 
 namespace blink {
@@ -20,23 +20,23 @@ namespace blink {
 // traversal, and computes correct spans.
 //
 // class Visitor {
-//   void VisitCol(const BlockNode& column,
+//   void VisitCol(const NGBlockNode& column,
 //                 wtf_size_t start_column_index,
 //                 wtf_size_t span);
-//   void EnterColgroup(const BlockNode&  colgroup,
+//   void EnterColgroup(const NGBlockNode&  colgroup,
 //                      wtf_size_t start_column_index);
-//   void LeaveColgroup(const BlockNode& colgroup,
+//   void LeaveColgroup(const NGBlockNode& colgroup,
 //                      wtf_size_t start_column_index,
 //                      wtf_size_t span,
 //                      bool has_children);
 // }
 template <typename Visitor>
-void VisitLayoutTableColumn(const HeapVector<BlockNode>& columns,
+void VisitLayoutTableColumn(const HeapVector<NGBlockNode>& columns,
                             wtf_size_t table_column_count,
                             Visitor* visitor) {
   wtf_size_t current_column_index = 0;
 
-  auto VisitCol = [&](const BlockNode& col) {
+  auto VisitCol = [&](const NGBlockNode& col) {
     wtf_size_t span = col.TableColumnSpan();
     span = std::min(span, table_column_count - current_column_index);
     visitor->VisitCol(col, current_column_index, span);
@@ -44,7 +44,7 @@ void VisitLayoutTableColumn(const HeapVector<BlockNode>& columns,
     return span;
   };
 
-  for (const BlockNode& table_column : columns) {
+  for (const NGBlockNode& table_column : columns) {
     // Col spans can cause columns to extend beyond table's edge.
     // These columns are ignored.
     if (current_column_index >= table_column_count)
@@ -56,7 +56,7 @@ void VisitLayoutTableColumn(const HeapVector<BlockNode>& columns,
     DCHECK(table_column.IsTableColgroup());
     // Visit COLGROUP element.
     visitor->EnterColgroup(table_column, current_column_index);
-    BlockNode col_child = To<BlockNode>(table_column.FirstChild());
+    NGBlockNode col_child = To<NGBlockNode>(table_column.FirstChild());
     wtf_size_t colgroup_start_index = current_column_index;
     wtf_size_t colgroup_span = 0;
     bool has_children = bool(col_child);
@@ -65,7 +65,7 @@ void VisitLayoutTableColumn(const HeapVector<BlockNode>& columns,
         colgroup_span += VisitCol(col_child);
         if (current_column_index >= table_column_count)
           break;
-        col_child = To<BlockNode>(col_child.NextSibling());
+        col_child = To<NGBlockNode>(col_child.NextSibling());
       }
     } else {
       // If COLGROUP has no children, its span is defined by the COLGROUP.

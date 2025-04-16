@@ -8,7 +8,6 @@
 #include "media/base/audio_codecs.h"
 #include "media/base/audio_encoder.h"
 #include "third_party/blink/renderer/bindings/core/v8/active_script_wrappable.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_codec_state.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_encoded_audio_chunk_output_callback.h"
@@ -23,7 +22,6 @@ namespace blink {
 class ExceptionState;
 class AudioEncoderConfig;
 class AudioEncoderInit;
-class AudioEncoderSupport;
 
 class MODULES_EXPORT AudioEncoderTraits {
  public:
@@ -70,8 +68,9 @@ class MODULES_EXPORT AudioEncoder final
   // EventTarget interface
   const AtomicString& InterfaceName() const override;
 
-  static ScriptPromise<AudioEncoderSupport>
-  isConfigSupported(ScriptState*, const AudioEncoderConfig*, ExceptionState&);
+  static ScriptPromise isConfigSupported(ScriptState*,
+                                         const AudioEncoderConfig*,
+                                         ExceptionState&);
 
  private:
   using Base = EncoderBase<AudioEncoderTraits>;
@@ -81,10 +80,10 @@ class MODULES_EXPORT AudioEncoder final
   void ProcessConfigure(Request* request) override;
   void ProcessReconfigure(Request* request) override;
 
-  ParsedConfig* OnNewConfigure(const AudioEncoderConfig* opts,
-                               ExceptionState&) override;
+  ParsedConfig* ParseConfig(const AudioEncoderConfig* opts,
+                            ExceptionState&) override;
   bool VerifyCodecSupport(ParsedConfig*, String* js_error_message) override;
-  void OnNewEncode(InputType* input, ExceptionState& exception_state) override;
+
   bool CanReconfigure(ParsedConfig& original_config,
                       ParsedConfig& new_config) override;
 
@@ -94,14 +93,7 @@ class MODULES_EXPORT AudioEncoder final
       ParsedConfig* active_config,
       uint32_t reset_count,
       media::EncodedAudioBuffer encoded_buffer,
-      std::optional<media::AudioEncoder::CodecDescription> codec_desc);
-  DOMException* MakeOperationError(std::string error_msg,
-                                   media::EncoderStatus status);
-  DOMException* MakeEncodingError(std::string error_msg,
-                                  media::EncoderStatus status);
-
-  // True if MojoAudioEncoder is being used.
-  bool is_platform_encoder_ = false;
+      absl::optional<media::AudioEncoder::CodecDescription> codec_desc);
 };
 
 }  // namespace blink

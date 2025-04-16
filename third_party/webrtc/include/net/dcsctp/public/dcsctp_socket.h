@@ -12,14 +12,12 @@
 
 #include <cstdint>
 #include <memory>
-#include <optional>
 #include <utility>
-#include <vector>
 
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "api/array_view.h"
 #include "api/task_queue/task_queue_base.h"
-#include "api/units/timestamp.h"
 #include "net/dcsctp/public/dcsctp_handover_state.h"
 #include "net/dcsctp/public/dcsctp_message.h"
 #include "net/dcsctp/public/dcsctp_options.h"
@@ -51,11 +49,11 @@ struct SendOptions {
   // If set, will discard messages that haven't been correctly sent and
   // received before the lifetime has expired. This is only available if the
   // peer supports Partial Reliability Extension (RFC3758).
-  std::optional<DurationMs> lifetime = std::nullopt;
+  absl::optional<DurationMs> lifetime = absl::nullopt;
 
   // If set, limits the number of retransmissions. This is only available
   // if the peer supports Partial Reliability Extension (RFC3758).
-  std::optional<size_t> max_retransmissions = std::nullopt;
+  absl::optional<size_t> max_retransmissions = absl::nullopt;
 
   // If set, will generate lifecycle events for this message. See e.g.
   // `DcSctpSocketCallbacks::OnLifecycleMessageFullySent`. This value is decided
@@ -287,7 +285,7 @@ class DcSctpSocketCallbacks {
   //
   // Note that it's NOT ALLOWED to call into this library from within this
   // callback.
-  virtual void SendPacket(rtc::ArrayView<const uint8_t> /* data */) {}
+  virtual void SendPacket(rtc::ArrayView<const uint8_t> data) {}
 
   // Called when the library wants the packet serialized as `data` to be sent.
   //
@@ -312,7 +310,7 @@ class DcSctpSocketCallbacks {
   // Note that it's NOT ALLOWED to call into this library from within this
   // callback.
   virtual std::unique_ptr<Timeout> CreateTimeout(
-      webrtc::TaskQueueBase::DelayPrecision /* precision */) {
+      webrtc::TaskQueueBase::DelayPrecision precision) {
     // TODO(hbos): When dependencies have migrated to this new signature, make
     // this pure virtual and delete the other version.
     return CreateTimeout();
@@ -325,21 +323,9 @@ class DcSctpSocketCallbacks {
 
   // Returns the current time in milliseconds (from any epoch).
   //
-  // TODO(bugs.webrtc.org/15593): This method is deprecated, see `Now`.
-  //
   // Note that it's NOT ALLOWED to call into this library from within this
   // callback.
-  virtual TimeMs TimeMillis() { return TimeMs(0); }
-
-  // Returns the current time (from any epoch).
-  //
-  // This callback will eventually replace `TimeMillis()`.
-  //
-  // Note that it's NOT ALLOWED to call into this library from within this
-  // callback.
-  virtual webrtc::Timestamp Now() {
-    return webrtc::Timestamp::Millis(*TimeMillis());
-  }
+  virtual TimeMs TimeMillis() = 0;
 
   // Called when the library needs a random number uniformly distributed between
   // `low` (inclusive) and `high` (exclusive). The random numbers used by the
@@ -423,7 +409,7 @@ class DcSctpSocketCallbacks {
   // below the threshold set when calling `SetBufferedAmountLowThreshold`.
   //
   // It is allowed to call into this library from within this callback.
-  virtual void OnBufferedAmountLow(StreamID /* stream_id */) {}
+  virtual void OnBufferedAmountLow(StreamID stream_id) {}
 
   // Will be called when the total amount of data buffered (in the entire send
   // buffer, for all streams) falls to or below the threshold specified in
@@ -456,7 +442,7 @@ class DcSctpSocketCallbacks {
   //
   // Note that it's NOT ALLOWED to call into this library from within this
   // callback.
-  virtual void OnLifecycleMessageFullySent(LifecycleId /* lifecycle_id */) {}
+  virtual void OnLifecycleMessageFullySent(LifecycleId lifecycle_id) {}
 
   // OnLifecycleMessageExpired will be called when a message has expired. If it
   // was expired with data remaining in the send queue that had not been sent
@@ -474,8 +460,8 @@ class DcSctpSocketCallbacks {
   //
   // Note that it's NOT ALLOWED to call into this library from within this
   // callback.
-  virtual void OnLifecycleMessageExpired(LifecycleId /* lifecycle_id */,
-                                         bool /* maybe_delivered */) {}
+  virtual void OnLifecycleMessageExpired(LifecycleId lifecycle_id,
+                                         bool maybe_delivered) {}
 
   // OnLifecycleMessageDelivered will be called when a non-expired message has
   // been acknowledged by the peer as delivered.
@@ -493,7 +479,7 @@ class DcSctpSocketCallbacks {
   //
   // Note that it's NOT ALLOWED to call into this library from within this
   // callback.
-  virtual void OnLifecycleMessageDelivered(LifecycleId /* lifecycle_id */) {}
+  virtual void OnLifecycleMessageDelivered(LifecycleId lifecycle_id) {}
 
   // OnLifecycleEnd will be called when a lifecycle event has reached its end.
   // It will be called when processing of a message is complete, no matter how
@@ -513,7 +499,7 @@ class DcSctpSocketCallbacks {
   //
   // Note that it's NOT ALLOWED to call into this library from within this
   // callback.
-  virtual void OnLifecycleEnd(LifecycleId /* lifecycle_id */) {}
+  virtual void OnLifecycleEnd(LifecycleId lifecycle_id) {}
 };
 
 // The DcSctpSocket implementation implements the following interface.
@@ -578,16 +564,6 @@ class DcSctpSocketInterface {
   virtual SendStatus Send(DcSctpMessage message,
                           const SendOptions& send_options) = 0;
 
-  // Sends the messages `messages` using the provided send options.
-  // Sending a message is an asynchronous operation, and the `OnError` callback
-  // may be invoked to indicate any errors in sending the message.
-  //
-  // This has identical semantics to Send, except that it may coalesce many
-  // messages into a single SCTP packet if they would fit.
-  virtual std::vector<SendStatus> SendMany(
-      rtc::ArrayView<DcSctpMessage> messages,
-      const SendOptions& send_options) = 0;
-
   // Resetting streams is an asynchronous operation and the results will
   // be notified using `DcSctpSocketCallbacks::OnStreamsResetDone()` on success
   // and `DcSctpSocketCallbacks::OnStreamsResetFailed()` on failure. Note that
@@ -621,10 +597,10 @@ class DcSctpSocketInterface {
                                              size_t bytes) = 0;
 
   // Retrieves the latest metrics. If the socket is not fully connected,
-  // `std::nullopt` will be returned. Note that metrics are not guaranteed to
+  // `absl::nullopt` will be returned. Note that metrics are not guaranteed to
   // be carried over if this socket is handed over by calling
   // `GetHandoverStateAndClose`.
-  virtual std::optional<Metrics> GetMetrics() const = 0;
+  virtual absl::optional<Metrics> GetMetrics() const = 0;
 
   // Returns empty bitmask if the socket is in the state in which a snapshot of
   // the state can be made by `GetHandoverStateAndClose()`. Return value is
@@ -637,7 +613,7 @@ class DcSctpSocketInterface {
   // The method fails if the socket is not in a state ready for handover.
   // nullopt indicates the failure. `DcSctpSocketCallbacks::OnClosed` will be
   // called on success.
-  virtual std::optional<DcSctpSocketHandoverState>
+  virtual absl::optional<DcSctpSocketHandoverState>
   GetHandoverStateAndClose() = 0;
 
   // Returns the detected SCTP implementation of the peer. As this is not

@@ -15,8 +15,6 @@
 #  pragma GCC system_header
 #endif
 
-// clang-format off
-
 // We maintain 2 ABI lists:
 // - _LIBCPP_STRING_V1_EXTERN_TEMPLATE_LIST
 // - _LIBCPP_STRING_UNSTABLE_EXTERN_TEMPLATE_LIST
@@ -32,6 +30,7 @@
 #define _LIBCPP_STRING_V1_EXTERN_TEMPLATE_LIST(_Func, _CharType) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>& basic_string<_CharType>::replace(size_type, size_type, value_type const*, size_type)) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>::size_type basic_string<_CharType>::rfind(value_type const*, size_type, size_type) const) \
+  _Func(_LIBCPP_EXPORTED_FROM_ABI void basic_string<_CharType>::__init(value_type const*, size_type, size_type)) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>::basic_string(basic_string const&)) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>& basic_string<_CharType>::replace(size_type, size_type, value_type const*)) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>::basic_string(basic_string const&, allocator<_CharType> const&)) \
@@ -81,6 +80,7 @@
 #define _LIBCPP_STRING_UNSTABLE_EXTERN_TEMPLATE_LIST(_Func, _CharType) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>& basic_string<_CharType>::replace(size_type, size_type, value_type const*, size_type)) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>::size_type basic_string<_CharType>::rfind(value_type const*, size_type, size_type) const) \
+  _Func(_LIBCPP_EXPORTED_FROM_ABI void basic_string<_CharType>::__init(value_type const*, size_type, size_type)) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>& basic_string<_CharType>::replace(size_type, size_type, value_type const*)) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>::size_type basic_string<_CharType>::find_last_not_of(value_type const*, size_type, size_type) const) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>::~basic_string()) \
@@ -126,6 +126,5 @@
   _Func(_LIBCPP_EXPORTED_FROM_ABI void basic_string<_CharType>::resize(size_type, value_type)) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI basic_string<_CharType>& basic_string<_CharType>::insert(size_type, basic_string const&, size_type, size_type))
 
-// clang-format on
 
 #endif // _LIBCPP___STRING_EXTERN_TEMPLATE_LISTS_H

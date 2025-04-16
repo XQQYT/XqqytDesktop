@@ -10,15 +10,12 @@
 
 #include "base/memory/stack_allocated.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
-#include "third_party/blink/renderer/platform/wtf/wtf_size_t.h"
-
-namespace WTF {
-class String;
-}  // namespace WTF
+#include "third_party/blink/renderer/platform/wtf/forward.h"
 
 namespace blink {
 
 class Font;
+class SimpleFontData;
 
 class PLATFORM_EXPORT TextAutoSpace {
   STACK_ALLOCATED();
@@ -31,9 +28,9 @@ class PLATFORM_EXPORT TextAutoSpace {
   static CharType GetType(UChar32 ch);
 
   // `GetType` and advance the `offset` by one character (grapheme cluster.)
-  static CharType GetTypeAndNext(const WTF::String& text, wtf_size_t& offset);
+  static CharType GetTypeAndNext(const String& text, wtf_size_t& offset);
   // `GetType` of the character before `offset`.
-  static CharType GetPrevType(const WTF::String& text, wtf_size_t offset);
+  static CharType GetPrevType(const String& text, wtf_size_t offset);
 
   // `CharType::kIdeograph` is `USCRIPT_HAN`, except characters in this range
   // may be other scripts.
@@ -42,7 +39,8 @@ class PLATFORM_EXPORT TextAutoSpace {
 
   // Get the inter-script auto-spacing width.
   // https://drafts.csswg.org/css-text-4/#inter-script-spacing
-  static float GetSpacingWidth(const Font* font);
+  static float GetSpacingWidth(const Font& font);
+  static float GetSpacingWidth(const SimpleFontData& font);
 };
 
 PLATFORM_EXPORT std::ostream& operator<<(std::ostream& ostream,

@@ -23,7 +23,6 @@
  * An implementation of Liang's hyphenation algorithm.
  */
 
-#include "base/memory/raw_ptr.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 
 namespace android {
@@ -79,11 +78,11 @@ class Hyphenator {
   // is a slightly different use case. It measures UTF-16 code units.
   static const wtf_size_t MAX_HYPHENATED_SIZE = 64;
 
-  raw_ptr<const uint8_t> patternData;
+  const uint8_t* patternData;
 
   // accessors for binary data
   const Header* getHeader() const {
-    return reinterpret_cast<const Header*>(patternData.get());
+    return reinterpret_cast<const Header*>(patternData);
   }
 };
 

@@ -39,17 +39,14 @@ namespace cssvalue {
 
 class CORE_EXPORT CSSCrossfadeValue final : public CSSImageGeneratorValue {
  public:
-  CSSCrossfadeValue(
-      bool is_prefixed_variant,
-      HeapVector<std::pair<Member<CSSValue>, Member<CSSPrimitiveValue>>>
-          image_and_percentages);
+  CSSCrossfadeValue(CSSValue* from_value,
+                    CSSValue* to_value,
+                    CSSPrimitiveValue* percentage_value);
   ~CSSCrossfadeValue();
 
-  const HeapVector<std::pair<Member<CSSValue>, Member<CSSPrimitiveValue>>>&
-  GetImagesAndPercentages() const {
-    return image_and_percentages_;
-  }
-  bool IsPrefixedVariant() const { return is_prefixed_variant_; }
+  CSSValue& From() const { return *from_value_; }
+  CSSValue& To() const { return *to_value_; }
+  CSSPrimitiveValue& Percentage() const { return *percentage_value_; }
 
   bool HasClients() const { return !Clients().empty(); }
   ImageResourceObserver* GetObserverProxy();
@@ -63,9 +60,9 @@ class CORE_EXPORT CSSCrossfadeValue final : public CSSImageGeneratorValue {
  private:
   class ObserverProxy;
 
-  bool is_prefixed_variant_;  // -webkit-cross-fade() instead of cross-fade()
-  HeapVector<std::pair<Member<CSSValue>, Member<CSSPrimitiveValue>>>
-      image_and_percentages_;
+  Member<CSSValue> from_value_;
+  Member<CSSValue> to_value_;
+  Member<CSSPrimitiveValue> percentage_value_;
   Member<ObserverProxy> observer_proxy_;
 };
 

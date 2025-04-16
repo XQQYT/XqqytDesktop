@@ -64,8 +64,8 @@ class MIDIPort : public EventTarget,
   V8MIDIPortType type() const;
   String version() const { return version_; }
 
-  ScriptPromise<MIDIPort> open(ScriptState*);
-  ScriptPromise<MIDIPort> close(ScriptState*);
+  ScriptPromise open(ScriptState*);
+  ScriptPromise close(ScriptState*);
 
   midi::mojom::PortState GetState() const { return state_; }
   void SetState(midi::mojom::PortState);
@@ -101,11 +101,11 @@ class MIDIPort : public EventTarget,
   MIDIAccess* midiAccess() const { return access_.Get(); }
 
  private:
-  void OpenAsynchronously(ScriptPromiseResolver<MIDIPort>*);
+  void OpenAsynchronously(ScriptPromiseResolver*);
   virtual void DidOpen(bool opened) {}
-  void CloseAsynchronously(ScriptPromiseResolver<MIDIPort>*);
+  void CloseAsynchronously(ScriptPromiseResolver*);
 
-  ScriptPromise<MIDIPort> Accept(ScriptState*);
+  ScriptPromise Accept(ScriptState*);
 
   void SetStates(midi::mojom::PortState, MIDIPortConnectionState);
 

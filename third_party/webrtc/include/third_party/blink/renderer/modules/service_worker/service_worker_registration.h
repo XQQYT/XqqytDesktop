@@ -5,8 +5,10 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_SERVICE_WORKER_SERVICE_WORKER_REGISTRATION_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_SERVICE_WORKER_SERVICE_WORKER_REGISTRATION_H_
 
+#include <memory>
 #include "third_party/blink/public/mojom/service_worker/service_worker_registration.mojom-blink.h"
 #include "third_party/blink/public/platform/modules/service_worker/web_service_worker_registration_object_info.h"
+#include "third_party/blink/public/platform/web_vector.h"
 #include "third_party/blink/renderer/bindings/core/v8/active_script_wrappable.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 #include "third_party/blink/renderer/core/dom/events/event_target.h"
@@ -23,8 +25,8 @@
 namespace blink {
 
 class ExceptionState;
+class ScriptPromise;
 class ScriptState;
-class V8ServiceWorkerUpdateViaCache;
 
 // The implementation of a service worker registration object in Blink.
 class ServiceWorkerRegistration final
@@ -37,6 +39,12 @@ class ServiceWorkerRegistration final
   USING_PRE_FINALIZER(ServiceWorkerRegistration, Dispose);
 
  public:
+  // Called from CallbackPromiseAdapter.
+  using WebType = WebServiceWorkerRegistrationObjectInfo;
+  static ServiceWorkerRegistration* Take(
+      ScriptPromiseResolver*,
+      WebServiceWorkerRegistrationObjectInfo);
+
   ServiceWorkerRegistration(ExecutionContext*,
                             WebServiceWorkerRegistrationObjectInfo);
 
@@ -67,21 +75,17 @@ class ServiceWorkerRegistration final
   NavigationPreloadManager* navigationPreload();
 
   String scope() const;
-  V8ServiceWorkerUpdateViaCache updateViaCache() const;
+  String updateViaCache() const;
 
   int64_t RegistrationId() const { return registration_id_; }
 
-  void EnableNavigationPreload(bool enable,
-                               ScriptPromiseResolver<IDLUndefined>* resolver);
-  void GetNavigationPreloadState(
-      ScriptPromiseResolver<NavigationPreloadState>* resolver);
-  void SetNavigationPreloadHeader(
-      const String& value,
-      ScriptPromiseResolver<IDLUndefined>* resolver);
+  void EnableNavigationPreload(bool enable, ScriptPromiseResolver* resolver);
+  void GetNavigationPreloadState(ScriptPromiseResolver* resolver);
+  void SetNavigationPreloadHeader(const String& value,
+                                  ScriptPromiseResolver* resolver);
 
-  ScriptPromise<ServiceWorkerRegistration> update(ScriptState*,
-                                                  ExceptionState&);
-  ScriptPromise<IDLBoolean> unregister(ScriptState*, ExceptionState&);
+  ScriptPromise update(ScriptState*, ExceptionState&);
+  ScriptPromise unregister(ScriptState*, ExceptionState&);
 
   DEFINE_ATTRIBUTE_EVENT_LISTENER(updatefound, kUpdatefound)
 
@@ -107,8 +111,8 @@ class ServiceWorkerRegistration final
 
   void UpdateInternal(
       mojom::blink::FetchClientSettingsObjectPtr mojom_settings_object,
-      ScriptPromiseResolver<ServiceWorkerRegistration>* resolver);
-  void UnregisterInternal(ScriptPromiseResolver<IDLBoolean>* resolver);
+      ScriptPromiseResolver* resolver);
+  void UnregisterInternal(ScriptPromiseResolver* resolver);
 
   Member<ServiceWorker> installing_;
   Member<ServiceWorker> waiting_;
@@ -138,6 +142,24 @@ class ServiceWorkerRegistration final
       receiver_;
 
   bool stopped_;
+};
+
+class ServiceWorkerRegistrationArray {
+  STATIC_ONLY(ServiceWorkerRegistrationArray);
+
+ public:
+  // Called from CallbackPromiseAdapter.
+  using WebType = WebVector<WebServiceWorkerRegistrationObjectInfo>;
+  static HeapVector<Member<ServiceWorkerRegistration>> Take(
+      ScriptPromiseResolver* resolver,
+      WebType web_service_worker_registrations) {
+    HeapVector<Member<ServiceWorkerRegistration>> registrations;
+    for (auto& registration : web_service_worker_registrations) {
+      registrations.push_back(
+          ServiceWorkerRegistration::Take(resolver, std::move(registration)));
+    }
+    return registrations;
+  }
 };
 
 }  // namespace blink

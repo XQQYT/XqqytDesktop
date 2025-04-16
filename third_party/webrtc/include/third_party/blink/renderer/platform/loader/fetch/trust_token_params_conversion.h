@@ -5,21 +5,25 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_TRUST_TOKEN_PARAMS_CONVERSION_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_TRUST_TOKEN_PARAMS_CONVERSION_H_
 
-#include <optional>
-
 #include "services/network/public/cpp/optional_trust_token_params.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/public/platform/web_common.h"
 
-namespace network::mojom::blink {
+namespace network {
+namespace mojom {
+namespace blink {
 class TrustTokenParams;
-}  // namespace network::mojom::blink
+
+}  // namespace blink
+}  // namespace mojom
+}  // namespace network
 
 namespace blink {
 
 // Converts a mojom::blink TrustTokenParams object to its non-Blink counterpart
 // by directly copying all fields, converting types where necessary.
 network::OptionalTrustTokenParams ConvertTrustTokenParams(
-    const std::optional<network::mojom::blink::TrustTokenParams>& maybe_in);
+    const absl::optional<network::mojom::blink::TrustTokenParams>& maybe_in);
 
 }  // namespace blink
 

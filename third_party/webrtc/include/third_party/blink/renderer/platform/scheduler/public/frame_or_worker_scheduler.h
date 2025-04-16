@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_SCHEDULER_PUBLIC_FRAME_OR_WORKER_SCHEDULER_H_
 
 #include "base/functional/callback.h"
-#include "base/memory/raw_ref.h"
 #include "base/memory/weak_ptr.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/types/strong_alias.h"
@@ -88,7 +87,6 @@ class PLATFORM_EXPORT FrameOrWorkerScheduler {
     }
 
     SchedulingPolicy GetPolicy() const;
-    SchedulingPolicy::Feature GetFeature() const;
 
     const FeatureAndJSLocationBlockingBFCache&
     GetFeatureAndJSLocationBlockingBFCache() const;
@@ -136,9 +134,9 @@ class PLATFORM_EXPORT FrameOrWorkerScheduler {
         FrameOrWorkerScheduler::BFCacheBlockingFeatureAndLocations;
 
     struct BlockingDetails {
-      const raw_ref<const BFCacheBlockingFeatureAndLocations>
+      const BFCacheBlockingFeatureAndLocations&
           non_sticky_features_and_js_locations;
-      const raw_ref<const BFCacheBlockingFeatureAndLocations>
+      const BFCacheBlockingFeatureAndLocations&
           sticky_features_and_js_locations;
       BlockingDetails(BFCacheBlockingFeatureAndLocations& non_sticky,
                       BFCacheBlockingFeatureAndLocations& sticky)
@@ -151,14 +149,13 @@ class PLATFORM_EXPORT FrameOrWorkerScheduler {
     // changed when a blocking feature and its JS location are registered or
     // removed.
     virtual void UpdateBackForwardCacheDisablingFeatures(BlockingDetails) = 0;
-
-    base::WeakPtr<Delegate> AsWeakPtr() {
-      return weak_ptr_factory_.GetWeakPtr();
-    }
-    base::WeakPtrFactory<Delegate> weak_ptr_factory_{this};
   };
 
   virtual ~FrameOrWorkerScheduler();
+
+  using Preempted = base::StrongAlias<class PreemptedTag, bool>;
+  // Stops any tasks from running while we yield and run a nested loop.
+  virtual void SetPreemptedForCooperativeScheduling(Preempted) = 0;
 
   // Notifies scheduler that this execution context has started using a feature
   // which impacts scheduling decisions.

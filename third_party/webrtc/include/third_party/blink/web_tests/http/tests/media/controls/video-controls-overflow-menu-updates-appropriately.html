@@ -27,11 +27,9 @@ async_test(t => {
 
     // Remove cast device and ensure the overflow menu updates as expected
     // Cast option in overflow should no longer be visible, but the other
-    // options aside from track menus should be.
+    // options should all be.
     var buttonsWithoutCast = overflowButtonsCSS;
     buttonsWithoutCast[OverflowMenuButtons.CAST] = undefined;
-    buttonsWithoutCast[OverflowMenuButtons.VIDEO_TRACKS] = undefined;
-    buttonsWithoutCast[OverflowMenuButtons.AUDIO_TRACKS] = undefined;
     internals.mediaPlayerRemoteRouteAvailabilityChanged(video, false);
 
     var children = overflowList.children;

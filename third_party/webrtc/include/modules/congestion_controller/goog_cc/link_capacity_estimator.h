@@ -10,8 +10,7 @@
 #ifndef MODULES_CONGESTION_CONTROLLER_GOOG_CC_LINK_CAPACITY_ESTIMATOR_H_
 #define MODULES_CONGESTION_CONTROLLER_GOOG_CC_LINK_CAPACITY_ESTIMATOR_H_
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/units/data_rate.h"
 
 namespace webrtc {
@@ -31,7 +30,7 @@ class LinkCapacityEstimator {
   void Update(DataRate capacity_sample, double alpha);
 
   double deviation_estimate_kbps() const;
-  std::optional<double> estimate_kbps_;
+  absl::optional<double> estimate_kbps_;
   double deviation_kbps_ = 0.4;
 };
 }  // namespace webrtc

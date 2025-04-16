@@ -137,8 +137,7 @@ class BLINK_COMMON_EXPORT WatchTimeReporter : base::PowerStateObserver {
   // to the display type of the media.
   void OnDisplayTypeInline();
   void OnDisplayTypeFullscreen();
-  void OnDisplayTypeVideoPictureInPicture();
-  void OnDisplayTypeDocumentPictureInPicture();
+  void OnDisplayTypePictureInPicture();
 
   // Mutates various properties that may change over the lifetime of a playback
   // but for which we don't want to interrupt reporting for. UMA watch time will
@@ -176,8 +175,7 @@ class BLINK_COMMON_EXPORT WatchTimeReporter : base::PowerStateObserver {
   // We only observe power source changes. We don't need to observe suspend and
   // resume events because we report watch time in terms of elapsed media time
   // and not in terms of elapsed real time.
-  void OnBatteryPowerStatusChange(base::PowerStateObserver::BatteryPowerStatus
-                                      battery_power_status) override;
+  void OnPowerStateChange(bool on_battery_power) override;
 
   void OnNativeControlsChanged(bool has_native_controls);
   void OnDisplayTypeChanged(DisplayType display_type);

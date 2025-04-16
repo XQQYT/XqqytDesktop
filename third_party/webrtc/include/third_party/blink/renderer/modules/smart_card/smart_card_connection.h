@@ -16,8 +16,7 @@
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_remote.h"
 
 namespace blink {
-class DOMArrayBuffer;
-class SmartCardConnectionStatus;
+
 class SmartCardContext;
 class SmartCardTransactionOptions;
 class SmartCardTransmitOptions;
@@ -36,35 +35,32 @@ class SmartCardConnection final : public ScriptWrappable,
       ExecutionContext*);
 
   // SmartCardConnection idl
-  ScriptPromise<IDLUndefined> disconnect(ScriptState* script_state,
-                                         ExceptionState& exception_state);
-  ScriptPromise<IDLUndefined> disconnect(
-      ScriptState* script_state,
-      const V8SmartCardDisposition& disposition,
-      ExceptionState& exception_state);
-  ScriptPromise<DOMArrayBuffer> transmit(ScriptState* script_state,
-                                         const DOMArrayPiece& send_buffer,
-                                         SmartCardTransmitOptions* options,
-                                         ExceptionState& exception_state);
-  ScriptPromise<SmartCardConnectionStatus> status(
-      ScriptState* script_state,
-      ExceptionState& exception_state);
-  ScriptPromise<DOMArrayBuffer> control(ScriptState* script_state,
-                                        uint32_t control_code,
-                                        const DOMArrayPiece& data,
-                                        ExceptionState& exception_state);
-  ScriptPromise<DOMArrayBuffer> getAttribute(ScriptState* script_state,
-                                             uint32_t tag,
-                                             ExceptionState& exception_state);
-  ScriptPromise<IDLUndefined> setAttribute(ScriptState* script_state,
-                                           uint32_t tag,
-                                           const DOMArrayPiece& data,
-                                           ExceptionState& exception_state);
-  ScriptPromise<IDLUndefined> startTransaction(
-      ScriptState* script_state,
-      V8SmartCardTransactionCallback* transaction,
-      SmartCardTransactionOptions* options,
-      ExceptionState& exception_state);
+  ScriptPromise disconnect(ScriptState* script_state,
+                           ExceptionState& exception_state);
+  ScriptPromise disconnect(ScriptState* script_state,
+                           const V8SmartCardDisposition& disposition,
+                           ExceptionState& exception_state);
+  ScriptPromise transmit(ScriptState* script_state,
+                         const DOMArrayPiece& send_buffer,
+                         SmartCardTransmitOptions* options,
+                         ExceptionState& exception_state);
+  ScriptPromise status(ScriptState* script_state,
+                       ExceptionState& exception_state);
+  ScriptPromise control(ScriptState* script_state,
+                        uint32_t control_code,
+                        const DOMArrayPiece& data,
+                        ExceptionState& exception_state);
+  ScriptPromise getAttribute(ScriptState* script_state,
+                             uint32_t tag,
+                             ExceptionState& exception_state);
+  ScriptPromise setAttribute(ScriptState* script_state,
+                             uint32_t tag,
+                             const DOMArrayPiece& data,
+                             ExceptionState& exception_state);
+  ScriptPromise startTransaction(ScriptState* script_state,
+                                 V8SmartCardTransactionCallback* transaction,
+                                 SmartCardTransactionOptions* options,
+                                 ExceptionState& exception_state);
   // Called by SmartCardContext
   void OnOperationInProgressCleared();
 
@@ -76,19 +72,19 @@ class SmartCardConnection final : public ScriptWrappable,
   void Trace(Visitor*) const override;
 
  private:
-  void SetOperationInProgress(ScriptPromiseResolverBase*);
-  void ClearOperationInProgress(ScriptPromiseResolverBase*);
+  void SetOperationInProgress(ScriptPromiseResolver*);
+  void ClearOperationInProgress(ScriptPromiseResolver*);
   bool EnsureConnection(ExceptionState& exception_state) const;
-  void OnDisconnectDone(ScriptPromiseResolver<IDLUndefined>* resolver,
+  void OnDisconnectDone(ScriptPromiseResolver* resolver,
                         device::mojom::blink::SmartCardResultPtr result);
-  void OnPlainResult(ScriptPromiseResolver<IDLUndefined>* resolver,
+  void OnPlainResult(ScriptPromiseResolver* resolver,
                      device::mojom::blink::SmartCardResultPtr result);
-  void OnDataResult(ScriptPromiseResolver<DOMArrayBuffer>* resolver,
+  void OnDataResult(ScriptPromiseResolver* resolver,
                     device::mojom::blink::SmartCardDataResultPtr result);
-  void OnStatusDone(ScriptPromiseResolver<SmartCardConnectionStatus>*,
+  void OnStatusDone(ScriptPromiseResolver* resolver,
                     device::mojom::blink::SmartCardStatusResultPtr result);
   void OnBeginTransactionDone(
-      ScriptPromiseResolver<IDLUndefined>* resolver,
+      ScriptPromiseResolver* resolver,
       V8SmartCardTransactionCallback* transaction_callback,
       AbortSignal* signal,
       AbortSignal::AlgorithmHandle* abort_handle,
@@ -97,7 +93,7 @@ class SmartCardConnection final : public ScriptWrappable,
   void CloseMojoConnection();
   void EndTransaction(device::mojom::blink::SmartCardDisposition);
 
-  Member<ScriptPromiseResolverBase> ongoing_request_;
+  Member<ScriptPromiseResolver> ongoing_request_;
   HeapMojoRemote<device::mojom::blink::SmartCardConnection> connection_;
   device::mojom::blink::SmartCardProtocol active_protocol_;
   Member<SmartCardContext> smart_card_context_;

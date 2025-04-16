@@ -25,7 +25,7 @@ class Page;
 class CORE_EXPORT BrowserControls final
     : public GarbageCollected<BrowserControls> {
  public:
-  explicit BrowserControls(Page&);
+  explicit BrowserControls(const Page&);
 
   void Trace(Visitor*) const;
 
@@ -61,12 +61,11 @@ class CORE_EXPORT BrowserControls final
   cc::BrowserControlsState PermittedState() const { return permitted_state_; }
 
  private:
-  void DidUpdateBrowserControls(bool update_safe_area_inset);
   void ResetBaseline();
   float TopMinShownRatio();
   float BottomMinShownRatio();
 
-  Member<Page> page_;
+  Member<const Page> page_;
 
   // The browser controls params such as heights, min-height etc.
   cc::BrowserControlsParams params_;

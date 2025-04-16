@@ -61,7 +61,7 @@ const char* FtraceClock_Name(::perfetto::protos::pbzero::FtraceClock value) {
   return "PBZERO_UNKNOWN_ENUM_VALUE";
 }
 
-class FtraceEventBundle_Decoder : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/10, /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
+class FtraceEventBundle_Decoder : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/512, /*HAS_NONPACKED_REPEATED_FIELDS=*/true> {
  public:
   FtraceEventBundle_Decoder(const uint8_t* data, size_t len) : TypedProtoDecoder(data, len) {}
   explicit FtraceEventBundle_Decoder(const std::string& raw) : TypedProtoDecoder(reinterpret_cast<const uint8_t*>(raw.data()), raw.size()) {}
@@ -86,6 +86,8 @@ class FtraceEventBundle_Decoder : public ::protozero::TypedProtoDecoder</*MAX_FI
   uint64_t last_read_event_timestamp() const { return at<9>().as_uint64(); }
   bool has_previous_bundle_end_timestamp() const { return at<10>().valid(); }
   uint64_t previous_bundle_end_timestamp() const { return at<10>().as_uint64(); }
+  bool has_broken_abi_trace_page() const { return at<512>().valid(); }
+  ::protozero::ConstBytes broken_abi_trace_page() const { return at<512>().as_bytes(); }
 };
 
 class FtraceEventBundle : public ::protozero::Message {
@@ -102,6 +104,7 @@ class FtraceEventBundle : public ::protozero::Message {
     kErrorFieldNumber = 8,
     kLastReadEventTimestampFieldNumber = 9,
     kPreviousBundleEndTimestampFieldNumber = 10,
+    kBrokenAbiTracePageFieldNumber = 512,
   };
   static constexpr const char* GetName() { return ".perfetto.protos.FtraceEventBundle"; }
 
@@ -273,6 +276,30 @@ class FtraceEventBundle : public ::protozero::Message {
     // method based on the type of the field.
     ::protozero::internal::FieldWriter<
       ::protozero::proto_utils::ProtoSchemaType::kUint64>
+        ::Append(*this, field_id, value);
+  }
+
+  using FieldMetadata_BrokenAbiTracePage =
+    ::protozero::proto_utils::FieldMetadata<
+      512,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kBytes,
+      std::string,
+      FtraceEventBundle>;
+
+  static constexpr FieldMetadata_BrokenAbiTracePage kBrokenAbiTracePage{};
+  void set_broken_abi_trace_page(const uint8_t* data, size_t size) {
+    AppendBytes(FieldMetadata_BrokenAbiTracePage::kFieldId, data, size);
+  }
+  void set_broken_abi_trace_page(::protozero::ConstBytes bytes) {
+    AppendBytes(FieldMetadata_BrokenAbiTracePage::kFieldId, bytes.data, bytes.size);
+  }
+  void set_broken_abi_trace_page(std::string value) {
+    static constexpr uint32_t field_id = FieldMetadata_BrokenAbiTracePage::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+      ::protozero::proto_utils::ProtoSchemaType::kBytes>
         ::Append(*this, field_id, value);
   }
 };

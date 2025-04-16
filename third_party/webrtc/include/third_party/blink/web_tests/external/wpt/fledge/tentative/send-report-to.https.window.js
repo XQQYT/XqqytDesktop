@@ -1,5 +1,4 @@
 // META: script=/resources/testdriver.js
-// META: script=/resources/testdriver-vendor.js
 // META: script=/common/utils.js
 // META: script=resources/fledge-util.sub.js
 // META: script=/common/subset-tests.js
@@ -7,7 +6,7 @@
 // META: variant=?1-5
 // META: variant=?6-last
 
-"use strict";
+"use strict;"
 
 subsetTest(promise_test, async test => {
   const uuid = generateUuid(test);
@@ -19,7 +18,7 @@ subsetTest(promise_test, async test => {
           'sellerSignals === null',
         reportWin:
           `sendReportTo('${createBidderReportURL(uuid)}');` },
-      // expectedReportURLs:
+      // expectedReportUrls:
       [createSellerReportURL(uuid), createBidderReportURL(uuid)]
   );
 }, 'Both send reports, seller passes nothing to bidder.');
@@ -32,7 +31,7 @@ subsetTest(promise_test, async test => {
           `sendReportTo('${createSellerReportURL(uuid)}');`,
         reportWin:
           '' },
-      // expectedReportURLs:
+      // expectedReportUrls:
       [createSellerReportURL(uuid)]
   );
 }, 'Only seller sends a report');
@@ -45,7 +44,7 @@ subsetTest(promise_test, async test => {
           `sendReportTo('${createSellerReportURL(uuid)}');`,
         reportWin:
           'throw new Error("Very serious exception")' },
-      // expectedReportURLs:
+      // expectedReportUrls:
       [createSellerReportURL(uuid)]
   );
 }, 'Only seller sends a report, bidder throws an exception');
@@ -56,7 +55,7 @@ subsetTest(promise_test, async test => {
       test, uuid,
       { reportResult:
           `sendReportTo('${createSellerReportURL(uuid)}');` },
-      // expectedReportURLs:
+      // expectedReportUrls:
       [createSellerReportURL(uuid)]
   );
 }, 'Only seller sends a report, bidder has no reportWin() method');
@@ -71,7 +70,7 @@ subsetTest(promise_test, async test => {
           'sellerSignals === null',
         reportWin:
           `sendReportTo('${createBidderReportURL(uuid)}');` },
-      // expectedReportURLs:
+      // expectedReportUrls:
       [createBidderReportURL(uuid)]
   );
 }, 'Only bidder sends a report');
@@ -86,7 +85,7 @@ subsetTest(promise_test, async test => {
           'sellerSignals === "foo"',
         reportWin:
           `sendReportTo('${createBidderReportURL(uuid)}');` },
-      // expectedReportURLs:
+      // expectedReportUrls:
       [createBidderReportURL(uuid)]
   );
 }, 'Only bidder sends a report, seller passes a message to bidder');
@@ -101,7 +100,7 @@ subsetTest(promise_test, async test => {
           'sellerSignals === null',
         reportWin:
           `sendReportTo('${createBidderReportURL(uuid)}');` },
-      // expectedReportURLs:
+      // expectedReportUrls:
       [createBidderReportURL(uuid)]
   );
 }, 'Only bidder sends a report, seller throws an exception');
@@ -114,7 +113,7 @@ subsetTest(promise_test, async test => {
           'sellerSignals === null',
         reportWin:
           `sendReportTo('${createBidderReportURL(uuid)}');` },
-      // expectedReportURLs:
+      // expectedReportUrls:
       [createBidderReportURL(uuid)]
   );
 }, 'Only bidder sends a report, seller has no reportResult() method');
@@ -131,7 +130,7 @@ subsetTest(promise_test, async test => {
           'sellerSignals === null',
         reportWin:
           `sendReportTo('${createBidderReportURL(uuid)}');` },
-      // expectedReportURLs:
+      // expectedReportUrls:
       [createBidderReportURL(uuid)]
   );
 }, 'Seller calls sendReportTo() twice, which throws an exception.');
@@ -145,7 +144,7 @@ subsetTest(promise_test, async test => {
         reportWin:
           `sendReportTo('${createBidderReportURL(uuid)}');
            sendReportTo('${createBidderReportURL(uuid)}');` },
-      // expectedReportURLs:
+      // expectedReportUrls:
       [createSellerReportURL(uuid)]
   );
   // Seller reports may be sent before bidder reports, since reportWin()

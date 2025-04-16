@@ -49,19 +49,6 @@ tests = [
     },
     {
         testHeaders: {
-            'Expires': '0',
-        },
-        expectedResult: 'Uncached',
-    },
-    {
-        testHeaders: {
-            'Expires': '0',
-            'Last-Modified': '[now-10s]',
-        },
-        expectedResult: 'Uncached',
-    },
-    {
-        testHeaders: {
             'Cache-control': 'max-age=10',
         },
         expectedResult: 'Cached',

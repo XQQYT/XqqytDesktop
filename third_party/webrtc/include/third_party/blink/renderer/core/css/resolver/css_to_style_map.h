@@ -35,7 +35,6 @@
 namespace blink {
 
 class FillLayer;
-class CSSLengthResolver;
 class CSSValue;
 class StyleResolverState;
 class NinePieceImage;
@@ -74,8 +73,8 @@ class CSSToStyleMap {
                                             const CSSValue&);
   static Timing::PlaybackDirection MapAnimationDirection(StyleResolverState&,
                                                          const CSSValue&);
-  static std::optional<double> MapAnimationDuration(StyleResolverState&,
-                                                    const CSSValue&);
+  static absl::optional<double> MapAnimationDuration(StyleResolverState&,
+                                                     const CSSValue&);
   static Timing::FillMode MapAnimationFillMode(StyleResolverState&,
                                                const CSSValue&);
   static double MapAnimationIterationCount(StyleResolverState&,
@@ -88,11 +87,12 @@ class CSSToStyleMap {
                                             const CSSValue&);
   static EAnimPlayState MapAnimationPlayState(StyleResolverState&,
                                               const CSSValue&);
-  static std::optional<TimelineOffset> MapAnimationRangeStart(
+  static absl::optional<TimelineOffset> MapAnimationRangeStart(
       StyleResolverState&,
       const CSSValue&);
-  static std::optional<TimelineOffset> MapAnimationRangeEnd(StyleResolverState&,
-                                                            const CSSValue&);
+  static absl::optional<TimelineOffset> MapAnimationRangeEnd(
+      StyleResolverState&,
+      const CSSValue&);
   static EffectModel::CompositeOperation MapAnimationComposition(
       StyleResolverState&,
       const CSSValue&);
@@ -100,7 +100,6 @@ class CSSToStyleMap {
       StyleResolverState&,
       const CSSValue&);
   static scoped_refptr<TimingFunction> MapAnimationTimingFunction(
-      const CSSLengthResolver&,
       const CSSValue&);
   static scoped_refptr<TimingFunction> MapAnimationTimingFunction(
       StyleResolverState&,
@@ -118,22 +117,6 @@ class CSSToStyleMap {
   static void MapNinePieceImageRepeat(StyleResolverState&,
                                       const CSSValue&,
                                       NinePieceImage&);
-  static EAnimationTriggerType MapAnimationTriggerType(StyleResolverState&,
-                                                       const CSSValue&);
-  static StyleTimeline MapAnimationTriggerTimeline(StyleResolverState&,
-                                                   const CSSValue&);
-  static std::optional<TimelineOffset> MapAnimationTriggerRangeStart(
-      StyleResolverState&,
-      const CSSValue&);
-  static std::optional<TimelineOffset> MapAnimationTriggerRangeEnd(
-      StyleResolverState&,
-      const CSSValue&);
-  static std::optional<TimelineOffset> MapAnimationTriggerExitRangeStart(
-      StyleResolverState&,
-      const CSSValue&);
-  static std::optional<TimelineOffset> MapAnimationTriggerExitRangeEnd(
-      StyleResolverState&,
-      const CSSValue&);
 };
 
 }  // namespace blink

@@ -28,8 +28,10 @@
 #include "count_new.h"
 #include "container_test_types.h"
 
+
 template <class Container>
-void testMapInsert() {
+void testMapInsert()
+{
   typedef typename Container::value_type ValueTp;
   ConstructController* cc = getConstructController();
   cc->reset();
@@ -100,7 +102,7 @@ void testMapInsert() {
   {
     // Testing C::insert(std::initializer_list<ValueTp>)
     Container c;
-    std::initializer_list<ValueTp> il = {ValueTp(1, 1), ValueTp(2, 1)};
+    std::initializer_list<ValueTp> il = { ValueTp(1, 1), ValueTp(2, 1) };
     cc->expect<ValueTp const&>(2);
     c.insert(il);
     assert(!cc->unchecked());
@@ -112,7 +114,7 @@ void testMapInsert() {
   {
     // Testing C::insert(Iter, Iter) for *Iter = value_type const&
     Container c;
-    const ValueTp ValueList[] = {ValueTp(1, 1), ValueTp(2, 1), ValueTp(3, 1)};
+    const ValueTp ValueList[] = { ValueTp(1, 1), ValueTp(2, 1), ValueTp(3, 1) };
     cc->expect<ValueTp const&>(3);
     c.insert(std::begin(ValueList), std::end(ValueList));
     assert(!cc->unchecked());
@@ -124,13 +126,14 @@ void testMapInsert() {
   {
     // Testing C::insert(Iter, Iter) for *Iter = value_type&&
     Container c;
-    ValueTp ValueList[] = {ValueTp(1, 1), ValueTp(2, 1), ValueTp(3, 1)};
+    ValueTp ValueList[] = { ValueTp(1, 1), ValueTp(2, 1) , ValueTp(3, 1) };
     cc->expect<ValueTp&&>(3);
-    c.insert(std::move_iterator<ValueTp*>(std::begin(ValueList)), std::move_iterator<ValueTp*>(std::end(ValueList)));
+    c.insert(std::move_iterator<ValueTp*>(std::begin(ValueList)),
+             std::move_iterator<ValueTp*>(std::end(ValueList)));
     assert(!cc->unchecked());
     {
       DisableAllocationGuard g;
-      ValueTp ValueList2[] = {ValueTp(1, 1), ValueTp(2, 1), ValueTp(3, 1)};
+      ValueTp ValueList2[] = { ValueTp(1, 1), ValueTp(2, 1) , ValueTp(3, 1) };
       c.insert(std::move_iterator<ValueTp*>(std::begin(ValueList2)),
                std::move_iterator<ValueTp*>(std::end(ValueList2)));
     }
@@ -138,7 +141,7 @@ void testMapInsert() {
   {
     // Testing C::insert(Iter, Iter) for *Iter = value_type&
     Container c;
-    ValueTp ValueList[] = {ValueTp(1, 1), ValueTp(2, 1), ValueTp(3, 1)};
+    ValueTp ValueList[] = { ValueTp(1, 1), ValueTp(2, 1) , ValueTp(3, 1) };
     cc->expect<ValueTp const&>(3);
     c.insert(std::begin(ValueList), std::end(ValueList));
     assert(!cc->unchecked());
@@ -149,8 +152,10 @@ void testMapInsert() {
   }
 }
 
+
 template <class Container>
-void testMapInsertHint() {
+void testMapInsertHint()
+{
   typedef typename Container::value_type ValueTp;
   typedef typename Container::key_type Key;
   typedef typename Container::mapped_type Mapped;
@@ -276,10 +281,14 @@ void testMapInsertHint() {
       assert(c.size() == 1);
     }
   }
+
+
 }
 
+
 template <class Container>
-void testMapEmplace() {
+void testMapEmplace()
+{
   typedef typename Container::value_type ValueTp;
   typedef typename Container::key_type Key;
   typedef typename Container::mapped_type Mapped;
@@ -422,8 +431,10 @@ void testMapEmplace() {
   }
 }
 
+
 template <class Container>
-void testMapEmplaceHint() {
+void testMapEmplaceHint()
+{
   typedef typename Container::value_type ValueTp;
   typedef typename Container::key_type Key;
   typedef typename Container::mapped_type Mapped;
@@ -605,10 +616,13 @@ void testMapEmplaceHint() {
       assert(!cc->unchecked());
     }
   }
+
 }
 
+
 template <class Container>
-void testMultimapInsert() {
+void testMultimapInsert()
+{
   typedef typename Container::value_type ValueTp;
   ConstructController* cc = getConstructController();
   cc->reset();
@@ -646,7 +660,7 @@ void testMultimapInsert() {
   {
     // Testing C::insert(std::initializer_list<ValueTp>)
     Container c;
-    std::initializer_list<ValueTp> il = {ValueTp(1, 1), ValueTp(2, 1)};
+    std::initializer_list<ValueTp> il = { ValueTp(1, 1), ValueTp(2, 1) };
     cc->expect<ValueTp const&>(2);
     c.insert(il);
     assert(!cc->unchecked());
@@ -654,7 +668,7 @@ void testMultimapInsert() {
   {
     // Testing C::insert(Iter, Iter) for *Iter = value_type const&
     Container c;
-    const ValueTp ValueList[] = {ValueTp(1, 1), ValueTp(2, 1), ValueTp(3, 1)};
+    const ValueTp ValueList[] = { ValueTp(1, 1), ValueTp(2, 1), ValueTp(3, 1) };
     cc->expect<ValueTp const&>(3);
     c.insert(std::begin(ValueList), std::end(ValueList));
     assert(!cc->unchecked());
@@ -662,23 +676,26 @@ void testMultimapInsert() {
   {
     // Testing C::insert(Iter, Iter) for *Iter = value_type&&
     Container c;
-    ValueTp ValueList[] = {ValueTp(1, 1), ValueTp(2, 1), ValueTp(3, 1)};
+    ValueTp ValueList[] = { ValueTp(1, 1), ValueTp(2, 1) , ValueTp(3, 1) };
     cc->expect<ValueTp&&>(3);
-    c.insert(std::move_iterator<ValueTp*>(std::begin(ValueList)), std::move_iterator<ValueTp*>(std::end(ValueList)));
+    c.insert(std::move_iterator<ValueTp*>(std::begin(ValueList)),
+             std::move_iterator<ValueTp*>(std::end(ValueList)));
     assert(!cc->unchecked());
   }
   {
     // Testing C::insert(Iter, Iter) for *Iter = value_type&
     Container c;
-    ValueTp ValueList[] = {ValueTp(1, 1), ValueTp(2, 1), ValueTp(3, 1)};
+    ValueTp ValueList[] = { ValueTp(1, 1), ValueTp(2, 1) , ValueTp(3, 1) };
     cc->expect<ValueTp&>(3);
     c.insert(std::begin(ValueList), std::end(ValueList));
     assert(!cc->unchecked());
   }
 }
 
+
 template <class Container>
-void testMultimapInsertHint() {
+void testMultimapInsertHint()
+{
   typedef typename Container::value_type ValueTp;
   ConstructController* cc = getConstructController();
   cc->reset();

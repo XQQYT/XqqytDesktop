@@ -19,25 +19,19 @@
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 template <class>
-inline const bool __is_unbounded_array_v = false;
+struct _LIBCPP_TEMPLATE_VIS __libcpp_is_unbounded_array : false_type {};
 template <class _Tp>
-inline const bool __is_unbounded_array_v<_Tp[]> = true;
+struct _LIBCPP_TEMPLATE_VIS __libcpp_is_unbounded_array<_Tp[]> : true_type {};
 
 #if _LIBCPP_STD_VER >= 20
 
 template <class>
-struct _LIBCPP_TEMPLATE_VIS _LIBCPP_NO_SPECIALIZATIONS is_unbounded_array : false_type {};
-
-_LIBCPP_DIAGNOSTIC_PUSH
-#  if __has_warning("-Winvalid-specialization")
-_LIBCPP_CLANG_DIAGNOSTIC_IGNORED("-Winvalid-specialization")
-#  endif
+struct _LIBCPP_TEMPLATE_VIS is_unbounded_array : false_type {};
 template <class _Tp>
 struct _LIBCPP_TEMPLATE_VIS is_unbounded_array<_Tp[]> : true_type {};
-_LIBCPP_DIAGNOSTIC_POP
 
 template <class _Tp>
-_LIBCPP_NO_SPECIALIZATIONS inline constexpr bool is_unbounded_array_v = is_unbounded_array<_Tp>::value;
+inline constexpr bool is_unbounded_array_v = is_unbounded_array<_Tp>::value;
 
 #endif
 

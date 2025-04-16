@@ -18,21 +18,19 @@
 #include <__config>
 #include <__debug_utils/randomize_range.h>
 #include <__iterator/iterator_traits.h>
-#include <__type_traits/is_assignable.h>
-#include <__type_traits/is_constructible.h>
+#include <__type_traits/is_copy_assignable.h>
+#include <__type_traits/is_copy_constructible.h>
 #include <__utility/move.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
 #endif
 
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
-
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 template <class _AlgPolicy, class _Compare, class _RandomAccessIterator, class _Sentinel>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 _RandomAccessIterator __partial_sort_impl(
+_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20
+_RandomAccessIterator __partial_sort_impl(
     _RandomAccessIterator __first, _RandomAccessIterator __middle, _Sentinel __last, _Compare&& __comp) {
   if (__first == __middle) {
     return _IterOps<_AlgPolicy>::next(__middle, __last);
@@ -41,12 +39,14 @@ _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 _RandomAccessIterator __part
   std::__make_heap<_AlgPolicy>(__first, __middle, __comp);
 
   typename iterator_traits<_RandomAccessIterator>::difference_type __len = __middle - __first;
-  _RandomAccessIterator __i                                              = __middle;
-  for (; __i != __last; ++__i) {
-    if (__comp(*__i, *__first)) {
-      _IterOps<_AlgPolicy>::iter_swap(__i, __first);
-      std::__sift_down<_AlgPolicy>(__first, __comp, __len, __first);
-    }
+  _RandomAccessIterator __i = __middle;
+  for (; __i != __last; ++__i)
+  {
+      if (__comp(*__i, *__first))
+      {
+          _IterOps<_AlgPolicy>::iter_swap(__i, __first);
+          std::__sift_down<_AlgPolicy>(__first, __comp, __len, __first);
+      }
   }
   std::__sort_heap<_AlgPolicy>(std::move(__first), std::move(__middle), __comp);
 
@@ -54,10 +54,11 @@ _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 _RandomAccessIterator __part
 }
 
 template <class _AlgPolicy, class _Compare, class _RandomAccessIterator, class _Sentinel>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 _RandomAccessIterator
-__partial_sort(_RandomAccessIterator __first, _RandomAccessIterator __middle, _Sentinel __last, _Compare& __comp) {
+_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20
+_RandomAccessIterator __partial_sort(_RandomAccessIterator __first, _RandomAccessIterator __middle, _Sentinel __last,
+                                     _Compare& __comp) {
   if (__first == __middle)
-    return _IterOps<_AlgPolicy>::next(__middle, __last);
+      return _IterOps<_AlgPolicy>::next(__middle, __last);
 
   std::__debug_randomize_range<_AlgPolicy>(__first, __last);
 
@@ -70,8 +71,11 @@ __partial_sort(_RandomAccessIterator __first, _RandomAccessIterator __middle, _S
 }
 
 template <class _RandomAccessIterator, class _Compare>
-inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 void partial_sort(
-    _RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last, _Compare __comp) {
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_SINCE_CXX20
+void
+partial_sort(_RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last,
+             _Compare __comp)
+{
   static_assert(std::is_copy_constructible<_RandomAccessIterator>::value, "Iterators must be copy constructible.");
   static_assert(std::is_copy_assignable<_RandomAccessIterator>::value, "Iterators must be copy assignable.");
 
@@ -79,13 +83,13 @@ inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 void partial_sort(
 }
 
 template <class _RandomAccessIterator>
-inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 void
-partial_sort(_RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last) {
-  std::partial_sort(__first, __middle, __last, __less<>());
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_SINCE_CXX20
+void
+partial_sort(_RandomAccessIterator __first, _RandomAccessIterator __middle, _RandomAccessIterator __last)
+{
+    _VSTD::partial_sort(__first, __middle, __last, __less<>());
 }
 
 _LIBCPP_END_NAMESPACE_STD
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___ALGORITHM_PARTIAL_SORT_H

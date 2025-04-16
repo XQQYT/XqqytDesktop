@@ -74,11 +74,10 @@ class CORE_EXPORT PointerEventManager final
 
   void ElementRemoved(Element*);
 
-  void NodeWillBeRemoved(Node& node_to_be_removed);
-
   // Starts capturing of all events with the given |PointerId| to the given
-  // |Element|.
-  bool SetPointerCapture(PointerId, Element*);
+  // |Element|.  The paramenter |explicit_capture| identifies if this call was
+  // triggered by an explicit |elem.setPointerCapture()| call from JS.
+  bool SetPointerCapture(PointerId, Element*, bool explicit_capture);
   bool ReleasePointerCapture(PointerId, Element*);
   void ReleaseMousePointerCapture();
 
@@ -122,6 +121,7 @@ class CORE_EXPORT PointerEventManager final
   using PointerIdKeyMap =
       HeapHashMap<int64_t, T, IntWithZeroKeyHashTraits<int64_t>>;
   using PointerCapturingMap = PointerIdKeyMap<Member<Element>>;
+  using ElementUnderPointerMap = PointerIdKeyMap<Member<Element>>;
 
   class PointerEventBoundaryEventDispatcher : public BoundaryEventDispatcher {
    public:
@@ -174,7 +174,6 @@ class CORE_EXPORT PointerEventManager final
                                             bool hovering);
 
   void SendBoundaryEvents(EventTarget* exited_target,
-                          bool original_exited_target_removed,
                           EventTarget* entered_target,
                           PointerEvent*);
   void SetElementUnderPointer(PointerEvent*, Element*);
@@ -205,6 +204,7 @@ class CORE_EXPORT PointerEventManager final
   void RemoveTargetFromPointerCapturingMapping(PointerCapturingMap&,
                                                const Element*);
   Element* GetEffectiveTargetForPointerEvent(Element*, PointerId);
+  Element* GetCapturingElement(PointerId);
   void RemovePointer(PointerEvent*);
   WebInputEventResult DispatchPointerEvent(EventTarget*,
                                            PointerEvent*,
@@ -262,15 +262,7 @@ class CORE_EXPORT PointerEventManager final
   // which might be different than m_nodeUnderMouse in EventHandler. That one
   // keeps track of any compatibility mouse event positions but this map for
   // the pointer with id=1 is only taking care of true mouse related events.
-  PointerIdKeyMap<Member<Element>> element_under_pointer_;
-
-  // Whether the `element_under_pointer_` reference was updated to an ancestor
-  // element because of the removal of the original element from DOM.  This
-  // Boolean state guarantees correct "pointerout" and "pointerover" events at
-  // the updated `element_under_pointer_` (i.e. the updated element gets no
-  // "out", but it gets an "over" if it happens to become the new
-  // `element_under_pointer_` later on).
-  WTF::HashSet<int64_t> original_element_under_pointer_removed_;
+  ElementUnderPointerMap element_under_pointer_;
 
   PointerCapturingMap pointer_capture_target_;
   PointerCapturingMap pending_pointer_capture_target_;
@@ -278,6 +270,10 @@ class CORE_EXPORT PointerEventManager final
   PointerEventFactory pointer_event_factory_;
   Member<TouchEventManager> touch_event_manager_;
   Member<MouseEventManager> mouse_event_manager_;
+
+  // The pointerId of the PointerEvent currently being dispatched within this
+  // frame or 0 if none.
+  PointerId dispatching_pointer_id_ = 0;
 
   // These flags are set for the SkipTouchEventFilter experiment. The
   // experiment either skips filtering discrete (touch start/end) events to the

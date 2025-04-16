@@ -180,9 +180,6 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
     param.bIsLosslessLink = false;
     param.bFixRCOverShoot = true;
     param.iIdrBitrateRatio = IDR_BITRATE_RATIO * 100;
-    param.bPsnrY = false;
-    param.bPsnrU = false;
-    param.bPsnrV = false;
     for (int32_t iLayer = 0; iLayer < MAX_SPATIAL_LAYER_NUM; iLayer++) {
       param.sSpatialLayers[iLayer].uiProfileIdc = PRO_UNKNOWN;
       param.sSpatialLayers[iLayer].uiLevelIdc = LEVEL_UNKNOWN;
@@ -348,9 +345,6 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
     bIsLosslessLink = pCodingParam.bIsLosslessLink;
     bFixRCOverShoot = pCodingParam.bFixRCOverShoot;
     iIdrBitrateRatio = pCodingParam.iIdrBitrateRatio;
-    bPsnrY = pCodingParam.bPsnrY;
-    bPsnrU = pCodingParam.bPsnrU;
-    bPsnrV = pCodingParam.bPsnrV;
     if (iUsageType == SCREEN_CONTENT_REAL_TIME && !bIsLosslessLink && bEnableLongTermReference) {
       bEnableLongTermReference = false;
     }
@@ -499,6 +493,7 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
     const int32_t iDecStages = WELS_LOG2 (uiGopSize); // (int8_t)GetLogFactor(1.0f, 1.0f * pcfg->uiGopSize);  //log2(uiGopSize)
     const uint8_t* pTemporalIdList = &g_kuiTemporalIdListTable[iDecStages][0];
     SSpatialLayerInternal* pDlp    = &sDependencyLayers[0];
+    SSpatialLayerConfig* pSpatialLayer = &sSpatialLayers[0];
     int8_t i = 0;
 
     while (i < iSpatialLayerNum) {
@@ -529,6 +524,7 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
         return ENC_RETURN_INVALIDINPUT;
       }
       ++ pDlp;
+      ++ pSpatialLayer;
       ++ i;
     }
     iDecompStages = (int8_t)iDecStages;

@@ -18,21 +18,21 @@ extern "C" {
  *
  * the version string like "1.2.3"
  */
-#define LIBEXSLT_DOTTED_VERSION "0.8.25"
+#define LIBEXSLT_DOTTED_VERSION "0.8.21"
 
 /**
  * LIBEXSLT_VERSION:
  *
  * the version number: 1.2.3 value is 10203
  */
-#define LIBEXSLT_VERSION 825
+#define LIBEXSLT_VERSION 821
 
 /**
  * LIBEXSLT_VERSION_STRING:
  *
  * the version number string, 1.2.3 value is "10203"
  */
-#define LIBEXSLT_VERSION_STRING "825"
+#define LIBEXSLT_VERSION_STRING "821"
 
 /**
  * LIBEXSLT_VERSION_EXTRA:

@@ -56,8 +56,6 @@ public:
 
     virtual void TestDebug();
 
-    virtual void TestClearMonth();
-
 public: // package
     /**
      * test subroutine used by TestDisambiguation765
@@ -329,10 +327,6 @@ public: // package
     void TestCalendarRollOrdinalMonth();
     void TestLimitsOrdinalMonth();
     void TestActualLimitsOrdinalMonth();
-    void TestDangiOverflowIsLeapMonthBetween22507();
-
-    void TestFWWithISO8601();
-    void TestRollWeekOfYear();
 
     void RunChineseCalendarInTemporalLeapYearTest(Calendar* cal);
     void RunIslamicCalendarInTemporalLeapYearTest(Calendar* cal);

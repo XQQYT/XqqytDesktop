@@ -18,23 +18,22 @@
 #define SRC_TRACE_PROCESSOR_UTIL_DESCRIPTORS_H_
 
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
-#include "perfetto/base/logging.h"
 #include "perfetto/base/status.h"
+#include "protos/perfetto/common/descriptor.pbzero.h"
 
 namespace protozero {
 struct ConstBytes;
 }
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 class FieldDescriptor {
  public:
@@ -42,8 +41,7 @@ class FieldDescriptor {
                   uint32_t number,
                   uint32_t type,
                   std::string raw_type_name,
-                  std::vector<uint8_t> options,
-                  std::optional<std::string> default_value,
+                  std::vector<uint8_t>,
                   bool is_repeated,
                   bool is_packed,
                   bool is_extension = false);
@@ -59,9 +57,6 @@ class FieldDescriptor {
 
   const std::vector<uint8_t>& options() const { return options_; }
   std::vector<uint8_t>* mutable_options() { return &options_; }
-  const std::optional<std::string>& default_value() const {
-    return default_value_;
-  }
 
   void set_resolved_type_name(const std::string& resolved_type_name) {
     resolved_type_name_ = resolved_type_name;
@@ -74,7 +69,6 @@ class FieldDescriptor {
   std::string raw_type_name_;
   std::string resolved_type_name_;
   std::vector<uint8_t> options_;
-  std::optional<std::string> default_value_;
   bool is_repeated_;
   bool is_packed_;
   bool is_extension_;
@@ -179,7 +173,7 @@ class DescriptorPool {
 
   std::optional<uint32_t> FindDescriptorIdx(const std::string& full_name) const;
 
-  std::vector<uint8_t> SerializeAsDescriptorSet() const;
+  std::vector<uint8_t> SerializeAsDescriptorSet();
 
   void AddProtoDescriptorForTesting(ProtoDescriptor descriptor) {
     AddProtoDescriptor(std::move(descriptor));
@@ -224,6 +218,7 @@ class DescriptorPool {
   std::set<std::string> processed_files_;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_UTIL_DESCRIPTORS_H_

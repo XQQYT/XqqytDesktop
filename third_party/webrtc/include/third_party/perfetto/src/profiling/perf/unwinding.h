@@ -75,8 +75,6 @@ class Unwinder {
  public:
   friend class UnwinderHandle;
 
-  enum class UnwindMode { kUnwindStack, kFramePointer };
-
   // Callbacks from the unwinder to the primary producer thread.
   class Delegate {
    public:
@@ -91,9 +89,7 @@ class Unwinder {
 
   ~Unwinder() { PERFETTO_DCHECK_THREAD(thread_checker_); }
 
-  void PostStartDataSource(DataSourceInstanceID ds_id,
-                           bool kernel_frames,
-                           UnwindMode unwind_mode);
+  void PostStartDataSource(DataSourceInstanceID ds_id, bool kernel_frames);
   void PostAdoptProcDescriptors(DataSourceInstanceID ds_id,
                                 pid_t pid,
                                 base::ScopedFile maps_fd,
@@ -148,11 +144,8 @@ class Unwinder {
 
   struct DataSourceState {
     enum class Status { kActive, kShuttingDown };
-    explicit DataSourceState(UnwindMode _unwind_mode)
-        : unwind_mode(_unwind_mode) {}
 
     Status status = Status::kActive;
-    const UnwindMode unwind_mode;
     std::map<pid_t, ProcessState> process_states;
   };
 
@@ -170,9 +163,7 @@ class Unwinder {
 
   // Marks the data source as valid and active at the unwinding stage.
   // Initializes kernel address symbolization if needed.
-  void StartDataSource(DataSourceInstanceID ds_id,
-                       bool kernel_frames,
-                       UnwindMode unwind_mode);
+  void StartDataSource(DataSourceInstanceID ds_id, bool kernel_frames);
 
   void AdoptProcDescriptors(DataSourceInstanceID ds_id,
                             pid_t pid,
@@ -193,8 +184,7 @@ class Unwinder {
 
   CompletedSample UnwindSample(const ParsedSample& sample,
                                UnwindingMetadata* opt_user_state,
-                               bool pid_unwound_before,
-                               UnwindMode unwind_mode);
+                               bool pid_unwound_before);
 
   // Returns a list of symbolized kernel frames in the sample (if any).
   std::vector<unwindstack::FrameData> SymbolizeKernelCallchain(

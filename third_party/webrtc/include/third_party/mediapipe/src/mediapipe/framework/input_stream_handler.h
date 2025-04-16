@@ -20,7 +20,6 @@
 #include <list>
 #include <memory>
 #include <string>
-#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -93,8 +92,8 @@ class InputStreamHandler {
   // Sets up the InputStreamShardSet by propagating data from the managers.
   absl::Status SetupInputShards(InputStreamShardSet* input_shards);
 
-  // Returns a vector of tuples of stream name, queue size, number of packets
-  // added, and minimum timestamp or bound for monitoring purpose.
+  // Returns a vector of pairs of stream name and queue size for monitoring
+  // purpose.
   std::vector<std::tuple<std::string, int, int, Timestamp>> GetMonitoringInfo();
 
   // Resets the input stream handler and its underlying input streams for
@@ -150,13 +149,6 @@ class InputStreamHandler {
 
   // Returns a string that concatenates the stream names of all managed streams.
   std::string DebugStreamNames() const;
-
-  // Return the stream name for an input stream in the format:
-  // stream_tag:stream_index:stream_name.
-  std::string DebugStreamName(CollectionItemId id) const;
-
-  // Returns the node name of the calculator node.
-  std::string GetNodeName() const;
 
   // Keeps scheduling new invocations until 1) the node is not ready or 2) the
   // max number of invocations that are allowed to be scheduled is reached.
@@ -328,8 +320,8 @@ using InputStreamHandlerRegistry = GlobalFactoryRegistry<
 #define REGISTER_INPUT_STREAM_HANDLER(name)                                    \
   REGISTER_FACTORY_FUNCTION_QUALIFIED(                                         \
       mediapipe::InputStreamHandlerRegistry, input_handler_registration, name, \
-      std::make_unique<name, std::shared_ptr<tool::TagMap>,                    \
-                       CalculatorContextManager*, const MediaPipeOptions&,     \
-                       bool>)
+      absl::make_unique<name, std::shared_ptr<tool::TagMap>,                   \
+                        CalculatorContextManager*, const MediaPipeOptions&,    \
+                        bool>)
 
 #endif  // MEDIAPIPE_FRAMEWORK_INPUT_STREAM_HANDLER_H_

@@ -5,22 +5,7 @@
 <link rel="help" href="https://drafts.csswg.org/css-animations-2/#animation-timeline">
 <meta name="assert" content="CSS animation correctly updates values when using the default scroll() timeline">
 <link rel="match" href="../scroll-timeline-default-iframe-ref.html">
-<meta name="fuzzy" content="0-70;0-380">
-
-<script src="/web-animations/testcommon.js"></script>
-<script>
-  async function finishTest() {
-    await waitForCompositorReady();
-    await waitForNextFrame();
-    await waitForNextFrame();
-    document.documentElement.classList.remove("reftest-wait");
-  }
-  window.addEventListener("message", event => {
-    if (event.data == "ready") {
-      finishTest();
-    }
-  }, false);
-</script>
+<meta name="fuzzy" content="25;100">
 
 <iframe id="target" width="400" height="400" srcdoc='
   <html>
@@ -70,3 +55,11 @@
   </body>
   </html>
 '></iframe>
+
+<script>
+  window.addEventListener("message", event => {
+    if (event.data == "ready") {
+      document.documentElement.classList.remove("reftest-wait");
+    }
+  }, false);
+</script>

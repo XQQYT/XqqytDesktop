@@ -45,7 +45,7 @@ class WithFeatureOverride : public testing::WithParamInterface<bool> {
 
   // Use to know if the configured feature provided in the constructor is
   // enabled or not.
-  bool IsParamFeatureEnabled() const;
+  bool IsParamFeatureEnabled();
 
  private:
   base::test::ScopedFeatureList scoped_feature_list_;

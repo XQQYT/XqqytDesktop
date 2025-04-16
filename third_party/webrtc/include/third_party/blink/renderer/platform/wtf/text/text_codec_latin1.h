@@ -36,15 +36,22 @@ class TextCodecLatin1 final : public TextCodec {
   static void RegisterCodecs(TextCodecRegistrar);
 
  private:
-  String Decode(base::span<const uint8_t> data,
+  String Decode(const char*,
+                wtf_size_t length,
                 FlushBehavior,
                 bool stop_on_error,
                 bool& saw_error) override;
-  std::string Encode(base::span<const UChar>, UnencodableHandling) override;
-  std::string Encode(base::span<const LChar>, UnencodableHandling) override;
+  std::string Encode(const UChar*,
+                     wtf_size_t length,
+                     UnencodableHandling) override;
+  std::string Encode(const LChar*,
+                     wtf_size_t length,
+                     UnencodableHandling) override;
 
   template <typename CharType>
-  std::string EncodeCommon(base::span<const CharType>, UnencodableHandling);
+  std::string EncodeCommon(const CharType*,
+                           wtf_size_t length,
+                           UnencodableHandling);
 };
 
 }  // namespace WTF

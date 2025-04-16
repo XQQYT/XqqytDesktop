@@ -35,9 +35,9 @@
 #include "third_party/blink/renderer/platform/animation/compositor_animation.h"
 #include "third_party/blink/renderer/platform/animation/compositor_animation_client.h"
 #include "third_party/blink/renderer/platform/animation/compositor_animation_delegate.h"
-#include "third_party/blink/renderer/platform/geometry/path.h"
 #include "third_party/blink/renderer/platform/graphics/color.h"
 #include "third_party/blink/renderer/platform/graphics/compositor_element_id.h"
+#include "third_party/blink/renderer/platform/graphics/path.h"
 #include "third_party/blink/renderer/platform/heap/persistent.h"
 #include "third_party/blink/renderer/platform/wtf/forward.h"
 
@@ -89,7 +89,7 @@ class CORE_EXPORT LinkHighlightImpl final : public CompositorAnimationDelegate,
 
   wtf_size_t FragmentCountForTesting() const { return fragments_.size(); }
   cc::PictureLayer* LayerForTesting(wtf_size_t index) const {
-    return fragments_[index]->Layer();
+    return fragments_[index].Layer();
   }
 
  private:
@@ -100,7 +100,9 @@ class CORE_EXPORT LinkHighlightImpl final : public CompositorAnimationDelegate,
   void SetNeedsRepaintAndCompositingUpdate();
   void UpdateOpacity(float opacity);
 
-  class LinkHighlightFragment : public cc::ContentLayerClient {
+  class LinkHighlightFragment : private cc::ContentLayerClient {
+    DISALLOW_NEW();
+
    public:
     LinkHighlightFragment();
     ~LinkHighlightFragment() override;
@@ -112,6 +114,7 @@ class CORE_EXPORT LinkHighlightImpl final : public CompositorAnimationDelegate,
 
    private:
     // cc::ContentLayerClient implementation.
+    gfx::Rect PaintableRegion() const override;
     scoped_refptr<cc::DisplayItemList> PaintContentsToDisplayList() override;
     bool FillsBoundsCompletely() const override { return false; }
 
@@ -119,11 +122,11 @@ class CORE_EXPORT LinkHighlightImpl final : public CompositorAnimationDelegate,
     Path path_;
     Color color_;
   };
-  Vector<std::unique_ptr<LinkHighlightFragment>> fragments_;
+  Vector<LinkHighlightFragment> fragments_;
 
   WeakPersistent<Node> node_;
   std::unique_ptr<CompositorAnimation> compositor_animation_;
-  Persistent<EffectPaintPropertyNode> effect_;
+  scoped_refptr<EffectPaintPropertyNode> effect_;
 
   // True if an animation has been requested.
   bool start_compositor_animation_ = false;

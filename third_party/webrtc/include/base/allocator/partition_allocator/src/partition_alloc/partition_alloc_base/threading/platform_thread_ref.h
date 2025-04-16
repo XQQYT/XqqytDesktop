@@ -7,17 +7,17 @@
 // Instead, consider using a message-loop driven base::Thread, see
 // base/threading/thread.h.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_REF_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_REF_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_REF_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_REF_H_
 
 #include <iosfwd>
 
-#include "partition_alloc/build_config.h"
-#include "partition_alloc/partition_alloc_base/component_export.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/component_export.h"
+#include "build/build_config.h"
 
-#if PA_BUILDFLAG(IS_WIN)
-#include "partition_alloc/partition_alloc_base/win/windows_types.h"
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#if BUILDFLAG(IS_WIN)
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/win/windows_types.h"
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
 #include <pthread.h>
 #endif
 
@@ -33,9 +33,9 @@ namespace partition_alloc::internal::base {
 // to distinguish a new thread from an old, dead thread.
 class PlatformThreadRef {
  public:
-#if PA_BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN)
   using RefType = DWORD;
-#elif PA_BUILDFLAG(IS_POSIX) || PA_BUILDFLAG(IS_FUCHSIA)
+#elif BUILDFLAG(IS_POSIX) || BUILDFLAG(IS_FUCHSIA)
   using RefType = pthread_t;
 #endif
 
@@ -53,4 +53,4 @@ class PlatformThreadRef {
 
 }  // namespace partition_alloc::internal::base
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_REF_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_THREADING_PLATFORM_THREAD_REF_H_

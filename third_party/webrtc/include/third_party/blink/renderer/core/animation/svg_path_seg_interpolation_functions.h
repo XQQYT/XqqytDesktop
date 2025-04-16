@@ -22,7 +22,7 @@ class SVGPathSegInterpolationFunctions {
   STATIC_ONLY(SVGPathSegInterpolationFunctions);
 
  public:
-  static InterpolableValue* ConsumePathSeg(
+  static std::unique_ptr<InterpolableValue> ConsumePathSeg(
       const PathSegmentData&,
       PathCoordinates& current_coordinates);
   static PathSegmentData ConsumeInterpolablePathSeg(

@@ -41,7 +41,7 @@ namespace blink {
 
 // Cone gain is defined according to the OpenAL specification
 
-class PLATFORM_EXPORT ConeEffect final {
+class PLATFORM_EXPORT ConeEffect {
   DISALLOW_NEW();
 
  public:

@@ -17,19 +17,14 @@
 #ifndef SRC_TRACE_PROCESSOR_IMPORTERS_PROTO_TRACK_EVENT_MODULE_H_
 #define SRC_TRACE_PROCESSOR_IMPORTERS_PROTO_TRACK_EVENT_MODULE_H_
 
-#include <cstdint>
-#include <memory>
-
-#include "perfetto/trace_processor/ref_counted.h"
-#include "src/trace_processor/importers/common/parser_types.h"
-#include "src/trace_processor/importers/proto/packet_sequence_state_generation.h"
 #include "src/trace_processor/importers/proto/proto_importer_module.h"
 #include "src/trace_processor/importers/proto/track_event_parser.h"
 #include "src/trace_processor/importers/proto/track_event_tokenizer.h"
 
 #include "protos/perfetto/trace/trace_packet.pbzero.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 class TrackEventModule : public ProtoImporterModule {
  public:
@@ -41,13 +36,8 @@ class TrackEventModule : public ProtoImporterModule {
       const protos::pbzero::TracePacket::Decoder& decoder,
       TraceBlobView* packet,
       int64_t packet_timestamp,
-      RefPtr<PacketSequenceStateGeneration> state,
+      PacketSequenceState* state,
       uint32_t field_id) override;
-
-  void ParseTracePacketData(const protos::pbzero::TracePacket::Decoder& decoder,
-                            int64_t ts,
-                            const TracePacketData& data,
-                            uint32_t field_id) override;
 
   void OnIncrementalStateCleared(uint32_t) override;
 
@@ -57,6 +47,11 @@ class TrackEventModule : public ProtoImporterModule {
                            int64_t ts,
                            const TrackEventData& data);
 
+  void ParseTracePacketData(const protos::pbzero::TracePacket::Decoder& decoder,
+                            int64_t ts,
+                            const TracePacketData& data,
+                            uint32_t field_id) override;
+
   void NotifyEndOfFile() override;
 
  private:
@@ -65,6 +60,7 @@ class TrackEventModule : public ProtoImporterModule {
   TrackEventParser parser_;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_IMPORTERS_PROTO_TRACK_EVENT_MODULE_H_

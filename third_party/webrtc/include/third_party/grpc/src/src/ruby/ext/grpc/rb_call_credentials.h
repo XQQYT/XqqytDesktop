@@ -21,7 +21,6 @@
 
 #include <ruby/ruby.h>
 
-#include <grpc/credentials.h>
 #include <grpc/grpc_security.h>
 
 /* Initializes the ruby CallCredentials class. */

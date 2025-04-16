@@ -35,23 +35,23 @@ namespace blink {
 class PLATFORM_EXPORT TranslateTransformOperation final
     : public TransformOperation {
  public:
-  TranslateTransformOperation(const Length& tx,
-                              const Length& ty,
-                              double tz,
-                              OperationType type)
-      : x_(tx), y_(ty), z_(tz), type_(type) {
-    DCHECK(IsMatchingOperationType(type));
+  static scoped_refptr<TranslateTransformOperation> Create(const Length& tx,
+                                                           const Length& ty,
+                                                           OperationType type) {
+    return base::AdoptRef(new TranslateTransformOperation(tx, ty, 0, type));
   }
 
-  TranslateTransformOperation(const Length& tx,
-                              const Length& ty,
-                              OperationType type)
-      : TranslateTransformOperation(tx, ty, 0, type) {}
+  static scoped_refptr<TranslateTransformOperation> Create(const Length& tx,
+                                                           const Length& ty,
+                                                           double tz,
+                                                           OperationType type) {
+    return base::AdoptRef(new TranslateTransformOperation(tx, ty, tz, type));
+  }
 
   BoxSizeDependency BoxSizeDependencies() const override {
     return CombineDependencies(
-        (x_.HasPercent() ? kDependsWidth : kDependsNone),
-        (y_.HasPercent() ? kDependsHeight : kDependsNone));
+        (x_.IsPercentOrCalc() ? kDependsWidth : kDependsNone),
+        (y_.IsPercentOrCalc() ? kDependsHeight : kDependsNone));
   }
 
   double X(const gfx::SizeF& border_box_size) const {
@@ -75,7 +75,7 @@ class PLATFORM_EXPORT TranslateTransformOperation final
            type == kTranslateZ || type == kTranslate3D;
   }
 
-  TranslateTransformOperation* ZoomTranslate(double factor);
+  scoped_refptr<TranslateTransformOperation> ZoomTranslate(double factor);
 
   OperationType GetType() const override { return type_; }
   OperationType PrimitiveType() const final { return kTranslate3D; }
@@ -88,16 +88,26 @@ class PLATFORM_EXPORT TranslateTransformOperation final
   }
 
  private:
-  TransformOperation* Accumulate(const TransformOperation& other) override;
-  TransformOperation* Blend(const TransformOperation* from,
-                            double progress,
-                            bool blend_to_identity = false) override;
-  TransformOperation* Zoom(double factor) final {
+  scoped_refptr<TransformOperation> Accumulate(
+      const TransformOperation& other) override;
+  scoped_refptr<TransformOperation> Blend(
+      const TransformOperation* from,
+      double progress,
+      bool blend_to_identity = false) override;
+  scoped_refptr<TransformOperation> Zoom(double factor) final {
     return ZoomTranslate(factor);
   }
 
   bool PreservesAxisAlignment() const final { return true; }
   bool IsIdentityOrTranslation() const final { return true; }
+
+  TranslateTransformOperation(const Length& tx,
+                              const Length& ty,
+                              double tz,
+                              OperationType type)
+      : x_(tx), y_(ty), z_(tz), type_(type) {
+    DCHECK(IsMatchingOperationType(type));
+  }
 
   void CommonPrimitiveForInterpolation(
       const TransformOperation* from,

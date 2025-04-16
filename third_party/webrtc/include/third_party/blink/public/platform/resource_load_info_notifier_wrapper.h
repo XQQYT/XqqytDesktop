@@ -51,8 +51,7 @@ class BLINK_PLATFORM_EXPORT ResourceLoadInfoNotifierWrapper {
       const std::string& http_method,
       const GURL& referrer,
       network::mojom::RequestDestination request_destination,
-      net::RequestPriority request_priority,
-      bool is_ad_resource);
+      net::RequestPriority request_priority);
   void NotifyResourceRedirectReceived(
       const net::RedirectInfo& redirect_info,
       network::mojom::URLResponseHeadPtr redirect_response);
@@ -75,8 +74,6 @@ class BLINK_PLATFORM_EXPORT ResourceLoadInfoNotifierWrapper {
   // This struct holds the loading stats passed to
   // |weak_wrapper_resource_load_info_notifier_|.
   mojom::ResourceLoadInfoPtr resource_load_info_;
-
-  bool is_ad_resource_ = false;
 };
 
 }  // namespace blink

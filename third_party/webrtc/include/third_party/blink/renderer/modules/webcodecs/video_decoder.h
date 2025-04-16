@@ -26,10 +26,6 @@
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
 
-namespace libgav1 {
-class BufferPool;
-}
-
 namespace media {
 
 class VideoFrame;
@@ -44,9 +40,9 @@ class EncodedVideoChunk;
 class ExceptionState;
 class VideoDecoderConfig;
 class VideoDecoderInit;
-class VideoDecoderSupport;
 class VideoFrame;
 class V8VideoFrameOutputCallback;
+class ScriptPromise;
 
 class MODULES_EXPORT VideoDecoderTraits {
  public:
@@ -85,25 +81,26 @@ class MODULES_EXPORT VideoDecoder : public DecoderTemplate<VideoDecoderTraits> {
                               const VideoDecoderInit*,
                               ExceptionState&);
 
-  static ScriptPromise<VideoDecoderSupport>
-  isConfigSupported(ScriptState*, const VideoDecoderConfig*, ExceptionState&);
+  static ScriptPromise isConfigSupported(ScriptState*,
+                                         const VideoDecoderConfig*,
+                                         ExceptionState&);
 
   static HardwarePreference GetHardwareAccelerationPreference(
       const ConfigType& config);
 
   // Returns parsed VideoType if the configuration is valid.
-  static std::optional<media::VideoType> IsValidVideoDecoderConfig(
+  static absl::optional<media::VideoType> IsValidVideoDecoderConfig(
       const VideoDecoderConfig& config,
       String* js_error_message);
 
   // For use by MediaSource
-  static std::optional<media::VideoDecoderConfig> MakeMediaVideoDecoderConfig(
+  static absl::optional<media::VideoDecoderConfig> MakeMediaVideoDecoderConfig(
       const ConfigType& config,
       String* js_error_message,
       bool* needs_converter_out = nullptr);
 
   VideoDecoder(ScriptState*, const VideoDecoderInit*, ExceptionState&);
-  ~VideoDecoder() override;
+  ~VideoDecoder() override = default;
 
   // EventTarget interface
   const AtomicString& InterfaceName() const override;
@@ -111,7 +108,7 @@ class MODULES_EXPORT VideoDecoder : public DecoderTemplate<VideoDecoderTraits> {
  protected:
   bool IsValidConfig(const ConfigType& config,
                      String* js_error_message) override;
-  std::optional<media::VideoDecoderConfig> MakeMediaConfig(
+  absl::optional<media::VideoDecoderConfig> MakeMediaConfig(
       const ConfigType& config,
       String* js_error_message) override;
   media::DecoderStatus::Or<scoped_refptr<media::DecoderBuffer>> MakeInput(
@@ -120,36 +117,24 @@ class MODULES_EXPORT VideoDecoder : public DecoderTemplate<VideoDecoderTraits> {
   media::DecoderStatus::Or<OutputType*> MakeOutput(
       scoped_refptr<MediaOutputType>,
       ExecutionContext*) override;
-  void OnActiveConfigChanged(const MediaConfigType& config) override;
 
  private:
-  struct DecoderSpecificData {
-    // Bitstream converter to annex B for AVC/HEVC.
-    std::unique_ptr<VideoDecoderHelper> decoder_helper;
-
-    // Buffer pool for use with libgav1::ObuParser.
-    std::unique_ptr<libgav1::BufferPool> av1_buffer_pool;
-  };
-
   // DecoderTemplate implementation.
   HardwarePreference GetHardwarePreference(const ConfigType& config) override;
   bool GetLowDelayPreference(const ConfigType& config) override;
   void SetHardwarePreference(HardwarePreference preference) override;
   // For use by ::MakeMediaConfig
-  static std::optional<media::VideoDecoderConfig>
+  static absl::optional<media::VideoDecoderConfig>
   MakeMediaVideoDecoderConfigInternal(
       const ConfigType& config,
-      DecoderSpecificData& decoder_specific_data,
+      std::unique_ptr<VideoDecoderHelper>& decoder_helper,
       String* js_error_message,
       bool* needs_converter_out = nullptr);
 
-  DecoderSpecificData decoder_specific_data_;
+  // Bitstream converter to annex B for AVC/HEVC.
+  std::unique_ptr<VideoDecoderHelper> decoder_helper_;
 
-  // Note: This may not be the active codec, it is just intended to be the last
-  // codec that was passed to a configure() call.
-  media::VideoCodec pending_codec_ = media::VideoCodec::kUnknown;
-
-  media::VideoTransformation active_transform_ = media::kNoTransformation;
+  media::VideoCodec current_codec_ = media::VideoCodec::kUnknown;
 
   // Per-chunk metadata to be applied to outputs, linked by timestamp.
   struct ChunkMetadata {

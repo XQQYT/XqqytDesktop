@@ -6,8 +6,7 @@
 <script src="/resources/testdriver.js"></script>
 <script src="/resources/testdriver-vendor.js"></script>
 
-<iframe
-  src="https://{{host}}:{{ports[https][1]}}/infrastructure/testdriver/actions/support/actions.html?parent"></iframe>
+<iframe src="https://{{host}}:{{ports[https][1]}}/infrastructure/testdriver/actions/crossOriginChild.html"></iframe>
 
 <script>
 setup({single_test: true});
@@ -15,9 +14,7 @@ addEventListener("message", (msg) => {
     if (msg.data === "PASS") {
         done();
     } else if (msg.data === "FAIL") {
-        assert_unreached("actions failed");
-    } else {
-        assert_unreached("testdriver.js-internal messages should not be exposed to tests");
+        assert_unreached("actions failed")
     }
 });
 </script>

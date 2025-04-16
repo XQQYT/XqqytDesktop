@@ -24,8 +24,7 @@ namespace tasks {
 
 // Name (aka type URL key) of the `absl::Status` payload which contains a
 // stringified `MediaPipeTasksStatus` code (see below).
-inline constexpr absl::string_view kMediaPipeTasksPayload =
-    "MediaPipeTasksStatus";
+constexpr absl::string_view kMediaPipeTasksPayload = "MediaPipeTasksStatus";
 
 // Error codes for MediaPipe Tasks C++ APIs.
 //

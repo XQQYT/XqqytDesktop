@@ -31,10 +31,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_FILE_METADATA_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_FILE_METADATA_H_
 
-#include <optional>
-
 #include "base/files/file.h"
 #include "base/time/time.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
@@ -53,7 +52,7 @@ class FileMetadata {
   PLATFORM_EXPORT static FileMetadata From(const base::File::Info& file_info);
 
   // The last modification time of the file.
-  std::optional<base::Time> modification_time = std::nullopt;
+  absl::optional<base::Time> modification_time = absl::nullopt;
 
   // The length of the file in bytes.
   // The value -1 means that the length is not set.
@@ -73,9 +72,9 @@ PLATFORM_EXPORT bool GetFileMetadata(const String&,
                                      FileMetadata& result);
 PLATFORM_EXPORT KURL FilePathToURL(const String&);
 
-inline std::optional<base::Time> NullableTimeToOptionalTime(base::Time time) {
+inline absl::optional<base::Time> NullableTimeToOptionalTime(base::Time time) {
   if (time.is_null())
-    return std::nullopt;
+    return absl::nullopt;
   return time;
 }
 

@@ -65,7 +65,7 @@ class PLATFORM_EXPORT WorkerMainScriptLoader final
   void OnReceiveResponse(
       network::mojom::URLResponseHeadPtr response_head,
       mojo::ScopedDataPipeConsumerHandle handle,
-      std::optional<mojo_base::BigBuffer> cached_metadata) override;
+      absl::optional<mojo_base::BigBuffer> cached_metadata) override;
   void OnReceiveRedirect(
       const net::RedirectInfo& redirect_info,
       network::mojom::URLResponseHeadPtr response_head) override;
@@ -82,7 +82,7 @@ class PLATFORM_EXPORT WorkerMainScriptLoader final
   WTF::TextEncoding GetScriptEncoding() { return script_encoding_; }
   CachedMetadataHandler* CreateCachedMetadataHandler();
 
-  void Trace(Visitor*) const;
+  virtual void Trace(Visitor*) const;
 
  private:
   void StartLoadingBody();

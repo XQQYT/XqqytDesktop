@@ -13,7 +13,6 @@ namespace blink {
 
 class ExceptionState;
 class HTMLDivElement;
-class V8InternalEnum;
 class V8TestCallback;
 class V8TestEnumCallback;
 class V8TestInterfaceCallback;
@@ -41,7 +40,7 @@ class CallbackFunctionTest final : public ScriptWrappable {
                                       const Vector<int>& numbers,
                                       ExceptionState&);
   void testEnumCallback(V8TestEnumCallback*,
-                        const V8InternalEnum& enum_value,
+                        const String& enum_value,
                         ExceptionState&);
 };
 

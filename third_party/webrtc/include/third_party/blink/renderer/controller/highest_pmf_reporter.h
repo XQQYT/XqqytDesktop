@@ -50,13 +50,18 @@ class CONTROLLER_EXPORT HighestPmfReporter
   virtual void ReportMetrics();
 
   scoped_refptr<base::SingleThreadTaskRunner> task_runner_;
-  raw_ptr<const base::TickClock> clock_;
+  raw_ptr<const base::TickClock, ExperimentalRenderer> clock_;
 
   bool first_navigation_detected_ = false;
   double current_highest_pmf_ = 0.0;
   double peak_resident_bytes_at_current_highest_pmf_ = 0.0;
   unsigned webpage_counts_at_current_highest_pmf_ = 0;
   unsigned report_count_ = 0;
+
+  static const char* highest_pmf_metric_names[];
+  static const char* peak_resident_bytes_metric_names[];
+  static const char* webpage_counts_metric_names[];
+  static const base::TimeDelta time_to_report[];
 };
 
 }  // namespace blink

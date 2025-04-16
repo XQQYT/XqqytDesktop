@@ -51,9 +51,7 @@ class CORE_EXPORT ErrorEvent final : public Event {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
-  static ErrorEvent* Create(ScriptState* script_state) {
-    return MakeGarbageCollected<ErrorEvent>(script_state);
-  }
+  static ErrorEvent* Create() { return MakeGarbageCollected<ErrorEvent>(); }
   static ErrorEvent* Create(const String& message,
                             std::unique_ptr<SourceLocation> location,
                             DOMWrapperWorld* world) {
@@ -78,7 +76,7 @@ class CORE_EXPORT ErrorEvent final : public Event {
   // Creates an error for a script whose errors are muted.
   static ErrorEvent* CreateSanitizedError(ScriptState* script_state);
 
-  explicit ErrorEvent(ScriptState* script_state);
+  ErrorEvent();
   ErrorEvent(const String& message,
              std::unique_ptr<SourceLocation>,
              ScriptValue error,
@@ -104,7 +102,7 @@ class CORE_EXPORT ErrorEvent final : public Event {
   bool CanBeDispatchedInWorld(const DOMWrapperWorld&) const override;
   bool IsErrorEvent() const override;
 
-  DOMWrapperWorld* World() const { return world_.Get(); }
+  DOMWrapperWorld* World() const { return world_.get(); }
 
   void SetUnsanitizedMessage(const String&);
 
@@ -115,7 +113,7 @@ class CORE_EXPORT ErrorEvent final : public Event {
   String sanitized_message_;
   std::unique_ptr<SourceLocation> location_;
   WorldSafeV8Reference<v8::Value> error_;
-  const Member<DOMWrapperWorld> world_;
+  scoped_refptr<DOMWrapperWorld> world_;
 };
 
 template <>

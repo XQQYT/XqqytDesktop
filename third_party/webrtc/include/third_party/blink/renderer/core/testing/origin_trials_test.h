@@ -20,9 +20,6 @@ class OriginTrialsTest : public ScriptWrappable {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
-  // Required by IDL constructor.
-  static OriginTrialsTest* Create();
-
   OriginTrialsTest() = default;
   ~OriginTrialsTest() override = default;
 

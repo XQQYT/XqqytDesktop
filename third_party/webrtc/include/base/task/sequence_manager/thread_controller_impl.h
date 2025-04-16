@@ -9,7 +9,6 @@
 
 #include "base/base_export.h"
 #include "base/cancelable_callback.h"
-#include "base/compiler_specific.h"
 #include "base/dcheck_is_on.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -38,7 +37,7 @@ class BASE_EXPORT ThreadControllerImpl : public ThreadController,
   ThreadControllerImpl& operator=(const ThreadControllerImpl&) = delete;
   ~ThreadControllerImpl() override;
 
-  // TODO(crbug.com/40620995): replace |funneled_sequence_manager| with
+  // TODO(https://crbug.com/948051): replace |funneled_sequence_manager| with
   // |funneled_task_runner| when we sort out the workers
   static std::unique_ptr<ThreadControllerImpl> Create(
       SequenceManagerImpl* funneled_sequence_manager,
@@ -50,7 +49,7 @@ class BASE_EXPORT ThreadControllerImpl : public ThreadController,
   void ScheduleWork() override;
   void BindToCurrentThread(std::unique_ptr<MessagePump> message_pump) override;
   void SetNextDelayedDoWork(LazyNow* lazy_now,
-                            std::optional<WakeUp> wake_up) override;
+                            absl::optional<WakeUp> wake_up) override;
   void SetSequencedTaskSource(SequencedTaskSource* sequence) override;
   bool RunsTasksInCurrentSequence() override;
   void SetDefaultTaskRunner(scoped_refptr<SingleThreadTaskRunner>) override;
@@ -58,7 +57,7 @@ class BASE_EXPORT ThreadControllerImpl : public ThreadController,
   void RestoreDefaultTaskRunner() override;
   void AddNestingObserver(RunLoop::NestingObserver* observer) override;
   void RemoveNestingObserver(RunLoop::NestingObserver* observer) override;
-  void SetTaskExecutionAllowedInNativeNestedLoop(bool allowed) override;
+  void SetTaskExecutionAllowed(bool allowed) override;
   bool IsTaskExecutionAllowed() const override;
   MessagePump* GetBoundMessagePump() const override;
 #if BUILDFLAG(IS_IOS) || BUILDFLAG(IS_ANDROID)
@@ -67,6 +66,7 @@ class BASE_EXPORT ThreadControllerImpl : public ThreadController,
 #if BUILDFLAG(IS_IOS)
   void DetachFromMessagePump() override;
 #endif
+  void PrioritizeYieldingToNative(base::TimeTicks prioritize_until) override;
   bool ShouldQuitRunLoopWhenIdle() override;
 
   // RunLoop::NestingObserver:
@@ -78,8 +78,10 @@ class BASE_EXPORT ThreadControllerImpl : public ThreadController,
                        scoped_refptr<SingleThreadTaskRunner> task_runner,
                        const TickClock* time_source);
 
-  const raw_ptr<SequenceManagerImpl> funneled_sequence_manager_;
-  const scoped_refptr<SingleThreadTaskRunner> task_runner_;
+  // TODO(altimin): Make these const. Blocked on removing
+  // lazy initialisation support.
+  raw_ptr<SequenceManagerImpl> funneled_sequence_manager_;
+  scoped_refptr<SingleThreadTaskRunner> task_runner_;
 
   raw_ptr<RunLoop::NestingObserver> nesting_observer_ = nullptr;
 
@@ -100,11 +102,11 @@ class BASE_EXPORT ThreadControllerImpl : public ThreadController,
   };
 
   MainSequenceOnly main_sequence_only_;
-  MainSequenceOnly& main_sequence_only() LIFETIME_BOUND {
+  MainSequenceOnly& main_sequence_only() {
     DCHECK_CALLED_ON_VALID_SEQUENCE(associated_thread_->sequence_checker);
     return main_sequence_only_;
   }
-  const MainSequenceOnly& main_sequence_only() const LIFETIME_BOUND {
+  const MainSequenceOnly& main_sequence_only() const {
     DCHECK_CALLED_ON_VALID_SEQUENCE(associated_thread_->sequence_checker);
     return main_sequence_only_;
   }

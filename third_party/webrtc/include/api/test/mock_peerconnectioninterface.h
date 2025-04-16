@@ -11,35 +11,15 @@
 #ifndef API_TEST_MOCK_PEERCONNECTIONINTERFACE_H_
 #define API_TEST_MOCK_PEERCONNECTIONINTERFACE_H_
 
-#include <cstdint>
 #include <memory>
-#include <optional>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
-#include "api/adaptation/resource.h"
-#include "api/candidate.h"
-#include "api/data_channel_interface.h"
-#include "api/dtls_transport_interface.h"
-#include "api/jsep.h"
-#include "api/make_ref_counted.h"
-#include "api/media_stream_interface.h"
-#include "api/media_types.h"
 #include "api/peer_connection_interface.h"
-#include "api/rtc_error.h"
-#include "api/rtc_event_log_output.h"
-#include "api/rtp_parameters.h"
-#include "api/rtp_receiver_interface.h"
-#include "api/rtp_sender_interface.h"
-#include "api/rtp_transceiver_interface.h"
 #include "api/scoped_refptr.h"
 #include "api/sctp_transport_interface.h"
-#include "api/set_remote_description_observer_interface.h"
-#include "api/stats/rtc_stats_collector_callback.h"
-#include "api/transport/bandwidth_estimation_settings.h"
-#include "api/transport/bitrate_settings.h"
-#include "api/transport/network_control.h"
 #include "rtc_base/ref_counted_object.h"
 #include "test/gmock.h"
 
@@ -88,11 +68,11 @@ class MockPeerConnectionInterface : public webrtc::PeerConnectionInterface {
               (override));
   MOCK_METHOD(RTCErrorOr<rtc::scoped_refptr<RtpTransceiverInterface>>,
               AddTransceiver,
-              (webrtc::MediaType),
+              (cricket::MediaType),
               (override));
   MOCK_METHOD(RTCErrorOr<rtc::scoped_refptr<RtpTransceiverInterface>>,
               AddTransceiver,
-              (webrtc::MediaType, const RtpTransceiverInit&),
+              (cricket::MediaType, const RtpTransceiverInit&),
               (override));
   MOCK_METHOD(rtc::scoped_refptr<RtpSenderInterface>,
               CreateSender,
@@ -180,10 +160,6 @@ class MockPeerConnectionInterface : public webrtc::PeerConnectionInterface {
               (std::unique_ptr<SessionDescriptionInterface>,
                rtc::scoped_refptr<SetRemoteDescriptionObserverInterface>),
               (override));
-  MOCK_METHOD(bool,
-              ShouldFireNegotiationNeededEvent,
-              (uint32_t event_id),
-              (override));
   MOCK_METHOD(PeerConnectionInterface::RTCConfiguration,
               GetConfiguration,
               (),
@@ -198,13 +174,9 @@ class MockPeerConnectionInterface : public webrtc::PeerConnectionInterface {
               (override));
   MOCK_METHOD(bool,
               RemoveIceCandidates,
-              (const std::vector<webrtc::Candidate>&),
+              (const std::vector<cricket::Candidate>&),
               (override));
   MOCK_METHOD(RTCError, SetBitrate, (const BitrateSettings&), (override));
-  MOCK_METHOD(void,
-              ReconfigureBandwidthEstimation,
-              (const BandwidthEstimationSettings&),
-              (override));
   MOCK_METHOD(void, SetAudioPlayout, (bool), (override));
   MOCK_METHOD(void, SetAudioRecording, (bool), (override));
   MOCK_METHOD(rtc::scoped_refptr<DtlsTransportInterface>,
@@ -219,11 +191,7 @@ class MockPeerConnectionInterface : public webrtc::PeerConnectionInterface {
               (override));
   MOCK_METHOD(PeerConnectionState, peer_connection_state, (), (override));
   MOCK_METHOD(IceGatheringState, ice_gathering_state, (), (override));
-  MOCK_METHOD(void,
-              AddAdaptationResource,
-              (rtc::scoped_refptr<Resource>),
-              (override));
-  MOCK_METHOD(std::optional<bool>, can_trickle_ice_candidates, (), (override));
+  MOCK_METHOD(absl::optional<bool>, can_trickle_ice_candidates, (), (override));
   MOCK_METHOD(bool,
               StartRtcEventLog,
               (std::unique_ptr<RtcEventLogOutput>, int64_t),
@@ -234,11 +202,6 @@ class MockPeerConnectionInterface : public webrtc::PeerConnectionInterface {
               (override));
   MOCK_METHOD(void, StopRtcEventLog, (), (override));
   MOCK_METHOD(void, Close, (), (override));
-  MOCK_METHOD(Thread*, signaling_thread, (), (const, override));
-  MOCK_METHOD(NetworkControllerInterface*,
-              GetNetworkController,
-              (),
-              (override));
 };
 
 static_assert(

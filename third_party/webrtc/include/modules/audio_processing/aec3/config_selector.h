@@ -11,8 +11,7 @@
 #ifndef MODULES_AUDIO_PROCESSING_AEC3_CONFIG_SELECTOR_H_
 #define MODULES_AUDIO_PROCESSING_AEC3_CONFIG_SELECTOR_H_
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/audio/echo_canceller3_config.h"
 
 namespace webrtc {
@@ -20,9 +19,10 @@ namespace webrtc {
 // Selects the config to use.
 class ConfigSelector {
  public:
-  ConfigSelector(const EchoCanceller3Config& config,
-                 const std::optional<EchoCanceller3Config>& multichannel_config,
-                 int num_render_input_channels);
+  ConfigSelector(
+      const EchoCanceller3Config& config,
+      const absl::optional<EchoCanceller3Config>& multichannel_config,
+      int num_render_input_channels);
 
   // Updates the config selection based on the detection of multichannel
   // content.
@@ -32,7 +32,7 @@ class ConfigSelector {
 
  private:
   const EchoCanceller3Config config_;
-  const std::optional<EchoCanceller3Config> multichannel_config_;
+  const absl::optional<EchoCanceller3Config> multichannel_config_;
   const EchoCanceller3Config* active_config_ = nullptr;
 };
 

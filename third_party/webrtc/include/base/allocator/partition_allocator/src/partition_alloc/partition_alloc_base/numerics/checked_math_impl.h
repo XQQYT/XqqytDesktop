@@ -2,19 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_IMPL_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_IMPL_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_IMPL_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_IMPL_H_
+
+#include <stddef.h>
+#include <stdint.h>
 
 #include <climits>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <cstdlib>
 #include <limits>
 #include <type_traits>
 
-#include "partition_alloc/partition_alloc_base/numerics/safe_conversions.h"
-#include "partition_alloc/partition_alloc_base/numerics/safe_math_shared_impl.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/numerics/safe_conversions.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/numerics/safe_math_shared_impl.h"
 
 namespace partition_alloc::internal::base::internal {
 
@@ -63,8 +64,9 @@ struct CheckedAddOp<T,
                                   FastPromotion>::type;
     // Fail if either operand is out of range for the promoted type.
     // TODO(jschuh): This could be made to work for a broader range of values.
-    if (!IsValueInRangeForNumericType<Promotion>(x) ||
-        !IsValueInRangeForNumericType<Promotion>(y)) [[unlikely]] {
+    if (PA_BASE_NUMERICS_UNLIKELY(
+            !IsValueInRangeForNumericType<Promotion>(x) ||
+            !IsValueInRangeForNumericType<Promotion>(y))) {
       return false;
     }
 
@@ -129,8 +131,9 @@ struct CheckedSubOp<T,
                                   FastPromotion>::type;
     // Fail if either operand is out of range for the promoted type.
     // TODO(jschuh): This could be made to work for a broader range of values.
-    if (!IsValueInRangeForNumericType<Promotion>(x) ||
-        !IsValueInRangeForNumericType<Promotion>(y)) [[unlikely]] {
+    if (PA_BASE_NUMERICS_UNLIKELY(
+            !IsValueInRangeForNumericType<Promotion>(x) ||
+            !IsValueInRangeForNumericType<Promotion>(y))) {
       return false;
     }
 
@@ -190,9 +193,10 @@ struct CheckedMulOp<T,
 
     using Promotion = typename FastIntegerArithmeticPromotion<T, U>::type;
     // Verify the destination type can hold the result (always true for 0).
-    if ((!IsValueInRangeForNumericType<Promotion>(x) ||
-         !IsValueInRangeForNumericType<Promotion>(y)) &&
-        x && y) [[unlikely]] {
+    if (PA_BASE_NUMERICS_UNLIKELY(
+            (!IsValueInRangeForNumericType<Promotion>(x) ||
+             !IsValueInRangeForNumericType<Promotion>(y)) &&
+            x && y)) {
       return false;
     }
 
@@ -229,24 +233,27 @@ struct CheckedDivOp<T,
   using result_type = typename MaxExponentPromotion<T, U>::type;
   template <typename V>
   static constexpr bool Do(T x, U y, V* result) {
-    if (!y) [[unlikely]] {
+    if (PA_BASE_NUMERICS_UNLIKELY(!y)) {
       return false;
     }
 
     // The overflow check can be compiled away if we don't have the exact
     // combination of types needed to trigger this case.
     using Promotion = typename BigEnoughPromotion<T, U>::type;
-    if (std::is_signed_v<T> && std::is_signed_v<U> &&
-        IsTypeInRangeForNumericType<T, Promotion>::value &&
-        static_cast<Promotion>(x) == std::numeric_limits<Promotion>::lowest() &&
-        y == static_cast<U>(-1)) [[unlikely]] {
+    if (PA_BASE_NUMERICS_UNLIKELY(
+            (std::is_signed_v<T> && std::is_signed_v<U> &&
+             IsTypeInRangeForNumericType<T, Promotion>::value &&
+             static_cast<Promotion>(x) ==
+                 std::numeric_limits<Promotion>::lowest() &&
+             y == static_cast<U>(-1)))) {
       return false;
     }
 
     // This branch always compiles away if the above branch wasn't removed.
-    if ((!IsValueInRangeForNumericType<Promotion>(x) ||
-         !IsValueInRangeForNumericType<Promotion>(y)) &&
-        x) [[unlikely]] {
+    if (PA_BASE_NUMERICS_UNLIKELY(
+            (!IsValueInRangeForNumericType<Promotion>(x) ||
+             !IsValueInRangeForNumericType<Promotion>(y)) &&
+            x)) {
       return false;
     }
 
@@ -270,15 +277,17 @@ struct CheckedModOp<T,
   using result_type = typename MaxExponentPromotion<T, U>::type;
   template <typename V>
   static constexpr bool Do(T x, U y, V* result) {
-    if (!y) [[unlikely]] {
+    if (PA_BASE_NUMERICS_UNLIKELY(!y)) {
       return false;
     }
 
     using Promotion = typename BigEnoughPromotion<T, U>::type;
-    if (std::is_signed_v<T> && std::is_signed_v<U> &&
-        IsTypeInRangeForNumericType<T, Promotion>::value &&
-        static_cast<Promotion>(x) == std::numeric_limits<Promotion>::lowest() &&
-        y == static_cast<U>(-1)) [[unlikely]] {
+    if (PA_BASE_NUMERICS_UNLIKELY(
+            (std::is_signed_v<T> && std::is_signed_v<U> &&
+             IsTypeInRangeForNumericType<T, Promotion>::value &&
+             static_cast<Promotion>(x) ==
+                 std::numeric_limits<Promotion>::lowest() &&
+             y == static_cast<U>(-1)))) {
       *result = 0;
       return true;
     }
@@ -308,9 +317,9 @@ struct CheckedLshOp<T,
   template <typename V>
   static constexpr bool Do(T x, U shift, V* result) {
     // Disallow negative numbers and verify the shift is in bounds.
-    if (!IsValueNegative(x) &&
-        as_unsigned(shift) < as_unsigned(std::numeric_limits<T>::digits))
-        [[likely]] {
+    if (PA_BASE_NUMERICS_LIKELY(
+            !IsValueNegative(x) &&
+            as_unsigned(shift) < as_unsigned(std::numeric_limits<T>::digits))) {
       // Shift as unsigned to avoid undefined behavior.
       *result = static_cast<V>(as_unsigned(x) << shift);
       // If the shift can be reversed, we know it was valid.
@@ -342,7 +351,8 @@ struct CheckedRshOp<T,
   template <typename V>
   static constexpr bool Do(T x, U shift, V* result) {
     // Use sign conversion to push negative values out of range.
-    if (as_unsigned(shift) >= IntegerBitsPlusSign<T>::value) [[unlikely]] {
+    if (PA_BASE_NUMERICS_UNLIKELY(as_unsigned(shift) >=
+                                  IntegerBitsPlusSign<T>::value)) {
       return false;
     }
 
@@ -597,4 +607,4 @@ class CheckedNumericState<T, NUMERIC_FLOATING> {
 
 }  // namespace partition_alloc::internal::base::internal
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_IMPL_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CHECKED_MATH_IMPL_H_

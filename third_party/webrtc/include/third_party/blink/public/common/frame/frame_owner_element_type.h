@@ -14,6 +14,7 @@ enum class FrameOwnerElementType {
   kObject,
   kEmbed,
   kFrame,
+  kPortal,
   kFencedframe,
   kMaxValue = kFencedframe,
 };

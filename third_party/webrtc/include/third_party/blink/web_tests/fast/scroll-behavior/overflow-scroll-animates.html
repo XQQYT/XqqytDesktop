@@ -1,44 +1,35 @@
 <!DOCTYPE html>
 <script src="../../resources/testharness.js"></script>
-<script src="../../resources/testharnessreport.js"></script>
-<script src="../../resources/gesture-util.js"></script>
-<script src="../../resources/testdriver.js"></script>
-<script src="../../resources/testdriver-actions.js"></script>
-<script src="../../resources/testdriver-vendor.js"></script>
 <title>Tests that overflow scrolls are animated.</title>
-<style>
-  #container {
-    overflow: scroll;
-    width: 200px;
-    height: 200px;
-  }
-  #content {
-    width: 750px;
-    height: 10000px;
-    background-color: blue;
-  }
-</style>
-<div id="container">
-  <div id="content"></div>
+
+<div id="container" style="overflow: scroll;width: 200px;height: 200px;">
+  <div id="content" style="width: 750px;height: 10000px;background-color: blue;"></div>
 </div>
 
 <script>
-if (!window.internals) {
+if (!window.eventSender || !window.internals || !window.testRunner) {
   assert_unreached("This test must be run in the test harness");
 }
 internals.settings.setScrollAnimatorEnabled(true);
+testRunner.waitUntilDone();
+testRunner.dumpAsText();
 
-promise_test(async () => {
-  const container = document.getElementById("container");
-  await waitForCompositorCommit();
-  await waitForScrollReset(container);
-  const pos = elementCenter(container);
-  await mouseClick(pos.x, pos.y);
-  await Promise.all([
-    animatedScrollPromise(container),
-    keyboardScroll("PageDown", container),
-  ]);
-  assert_true(container.scrollTop > 0);
-}, 'Overflow scrolls are animated');
+const container = document.getElementById("container");
 
+let prevScrollTop;
+container.addEventListener("scroll", function onElementScroll() {
+  if (prevScrollTop === undefined) {
+    assert_not_equals(container.scrollTop,container.scrollHeight - container.clientHeight);
+    prevScrollTop = container.scrollTop;
+  } else {
+    assert_true(container.scrollTop > prevScrollTop);
+    console.log('PASS');
+    testRunner.notifyDone();
+  }
+});
+
+eventSender.mouseMoveTo(100, 100);
+eventSender.mouseDown();
+eventSender.mouseUp();
+eventSender.keyDown('End');
 </script>

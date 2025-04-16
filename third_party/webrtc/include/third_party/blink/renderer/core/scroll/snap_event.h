@@ -15,37 +15,29 @@
 namespace blink {
 
 // This class implements the SnapEvent interface for scroll-snap-related
-// JavaScript events, scrollsnapchange and scrollsnapchanging.
+// JavaScript events, snapchanged and snapchanging.
 // SnapEvents are sent to a scroller when it snaps to a different element from
 // the element to which it was previously snapped along either axis.
-// https://drafts.csswg.org/css-scroll-snap-2/#scrollsnapchange-and-scrollsnapchanging
+// https://drafts.csswg.org/css-scroll-snap-2/#snapchanged-and-snapchanging
 class SnapEvent : public Event {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
   static SnapEvent* Create(const AtomicString& type,
-                           Bubbles bubbles,
-                           Member<Node>& block_target,
-                           Member<Node>& inline_target);
-  SnapEvent(const AtomicString& type,
-            Bubbles bubbles,
-            Member<Node>& block_target,
-            Member<Node>& inline_target);
+                           HeapVector<Member<Node>>& targets);
+  SnapEvent(const AtomicString& type, HeapVector<Member<Node>>& targets);
 
-  Node* snapTargetBlock() { return snap_target_block_.Get(); }
-  Node* snapTargetInline() { return snap_target_inline_.Get(); }
+  StaticNodeList* snapTargets() { return snap_targets_.Get(); }
 
   void Trace(Visitor* visitor) const override {
-    visitor->Trace(snap_target_block_);
-    visitor->Trace(snap_target_inline_);
+    visitor->Trace(snap_targets_);
     Event::Trace(visitor);
   }
 
  private:
-  // This are the elements that the scrolling container selected as snap targets
-  // for the related snap event.
-  Member<Node> snap_target_block_;
-  Member<Node> snap_target_inline_;
+  // This contains elements to which the scrolling container is currently
+  // snapped along both axes.
+  Member<StaticNodeList> snap_targets_;
 };
 
 }  // namespace blink

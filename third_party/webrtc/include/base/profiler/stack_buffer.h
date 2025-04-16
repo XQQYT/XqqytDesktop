@@ -7,7 +7,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
 #include <memory>
 
 #include "base/base_export.h"

@@ -1,7 +1,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_NAVIGATION_API_NAVIGATION_CURRENT_ENTRY_CHANGE_EVENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_NAVIGATION_API_NAVIGATION_CURRENT_ENTRY_CHANGE_EVENT_H_
 
-#include "third_party/blink/renderer/bindings/core/v8/v8_navigation_type.h"
 #include "third_party/blink/renderer/core/dom/events/event.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
@@ -24,14 +23,14 @@ class NavigationCurrentEntryChangeEvent final : public Event {
       const AtomicString& type,
       NavigationCurrentEntryChangeEventInit* init);
 
-  std::optional<V8NavigationType> navigationType();
+  String navigationType() { return navigation_type_; }
   NavigationHistoryEntry* from() { return from_.Get(); }
 
   const AtomicString& InterfaceName() const final;
   void Trace(Visitor* visitor) const final;
 
  private:
-  std::optional<V8NavigationType::Enum> navigation_type_;
+  String navigation_type_;
   Member<NavigationHistoryEntry> from_;
 };
 

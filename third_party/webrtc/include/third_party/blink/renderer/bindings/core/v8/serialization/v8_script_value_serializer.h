@@ -9,7 +9,7 @@
 #include "base/memory/scoped_refptr.h"
 #include "base/types/pass_key.h"
 #include "third_party/blink/renderer/bindings/core/v8/serialization/serialization_tag.h"
-#include "third_party/blink/renderer/bindings/core/v8/serialization/serialized_params.h"
+#include "third_party/blink/renderer/bindings/core/v8/serialization/serialized_color_params.h"
 #include "third_party/blink/renderer/bindings/core/v8/serialization/serialized_script_value.h"
 #include "third_party/blink/renderer/bindings/core/v8/serialization/trailer_writer.h"
 #include "third_party/blink/renderer/core/core_export.h"
@@ -74,7 +74,7 @@ class CORE_EXPORT V8ScriptValueSerializer
     serializer_.WriteRawBytes(data, size);
   }
   void WriteUnguessableToken(const base::UnguessableToken& token);
-  void WriteUTF8String(const StringView&);
+  void WriteUTF8String(const String&);
 
   void WriteAndRequireInterfaceTag(SerializationTag tag) {
     GetTrailerWriter().RequireExposedInterface(tag);
@@ -115,10 +115,6 @@ class CORE_EXPORT V8ScriptValueSerializer
 
   // v8::ValueSerializer::Delegate
   void ThrowDataCloneError(v8::Local<v8::String> message) override;
-
-  bool HasCustomHostObject(v8::Isolate* isolate) override { return true; }
-  v8::Maybe<bool> IsHostObject(v8::Isolate* isolate,
-                               v8::Local<v8::Object> object) override;
   v8::Maybe<bool> WriteHostObject(v8::Isolate*,
                                   v8::Local<v8::Object> message) override;
   v8::Maybe<uint32_t> GetSharedArrayBufferId(
@@ -144,6 +140,7 @@ class CORE_EXPORT V8ScriptValueSerializer
   v8::ValueSerializer serializer_;
   TrailerWriter trailer_writer_;
   const Transferables* transferables_ = nullptr;
+  const ExceptionState* exception_state_ = nullptr;
   WebBlobInfoArray* blob_info_array_ = nullptr;
   SharedArrayBufferArray shared_array_buffers_;
   Options::WasmSerializationPolicy wasm_policy_;

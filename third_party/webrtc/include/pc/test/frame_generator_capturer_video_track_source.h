@@ -12,17 +12,12 @@
 #define PC_TEST_FRAME_GENERATOR_CAPTURER_VIDEO_TRACK_SOURCE_H_
 
 #include <memory>
-#include <optional>
 #include <utility>
 
-#include "api/media_stream_interface.h"
 #include "api/task_queue/default_task_queue_factory.h"
 #include "api/task_queue/task_queue_factory.h"
 #include "api/test/create_frame_generator.h"
-#include "api/video/video_frame.h"
-#include "api/video/video_source_interface.h"
 #include "pc/video_track_source.h"
-#include "system_wrappers/include/clock.h"
 #include "test/frame_generator_capturer.h"
 
 namespace webrtc {
@@ -54,7 +49,7 @@ class FrameGeneratorCapturerVideoTrackSource : public VideoTrackSource {
     video_capturer_ = std::make_unique<test::FrameGeneratorCapturer>(
         clock,
         test::CreateSquareFrameGenerator(config.width, config.height,
-                                         std::nullopt,
+                                         absl::nullopt,
                                          config.num_squares_generated),
         config.frames_per_second, *task_queue_factory_);
     video_capturer_->Init();

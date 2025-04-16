@@ -27,7 +27,7 @@
 #include "rtc_base/system/rtc_export.h"
 #include "rtc_base/type_traits.h"
 
-namespace webrtc {
+namespace rtc {
 
 class RTC_EXPORT CopyOnWriteBuffer {
  public:
@@ -132,8 +132,6 @@ class RTC_EXPORT CopyOnWriteBuffer {
     return buffer_->data<T>() + offset_;
   }
 
-  bool empty() const { return size_ == 0; }
-
   size_t size() const {
     RTC_DCHECK(IsConsistent());
     return size_;
@@ -143,9 +141,6 @@ class RTC_EXPORT CopyOnWriteBuffer {
     RTC_DCHECK(IsConsistent());
     return buffer_ ? buffer_->capacity() - offset_ : 0;
   }
-
-  const uint8_t* begin() const { return data(); }
-  const uint8_t* end() const { return data() + size_; }
 
   CopyOnWriteBuffer& operator=(const CopyOnWriteBuffer& buf) {
     RTC_DCHECK(IsConsistent());
@@ -316,12 +311,6 @@ class RTC_EXPORT CopyOnWriteBuffer {
                    // Should be 0 if the buffer_ is empty.
 };
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace rtc {
-using ::webrtc::CopyOnWriteBuffer;
 }  // namespace rtc
 
 #endif  // RTC_BASE_COPY_ON_WRITE_BUFFER_H_

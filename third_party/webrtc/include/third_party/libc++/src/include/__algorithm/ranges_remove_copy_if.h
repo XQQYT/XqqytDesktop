@@ -29,9 +29,6 @@
 #  pragma GCC system_header
 #endif
 
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
-
 #if _LIBCPP_STD_VER >= 20
 
 _LIBCPP_BEGIN_NAMESPACE_STD
@@ -53,7 +50,9 @@ __remove_copy_if_impl(_InIter __first, _Sent __last, _OutIter __result, _Pred& _
   return {std::move(__first), std::move(__result)};
 }
 
-struct __remove_copy_if {
+namespace __remove_copy_if {
+
+struct __fn {
   template <input_iterator _InIter,
             sentinel_for<_InIter> _Sent,
             weakly_incrementable _OutIter,
@@ -77,15 +76,15 @@ struct __remove_copy_if {
   }
 };
 
+} // namespace __remove_copy_if
+
 inline namespace __cpo {
-inline constexpr auto remove_copy_if = __remove_copy_if{};
+inline constexpr auto remove_copy_if = __remove_copy_if::__fn{};
 } // namespace __cpo
 } // namespace ranges
 
 _LIBCPP_END_NAMESPACE_STD
 
 #endif // _LIBCPP_STD_VER >= 20
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___ALGORITHM_RANGES_REMOVE_COPY_IF_H

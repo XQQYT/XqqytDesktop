@@ -12,11 +12,11 @@
 #define MODULES_AUDIO_PROCESSING_AGC2_CLIPPING_PREDICTOR_H_
 
 #include <memory>
-#include <optional>
 #include <vector>
 
-#include "api/audio/audio_processing.h"
+#include "absl/types/optional.h"
 #include "modules/audio_processing/include/audio_frame_view.h"
+#include "modules/audio_processing/include/audio_processing.h"
 
 namespace webrtc {
 
@@ -35,12 +35,12 @@ class ClippingPredictor {
 
   // Predicts if clipping is going to occur for the specified `channel` in the
   // near-future and, if so, it returns a recommended analog mic level decrease
-  // step. Returns std::nullopt if clipping is not predicted.
+  // step. Returns absl::nullopt if clipping is not predicted.
   // `level` is the current analog mic level, `default_step` is the amount the
   // mic level is lowered by the analog controller with every clipping event and
   // `min_mic_level` and `max_mic_level` is the range of allowed analog mic
   // levels.
-  virtual std::optional<int> EstimateClippedLevelStep(
+  virtual absl::optional<int> EstimateClippedLevelStep(
       int channel,
       int level,
       int default_step,

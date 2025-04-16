@@ -11,7 +11,11 @@
 #endif
 
 #if defined(__clang__)
-  #if !defined(COMPILER_CLANG)
+  #if defined(__ibmxl__)
+    #if !defined(COMPILER_IBMXL)
+      #define COMPILER_IBMXL
+    #endif
+  #elif !defined(COMPILER_CLANG)
     #define COMPILER_CLANG
   #endif
 #elif defined(_MSC_VER)

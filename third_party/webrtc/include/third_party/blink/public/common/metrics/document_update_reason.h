@@ -18,10 +18,8 @@ namespace blink {
 enum class DocumentUpdateReason {
   kAccessibility,
   kBaseColor,
-  kBaseSelect,
   kBeginMainFrame,
   kCanvas,
-  kCanvasPlaceElement,
   kComputedStyle,
   kContextMenu,
   kDisplayLock,
@@ -41,7 +39,6 @@ enum class DocumentUpdateReason {
   kPagePopup,
   kPlugin,
   kPopover,
-  kPrerender,
   kPrinting,
   kScroll,
   kSelection,

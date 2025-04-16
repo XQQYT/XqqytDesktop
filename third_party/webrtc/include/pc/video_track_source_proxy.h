@@ -11,8 +11,7 @@
 #ifndef PC_VIDEO_TRACK_SOURCE_PROXY_H_
 #define PC_VIDEO_TRACK_SOURCE_PROXY_H_
 
-#include <optional>
-
+#include "absl/types/optional.h"
 #include "api/media_stream_interface.h"
 #include "api/video/recordable_encoded_frame.h"
 #include "api/video/video_frame.h"
@@ -33,7 +32,7 @@ PROXY_PRIMARY_THREAD_DESTRUCTOR()
 PROXY_CONSTMETHOD0(SourceState, state)
 BYPASS_PROXY_CONSTMETHOD0(bool, remote)
 BYPASS_PROXY_CONSTMETHOD0(bool, is_screencast)
-PROXY_CONSTMETHOD0(std::optional<bool>, needs_denoising)
+PROXY_CONSTMETHOD0(absl::optional<bool>, needs_denoising)
 PROXY_METHOD1(bool, GetStats, Stats*)
 PROXY_SECONDARY_METHOD2(void,
                         AddOrUpdateSink,
@@ -53,7 +52,7 @@ PROXY_SECONDARY_METHOD1(void,
                         rtc::VideoSinkInterface<RecordableEncodedFrame>*)
 PROXY_SECONDARY_METHOD1(void,
                         ProcessConstraints,
-                        const VideoTrackSourceConstraints&)
+                        const webrtc::VideoTrackSourceConstraints&)
 END_PROXY_MAP(VideoTrackSource)
 
 }  // namespace webrtc

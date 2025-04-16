@@ -29,7 +29,8 @@ class PLATFORM_EXPORT CompositorThreadEventQueue {
   ~CompositorThreadEventQueue();
 
   // Adds an event to the queue. The event may be coalesced with the last event.
-  void Queue(std::unique_ptr<EventWithCallback> event);
+  void Queue(std::unique_ptr<EventWithCallback> event,
+             base::TimeTicks timestamp_now);
 
   std::unique_ptr<EventWithCallback> Pop();
 

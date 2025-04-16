@@ -12,11 +12,11 @@
 
 <script>
 
-var isDone = false;
-var startTime;
-
 var red = 'rgb(255, 0, 0)';
 var green = 'rgb(0, 128, 0)';
+
+var isDone = false;
+var startTime;
 
 function testColor(color, expected, test_name) {
   PerfTestRunner.assert_true(
@@ -68,14 +68,10 @@ PerfTestRunner.startMeasureValuesAsync({
     iterationCount: 6,
     tracingCategories: 'accessibility',
     traceEventsToMeasure: [
-      'TotalAccessibilityCleanLayoutLifecycleStages',
-      'ProcessDeferredUpdatesLifecycleStage',
-      'FinalizingTreeLifecycleStage',
-      'SerializeLifecycleStage',
-      'RenderAccessibilityImpl::SendPendingAccessibilityEvents',
+      'AXObjectCacheImpl::ChildrenChanged(LayoutObject)',
       'BrowserAccessibilityManager::OnAccessibilityEvents',
-      'SerializeLocationChanges',
-      "BrowserAccessibilityManager::OnLocationChanges"
+      'ProcessDeferredAccessibilityEvents',
+      'RenderAccessibilityImpl::SendPendingAccessibilityEvents'
     ]
 });
 

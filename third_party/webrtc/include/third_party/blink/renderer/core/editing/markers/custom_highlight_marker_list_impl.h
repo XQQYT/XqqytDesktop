@@ -21,8 +21,6 @@ class CORE_EXPORT CustomHighlightMarkerListImpl final
       const CustomHighlightMarkerListImpl&) = delete;
 
   DocumentMarker::MarkerType MarkerType() const final;
-
-  void MergeOverlappingMarkers() final;
 };
 
 template <>

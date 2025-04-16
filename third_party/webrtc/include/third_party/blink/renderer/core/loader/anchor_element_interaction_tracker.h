@@ -7,7 +7,6 @@
 
 #include "base/metrics/field_trial_params.h"
 #include "third_party/blink/public/mojom/preloading/anchor_element_interaction_host.mojom-blink.h"
-#include "third_party/blink/renderer/core/html/anchor_element_viewport_position_tracker.h"
 #include "third_party/blink/renderer/core/html/html_anchor_element.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
@@ -18,9 +17,8 @@ namespace blink {
 
 class Document;
 class EventTarget;
-class HTMLAnchorElementBase;
+class HTMLAnchorElement;
 class KURL;
-class MouseEvent;
 class Node;
 class PointerEvent;
 
@@ -30,8 +28,7 @@ class PointerEvent;
 // browser process can use this information to preload (e.g. preconnect to the
 // origin) the URL in order to improve performance.
 class BLINK_EXPORT AnchorElementInteractionTracker
-    : public GarbageCollected<AnchorElementInteractionTracker>,
-      public AnchorElementViewportPositionTracker::Observer {
+    : public GarbageCollected<AnchorElementInteractionTracker> {
  public:
   class BLINK_EXPORT MouseMotionEstimator
       : public GarbageCollected<MouseMotionEstimator> {
@@ -79,33 +76,27 @@ class BLINK_EXPORT AnchorElementInteractionTracker
   };
 
   explicit AnchorElementInteractionTracker(Document& document);
-  virtual ~AnchorElementInteractionTracker();
+  ~AnchorElementInteractionTracker();
 
+  static bool IsFeatureEnabled();
+  static bool IsMouseMotionEstimatorEnabled();
   static base::TimeDelta GetHoverDwellTime();
 
   void OnMouseMoveEvent(const WebMouseEvent& mouse_event);
   void OnPointerEvent(EventTarget& target, const PointerEvent& pointer_event);
-  void OnClickEvent(HTMLAnchorElementBase& anchor,
-                    const MouseEvent& click_event);
-
   void HoverTimerFired(TimerBase*);
-  void Trace(Visitor* visitor) const override;
+  void Trace(Visitor* visitor) const;
   void SetTaskRunnerForTesting(
       scoped_refptr<base::SingleThreadTaskRunner> task_runner,
       const base::TickClock* clock);
   Document* GetDocument() { return document_.Get(); }
 
  private:
-  HTMLAnchorElementBase* FirstAnchorElementIncludingSelf(Node* node);
+  HTMLAnchorElement* FirstAnchorElementIncludingSelf(Node* node);
 
   // Gets the `anchor's` href attribute if it is part
   // of the HTTP family
-  KURL GetHrefEligibleForPreloading(const HTMLAnchorElementBase& anchor);
-  void ViewportHeuristicTimerFired(TimerBase*);
-
-  // AnchorElementViewportPositionTracker::Observer overrides
-  void AnchorPositionsUpdated(
-      HeapVector<Member<AnchorPositionUpdate>>& position_updates) override;
+  KURL GetHrefEligibleForPreloading(const HTMLAnchorElement& anchor);
 
   Member<MouseMotionEstimator> mouse_motion_estimator_;
   HeapMojoRemote<mojom::blink::AnchorElementInteractionHost> interaction_host_;
@@ -121,15 +112,6 @@ class BLINK_EXPORT AnchorElementInteractionTracker
   HeapTaskRunnerTimer<AnchorElementInteractionTracker> hover_timer_;
   const base::TickClock* clock_;
   Member<Document> document_;
-  // Stores y-coordinate of the two most recent pointerdowns (first entry is
-  // the most recent pointer down).
-  std::array<std::optional<double>, 2> last_pointer_down_locations_ = {
-      std::nullopt, std::nullopt};
-  // Stores the largest anchor in the viewport determined by the viewport
-  // heuristic.
-  WeakMember<HTMLAnchorElementBase> largest_anchor_element_in_viewport_;
-  HeapTaskRunnerTimer<AnchorElementInteractionTracker>
-      viewport_heuristic_timer_;
 };
 
 }  // namespace blink

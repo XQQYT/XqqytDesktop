@@ -6,7 +6,6 @@
 #define BASE_WIN_ASYNC_OPERATION_H_
 
 #include <unknwn.h>
-
 #include <windows.foundation.h>
 #include <wrl/async.h>
 #include <wrl/client.h>

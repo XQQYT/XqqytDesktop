@@ -31,15 +31,14 @@
 #  pragma GCC system_header
 #endif
 
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
-
 #if _LIBCPP_STD_VER >= 20
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 namespace ranges {
-struct __inplace_merge {
+namespace __inplace_merge {
+
+struct __fn {
   template <class _Iter, class _Sent, class _Comp, class _Proj>
   _LIBCPP_HIDE_FROM_ABI static constexpr auto
   __inplace_merge_impl(_Iter __first, _Iter __middle, _Sent __last, _Comp&& __comp, _Proj&& __proj) {
@@ -66,15 +65,15 @@ struct __inplace_merge {
   }
 };
 
+} // namespace __inplace_merge
+
 inline namespace __cpo {
-inline constexpr auto inplace_merge = __inplace_merge{};
+inline constexpr auto inplace_merge = __inplace_merge::__fn{};
 } // namespace __cpo
 } // namespace ranges
 
 _LIBCPP_END_NAMESPACE_STD
 
 #endif // _LIBCPP_STD_VER >= 20
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___ALGORITHM_RANGES_INPLACE_MERGE_H

@@ -119,6 +119,12 @@ struct Range {
   int *end() const;
 };
 
+using CountedIter = stride_counting_iterator<forward_iterator<int*>>;
+struct CountedView : std::ranges::view_base {
+  constexpr CountedIter begin() const { return CountedIter(ForwardIter(globalBuff)); }
+  constexpr CountedIter end() const { return CountedIter(ForwardIter(globalBuff + 8)); }
+};
+
 struct TimesTwo {
   constexpr int operator()(int x) const { return x * 2; }
 };
@@ -129,11 +135,6 @@ struct PlusOneMutable {
 
 struct PlusOne {
   constexpr int operator()(int x) const { return x + 1; }
-};
-
-struct PlusOneMutableOverload {
-  constexpr int operator()(int x) const { return x + 1; }
-  constexpr int& operator()(int& x) { return ++x; }
 };
 
 struct Increment {

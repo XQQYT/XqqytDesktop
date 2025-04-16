@@ -2,20 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CLAMPED_MATH_IMPL_H_
-#define PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CLAMPED_MATH_IMPL_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CLAMPED_MATH_IMPL_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CLAMPED_MATH_IMPL_H_
+
+#include <stddef.h>
+#include <stdint.h>
 
 #include <climits>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
 #include <cstdlib>
 #include <limits>
 #include <type_traits>
 
-#include "partition_alloc/partition_alloc_base/numerics/checked_math.h"
-#include "partition_alloc/partition_alloc_base/numerics/safe_conversions.h"
-#include "partition_alloc/partition_alloc_base/numerics/safe_math_shared_impl.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/numerics/checked_math.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/numerics/safe_conversions.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/partition_alloc_base/numerics/safe_math_shared_impl.h"
 
 namespace partition_alloc::internal::base::internal {
 
@@ -86,10 +87,9 @@ struct ClampedAddOp<T,
                   "provided types.");
     const V saturated = CommonMaxOrMin<V>(IsValueNegative(y));
     V result = {};
-    if (CheckedAddOp<T, U>::Do(x, y, &result)) [[likely]] {
-      return result;
-    }
-    return saturated;
+    return PA_BASE_NUMERICS_LIKELY((CheckedAddOp<T, U>::Do(x, y, &result)))
+               ? result
+               : saturated;
   }
 };
 
@@ -114,10 +114,9 @@ struct ClampedSubOp<T,
                   "provided types.");
     const V saturated = CommonMaxOrMin<V>(!IsValueNegative(y));
     V result = {};
-    if (CheckedSubOp<T, U>::Do(x, y, &result)) [[likely]] {
-      return result;
-    }
-    return saturated;
+    return PA_BASE_NUMERICS_LIKELY((CheckedSubOp<T, U>::Do(x, y, &result)))
+               ? result
+               : saturated;
   }
 };
 
@@ -139,10 +138,9 @@ struct ClampedMulOp<T,
     V result = {};
     const V saturated =
         CommonMaxOrMin<V>(IsValueNegative(x) ^ IsValueNegative(y));
-    if (CheckedMulOp<T, U>::Do(x, y, &result)) [[likely]] {
-      return result;
-    }
-    return saturated;
+    return PA_BASE_NUMERICS_LIKELY((CheckedMulOp<T, U>::Do(x, y, &result)))
+               ? result
+               : saturated;
   }
 };
 
@@ -158,7 +156,7 @@ struct ClampedDivOp<T,
   template <typename V = result_type>
   static constexpr V Do(T x, U y) {
     V result = {};
-    if ((CheckedDivOp<T, U>::Do(x, y, &result))) [[likely]] {
+    if (PA_BASE_NUMERICS_LIKELY((CheckedDivOp<T, U>::Do(x, y, &result)))) {
       return result;
     }
     // Saturation goes to max, min, or NaN (if x is zero).
@@ -179,10 +177,9 @@ struct ClampedModOp<T,
   template <typename V = result_type>
   static constexpr V Do(T x, U y) {
     V result = {};
-    if (CheckedModOp<T, U>::Do(x, y, &result)) [[likely]] {
-      return result;
-    }
-    return x;
+    return PA_BASE_NUMERICS_LIKELY((CheckedModOp<T, U>::Do(x, y, &result)))
+               ? result
+               : x;
   }
 };
 
@@ -200,11 +197,11 @@ struct ClampedLshOp<T,
   template <typename V = result_type>
   static constexpr V Do(T x, U shift) {
     static_assert(!std::is_signed_v<U>, "Shift value must be unsigned.");
-    if (shift < std::numeric_limits<T>::digits) [[likely]] {
+    if (PA_BASE_NUMERICS_LIKELY(shift < std::numeric_limits<T>::digits)) {
       // Shift as unsigned to avoid undefined behavior.
       V result = static_cast<V>(as_unsigned(x) << shift);
       // If the shift can be reversed, we know it was valid.
-      if (result >> shift == x) [[likely]] {
+      if (PA_BASE_NUMERICS_LIKELY(result >> shift == x)) {
         return result;
       }
     }
@@ -227,10 +224,9 @@ struct ClampedRshOp<T,
     static_assert(!std::is_signed_v<U>, "Shift value must be unsigned.");
     // Signed right shift is odd, because it saturates to -1 or 0.
     const V saturated = as_unsigned(V(0)) - IsValueNegative(x);
-    if (shift < IntegerBitsPlusSign<T>::value) [[likely]] {
-      return saturated_cast<V>(x >> shift);
-    }
-    return saturated;
+    return PA_BASE_NUMERICS_LIKELY(shift < IntegerBitsPlusSign<T>::value)
+               ? saturated_cast<V>(x >> shift)
+               : saturated;
   }
 };
 
@@ -340,4 +336,4 @@ PA_BASE_FLOAT_ARITHMETIC_OPS(Div, /)
 
 }  // namespace partition_alloc::internal::base::internal
 
-#endif  // PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CLAMPED_MATH_IMPL_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_PARTITION_ALLOC_BASE_NUMERICS_CLAMPED_MATH_IMPL_H_

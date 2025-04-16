@@ -13,62 +13,68 @@
 #include <string>
 #include <vector>
 
-#include "api/field_trials_view.h"
+#include "api/transport/field_trial_based_config.h"
 #include "api/units/data_rate.h"
 #include "api/video_codecs/video_encoder.h"
 #include "call/adaptation/video_source_restrictions.h"
 #include "video/config/video_encoder_config.h"
 
-namespace webrtc {
+namespace cricket {
 
 class EncoderStreamFactory
     : public webrtc::VideoEncoderConfig::VideoStreamFactoryInterface {
  public:
-  EncoderStreamFactory(
-      const webrtc::VideoEncoder::EncoderInfo& encoder_info,
-      std::optional<VideoSourceRestrictions> restrictions = std::nullopt);
+  // Note: this constructor is used by testcase in downstream.
+  EncoderStreamFactory(std::string codec_name,
+                       int max_qp,
+                       bool is_screenshare,
+                       bool conference_mode);
 
-  std::vector<VideoStream> CreateEncoderStreams(
-      const FieldTrialsView& trials,
+  EncoderStreamFactory(std::string codec_name,
+                       int max_qp,
+                       bool is_screenshare,
+                       bool conference_mode,
+                       const webrtc::VideoEncoder::EncoderInfo& encoder_info,
+                       absl::optional<webrtc::VideoSourceRestrictions>
+                           restrictions = absl::nullopt,
+                       const webrtc::FieldTrialsView* trials = nullptr);
+
+  std::vector<webrtc::VideoStream> CreateEncoderStreams(
       int width,
       int height,
-      const VideoEncoderConfig& encoder_config) override;
+      const webrtc::VideoEncoderConfig& encoder_config) override;
 
  private:
-  std::vector<VideoStream> CreateDefaultVideoStreams(
+  std::vector<webrtc::VideoStream> CreateDefaultVideoStreams(
       int width,
       int height,
-      const VideoEncoderConfig& encoder_config,
-      const std::optional<DataRate>& experimental_min_bitrate) const;
+      const webrtc::VideoEncoderConfig& encoder_config,
+      const absl::optional<webrtc::DataRate>& experimental_min_bitrate) const;
 
-  std::vector<VideoStream> CreateSimulcastOrConferenceModeScreenshareStreams(
-      const FieldTrialsView& trials,
+  std::vector<webrtc::VideoStream>
+  CreateSimulcastOrConferenceModeScreenshareStreams(
       int width,
       int height,
-      const VideoEncoderConfig& encoder_config,
-      const std::optional<DataRate>& experimental_min_bitrate) const;
+      const webrtc::VideoEncoderConfig& encoder_config,
+      const absl::optional<webrtc::DataRate>& experimental_min_bitrate) const;
 
-  Resolution GetLayerResolutionFromScaleResolutionDownTo(
+  webrtc::Resolution GetLayerResolutionFromRequestedResolution(
       int in_frame_width,
       int in_frame_height,
-      Resolution scale_resolution_down_to) const;
+      webrtc::Resolution requested_resolution) const;
 
-  std::vector<Resolution> GetStreamResolutions(
-      const FieldTrialsView& trials,
-      int width,
-      int height,
-      const VideoEncoderConfig& encoder_config) const;
-
+  const std::string codec_name_;
+  const int max_qp_;
+  const bool is_screenshare_;
+  // Allows a screenshare specific configuration, which enables temporal
+  // layering and various settings.
+  const bool conference_mode_;
+  const webrtc::FieldTrialBasedConfig fallback_trials_;
+  const webrtc::FieldTrialsView& trials_;
   const int encoder_info_requested_resolution_alignment_;
-  const std::optional<VideoSourceRestrictions> restrictions_;
+  const absl::optional<webrtc::VideoSourceRestrictions> restrictions_;
 };
 
-}  //  namespace webrtc
-
-// Re-export symbols from the webrtc namespace for backwards compatibility.
-// TODO(bugs.webrtc.org/4222596): Remove once all references are updated.
-namespace cricket {
-using ::webrtc::EncoderStreamFactory;
 }  // namespace cricket
 
 #endif  // VIDEO_CONFIG_ENCODER_STREAM_FACTORY_H_

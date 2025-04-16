@@ -115,3 +115,4 @@ class BASE_EXPORT JSONFileValueDeserializer : public base::ValueDeserializer {
 };
 
 #endif  // BASE_JSON_JSON_FILE_VALUE_SERIALIZER_H_
+

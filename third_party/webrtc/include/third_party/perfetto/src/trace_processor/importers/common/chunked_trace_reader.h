@@ -17,11 +17,16 @@
 #ifndef SRC_TRACE_PROCESSOR_IMPORTERS_COMMON_CHUNKED_TRACE_READER_H_
 #define SRC_TRACE_PROCESSOR_IMPORTERS_COMMON_CHUNKED_TRACE_READER_H_
 
-#include <cstddef>
+#include <stddef.h>
+#include <stdint.h>
 
-#include "perfetto/base/status.h"
+#include <memory>
 
-namespace perfetto::trace_processor {
+#include "perfetto/trace_processor/basic_types.h"
+#include "perfetto/trace_processor/status.h"
+
+namespace perfetto {
+namespace trace_processor {
 
 class TraceBlobView;
 
@@ -35,12 +40,13 @@ class ChunkedTraceReader {
   // caller to match line/protos boundaries. The parser class has to deal with
   // intermediate buffering lines/protos that span across different chunks.
   // The buffer size is guaranteed to be > 0.
-  virtual base::Status Parse(TraceBlobView) = 0;
+  virtual util::Status Parse(TraceBlobView) = 0;
 
   // Called after the last Parse() call.
-  [[nodiscard]] virtual base::Status NotifyEndOfFile() = 0;
+  virtual void NotifyEndOfFile() = 0;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_IMPORTERS_COMMON_CHUNKED_TRACE_READER_H_

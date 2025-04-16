@@ -1,10 +1,9 @@
 // META: script=/resources/testdriver.js
-// META: script=/resources/testdriver-vendor.js
 // META: script=/common/utils.js
 // META: script=resources/fledge-util.sub.js
 // META: timeout=long
 
-"use strict";
+"use strict;"
 
 promise_test(async test => {
   const uuid = generateUuid(test);
@@ -19,7 +18,7 @@ promise_test(async test => {
         `browserSignals.adCost === 1.9921875 || browserSignals.adCost === 1.984375`,
       reportWin:
         `sendReportTo('${createBidderReportURL(uuid)}');` },
-    // expectedReportURLs
+    // expectedReportUrls
     [createBidderReportURL(uuid)]
   );
 }, 'Check adCost is stochastically rounded with 8 bit mantissa and exponent.');
@@ -36,7 +35,7 @@ promise_test(async test => {
         `browserSignals.bid === 1.9921875 || browserSignals.bid === 1.984375`,
       reportWin:
         `sendReportTo('${createBidderReportURL(uuid)}');` },
-    // expectedReportURLs
+    // expectedReportUrls
     [createBidderReportURL(uuid)]
   );
 }, 'Check bid is stochastically rounded with 8 bit mantissa and exponent.');
@@ -53,7 +52,7 @@ promise_test(async test => {
         `browserSignals.desirability === 1.9921875 || browserSignals.desirability === 1.984375`,
       reportResult:
         `sendReportTo('${createBidderReportURL(uuid)}');` },
-    // expectedReportURLs
+    // expectedReportUrls
     [createBidderReportURL(uuid)]
   );
 }, 'Check desirability is stochastically rounded with 8 bit mantissa and exponent.');
@@ -71,7 +70,7 @@ promise_test(async test => {
         `browserSignals.highestScoringOtherBid === 1.9921875 || browserSignals.highestScoringOtherBid === 1.984375`,
       reportResult:
       `sendReportTo('${createBidderReportURL(uuid)}');` },
-    // expectedReportURLs
+    // expectedReportUrls
     [createBidderReportURL(uuid)]
   );
 }, 'Check highestScoringOtherBid is stochastically rounded with 8 bit mantissa and exponent.');
@@ -88,7 +87,7 @@ promise_test(async test => {
         `browserSignals.adCost === 2`,
       reportWin:
         `sendReportTo('${createBidderReportURL(uuid)}');` },
-    // expectedReportURLs
+    // expectedReportUrls
     [createBidderReportURL(uuid)]
   );
 }, 'Value is ignored as a non-valid floating-point number.');
@@ -105,7 +104,7 @@ promise_test(async test => {
         `browserSignals.adCost === 0`,
       reportWin:
         `sendReportTo('${createBidderReportURL(uuid)}');` },
-    // expectedReportURLs
+    // expectedReportUrls
     [createBidderReportURL(uuid)]
   );
 }, 'Value is rounded to 0 if value is greater than 0 and its exponent is less than -128.');
@@ -122,7 +121,7 @@ promise_test(async test => {
         `browserSignals.adCost === -0`,
       reportWin:
         `sendReportTo('${createBidderReportURL(uuid)}');` },
-    // expectedReportURLs
+    // expectedReportUrls
     [createBidderReportURL(uuid)]
   );
 }, 'Value is rounded to -0 if value is greater than 0 and its exponent is less than -128.');
@@ -139,7 +138,7 @@ promise_test(async test => {
         `browserSignals.adCost === Infinity`,
       reportWin:
         `sendReportTo('${createBidderReportURL(uuid)}');` },
-    // expectedReportURLs
+    // expectedReportUrls
     [createBidderReportURL(uuid)]
   );
 }, 'Value is rounded to Infinity if value is greater than 0 and its exponent is greater than 127.');
@@ -156,7 +155,7 @@ promise_test(async test => {
         `browserSignals.adCost === -Infinity`,
       reportWin:
         `sendReportTo('${createBidderReportURL(uuid)}');` },
-    // expectedReportURLs
+    // expectedReportUrls
     [createBidderReportURL(uuid)]
   );
 }, 'Value is rounded to -Infinity if value is less than 0 and its exponent is greater than 127.');

@@ -15,6 +15,7 @@
 #include "base/time/tick_clock.h"
 #include "third_party/blink/public/platform/task_type.h"
 #include "third_party/blink/renderer/platform/platform_export.h"
+#include "third_party/blink/renderer/platform/scheduler/common/ukm_task_sampler.h"
 
 namespace base {
 class TaskObserver;
@@ -106,11 +107,15 @@ class PLATFORM_EXPORT SchedulerHelper
   void ReclaimMemory();
 
   // Accessor methods.
-  std::optional<base::sequence_manager::WakeUp> GetNextWakeUp() const;
+  absl::optional<base::sequence_manager::WakeUp> GetNextWakeUp() const;
   void SetTimeDomain(base::sequence_manager::TimeDomain* time_domain);
   void ResetTimeDomain();
   bool GetAndClearSystemIsQuiescentBit();
+  bool HasCPUTimingForEachTask() const;
 
+  bool ShouldRecordTaskUkm(bool task_has_thread_time) {
+    return ukm_task_sampler_.ShouldRecordTaskUkm(task_has_thread_time);
+  }
   bool IsInNestedRunloop() const {
     CheckOnValidThread();
     return nested_runloop_depth_ > 0;
@@ -118,12 +123,15 @@ class PLATFORM_EXPORT SchedulerHelper
 
   // Test helpers.
   void SetWorkBatchSizeForTesting(int work_batch_size);
+  void SetUkmTaskSamplingRateForTest(double rate) {
+    ukm_task_sampler_.SetUkmTaskSamplingRate(rate);
+  }
 
  protected:
   virtual void ShutdownAllQueues() {}
 
   THREAD_CHECKER(thread_checker_);
-  raw_ptr<base::sequence_manager::SequenceManager>
+  raw_ptr<base::sequence_manager::SequenceManager, ExperimentalRenderer>
       sequence_manager_;  // NOT OWNED
 
  private:
@@ -131,8 +139,9 @@ class PLATFORM_EXPORT SchedulerHelper
 
   scoped_refptr<base::SingleThreadTaskRunner> default_task_runner_;
 
-  raw_ptr<Observer> observer_;  // NOT OWNED
+  raw_ptr<Observer, ExperimentalRenderer> observer_;  // NOT OWNED
 
+  UkmTaskSampler ukm_task_sampler_;
   // Depth of nested_runloop.
   int nested_runloop_depth_ = 0;
 };

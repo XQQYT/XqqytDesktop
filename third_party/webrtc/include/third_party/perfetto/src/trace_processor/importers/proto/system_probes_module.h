@@ -19,7 +19,6 @@
 
 #include "perfetto/base/build_config.h"
 #include "src/trace_processor/importers/common/trace_parser.h"
-#include "src/trace_processor/importers/proto/packet_sequence_state_generation.h"
 #include "src/trace_processor/importers/proto/proto_importer_module.h"
 #include "src/trace_processor/importers/proto/system_probes_parser.h"
 
@@ -35,7 +34,7 @@ class SystemProbesModule : public ProtoImporterModule {
   ModuleResult TokenizePacket(const protos::pbzero::TracePacket::Decoder&,
                               TraceBlobView* packet,
                               int64_t packet_timestamp,
-                              RefPtr<PacketSequenceStateGeneration>,
+                              PacketSequenceState*,
                               uint32_t field_id) override;
 
   void ParseTracePacketData(const protos::pbzero::TracePacket::Decoder& decoder,

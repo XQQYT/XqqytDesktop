@@ -19,10 +19,8 @@
 #ifndef GRPC_SRC_CORE_LIB_TRANSPORT_HTTP2_ERRORS_H
 #define GRPC_SRC_CORE_LIB_TRANSPORT_HTTP2_ERRORS_H
 
-#include <cstdint>
-
 // error codes for RST_STREAM from http2 draft 14 section 7
-enum grpc_http2_error_code : uint32_t {
+typedef enum {
   GRPC_HTTP2_NO_ERROR = 0x0,
   GRPC_HTTP2_PROTOCOL_ERROR = 0x1,
   GRPC_HTTP2_INTERNAL_ERROR = 0x2,
@@ -37,7 +35,7 @@ enum grpc_http2_error_code : uint32_t {
   GRPC_HTTP2_ENHANCE_YOUR_CALM = 0xb,
   GRPC_HTTP2_INADEQUATE_SECURITY = 0xc,
   // force use of a default clause
-  GRPC_HTTP2__ERROR_DO_NOT_USE = 0xffffffffu
-};
+  GRPC_HTTP2__ERROR_DO_NOT_USE = -1
+} grpc_http2_error_code;
 
 #endif  // GRPC_SRC_CORE_LIB_TRANSPORT_HTTP2_ERRORS_H

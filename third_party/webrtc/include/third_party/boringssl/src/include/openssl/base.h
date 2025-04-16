@@ -1,27 +1,63 @@
-// Copyright 2001-2016 The OpenSSL Project Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/* ====================================================================
+ * Copyright (c) 1998-2001 The OpenSSL Project.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 3. All advertising materials mentioning features or use of this
+ *    software must display the following acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
+ *
+ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
+ *    endorse or promote products derived from this software without
+ *    prior written permission. For written permission, please contact
+ *    openssl-core@openssl.org.
+ *
+ * 5. Products derived from this software may not be called "OpenSSL"
+ *    nor may "OpenSSL" appear in their names without prior written
+ *    permission of the OpenSSL Project.
+ *
+ * 6. Redistributions of any form whatsoever must retain the following
+ *    acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
+ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * ====================================================================
+ *
+ * This product includes cryptographic software written by Eric Young
+ * (eay@cryptsoft.com).  This product includes software written by Tim
+ * Hudson (tjh@cryptsoft.com). */
 
 #ifndef OPENSSL_HEADER_BASE_H
 #define OPENSSL_HEADER_BASE_H
 
 
-// This file should be the first included by all BoringSSL headers. All
-// BoringSSL headers can be assumed to import this file, and this header can be
-// assumed to include stddef.h (size_t) and stdint.h (uint*_t, etc).
+// This file should be the first included by all BoringSSL headers.
 
-#include <stddef.h>  // IWYU pragma: export
-#include <stdint.h>  // IWYU pragma: export
+#include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
@@ -73,7 +109,7 @@ extern "C" {
 // A consumer may use this symbol in the preprocessor to temporarily build
 // against multiple revisions of BoringSSL at the same time. It is not
 // recommended to do so for longer than is necessary.
-#define BORINGSSL_API_VERSION 35
+#define BORINGSSL_API_VERSION 27
 
 #if defined(BORINGSSL_SHARED_LIBRARY)
 
@@ -135,21 +171,14 @@ extern "C" {
 // https://sourceforge.net/p/mingw-w64/wiki2/gnu%20printf/.
 #if defined(__MINGW_PRINTF_FORMAT)
 #define OPENSSL_PRINTF_FORMAT_FUNC(string_index, first_to_check) \
-  __attribute__((                                                \
-      __format__(__MINGW_PRINTF_FORMAT, string_index, first_to_check)))
+  __attribute__(                                                 \
+      (__format__(__MINGW_PRINTF_FORMAT, string_index, first_to_check)))
 #else
 #define OPENSSL_PRINTF_FORMAT_FUNC(string_index, first_to_check) \
   __attribute__((__format__(__printf__, string_index, first_to_check)))
 #endif
 #else
 #define OPENSSL_PRINTF_FORMAT_FUNC(string_index, first_to_check)
-#endif
-
-// OPENSSL_CLANG_PRAGMA emits a pragma on clang and nothing on other compilers.
-#if defined(__clang__)
-#define OPENSSL_CLANG_PRAGMA(arg) _Pragma(arg)
-#else
-#define OPENSSL_CLANG_PRAGMA(arg)
 #endif
 
 // OPENSSL_MSVC_PRAGMA emits a pragma on MSVC and nothing on other compilers.
@@ -161,13 +190,6 @@ extern "C" {
 
 #if defined(__GNUC__) || defined(__clang__)
 #define OPENSSL_UNUSED __attribute__((unused))
-#elif defined(_MSC_VER)
-// __pragma wants to be on a separate line. The following is what it takes to
-// stop clang-format from messing with that.
-// clang-format off
-#define OPENSSL_UNUSED __pragma(warning(suppress : 4505)) \
-/* */
-// clang-format on
 #else
 #define OPENSSL_UNUSED
 #endif
@@ -264,7 +286,6 @@ typedef struct AUTHORITY_KEYID_st AUTHORITY_KEYID;
 typedef struct BASIC_CONSTRAINTS_st BASIC_CONSTRAINTS;
 typedef struct DIST_POINT_st DIST_POINT;
 typedef struct DSA_SIG_st DSA_SIG;
-typedef struct GENERAL_NAME_st GENERAL_NAME;
 typedef struct ISSUING_DIST_POINT_st ISSUING_DIST_POINT;
 typedef struct NAME_CONSTRAINTS_st NAME_CONSTRAINTS;
 typedef struct Netscape_spkac_st NETSCAPE_SPKAC;
@@ -336,7 +357,6 @@ typedef struct sha_state_st SHA_CTX;
 typedef struct spake2_ctx_st SPAKE2_CTX;
 typedef struct srtp_protection_profile_st SRTP_PROTECTION_PROFILE;
 typedef struct ssl_cipher_st SSL_CIPHER;
-typedef struct ssl_credential_st SSL_CREDENTIAL;
 typedef struct ssl_ctx_st SSL_CTX;
 typedef struct ssl_early_callback_ctx SSL_CLIENT_HELLO;
 typedef struct ssl_ech_keys_st SSL_ECH_KEYS;
@@ -352,16 +372,15 @@ typedef struct trust_token_client_st TRUST_TOKEN_CLIENT;
 typedef struct trust_token_issuer_st TRUST_TOKEN_ISSUER;
 typedef struct trust_token_method_st TRUST_TOKEN_METHOD;
 typedef struct v3_ext_ctx X509V3_CTX;
-typedef struct v3_ext_method X509V3_EXT_METHOD;
 typedef struct x509_attributes_st X509_ATTRIBUTE;
 typedef struct x509_lookup_st X509_LOOKUP;
 typedef struct x509_lookup_method_st X509_LOOKUP_METHOD;
 typedef struct x509_object_st X509_OBJECT;
-typedef struct x509_purpose_st X509_PURPOSE;
 typedef struct x509_revoked_st X509_REVOKED;
 typedef struct x509_st X509;
 typedef struct x509_store_ctx_st X509_STORE_CTX;
 typedef struct x509_store_st X509_STORE;
+typedef struct x509_trust_st X509_TRUST;
 
 typedef void *OPENSSL_BLOCK;
 
@@ -453,7 +472,7 @@ class StackAllocated {
   ~StackAllocated() { cleanup(&ctx_); }
 
   StackAllocated(const StackAllocated &) = delete;
-  StackAllocated &operator=(const StackAllocated &) = delete;
+  StackAllocated& operator=(const StackAllocated &) = delete;
 
   T *get() { return &ctx_; }
   const T *get() const { return &ctx_; }

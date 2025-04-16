@@ -82,8 +82,6 @@ class TracingSession {
       disabled_categories_.push_back(std::move(category));
       return *this;
     }
-    std::vector<uint8_t> BuildProtoConfig();
-
     TracingSession Build();
 
    private:
@@ -101,11 +99,7 @@ class TracingSession {
   struct PerfettoTracingSessionImpl* session() const { return session_; }
 
   bool FlushBlocking(uint32_t timeout_ms);
-  // Waits for the tracing session to be stopped.
   void WaitForStopped();
-  // Asks the tracing session to stop. Doesn't wait for it to be stopped.
-  void StopAsync();
-  // Equivalent to StopAsync() + WaitForStopped().
   void StopBlocking();
   std::vector<uint8_t> ReadBlocking();
 

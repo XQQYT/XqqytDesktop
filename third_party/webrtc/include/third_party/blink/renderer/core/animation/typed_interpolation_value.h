@@ -5,6 +5,9 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_TYPED_INTERPOLATION_VALUE_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_TYPED_INTERPOLATION_VALUE_H_
 
+#include <memory>
+#include <utility>
+
 #include "base/memory/ptr_util.h"
 #include "third_party/blink/renderer/core/animation/interpolation_value.h"
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
@@ -15,21 +18,25 @@ class InterpolationType;
 
 // Represents an interpolated value between an adjacent pair of
 // PropertySpecificKeyframes.
-class TypedInterpolationValue
-    : public GarbageCollected<TypedInterpolationValue> {
+class TypedInterpolationValue {
+  USING_FAST_MALLOC(TypedInterpolationValue);
+
  public:
-  TypedInterpolationValue(
-      const InterpolationType& type,
-      InterpolableValue* interpolable_value,
-      const NonInterpolableValue* non_interpolable_value = nullptr)
-      : type_(type), value_(interpolable_value, non_interpolable_value) {
+  TypedInterpolationValue(const InterpolationType& type,
+                          std::unique_ptr<InterpolableValue> interpolable_value,
+                          scoped_refptr<const NonInterpolableValue>
+                              non_interpolable_value = nullptr)
+      : type_(type),
+        value_(std::move(interpolable_value),
+               std::move(non_interpolable_value)) {
     DCHECK(value_.interpolable_value);
   }
 
-  TypedInterpolationValue* Clone() const {
+  std::unique_ptr<TypedInterpolationValue> Clone() const {
     InterpolationValue copy = value_.Clone();
-    return MakeGarbageCollected<TypedInterpolationValue>(
-        type_, copy.interpolable_value, copy.non_interpolable_value);
+    return std::make_unique<TypedInterpolationValue>(
+        type_, std::move(copy.interpolable_value),
+        std::move(copy.non_interpolable_value));
   }
 
   const InterpolationType& GetType() const { return type_; }
@@ -37,13 +44,11 @@ class TypedInterpolationValue
     return *value_.interpolable_value;
   }
   const NonInterpolableValue* GetNonInterpolableValue() const {
-    return value_.non_interpolable_value.Get();
+    return value_.non_interpolable_value.get();
   }
   const InterpolationValue& Value() const { return value_; }
 
   InterpolationValue& MutableValue() { return value_; }
-
-  void Trace(Visitor* v) const { v->Trace(value_); }
 
  private:
   const InterpolationType& type_;

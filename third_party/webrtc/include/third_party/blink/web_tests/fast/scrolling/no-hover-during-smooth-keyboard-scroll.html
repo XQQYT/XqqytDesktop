@@ -4,9 +4,7 @@
 <script src='../../resources/gesture-util.js'></script>
 <script src="../../resources/scrollbar-util.js"></script>
 <script src="resources/hover-on-scroll-checker.js"></script>
-<script src="../../resources/testdriver.js"></script>
-<script src="../../resources/testdriver-actions.js"></script>
-<script src="../../resources/testdriver-vendor.js"></script>
+
 <style>
   body, html {
     margin: 0;
@@ -47,11 +45,7 @@
 <script>
   window.onload = async () => {
     promise_test(async () => {
-      const scrollCallback = () => {
-        const scrollPromise = waitForScrollendEvent(document);
-        const actionPromise = eventSender.keyDown('PageDown');
-        return Promise.all([ actionPromise, scrollPromise ]);
-      };
+      const scrollCallback = () => { eventSender.keyDown('PageDown'); };
       const postScrollTrgetIndex = 2;
       return runHoverStateOnScrollTest(scrollCallback, postScrollTrgetIndex);
     }, 'Keyboard smooth scroll on the page, no hover update during ' +

@@ -14,9 +14,10 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <Foundation/Foundation.h>
 
+#import "base/RTCMacros.h"
+
 #include "api/video/video_frame.h"
 #include "api/video/video_sink_interface.h"
-#import "sdk/objc/base/RTCMacros.h"
 
 @protocol RTC_OBJC_TYPE
 (RTCVideoRenderer);

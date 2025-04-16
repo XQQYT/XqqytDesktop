@@ -29,7 +29,7 @@ namespace blink {
 
 class HTMLSelectElement;
 
-class CORE_EXPORT HTMLHRElement final : public HTMLElement {
+class HTMLHRElement final : public HTMLElement {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
@@ -39,8 +39,6 @@ class CORE_EXPORT HTMLHRElement final : public HTMLElement {
 
   bool IsRichlyEditableForAccessibility() const override { return false; }
 
-  void Trace(Visitor*) const override;
-
  private:
   HTMLSelectElement* OwnerSelectElement() const;
 
@@ -48,11 +46,9 @@ class CORE_EXPORT HTMLHRElement final : public HTMLElement {
   void CollectStyleForPresentationAttribute(
       const QualifiedName&,
       const AtomicString&,
-      HeapVector<CSSPropertyValue, 8>&) override;
+      MutableCSSPropertyValueSet*) override;
   InsertionNotificationRequest InsertedInto(ContainerNode&) override;
   void RemovedFrom(ContainerNode&) override;
-
-  Member<HTMLSelectElement> owner_select_;
 };
 
 }  // namespace blink

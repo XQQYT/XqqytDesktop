@@ -18,11 +18,11 @@
 #define SRC_TRACE_PROCESSOR_IMPORTERS_PROTO_TRACK_EVENT_PARSER_H_
 
 #include <array>
-#include <cstdint>
-#include <optional>
-#include <vector>
+#include <map>
 
+#include "perfetto/base/build_config.h"
 #include "perfetto/protozero/field.h"
+#include "src/trace_processor/importers/common/args_tracker.h"
 #include "src/trace_processor/importers/common/parser_types.h"
 #include "src/trace_processor/importers/common/slice_tracker.h"
 #include "src/trace_processor/importers/common/trace_parser.h"
@@ -31,11 +31,14 @@
 #include "src/trace_processor/storage/trace_storage.h"
 #include "src/trace_processor/util/proto_to_args_parser.h"
 
+#include "protos/perfetto/trace/track_event/track_event.pbzero.h"
+
 namespace Json {
 class Value;
 }
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 // Field numbers to be added to args table automatically via reflection
 //
@@ -125,10 +128,14 @@ class TrackEventParser {
   const StringId event_name_key_id_;
 
   ChromeStringLookup chrome_string_lookup_;
+  std::array<StringId, 4> counter_unit_ids_;
+
   std::vector<uint32_t> reflect_fields_;
+
   ActiveChromeProcessesTracker active_chrome_processes_tracker_;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_IMPORTERS_PROTO_TRACK_EVENT_PARSER_H_

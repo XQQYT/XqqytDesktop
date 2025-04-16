@@ -25,8 +25,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_DOM_DOCUMENT_PARSER_H_
 
 #include <memory>
-
-#include "base/containers/span.h"
 #include "base/functional/callback.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/dom/document_encoding_data.h"
@@ -61,7 +59,7 @@ class CORE_EXPORT DocumentParser : public GarbageCollected<DocumentParser>,
   virtual void insert(const String&) = 0;
 
   // The below functions are used by DocumentWriter (the loader).
-  virtual void AppendBytes(base::span<const uint8_t> bytes) = 0;
+  virtual void AppendBytes(const char* bytes, size_t length) = 0;
   virtual bool NeedsDecoder() const { return false; }
   virtual void SetDecoder(std::unique_ptr<TextResourceDecoder>);
   virtual void SetHasAppendedData() {}
@@ -79,8 +77,9 @@ class CORE_EXPORT DocumentParser : public GarbageCollected<DocumentParser>,
 
   virtual void Finish() = 0;
 
-  // GetDocument() returns null after detach() is called.
+  // document() will return 0 after detach() is called.
   Document* GetDocument() const {
+    DCHECK(document_);
     return document_.Get();
   }
 

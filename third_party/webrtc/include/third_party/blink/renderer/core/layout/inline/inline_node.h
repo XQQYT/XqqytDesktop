@@ -9,44 +9,44 @@
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/layout/inline/inline_node_data.h"
 #include "third_party/blink/renderer/core/layout/layout_block_flow.h"
-#include "third_party/blink/renderer/core/layout/layout_input_node.h"
+#include "third_party/blink/renderer/core/layout/ng/ng_layout_input_node.h"
 #include "third_party/blink/renderer/core/layout/svg/svg_character_data.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 
 namespace blink {
 
-class BreakToken;
-class ColumnSpannerPath;
-class ConstraintSpace;
 class InlineChildLayoutContext;
-class LayoutResult;
+class NGBreakToken;
+class NGColumnSpannerPath;
+class NGConstraintSpace;
+class NGLayoutResult;
 class OffsetMapping;
 struct InlineItemsData;
 struct SvgTextContentRange;
-struct TextDiffRange;
 
 // Represents an anonymous block box to be laid out, that contains consecutive
 // inline nodes and their descendants.
-class CORE_EXPORT InlineNode : public LayoutInputNode {
+class CORE_EXPORT InlineNode : public NGLayoutInputNode {
  public:
   explicit InlineNode(LayoutBlockFlow*);
-  InlineNode(std::nullptr_t) : LayoutInputNode(nullptr) {}
+  explicit InlineNode(std::nullptr_t) : NGLayoutInputNode(nullptr) {}
 
   LayoutBlockFlow* GetLayoutBlockFlow() const {
     return To<LayoutBlockFlow>(box_.Get());
   }
+  NGLayoutInputNode NextSibling() const { return nullptr; }
 
-  const LayoutResult* Layout(const ConstraintSpace&,
-                             const BreakToken*,
-                             const ColumnSpannerPath*,
-                             InlineChildLayoutContext* context) const;
+  const NGLayoutResult* Layout(const NGConstraintSpace&,
+                               const NGBreakToken*,
+                               const NGColumnSpannerPath*,
+                               InlineChildLayoutContext* context) const;
 
   // Computes the value of min-content and max-content for this anonymous block
   // box. min-content is the inline size when lines wrap at every break
   // opportunity, and max-content is when lines do not wrap at all.
   MinMaxSizesResult ComputeMinMaxSizes(WritingMode container_writing_mode,
-                                       const ConstraintSpace&,
+                                       const NGConstraintSpace&,
                                        const MinMaxSizesFloatInput&) const;
 
   // Instruct to re-compute |PrepareLayout| on the next layout.
@@ -80,7 +80,8 @@ class CORE_EXPORT InlineNode : public LayoutInputNode {
   // This is optimized version of |PrepareLayout()|.
   static bool SetTextWithOffset(LayoutText* layout_text,
                                 String new_text,
-                                const TextDiffRange&);
+                                unsigned offset,
+                                unsigned length);
 
   // Returns the DOM to text content offset mapping of this block. If it is not
   // computed before, compute and store it in InlineNodeData.
@@ -105,7 +106,7 @@ class CORE_EXPORT InlineNode : public LayoutInputNode {
   bool IsBisectLineBreakDisabled() const {
     return Data().IsBisectLineBreakDisabled();
   }
-  // True if this node can't use the `ScoreLineBreaker`, that can be
+  // True if this node can't use the `NGScorehLineBreaker`, that can be
   // determined by `CollectInlines`. Conditions that can change without
   // `CollectInlines` are in `LineBreaker::ShouldDisableScoreLineBreak()`.
   bool IsScoreLineBreakDisabled() const {
@@ -162,30 +163,31 @@ class CORE_EXPORT InlineNode : public LayoutInputNode {
                       InlineNodeData* previous_data = nullptr) const;
   const SvgTextChunkOffsets* FindSvgTextChunks(LayoutBlockFlow& block,
                                                InlineNodeData& data) const;
-  void SegmentText(InlineNodeData*, InlineNodeData* previous_data) const;
-  void SegmentScriptRuns(InlineNodeData*, InlineNodeData* previous_data) const;
+  void SegmentText(InlineNodeData*) const;
+  void SegmentScriptRuns(InlineNodeData*) const;
   void SegmentFontOrientation(InlineNodeData*) const;
   void SegmentBidiRuns(InlineNodeData*) const;
   void ShapeText(InlineItemsData*,
                  const String* previous_text = nullptr,
-                 const InlineItems* previous_items = nullptr,
+                 const HeapVector<InlineItem>* previous_items = nullptr,
                  const Font* override_font = nullptr) const;
   void ShapeTextForFirstLineIfNeeded(InlineNodeData*) const;
-  void ShapeTextIncludingFirstLine(InlineNodeData* data,
-                                   const String* previous_text,
-                                   const InlineItems* previous_items) const;
+  void ShapeTextIncludingFirstLine(
+      InlineNodeData* data,
+      const String* previous_text,
+      const HeapVector<InlineItem>* previous_items) const;
   void AssociateItemsWithInlines(InlineNodeData*) const;
   bool IsNGShapeCacheAllowed(const String&,
                              const Font*,
-                             const InlineItems&,
+                             const HeapVector<InlineItem>&,
                              ShapeResultSpacing<String>&) const;
 
   InlineNodeData* MutableData() const {
     return To<LayoutBlockFlow>(box_.Get())->GetInlineNodeData();
   }
   const InlineNodeData& Data() const {
-    DCHECK(IsPrepareLayoutFinished());
-    DCHECK(!GetLayoutBlockFlow()->NeedsCollectInlines());
+    DCHECK(IsPrepareLayoutFinished() &&
+           !GetLayoutBlockFlow()->NeedsCollectInlines());
     return *To<LayoutBlockFlow>(box_.Get())->GetInlineNodeData();
   }
   // Same as |Data()| but can access even when |NeedsCollectInlines()| is set.
@@ -204,21 +206,20 @@ class CORE_EXPORT InlineNode : public LayoutInputNode {
 };
 
 inline bool InlineNode::IsStickyImagesQuirkForContentSize() const {
-  // See https://quirks.spec.whatwg.org/#the-table-cell-width-calculation-quirk
-  if (GetDocument().InQuirksMode()) [[unlikely]] {
+  if (UNLIKELY(GetDocument().InQuirksMode())) {
     const ComputedStyle& style = Style();
-    if (style.Display() == EDisplay::kTableCell) [[unlikely]] {
-      if (style.LogicalWidth().IsAuto()) {
-        return true;
-      }
-    }
+    if (UNLIKELY(style.Display() == EDisplay::kTableCell &&
+                 !style.LogicalWidth().IsSpecified()))
+      return true;
   }
   return false;
 }
 
 template <>
 struct DowncastTraits<InlineNode> {
-  static bool AllowFrom(const LayoutInputNode& node) { return node.IsInline(); }
+  static bool AllowFrom(const NGLayoutInputNode& node) {
+    return node.IsInline();
+  }
 };
 
 }  // namespace blink

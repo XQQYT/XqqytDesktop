@@ -7,7 +7,6 @@
 
 #include "base/feature_list.h"
 #include "base/memory/raw_ptr.h"
-#include "base/memory/scoped_refptr.h"
 #include "base/task/sequenced_task_runner.h"
 #include "base/task/single_thread_task_runner.h"
 #include "base/threading/thread.h"
@@ -16,12 +15,12 @@
 #include "third_party/blink/renderer/core/execution_context/execution_context.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/modules/modules_export.h"
-#include "third_party/blink/renderer/modules/peerconnection/rtc_rtp_transport.h"
 #include "third_party/blink/renderer/modules/peerconnection/webrtc_video_perf_reporter.h"
 #include "third_party/blink/renderer/platform/bindings/exception_state.h"
 #include "third_party/blink/renderer/platform/heap/prefinalizer.h"
 #include "third_party/blink/renderer/platform/mojo/mojo_binding_context.h"
 #include "third_party/blink/renderer/platform/supplementable.h"
+#include "third_party/blink/renderer/platform/wtf/gc_plugin.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 #include "third_party/webrtc/api/async_dns_resolver.h"
@@ -32,9 +31,18 @@ namespace base {
 class WaitableEvent;
 }
 
+namespace cricket {
+class PortAllocator;
+}
+
 namespace media {
+class DecoderFactory;
 class GpuVideoAcceleratorFactories;
 class MojoVideoEncoderMetricsProviderFactory;
+}
+
+namespace rtc {
+class Thread;
 }
 
 namespace gfx {
@@ -103,8 +111,7 @@ class MODULES_EXPORT PeerConnectionDependencyFactory
       const webrtc::PeerConnectionInterface::RTCConfiguration& config,
       blink::WebLocalFrame* web_frame,
       webrtc::PeerConnectionObserver* observer,
-      ExceptionState& exception_state,
-      RTCRtpTransport* rtp_transport);
+      ExceptionState& exception_state);
 
   // Creates a PortAllocator that uses Chrome IPC sockets and enforces privacy
   // controls according to the permissions granted on the page.
@@ -144,11 +151,6 @@ class MODULES_EXPORT PeerConnectionDependencyFactory
 
   media::GpuVideoAcceleratorFactories* GetGpuFactories();
 
-  // Create a webrtc Metronome driven by the same source as the decode metronome
-  // passed to the WebRTC PeerConnection, allowing blink events to be coalesced
-  // around the same ticks.
-  virtual std::unique_ptr<webrtc::Metronome> CreateDecodeMetronome();
-
   void Trace(Visitor*) const override;
 
  protected:
@@ -176,7 +178,9 @@ class MODULES_EXPORT PeerConnectionDependencyFactory
 
   void InitializeSignalingThread(
       const gfx::ColorSpace& render_color_space,
+      scoped_refptr<base::SequencedTaskRunner> media_task_runner,
       media::GpuVideoAcceleratorFactories* gpu_factories,
+      base::WeakPtr<media::DecoderFactory> media_decoder_factory,
       scoped_refptr<media::MojoVideoEncoderMetricsProviderFactory>
           video_encoder_metrics_provider_factory,
       base::WaitableEvent* event);
@@ -189,17 +193,10 @@ class MODULES_EXPORT PeerConnectionDependencyFactory
       base::WaitableEvent* event);
   void CleanupPeerConnectionFactory();
 
-  void DoGetDevtoolsToken(
-      base::OnceCallback<void(std::optional<base::UnguessableToken>)> then);
-  std::optional<base::UnguessableToken> GetDevtoolsToken();
-  scoped_refptr<base::SequencedTaskRunner> context_task_runner_;
-
   // network_manager_ must be deleted on the network thread. The network manager
   // uses |p2p_socket_dispatcher_|.
   std::unique_ptr<IpcNetworkManager> network_manager_;
   std::unique_ptr<IpcPacketSocketFactory> socket_factory_;
-
-  Member<WebrtcVideoPerfReporter> webrtc_video_perf_reporter_;
 
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> pc_factory_;
 
@@ -208,9 +205,11 @@ class MODULES_EXPORT PeerConnectionDependencyFactory
 
   scoped_refptr<blink::WebRtcAudioDeviceImpl> audio_device_;
 
-  raw_ptr<media::GpuVideoAcceleratorFactories> gpu_factories_;
+  raw_ptr<media::GpuVideoAcceleratorFactories, ExperimentalRenderer>
+      gpu_factories_;
 
-  bool encode_decode_capabilities_reported_ = false;
+  GC_PLUGIN_IGNORE("https://crbug.com/1381979")
+  WebrtcVideoPerfReporter webrtc_video_perf_reporter_;
 
   THREAD_CHECKER(thread_checker_);
 };

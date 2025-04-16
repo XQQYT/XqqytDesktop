@@ -67,9 +67,8 @@ class CORE_EXPORT ScopedStyleResolver final
   CounterStyleMap* GetCounterStyleMap() { return counter_style_map_.Get(); }
   static void CounterStyleRulesChanged(TreeScope& scope);
 
-  StyleRulePositionTry* PositionTryForName(const AtomicString& try_name);
-
-  StyleRuleFunction* FunctionForName(StringView name);
+  StyleRulePositionFallback* PositionFallbackForName(
+      const AtomicString& fallback_name);
 
   const FontFeatureValuesStorage* FontFeatureValuesForFamily(
       AtomicString font_family);
@@ -83,16 +82,13 @@ class CORE_EXPORT ScopedStyleResolver final
     return active_style_sheets_;
   }
 
-  // See InspectorGhostRules.
-  void QuietlySwapActiveStyleSheets(ActiveStyleSheetVector& other);
-
   void AppendActiveStyleSheets(unsigned index, const ActiveStyleSheetVector&);
-  void CollectMatchingElementScopeRules(ElementRuleCollector&,
-                                        PartNames* part_names);
+  void CollectMatchingElementScopeRules(ElementRuleCollector&);
   void CollectMatchingShadowHostRules(ElementRuleCollector&);
   void CollectMatchingSlottedRules(ElementRuleCollector&);
   void CollectMatchingPartPseudoRules(ElementRuleCollector&,
-                                      PartNames* part_names);
+                                      PartNames& part_names,
+                                      bool for_shadow_pseudo);
   void MatchPageRules(PageRuleCollector&);
   void CollectFeaturesTo(RuleFeatureSet&,
                          HeapHashSet<Member<const StyleSheetContents>>&
@@ -120,8 +116,7 @@ class CORE_EXPORT ScopedStyleResolver final
   bool KeyframeStyleShouldOverride(
       const StyleRuleKeyframes* new_rule,
       const StyleRuleKeyframes* existing_rule) const;
-  void AddPositionTryRules(const RuleSet&);
-  void AddFunctionRules(const RuleSet&);
+  void AddPositionFallbackRules(const RuleSet&);
 
   CounterStyleMap& EnsureCounterStyleMap();
 
@@ -135,18 +130,14 @@ class CORE_EXPORT ScopedStyleResolver final
 
   ActiveStyleSheetVector active_style_sheets_;
   MediaQueryResultFlags media_query_result_flags_;
-  HeapVector<RuleSetGroup> rule_set_groups_;
 
   using KeyframesRuleMap =
       HeapHashMap<AtomicString, Member<StyleRuleKeyframes>>;
   KeyframesRuleMap keyframes_rule_map_;
 
-  using PositionTryRuleMap =
-      HeapHashMap<AtomicString, Member<StyleRulePositionTry>>;
-  PositionTryRuleMap position_try_rule_map_;
-
-  using FunctionRuleMap = HeapHashMap<String, Member<StyleRuleFunction>>;
-  FunctionRuleMap function_rule_map_;
+  using PositionFallbackRuleMap =
+      HeapHashMap<AtomicString, Member<StyleRulePositionFallback>>;
+  PositionFallbackRuleMap position_fallback_rule_map_;
 
   // Multiple entries are created pointing to the same
   // StyleRuleFontFeatureValues for each mentioned family name in the

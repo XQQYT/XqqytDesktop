@@ -48,7 +48,7 @@ class WorkerFetchContext final : public BaseFetchContext {
   // BaseFetchContext implementation:
   net::SiteForCookies GetSiteForCookies() const override;
   SubresourceFilter* GetSubresourceFilter() const override;
-  bool AllowScript() const override;
+  bool AllowScriptFromSource(const KURL&) const override;
   bool ShouldBlockRequestByInspector(const KURL&) const override;
   void DispatchDidBlockRequest(const ResourceRequest&,
                                const ResourceLoaderOptions&,
@@ -56,7 +56,7 @@ class WorkerFetchContext final : public BaseFetchContext {
                                ResourceType) const override;
   ContentSecurityPolicy* GetContentSecurityPolicyForWorld(
       const DOMWrapperWorld* world) const override;
-  bool IsIsolatedSVGChromeClient() const override;
+  bool IsSVGImageChromeClient() const override;
   void CountUsage(WebFeature) const override;
   void CountDeprecation(WebFeature) const override;
   bool ShouldBlockWebSocketByMixedContentCheck(const KURL&) const override;
@@ -82,17 +82,10 @@ class WorkerFetchContext final : public BaseFetchContext {
   void AddAdditionalRequestHeaders(ResourceRequest&) override;
   void AddResourceTiming(mojom::blink::ResourceTimingInfoPtr,
                          const AtomicString& initiator_type) override;
-  void ModifyRequestForMixedContentUpgrade(ResourceRequest&) override;
-  void PopulateResourceRequestBeforeCacheAccess(
-      const ResourceLoaderOptions& options,
-      ResourceRequest& request) override;
-  void WillSendRequest(ResourceRequest& request) override;
-  void UpgradeResourceRequestForLoader(
-      ResourceType,
-      const std::optional<float> resource_width,
-      ResourceRequest&,
-      const ResourceLoaderOptions&) override;
-  const FeatureContext* GetFeatureContext() const override;
+  void PopulateResourceRequest(ResourceType,
+                               const absl::optional<float> resource_width,
+                               ResourceRequest&,
+                               const ResourceLoaderOptions&) override;
   std::unique_ptr<ResourceLoadInfoNotifierWrapper>
   CreateResourceLoadInfoNotifierWrapper() override;
   scoped_refptr<const SecurityOrigin> GetTopFrameOrigin() const override;

@@ -4,16 +4,17 @@
 class EncodeFileName
 {
   private:
-    void AddFlags(byte Value,std::vector<byte> &EncName);
+    void AddFlags(int Value);
 
+    byte *EncName;
     byte Flags;
     uint FlagBits;
     size_t FlagsPos;
     size_t DestSize;
   public:
     EncodeFileName();
-    void Encode(const std::string &Name,const std::wstring &NameW,std::vector<byte> &EncName);
-    void Decode(const char *Name,size_t NameSize,const byte *EncName,size_t EncSize,std::wstring &NameW);
+    size_t Encode(char *Name,wchar *NameW,byte *EncName);
+    void Decode(char *Name,size_t NameSize,byte *EncName,size_t EncSize,wchar *NameW,size_t MaxDecSize);
 };
 
 #endif

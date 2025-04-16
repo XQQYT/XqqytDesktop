@@ -11,12 +11,11 @@
 #ifndef API_VIDEO_VIDEO_FRAME_BUFFER_H_
 #define API_VIDEO_VIDEO_FRAME_BUFFER_H_
 
-#include <cstdint>
-#include <string>
+#include <stdint.h>
 
 #include "api/array_view.h"
-#include "api/ref_count.h"
 #include "api/scoped_refptr.h"
+#include "rtc_base/ref_count.h"
 #include "rtc_base/system/rtc_export.h"
 
 namespace webrtc {
@@ -45,7 +44,7 @@ class NV12BufferInterface;
 // performance by providing an optimized path without intermediate conversions.
 // Frame metadata such as rotation and timestamp are stored in
 // webrtc::VideoFrame, and not here.
-class RTC_EXPORT VideoFrameBuffer : public webrtc::RefCountInterface {
+class RTC_EXPORT VideoFrameBuffer : public rtc::RefCountInterface {
  public:
   // New frame buffer types will be added conservatively when there is an
   // opportunity to optimize the path between some pair of video source and
@@ -125,9 +124,6 @@ class RTC_EXPORT VideoFrameBuffer : public webrtc::RefCountInterface {
   // frame has not implemented this method. Only callable if type() is kNative.
   virtual rtc::scoped_refptr<VideoFrameBuffer> GetMappedFrameBuffer(
       rtc::ArrayView<Type> types);
-
-  // For logging: returns a textual representation of the storage.
-  virtual std::string storage_representation() const;
 
  protected:
   ~VideoFrameBuffer() override {}
@@ -228,8 +224,8 @@ class I444BufferInterface : public PlanarYuv8Buffer {
   ~I444BufferInterface() override {}
 };
 
-// This interface represents 8-bit to 16-bit color depth formats: Type::kI010,
-// Type::kI210, or Type::kI410.
+// This interface represents 8-bit to 16-bit color depth formats: Type::kI010 or
+// Type::kI210 .
 class PlanarYuv16BBuffer : public PlanarYuvBuffer {
  public:
   // Returns pointer to the pixel data for a given plane. The memory is owned by
@@ -323,17 +319,6 @@ class RTC_EXPORT NV12BufferInterface : public BiplanarYuv8Buffer {
  protected:
   ~NV12BufferInterface() override {}
 };
-
-// RTC_CHECKs that common values used to calculate buffer sizes are within the
-// range of [1..std::numeric_limits<int>::max()].
-// `width` and `height` must be > 0, `stride_y` must be >= `width` whereas
-// `stride_u` and `stride_v` must be `> 0` as this is where the various yuv
-// formats differ.
-void CheckValidDimensions(int width,
-                          int height,
-                          int stride_y,
-                          int stride_u,
-                          int stride_v);
 
 }  // namespace webrtc
 

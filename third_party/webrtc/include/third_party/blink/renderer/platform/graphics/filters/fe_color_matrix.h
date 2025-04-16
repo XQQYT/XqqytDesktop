@@ -46,8 +46,8 @@ class PLATFORM_EXPORT FEColorMatrix final : public FilterEffect {
   const Vector<float>& Values() const;
   bool SetValues(Vector<float>);
 
-  StringBuilder& ExternalRepresentation(StringBuilder&,
-                                        wtf_size_t indent) const override;
+  WTF::TextStream& ExternalRepresentation(WTF::TextStream&,
+                                          int indention) const override;
 
  private:
   sk_sp<PaintFilter> CreateImageFilter() override;

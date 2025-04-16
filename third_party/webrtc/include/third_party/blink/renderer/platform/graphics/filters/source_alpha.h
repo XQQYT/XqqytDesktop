@@ -29,8 +29,8 @@ class PLATFORM_EXPORT SourceAlpha final : public FilterEffect {
  public:
   explicit SourceAlpha(FilterEffect*);
 
-  StringBuilder& ExternalRepresentation(StringBuilder&,
-                                        wtf_size_t indent) const override;
+  WTF::TextStream& ExternalRepresentation(WTF::TextStream&,
+                                          int indention) const override;
 
  private:
   FilterEffectType GetFilterEffectType() const override {

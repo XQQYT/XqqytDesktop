@@ -35,8 +35,6 @@ struct Parameters {
   bool generate_mock_code;
   // By default, use "_generated.h"
   std::string message_header_extension;
-  // Default: ".grpc.fb.h"
-  std::string service_header_extension;
 };
 
 // Return the prologue of the generated header file.

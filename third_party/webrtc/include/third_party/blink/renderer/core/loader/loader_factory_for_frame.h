@@ -14,7 +14,6 @@
 #include "third_party/blink/public/platform/url_loader_throttle_provider.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/platform/heap/member.h"
-#include "third_party/blink/renderer/platform/loader/fetch/background_code_cache_host.h"
 #include "third_party/blink/renderer/platform/loader/fetch/resource_fetcher.h"
 #include "third_party/blink/renderer/platform/wtf/text/wtf_string.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
@@ -37,32 +36,26 @@ class CORE_EXPORT LoaderFactoryForFrame final
 
   // LoaderFactory implementations
   std::unique_ptr<URLLoader> CreateURLLoader(
-      const network::ResourceRequest&,
+      const ResourceRequest&,
       const ResourceLoaderOptions&,
       scoped_refptr<base::SingleThreadTaskRunner>,
       scoped_refptr<base::SingleThreadTaskRunner>,
-      BackForwardCacheLoaderHelper*,
-      const std::optional<base::UnguessableToken>&
-          service_worker_race_network_request_token,
-      bool is_from_origin_dirty_style_sheet) override;
+      BackForwardCacheLoaderHelper*) override;
   CodeCacheHost* GetCodeCacheHost() override;
 
  private:
-  mojo::PendingRemote<mojom::blink::KeepAliveHandle> MaybeIssueKeepAliveHandle(
-      const network::ResourceRequest& network_request);
-  scoped_refptr<BackgroundCodeCacheHost> GetBackgroundCodeCacheHost();
-
-  URLLoaderThrottleProvider* GetURLLoaderThrottleProvider();
-  Vector<std::unique_ptr<URLLoaderThrottle>> CreateThrottles(
-      const network::ResourceRequest&);
+  void IssueKeepAliveHandleIfRequested(
+      const ResourceRequest& request,
+      mojom::blink::LocalFrameHost& local_frame_host,
+      mojo::PendingReceiver<mojom::blink::KeepAliveHandle> pending_receiver);
 
   const Member<DocumentLoader> document_loader_;
   const Member<LocalDOMWindow> window_;
   const Member<PrefetchedSignedExchangeManager>
       prefetched_signed_exchange_manager_;
+  std::unique_ptr<WebURLLoaderThrottleProviderForFrame> throttle_provider_;
   HeapMojoRemote<mojom::blink::KeepAliveHandleFactory>
       keep_alive_handle_factory_;
-  scoped_refptr<BackgroundCodeCacheHost> background_code_cache_host_;
 };
 
 }  // namespace blink

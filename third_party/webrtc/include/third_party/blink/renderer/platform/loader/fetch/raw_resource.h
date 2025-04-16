@@ -24,7 +24,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_LOADER_FETCH_RAW_RESOURCE_H_
 
 #include <memory>
-#include <variant>
 
 #include "base/task/single_thread_task_runner.h"
 #include "third_party/blink/renderer/platform/blob/blob_data.h"
@@ -103,8 +102,7 @@ class PLATFORM_EXPORT RawResource final : public Resource {
 
   // Resource implementation
   void DidAddClient(ResourceClient*) override;
-  void AppendData(
-      std::variant<SegmentedBuffer, base::span<const char>>) override;
+  void AppendData(const char*, size_t) override;
 
   bool ShouldIgnoreHTTPStatusCodeErrors() const override { return true; }
 

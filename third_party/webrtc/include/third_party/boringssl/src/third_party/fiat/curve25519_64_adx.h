@@ -1,9 +1,7 @@
-#include <openssl/base.h>
-#include "../../crypto/internal.h"
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <immintrin.h>
+#include <string.h>
 
 typedef uint64_t fe4[4];
 typedef uint8_t fiat_uint1;
@@ -470,7 +468,7 @@ __attribute__((target("adx,bmi2")))
 void x25519_scalar_mult_adx(uint8_t out[32], const uint8_t scalar[32],
                             const uint8_t point[32]) {
   uint8_t e[32];
-  OPENSSL_memcpy(e, scalar, 32);
+  memcpy(e, scalar, 32);
   e[0] &= 248;
   e[31] &= 127;
   e[31] |= 64;
@@ -611,10 +609,7 @@ static inline void table_select_4(ge_precomp_4 *t, const int pos,
   uint8_t babs = b - ((bnegative & b) << 1);
 
   uint8_t t_bytes[3][32] = {
-    {static_cast<uint8_t>(constant_time_is_zero_w(b) & 1)},
-    {static_cast<uint8_t>(constant_time_is_zero_w(b) & 1)},
-    {0},
-  };
+      {constant_time_is_zero_w(b) & 1}, {constant_time_is_zero_w(b) & 1}, {0}};
 #if defined(__clang__)
   __asm__("" : "+m" (t_bytes) : /*no inputs*/);
 #endif

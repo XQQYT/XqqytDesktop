@@ -38,7 +38,6 @@
 
 #include "base/containers/span.h"
 #include "base/gtest_prod_util.h"
-#include "base/memory/raw_ptr.h"
 #include "base/memory/scoped_refptr.h"
 #include "base/task/single_thread_task_runner.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
@@ -51,7 +50,6 @@
 #include "third_party/blink/renderer/modules/websockets/websocket_channel.h"
 #include "third_party/blink/renderer/modules/websockets/websocket_message_chunk_accumulator.h"
 #include "third_party/blink/renderer/platform/bindings/source_location.h"
-#include "third_party/blink/renderer/platform/bindings/v8_external_memory_accounter.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/heap/prefinalizer.h"
 #include "third_party/blink/renderer/platform/mojo/heap_mojo_receiver.h"
@@ -156,12 +154,12 @@ class MODULES_EXPORT WebSocketChannelImpl final
   struct DataFrame final {
     DataFrame(bool fin,
               network::mojom::blink::WebSocketMessageType type,
-              size_t data_length)
+              uint32_t data_length)
         : fin(fin), type(type), data_length(data_length) {}
 
     bool fin;
     network::mojom::blink::WebSocketMessageType type;
-    size_t data_length;
+    uint32_t data_length;
   };
 
   // Used by BlobLoader and Message, so defined here so that it can be shared.
@@ -171,18 +169,17 @@ class MODULES_EXPORT WebSocketChannelImpl final
     // type, but the deleter cannot be called when it was used.
     MessageDataDeleter() : isolate_(nullptr), size_(0) {}
 
-    MessageDataDeleter(v8::Isolate* isolate, size_t size);
+    MessageDataDeleter(v8::Isolate* isolate, size_t size)
+        : isolate_(isolate), size_(size) {}
 
-    MessageDataDeleter(MessageDataDeleter&&) = default;
-    MessageDataDeleter& operator=(MessageDataDeleter&&) = default;
+    MessageDataDeleter(const MessageDataDeleter&) = default;
+    MessageDataDeleter& operator=(const MessageDataDeleter&) = default;
 
     void operator()(char* p) const;
 
    private:
-    raw_ptr<v8::Isolate> isolate_;
+    v8::Isolate* isolate_;
     size_t size_;
-    NO_UNIQUE_ADDRESS mutable V8ExternalMemoryAccounterBase
-        external_memory_accounter_;
   };
 
   using MessageData = std::unique_ptr<char[], MessageDataDeleter>;
@@ -339,7 +336,7 @@ class MODULES_EXPORT WebSocketChannelImpl final
   void HandleDidClose(bool was_clean, uint16_t code, const String& reason);
 
   // Completion callback. It is called with the results of throttling.
-  void OnCompletion(const std::optional<WebString>& error);
+  void OnCompletion(const absl::optional<WebString>& error);
 
   // Methods for BlobLoader.
   void DidFinishLoadingBlob(MessageData, size_t);

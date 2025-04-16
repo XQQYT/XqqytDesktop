@@ -15,13 +15,13 @@
 #ifndef GRPC_SRC_CORE_LIB_PROMISE_EVENT_ENGINE_WAKEUP_SCHEDULER_H
 #define GRPC_SRC_CORE_LIB_PROMISE_EVENT_ENGINE_WAKEUP_SCHEDULER_H
 
-#include <grpc/event_engine/event_engine.h>
 #include <grpc/support/port_platform.h>
 
 #include <memory>
 #include <utility>
 
-#include "absl/log/check.h"
+#include <grpc/event_engine/event_engine.h>
+
 #include "src/core/lib/iomgr/exec_ctx.h"
 
 namespace grpc_core {
@@ -33,9 +33,7 @@ class EventEngineWakeupScheduler {
   explicit EventEngineWakeupScheduler(
       std::shared_ptr<grpc_event_engine::experimental::EventEngine>
           event_engine)
-      : event_engine_(std::move(event_engine)) {
-    CHECK_NE(event_engine_, nullptr);
-  }
+      : event_engine_(std::move(event_engine)) {}
 
   template <typename ActivityType>
   class BoundScheduler
@@ -47,6 +45,7 @@ class EventEngineWakeupScheduler {
     BoundScheduler& operator=(const BoundScheduler&) = delete;
     void ScheduleWakeup() { event_engine_->Run(this); }
     void Run() final {
+      ApplicationCallbackExecCtx app_exec_ctx;
       ExecCtx exec_ctx;
       static_cast<ActivityType*>(this)->RunScheduledWakeup();
     }

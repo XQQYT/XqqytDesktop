@@ -13,7 +13,6 @@
 #include "third_party/blink/renderer/platform/wtf/allocator/allocator.h"
 #include "third_party/blink/renderer/platform/wtf/text/ascii_ctype.h"
 #include "third_party/blink/renderer/platform/wtf/text/atomic_string.h"
-#include "third_party/blink/renderer/platform/wtf/text/utf16.h"
 
 namespace blink {
 
@@ -57,15 +56,16 @@ class CORE_EXPORT CustomElement {
       return false;
 
     if (name.Is8Bit()) {
-      auto characters = name.Span8();
-      for (size_t i = 1; i < characters.size(); ++i) {
+      const LChar* characters = name.Characters8();
+      for (wtf_size_t i = 1; i < name.length(); ++i) {
         if (!Character::IsPotentialCustomElementName8BitChar(characters[i]))
           return false;
       }
     } else {
-      auto characters = name.Span16();
-      for (size_t i = 1; i < characters.size();) {
-        UChar32 ch = CodePointAtAndNext(characters, i);
+      const UChar* characters = name.Characters16();
+      for (wtf_size_t i = 1; i < name.length();) {
+        UChar32 ch;
+        U16_NEXT(characters, i, name.length(), ch);
         if (!Character::IsPotentialCustomElementNameChar(ch))
           return false;
       }
@@ -99,7 +99,6 @@ class CORE_EXPORT CustomElement {
 
   static void Enqueue(Element&, CustomElementReaction&);
   static void EnqueueConnectedCallback(Element&);
-  static void EnqueueConnectedMoveCallback(Element&);
   static void EnqueueDisconnectedCallback(Element&);
   static void EnqueueAdoptedCallback(Element&,
                                      Document& old_owner,

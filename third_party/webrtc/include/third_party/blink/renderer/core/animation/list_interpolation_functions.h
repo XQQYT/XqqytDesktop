@@ -6,7 +6,6 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_ANIMATION_LIST_INTERPOLATION_FUNCTIONS_H_
 
 #include <memory>
-#include "base/functional/function_ref.h"
 #include "third_party/blink/renderer/core/animation/interpolation_value.h"
 #include "third_party/blink/renderer/core/animation/pairwise_interpolation_value.h"
 #include "third_party/blink/renderer/core/core_export.h"
@@ -26,7 +25,7 @@ class CORE_EXPORT ListInterpolationFunctions {
   template <typename CreateItemCallback>
   static InterpolationValue CreateList(wtf_size_t length, CreateItemCallback);
   static InterpolationValue CreateEmptyList() {
-    return InterpolationValue(MakeGarbageCollected<InterpolableList>(0));
+    return InterpolationValue(std::make_unique<InterpolableList>(0));
   }
 
   enum class LengthMatchingStrategy {
@@ -36,8 +35,8 @@ class CORE_EXPORT ListInterpolationFunctions {
   };
 
   using MergeSingleItemConversionsCallback =
-      base::FunctionRef<PairwiseInterpolationValue(InterpolationValue&&,
-                                                   InterpolationValue&&)>;
+      base::RepeatingCallback<PairwiseInterpolationValue(InterpolationValue&&,
+                                                         InterpolationValue&&)>;
 
   static PairwiseInterpolationValue MaybeMergeSingles(
       InterpolationValue&& start,
@@ -52,16 +51,16 @@ class CORE_EXPORT ListInterpolationFunctions {
                           EqualNonInterpolableValuesCallback);
 
   using InterpolableValuesAreCompatibleCallback =
-      base::FunctionRef<bool(const InterpolableValue*,
-                             const InterpolableValue*)>;
+      base::RepeatingCallback<bool(const InterpolableValue*,
+                                   const InterpolableValue*)>;
   using NonInterpolableValuesAreCompatibleCallback =
-      base::FunctionRef<bool(const NonInterpolableValue*,
-                             const NonInterpolableValue*)>;
+      base::RepeatingCallback<bool(const NonInterpolableValue*,
+                                   const NonInterpolableValue*)>;
   using CompositeItemCallback =
-      base::FunctionRef<void(UnderlyingValue&,
-                             double underlying_fraction,
-                             const InterpolableValue&,
-                             const NonInterpolableValue*)>;
+      base::RepeatingCallback<void(UnderlyingValue&,
+                                   double underlying_fraction,
+                                   const InterpolableValue&,
+                                   const NonInterpolableValue*)>;
   static void Composite(UnderlyingValueOwner&,
                         double underlying_fraction,
                         const InterpolationType&,
@@ -85,20 +84,19 @@ class CORE_EXPORT ListInterpolationFunctions {
 
 class CORE_EXPORT NonInterpolableList final : public NonInterpolableValue {
  public:
-  NonInterpolableList() = default;
-  explicit NonInterpolableList(
-      HeapVector<Member<const NonInterpolableValue>>&& list)
-      : list_(list) {}
   ~NonInterpolableList() final = default;
 
-  void Trace(Visitor* visitor) const override {
-    NonInterpolableValue::Trace(visitor);
-    visitor->Trace(list_);
+  static scoped_refptr<NonInterpolableList> Create() {
+    return base::AdoptRef(new NonInterpolableList());
+  }
+  static scoped_refptr<NonInterpolableList> Create(
+      Vector<scoped_refptr<const NonInterpolableValue>>&& list) {
+    return base::AdoptRef(new NonInterpolableList(std::move(list)));
   }
 
   wtf_size_t length() const { return list_.size(); }
   const NonInterpolableValue* Get(wtf_size_t index) const {
-    return list_[index].Get();
+    return list_[index].get();
   }
 
   // This class can update the NonInterpolableList of an UnderlyingValue with
@@ -114,17 +112,21 @@ class CORE_EXPORT NonInterpolableList final : public NonInterpolableValue {
     AutoBuilder(UnderlyingValue&);
     ~AutoBuilder();
 
-    void Set(wtf_size_t index, const NonInterpolableValue*);
+    void Set(wtf_size_t index, scoped_refptr<const NonInterpolableValue>);
 
    private:
     UnderlyingValue& underlying_value_;
-    HeapVector<Member<const NonInterpolableValue>> list_;
+    Vector<scoped_refptr<const NonInterpolableValue>> list_;
   };
 
   DECLARE_NON_INTERPOLABLE_VALUE_TYPE();
 
  private:
-  HeapVector<Member<const NonInterpolableValue>> list_;
+  NonInterpolableList() = default;
+  NonInterpolableList(Vector<scoped_refptr<const NonInterpolableValue>>&& list)
+      : list_(list) {}
+
+  Vector<scoped_refptr<const NonInterpolableValue>> list_;
 };
 
 template <>
@@ -143,8 +145,8 @@ InterpolationValue ListInterpolationFunctions::CreateList(
     CreateItemCallback create_item) {
   if (length == 0)
     return CreateEmptyList();
-  auto* interpolable_list = MakeGarbageCollected<InterpolableList>(length);
-  HeapVector<Member<const NonInterpolableValue>> non_interpolable_values(
+  auto interpolable_list = std::make_unique<InterpolableList>(length);
+  Vector<scoped_refptr<const NonInterpolableValue>> non_interpolable_values(
       length);
   for (wtf_size_t i = 0; i < length; i++) {
     InterpolationValue item = create_item(i);
@@ -153,9 +155,9 @@ InterpolationValue ListInterpolationFunctions::CreateList(
     interpolable_list->Set(i, std::move(item.interpolable_value));
     non_interpolable_values[i] = std::move(item.non_interpolable_value);
   }
-  return InterpolationValue(interpolable_list,
-                            MakeGarbageCollected<NonInterpolableList>(
-                                std::move(non_interpolable_values)));
+  return InterpolationValue(
+      std::move(interpolable_list),
+      NonInterpolableList::Create(std::move(non_interpolable_values)));
 }
 
 }  // namespace blink

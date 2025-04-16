@@ -14,7 +14,6 @@
 #include "third_party/blink/renderer/modules/xr/xr_layer.h"
 #include "third_party/blink/renderer/modules/xr/xr_utils.h"
 #include "third_party/blink/renderer/modules/xr/xr_view.h"
-#include "third_party/blink/renderer/modules/xr/xr_webgl_layer_client.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
 #include "third_party/blink/renderer/platform/graphics/gpu/xr_webgl_drawing_buffer.h"
 #include "third_party/blink/renderer/platform/wtf/ref_counted.h"
@@ -28,7 +27,7 @@ class WebGLRenderingContextBase;
 class XRSession;
 class XRViewport;
 
-class XRWebGLLayer final : public XRLayer, public XRWebGLLayerClient {
+class XRWebGLLayer final : public XRLayer {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
@@ -45,12 +44,7 @@ class XRWebGLLayer final : public XRLayer, public XRWebGLLayerClient {
                               const XRWebGLLayerInit*,
                               ExceptionState&);
 
-  // XRWebGLLayerClient implementation
-  const XRLayer* layer() const override { return this; }
-  WebGLRenderingContextBase* context() const override {
-    return webgl_context_.Get();
-  }
-  scoped_refptr<StaticBitmapImage> TransferToStaticBitmapImage() override;
+  WebGLRenderingContextBase* context() const { return webgl_context_.Get(); }
 
   WebGLFramebuffer* framebuffer() const { return framebuffer_.Get(); }
   uint32_t framebufferWidth() const;
@@ -78,16 +72,26 @@ class XRWebGLLayer final : public XRLayer, public XRWebGLLayerClient {
   // The consumers should not attempt to delete the texture themselves.
   WebGLTexture* GetCameraTexture();
 
-  void OnFrameStart() override;
-  void OnFrameEnd() override;
-  void OnResize() override;
+  void OnFrameStart(
+      const absl::optional<gpu::MailboxHolder>& buffer_mailbox_holder,
+      const absl::optional<gpu::MailboxHolder>& camera_image_mailbox_holder);
+  void OnFrameEnd();
+  void OnResize();
+
+  // Called from XRSession::OnFrame handler. Params are background texture
+  // mailbox holder and its size respectively.
+  void HandleBackgroundImage(const gpu::MailboxHolder&, const gfx::Size&) {}
+
+  scoped_refptr<StaticBitmapImage> TransferToStaticBitmapImage();
 
   void Trace(Visitor*) const override;
 
  private:
-  void CreateAndBindCameraBufferTexture(
-      const scoped_refptr<gpu::ClientSharedImage>& buffer_shared_image,
-      const gpu::SyncToken& buffer_sync_token);
+  uint32_t GetBufferTextureId(
+      const absl::optional<gpu::MailboxHolder>& buffer_mailbox_holder);
+
+  void BindCameraBufferTexture(
+      const absl::optional<gpu::MailboxHolder>& buffer_mailbox_holder);
 
   Member<XRViewport> left_viewport_;
   Member<XRViewport> right_viewport_;
@@ -103,14 +107,13 @@ class XRWebGLLayer final : public XRLayer, public XRWebGLLayerClient {
 
   uint32_t clean_frame_count = 0;
 
-  std::unique_ptr<gpu::SharedImageTexture> camera_image_shared_image_texture_;
-  std::unique_ptr<gpu::SharedImageTexture::ScopedAccess>
-      camera_image_texture_scoped_access_;
-
+  uint32_t camera_image_texture_id_;
   // WebGL texture that points to the |camera_image_texture_|. Must be notified
   // via a call to |WebGLUnownedTexture::OnGLDeleteTextures()| when
   // |camera_image_texture_id_| is deleted.
   Member<WebGLUnownedTexture> camera_image_texture_;
+
+  absl::optional<gpu::MailboxHolder> camera_image_mailbox_holder_;
 };
 
 }  // namespace blink

@@ -5,7 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_MODULES_PAYMENTS_ABORT_PAYMENT_EVENT_H_
 #define THIRD_PARTY_BLINK_RENDERER_MODULES_PAYMENTS_ABORT_PAYMENT_EVENT_H_
 
-#include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
 #include "third_party/blink/renderer/modules/event_modules.h"
 #include "third_party/blink/renderer/modules/service_worker/extendable_event.h"
 #include "third_party/blink/renderer/platform/bindings/script_wrappable.h"
@@ -17,8 +16,8 @@ class AtomicString;
 
 namespace blink {
 
-class AbortPaymentRespondWithObserver;
 class ExtendableEventInit;
+class RespondWithObserver;
 class ScriptState;
 
 class MODULES_EXPORT AbortPaymentEvent final : public ExtendableEvent {
@@ -29,12 +28,12 @@ class MODULES_EXPORT AbortPaymentEvent final : public ExtendableEvent {
                                    const ExtendableEventInit*);
   static AbortPaymentEvent* Create(const AtomicString& type,
                                    const ExtendableEventInit*,
-                                   AbortPaymentRespondWithObserver*,
+                                   RespondWithObserver*,
                                    WaitUntilObserver*);
 
   AbortPaymentEvent(const AtomicString& type,
                     const ExtendableEventInit*,
-                    AbortPaymentRespondWithObserver*,
+                    RespondWithObserver*,
                     WaitUntilObserver*);
 
   AbortPaymentEvent(const AbortPaymentEvent&) = delete;
@@ -44,12 +43,12 @@ class MODULES_EXPORT AbortPaymentEvent final : public ExtendableEvent {
 
   const AtomicString& InterfaceName() const override;
 
-  void respondWith(ScriptState*, ScriptPromise<IDLBoolean>, ExceptionState&);
+  void respondWith(ScriptState*, ScriptPromise, ExceptionState&);
 
   void Trace(Visitor*) const override;
 
  private:
-  Member<AbortPaymentRespondWithObserver> observer_;
+  Member<RespondWithObserver> observer_;
 };
 
 }  // namespace blink

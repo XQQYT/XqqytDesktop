@@ -34,7 +34,6 @@ namespace blink {
 class ExceptionState;
 class LayoutText;
 class WhitespaceAttacher;
-struct TextDiffRange;
 
 class CORE_EXPORT Text : public CharacterData {
   DEFINE_WRAPPERTYPEINFO();
@@ -71,7 +70,8 @@ class CORE_EXPORT Text : public CharacterData {
   bool TextLayoutObjectIsNeeded(const AttachContext&,
                                 const ComputedStyle&) const;
   LayoutText* CreateTextLayoutObject();
-  void UpdateTextLayoutObject(const TextDiffRange&);
+  void UpdateTextLayoutObject(unsigned offset_of_replaced_data,
+                              unsigned length_of_replaced_data);
 
   void AttachLayoutTree(AttachContext&) final;
   void ReattachLayoutTreeIfNeeded(AttachContext&);

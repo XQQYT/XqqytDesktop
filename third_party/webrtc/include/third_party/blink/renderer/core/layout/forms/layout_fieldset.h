@@ -6,11 +6,11 @@
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_FORMS_LAYOUT_FIELDSET_H_
 
 #include "third_party/blink/renderer/core/core_export.h"
-#include "third_party/blink/renderer/core/layout/layout_block_flow.h"
+#include "third_party/blink/renderer/core/layout/ng/layout_ng_block_flow.h"
 
 namespace blink {
 
-class CORE_EXPORT LayoutFieldset final : public LayoutBlockFlow {
+class CORE_EXPORT LayoutFieldset final : public LayoutNGBlockFlow {
  public:
   explicit LayoutFieldset(Element*);
 
@@ -27,11 +27,6 @@ class CORE_EXPORT LayoutFieldset final : public LayoutBlockFlow {
     return true;
   }
 
-  LayoutBox* ContentLayoutBox() final {
-    NOT_DESTROYED();
-    return FindAnonymousFieldsetContentBox();
-  }
-
   LayoutBlock* FindAnonymousFieldsetContentBox() const;
 
   static LayoutBox* FindInFlowLegend(const LayoutBlock& fieldset);
@@ -41,10 +36,7 @@ class CORE_EXPORT LayoutFieldset final : public LayoutBlockFlow {
   }
 
  protected:
-  bool IsFieldset() const final {
-    NOT_DESTROYED();
-    return true;
-  }
+  bool IsOfType(LayoutObjectType) const override;
   void InsertedIntoTree() override;
   void UpdateAnonymousChildStyle(
       const LayoutObject* child,
@@ -76,4 +68,4 @@ struct DowncastTraits<LayoutFieldset> {
 
 }  // namespace blink
 
-#endif  // THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_FORMS_LAYOUT_FIELDSET_H_
+#endif  // THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_NG_LAYOUT_NG_FIELDSET_H_

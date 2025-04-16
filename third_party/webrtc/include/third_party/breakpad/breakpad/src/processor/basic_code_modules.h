@@ -40,6 +40,8 @@
 #ifndef PROCESSOR_BASIC_CODE_MODULES_H__
 #define PROCESSOR_BASIC_CODE_MODULES_H__
 
+#include <stddef.h>
+
 #include <vector>
 
 #include "google_breakpad/processor/code_modules.h"

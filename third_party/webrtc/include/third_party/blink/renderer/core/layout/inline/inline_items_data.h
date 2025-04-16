@@ -30,7 +30,7 @@ struct CORE_EXPORT InlineItemsData : public GarbageCollected<InlineItemsData> {
   // Text content for all inline items represented by a single InlineNode.
   // Encoded either as UTF-16 or latin-1 depending on the content.
   String text_content;
-  InlineItems items;
+  HeapVector<InlineItem> items;
 
   // Cache RunSegmenter segments when at least one item has multiple runs.
   // Set to nullptr when all items has only single run, which is common case for
@@ -42,28 +42,25 @@ struct CORE_EXPORT InlineItemsData : public GarbageCollected<InlineItemsData> {
   Member<OffsetMapping> offset_mapping;
 
   bool IsValidOffset(unsigned index, unsigned offset) const {
-    return index < items.size() && items[index]->IsValidOffset(offset);
+    return index < items.size() && items[index].IsValidOffset(offset);
   }
   bool IsValidOffset(const InlineItemTextIndex& index) const {
     return IsValidOffset(index.item_index, index.text_offset);
   }
 
   void AssertOffset(unsigned index, unsigned offset) const {
-    items[index]->AssertOffset(offset);
+    items[index].AssertOffset(offset);
   }
   void AssertOffset(const InlineItemTextIndex& index) const {
     AssertOffset(index.item_index, index.text_offset);
   }
   void AssertEndOffset(unsigned index, unsigned offset) const {
-    items[index]->AssertEndOffset(offset);
+    items[index].AssertEndOffset(offset);
   }
 
-  // Get a list of `kOpenTag` items between `start_index` to
-  // `start_index + size`.
-  using OpenTagItems = HeapVector<Member<InlineItem>, 16>;
-  void GetOpenTagItems(wtf_size_t start_index,
-                       wtf_size_t size,
-                       OpenTagItems* open_items) const;
+  // Get a list of |kOpenTag| that are open at |size|.
+  using OpenTagItems = Vector<const InlineItem*, 16>;
+  void GetOpenTagItems(wtf_size_t size, OpenTagItems* open_items) const;
 
 #if DCHECK_IS_ON()
   void CheckConsistency() const;

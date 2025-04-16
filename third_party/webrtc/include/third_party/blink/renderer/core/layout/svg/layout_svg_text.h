@@ -24,7 +24,7 @@ class LayoutSVGText final : public LayoutSVGBlock {
 
   bool IsObjectBoundingBoxValid() const;
 
-  // These two functions return a LayoutSVGText or nullptr.
+  // These two functions return a LayoutNGSVGText or nullptr.
   static LayoutSVGText* LocateLayoutSVGTextAncestor(LayoutObject*);
   static const LayoutSVGText* LocateLayoutSVGTextAncestor(const LayoutObject*);
 
@@ -33,16 +33,12 @@ class LayoutSVGText final : public LayoutSVGBlock {
 
  private:
   // LayoutObject override:
-  SVGLayoutResult UpdateSVGLayout(const SVGLayoutInfo&) override;
+  void UpdateLayout() override;
   // Update LayoutObject state after layout has completed. Returns true if
   // boundaries needs to be propagated (because of a change to the transform).
-  bool UpdateAfterSVGLayout(const SVGLayoutInfo&, bool bounds_changed);
-
+  bool UpdateAfterSvgLayout(bool bounds_changed);
   const char* GetName() const override;
-  bool IsSVGText() const final {
-    NOT_DESTROYED();
-    return true;
-  }
+  bool IsOfType(LayoutObjectType type) const override;
   bool IsChildAllowed(LayoutObject* child, const ComputedStyle&) const override;
   void AddChild(LayoutObject* child, LayoutObject* before_child) override;
   void RemoveChild(LayoutObject* child) override;
@@ -52,9 +48,8 @@ class LayoutSVGText final : public LayoutSVGBlock {
   gfx::RectF StrokeBoundingBox() const override;
   gfx::RectF DecoratedBoundingBox() const override;
   gfx::RectF VisualRectInLocalSVGCoordinates() const override;
-  void QuadsInAncestorInternal(Vector<gfx::QuadF>&,
-                               const LayoutBoxModelObject* ancestor,
-                               MapCoordinatesFlags) const override;
+  void AbsoluteQuads(Vector<gfx::QuadF>& quads,
+                     MapCoordinatesFlags mode) const override;
   gfx::RectF LocalBoundingBoxRectForAccessibility() const override;
   void StyleDidChange(StyleDifference, const ComputedStyle* old_style) override;
   void WillBeDestroyed() override;
@@ -74,7 +69,6 @@ class LayoutSVGText final : public LayoutSVGBlock {
 
   void UpdateFont();
   void UpdateTransformAffectsVectorEffect();
-  void InvalidateDescendantObjectBoundingBoxes();
 
   // bounding_box_* are mutable for on-demand computation in a const method.
   mutable gfx::RectF bounding_box_;

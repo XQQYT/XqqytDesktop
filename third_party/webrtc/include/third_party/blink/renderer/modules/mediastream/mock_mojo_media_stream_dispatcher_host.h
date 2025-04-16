@@ -40,7 +40,7 @@ class MockMojoMediaStreamDispatcherHost
   void CancelRequest(int32_t request_id) override;
   void StopStreamDevice(
       const WTF::String& device_id,
-      const std::optional<base::UnguessableToken>& session_id) override;
+      const absl::optional<base::UnguessableToken>& session_id) override;
   void OpenDevice(int32_t request_id,
                   const WTF::String& device_id,
                   mojom::blink::MediaStreamType type,
@@ -48,7 +48,7 @@ class MockMojoMediaStreamDispatcherHost
 
   MOCK_METHOD1(CloseDevice, void(const WTF::String&));
   MOCK_METHOD3(SetCapturingLinkSecured,
-               void(const std::optional<base::UnguessableToken>&,
+               void(const absl::optional<base::UnguessableToken>&,
                     mojom::blink::MediaStreamType,
                     bool));
   MOCK_METHOD1(OnStreamStarted, void(const WTF::String&));
@@ -56,18 +56,7 @@ class MockMojoMediaStreamDispatcherHost
                void(const base::UnguessableToken&,
                     const base::UnguessableToken&,
                     KeepDeviceAliveForTransferCallback));
-#if !BUILDFLAG(IS_ANDROID) && !BUILDFLAG(IS_IOS)
-  MOCK_METHOD3(SendWheel,
-               void(const base::UnguessableToken&,
-                    mojom::blink::CapturedWheelActionPtr,
-                    SendWheelCallback));
-  MOCK_METHOD3(UpdateZoomLevel,
-               void(const base::UnguessableToken&,
-                    mojom::blink::ZoomLevelAction,
-                    UpdateZoomLevelCallback));
-  MOCK_METHOD2(RequestCapturedSurfaceControlPermission,
-               void(const base::UnguessableToken&,
-                    RequestCapturedSurfaceControlPermissionCallback));
+#if !BUILDFLAG(IS_ANDROID)
   MOCK_METHOD2(FocusCapturedSurface, void(const WTF::String&, bool));
   MOCK_METHOD5(ApplySubCaptureTarget,
                void(const base::UnguessableToken&,
@@ -97,14 +86,6 @@ class MockMojoMediaStreamDispatcherHost
     stream_devices_ = devices;
   }
 
-  void SetAppendSessionIdToDeviceIds(bool append_session_id_to_device_ids) {
-    append_session_id_to_device_ids_ = append_session_id_to_device_ids;
-  }
-
-  // Appends the `session_id_ to the passed `device_id` if
-  // `append_session_id_to_device_ids_` is true.
-  std::string MaybeAppendSessionId(std::string device_id);
-
  private:
   int request_id_ = -1;
   int request_stream_counter_ = 0;
@@ -116,7 +97,6 @@ class MockMojoMediaStreamDispatcherHost
   GenerateStreamsCallback generate_stream_cb_;
   GetOpenDeviceCallback get_open_device_cb_;
   mojo::Receiver<mojom::blink::MediaStreamDispatcherHost> receiver_{this};
-  bool append_session_id_to_device_ids_ = false;
 };
 
 }  // namespace blink

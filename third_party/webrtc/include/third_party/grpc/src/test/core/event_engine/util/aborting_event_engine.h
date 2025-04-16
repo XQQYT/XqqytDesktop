@@ -14,10 +14,8 @@
 #ifndef GRPC_TEST_CORE_EVENT_ENGINE_UTIL_ABORTING_EVENT_ENGINE_H
 #define GRPC_TEST_CORE_EVENT_ENGINE_UTIL_ABORTING_EVENT_ENGINE_H
 
-#include <grpc/event_engine/endpoint_config.h>
-#include <grpc/event_engine/event_engine.h>
-#include <grpc/event_engine/memory_allocator.h>
 #include <grpc/support/port_platform.h>
+
 #include <stdlib.h>
 
 #include <memory>
@@ -25,6 +23,10 @@
 #include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+
+#include <grpc/event_engine/endpoint_config.h>
+#include <grpc/event_engine/event_engine.h>
+#include <grpc/event_engine/memory_allocator.h>
 
 namespace grpc_event_engine {
 namespace experimental {
@@ -47,7 +49,7 @@ class AbortingEventEngine : public EventEngine {
     abort();
   };
   bool IsWorkerThread() override { abort(); }
-  absl::StatusOr<std::unique_ptr<DNSResolver>> GetDNSResolver(
+  std::unique_ptr<DNSResolver> GetDNSResolver(
       const DNSResolver::ResolverOptions& /* options */) override {
     abort();
   }

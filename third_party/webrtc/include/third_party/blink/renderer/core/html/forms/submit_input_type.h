@@ -45,8 +45,8 @@ class SubmitInputType final : public BaseButtonInputType {
   void HandleDOMActivateEvent(Event&) override;
   bool CanBeSuccessfulSubmitButton() override;
   String DefaultLabel() const override;
+  bool IsTextButton() const override;
   void ValueAttributeChanged() override;
-  void AdjustStyle(ComputedStyleBuilder&) override;
 };
 
 template <>

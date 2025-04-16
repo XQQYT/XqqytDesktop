@@ -11,9 +11,7 @@
 #ifndef RTC_BASE_EXPERIMENTS_MIN_VIDEO_BITRATE_EXPERIMENT_H_
 #define RTC_BASE_EXPERIMENTS_MIN_VIDEO_BITRATE_EXPERIMENT_H_
 
-#include <optional>
-
-#include "api/field_trials_view.h"
+#include "absl/types/optional.h"
 #include "api/units/data_rate.h"
 #include "api/video/video_codec_type.h"
 
@@ -23,9 +21,7 @@ extern const int kDefaultMinVideoBitrateBps;
 
 // Return the experiment-driven minimum video bitrate.
 // If no experiment is effective, returns nullopt.
-std::optional<DataRate> GetExperimentalMinVideoBitrate(
-    const FieldTrialsView& field_trials,
-    VideoCodecType type);
+absl::optional<DataRate> GetExperimentalMinVideoBitrate(VideoCodecType type);
 
 }  // namespace webrtc
 

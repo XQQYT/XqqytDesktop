@@ -39,7 +39,6 @@ namespace blink {
 
 class Element;
 class ExceptionState;
-class GetHTMLOptions;
 class HTMLCollection;
 class RadioNodeList;
 class StyleRecalcContext;
@@ -111,13 +110,12 @@ class CORE_EXPORT ContainerNode : public Node {
   bool HasOneChild() const {
     return first_child_ && !first_child_->HasNextSibling();
   }
-
-  bool HasChildCount(unsigned) const;
-  unsigned CountChildren() const;
-
   bool HasOneTextChild() const {
     return HasOneChild() && first_child_->IsTextNode();
   }
+  bool HasChildCount(unsigned) const;
+
+  unsigned CountChildren() const;
 
   Element* QuerySelector(const AtomicString& selectors, ExceptionState&);
   Element* QuerySelector(const AtomicString& selectors);
@@ -125,23 +123,15 @@ class CORE_EXPORT ContainerNode : public Node {
                                       ExceptionState&);
   StaticElementList* QuerySelectorAll(const AtomicString& selectors);
 
-  void InsertBefore(const VectorOf<Node>& new_children,
-                    Node* ref_child,
-                    ExceptionState&);
   Node* InsertBefore(Node* new_child, Node* ref_child, ExceptionState&);
   Node* InsertBefore(Node* new_child, Node* ref_child);
-  void ReplaceChild(const VectorOf<Node>& new_children,
-                    Node* old_child,
-                    ExceptionState&);
   Node* ReplaceChild(Node* new_child, Node* old_child, ExceptionState&);
   Node* ReplaceChild(Node* new_child, Node* old_child);
   Node* RemoveChild(Node* child, ExceptionState&);
   Node* RemoveChild(Node* child);
-  void AppendChildren(const VectorOf<Node>& new_children, ExceptionState&);
   Node* AppendChild(Node* new_child, ExceptionState&);
   Node* AppendChild(Node* new_child);
-  bool EnsurePreInsertionValidity(const Node* new_child,
-                                  const VectorOf<Node>* new_children,
+  bool EnsurePreInsertionValidity(const Node& new_child,
                                   const Node* next,
                                   const Node* old_child,
                                   ExceptionState&) const;
@@ -155,30 +145,9 @@ class CORE_EXPORT ContainerNode : public Node {
   RadioNodeList* GetRadioNodeList(const AtomicString&,
                                   bool only_match_img_elements = false);
 
-  // Returns all Text nodes where `regex` would match for the text inside of
-  // the node, case-insensitive. This function does not normalize adjacent Text
-  // nodes and search them together. It only matches within individual Text
-  // nodes. It is therefore possible that some text is displayed to the user as
-  // a single run of text, but will not match the regex, because the nodes
-  // aren't normalized. This function searches within both the DOM and Shadow
-  // DOM.
-  StaticNodeList* FindAllTextNodesMatchingRegex(const String& regex) const;
-
   // These methods are only used during parsing.
   // They don't send DOM mutation events or accept DocumentFragments.
   void ParserAppendChild(Node*);
-
-  // Called when the parser adds a child to a DocumentFragment as the result
-  // of parsing inner/outer html.
-  void ParserAppendChildInDocumentFragment(Node* new_child);
-  // Called when the parser has finished building a DocumentFragment. This is
-  // not called if the parser fails parsing (if parsing fails, the
-  // DocumentFragment is orphaned and will eventually be gc'd).
-  //
-  // ShouldNotifyInsertedNodes controls whether to skip notifications that are
-  // redone if the contents of the DocumentFragment are moved to a new parent.
-  enum class ShouldNotifyInsertedNodes { kNotify, kSkip };
-  void ParserFinishedBuildingDocumentFragment(ShouldNotifyInsertedNodes);
   void ParserRemoveChild(Node&);
   void ParserInsertBefore(Node* new_child, Node& ref_child);
   void ParserTakeAllChildrenFrom(ContainerNode&);
@@ -325,8 +294,7 @@ class CORE_EXPORT ContainerNode : public Node {
                                    Node* node_before_change,
                                    Node* node_after_change);
   void RecalcDescendantStyles(const StyleRecalcChange,
-                              const StyleRecalcContext&,
-                              Element& host_or_element);
+                              const StyleRecalcContext&);
   void RebuildChildrenLayoutTrees(WhitespaceAttacher&);
   void RebuildLayoutTreeForChild(Node* child, WhitespaceAttacher&);
 
@@ -340,10 +308,7 @@ class CORE_EXPORT ContainerNode : public Node {
     kElementRemoved,
     kNonElementRemoved,
     kAllChildrenRemoved,
-    kTextChanged,
-    // When the parser builds nodes (because of inner/outer-html or
-    // parseFromString) a single ChildrenChange event is sent at the end.
-    kFinishedBuildingDocumentFragmentTree,
+    kTextChanged
   };
   enum class ChildrenChangeSource : uint8_t { kAPI, kParser };
   enum class ChildrenChangeAffectsElements : uint8_t { kNo, kYes };
@@ -351,13 +316,6 @@ class CORE_EXPORT ContainerNode : public Node {
     STACK_ALLOCATED();
 
    public:
-    static ChildrenChange ForFinishingBuildingDocumentFragmentTree() {
-      return ChildrenChange{
-          .type = ChildrenChangeType::kFinishedBuildingDocumentFragmentTree,
-          .by_parser = ChildrenChangeSource::kParser,
-          .affects_elements = ChildrenChangeAffectsElements::kYes,
-      };
-    }
     static ChildrenChange ForInsertion(Node& node,
                                        Node* unchanged_previous,
                                        Node* unchanged_next,
@@ -397,8 +355,7 @@ class CORE_EXPORT ContainerNode : public Node {
 
     bool IsChildInsertion() const {
       return type == ChildrenChangeType::kElementInserted ||
-             type == ChildrenChangeType::kNonElementInserted ||
-             type == ChildrenChangeType::kFinishedBuildingDocumentFragmentTree;
+             type == ChildrenChangeType::kNonElementInserted;
     }
     bool IsChildRemoval() const {
       return type == ChildrenChangeType::kElementRemoved ||
@@ -406,8 +363,7 @@ class CORE_EXPORT ContainerNode : public Node {
     }
     bool IsChildElementChange() const {
       return type == ChildrenChangeType::kElementInserted ||
-             type == ChildrenChangeType::kElementRemoved ||
-             type == ChildrenChangeType::kFinishedBuildingDocumentFragmentTree;
+             type == ChildrenChangeType::kElementRemoved;
     }
 
     bool ByParser() const { return by_parser == ChildrenChangeSource::kParser; }
@@ -421,13 +377,11 @@ class CORE_EXPORT ContainerNode : public Node {
     //  - siblingChanged.previousSibling after single node insertion
     //  - previousSibling of the first inserted node after multiple node
     //    insertion
-    //  - null for kFinishedBuildingDocumentFragmentTree.
     Node* const sibling_before_change = nullptr;
     // |siblingAfterChange| is
     //  - siblingChanged.nextSibling before node removal
     //  - siblingChanged.nextSibling after single node insertion
     //  - nextSibling of the last inserted node after multiple node insertion.
-    //  - null for kFinishedBuildingDocumentFragmentTree.
     Node* const sibling_after_change = nullptr;
     // List of removed nodes for ChildrenChangeType::kAllChildrenRemoved.
     // Only populated if ChildrenChangedAllChildrenRemovedNeedsList() returns
@@ -457,24 +411,13 @@ class CORE_EXPORT ContainerNode : public Node {
 
   Element* GetAutofocusDelegate() const;
 
-  bool IsReadingFlowContainer() const;
-
   HTMLCollection* PopoverInvokers() {
     DCHECK(IsTreeScope());
     return EnsureCachedCollection<HTMLCollection>(kPopoverInvokers);
   }
 
-  HTMLCollection* CommandInvokers() {
-    DCHECK(IsTreeScope());
-    return EnsureCachedCollection<HTMLCollection>(kCommandInvokers);
-  }
-
   void ReplaceChildren(const VectorOf<Node>& nodes,
                        ExceptionState& exception_state);
-
-  // IDL implementation of getHTML. This is exposed on Element and ShadowRoot
-  // only.
-  String getHTML(const GetHTMLOptions*, ExceptionState&) const;
 
   // DocumentOrElementEventHandlers:
   // These event listeners are only actually web-exposed on interfaces that
@@ -496,8 +439,12 @@ class CORE_EXPORT ContainerNode : public Node {
                                            Element* attribute_owner_element,
                                            const ChildrenChange*);
 
-  void SetFirstChild(Node* child) { first_child_ = child; }
-  void SetLastChild(Node* child) { last_child_ = child; }
+  void SetFirstChild(Node* child) {
+    first_child_ = child;
+  }
+  void SetLastChild(Node* child) {
+    last_child_ = child;
+  }
 
   // Utility functions for NodeListsNodeData API.
   template <typename Collection>
@@ -510,8 +457,6 @@ class CORE_EXPORT ContainerNode : public Node {
                                      const AtomicString& local_name);
   template <typename Collection>
   Collection* CachedCollection(CollectionType);
-  template <typename Collection>
-  const Collection* CachedCollection(CollectionType) const;
 
  private:
   bool IsContainerNode() const =
@@ -519,22 +464,16 @@ class CORE_EXPORT ContainerNode : public Node {
   bool IsTextNode() const =
       delete;  // This will catch anyone doing an unnecessary check.
 
-  // Called from ParserFinishedBuildingDocumentFragment() to notify `node` that
-  // it was inserted.
-  void NotifyNodeAtEndOfBuildingFragmentTree(Node& node,
-                                             const ChildrenChange& change,
-                                             bool may_contain_shadow_roots,
-                                             ShouldNotifyInsertedNodes);
-
   NodeListsNodeData& EnsureNodeLists();
   void RemoveBetween(Node* previous_child, Node* next_child, Node& old_child);
   // Inserts the specified nodes before |next|.
   // |next| may be nullptr.
+  // |post_insertion_notification_targets| must not be nullptr.
   template <typename Functor>
   void InsertNodeVector(const NodeVector&,
                         Node* next,
                         const Functor&,
-                        NodeVector& post_insertion_notification_targets);
+                        NodeVector* post_insertion_notification_targets);
   void DidInsertNodeVector(
       const NodeVector&,
       Node* next,
@@ -558,18 +497,14 @@ class CORE_EXPORT ContainerNode : public Node {
   void NotifyNodeRemoved(Node&);
 
   bool HasRestyleFlag(DynamicRestyleFlags mask) const {
-    if (const NodeRareData* data = RareData()) {
-      return data->HasRestyleFlag(mask);
-    }
-    return false;
+    return HasRareData() && HasRestyleFlagInternal(mask);
   }
   bool HasRestyleFlags() const {
-    if (const NodeRareData* data = RareData()) {
-      return data->HasRestyleFlags();
-    }
-    return false;
+    return HasRareData() && HasRestyleFlagsInternal();
   }
   void SetRestyleFlag(DynamicRestyleFlags);
+  bool HasRestyleFlagInternal(DynamicRestyleFlags) const;
+  bool HasRestyleFlagsInternal() const;
 
   bool RecheckNodeInsertionStructuralPrereq(const NodeVector&,
                                             const Node* next,
@@ -577,6 +512,7 @@ class CORE_EXPORT ContainerNode : public Node {
   inline bool CheckParserAcceptChild(const Node& new_child) const;
   inline bool IsHostIncludingInclusiveAncestorOfThis(const Node&,
                                                      ExceptionState&) const;
+  inline bool IsChildTypeAllowed(const Node& child) const;
 
   void CheckSoftNavigationHeuristicsTracking(const Document& document,
                                              Node& inserted_node);

@@ -38,8 +38,6 @@
 #include "third_party/blink/public/platform/web_source_buffer_client.h"
 #include "third_party/blink/renderer/bindings/core/v8/active_script_wrappable.h"
 #include "third_party/blink/renderer/bindings/core/v8/script_promise.h"
-#include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
-#include "third_party/blink/renderer/bindings/modules/v8/v8_append_mode.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_typedefs.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context_lifecycle_observer.h"
 #include "third_party/blink/renderer/core/typed_arrays/array_buffer_view_helpers.h"
@@ -61,6 +59,7 @@ class ExceptionState;
 class MediaSource;
 class MediaSourceTracer;
 class MediaSourceAttachmentSupplement;
+class ScriptPromiseResolver;
 class ScriptState;
 class SourceBufferConfig;
 class TimeRanges;
@@ -75,22 +74,24 @@ class SourceBuffer final : public EventTarget,
   USING_PRE_FINALIZER(SourceBuffer, Dispose);
 
  public:
+  static AtomicString SegmentsKeyword();
+  static AtomicString SequenceKeyword();
+
   SourceBuffer(std::unique_ptr<WebSourceBuffer>, MediaSource*, EventQueue*);
   ~SourceBuffer() override;
 
   // SourceBuffer.idl methods
-  V8AppendMode mode() const { return V8AppendMode(mode_); }
-  void setMode(const V8AppendMode&, ExceptionState&);
+  const AtomicString& mode() const { return mode_; }
+  void setMode(const AtomicString&, ExceptionState&);
   bool updating() const { return updating_; }
   TimeRanges* buffered(ExceptionState&) const;
   double timestampOffset() const;
   void setTimestampOffset(double, ExceptionState&);
   void appendBuffer(DOMArrayBuffer* data, ExceptionState&);
   void appendBuffer(NotShared<DOMArrayBufferView> data, ExceptionState&);
-  ScriptPromise<IDLUndefined> appendEncodedChunks(
-      ScriptState* script_state,
-      const V8EncodedChunks* chunks,
-      ExceptionState& exception_state);
+  ScriptPromise appendEncodedChunks(ScriptState* script_state,
+                                    const V8EncodedChunks* chunks,
+                                    ExceptionState& exception_state);
   void abort(ExceptionState&);
   void remove(double start, double end, ExceptionState&);
   void changeType(const String& type, ExceptionState&);
@@ -117,7 +118,7 @@ class SourceBuffer final : public EventTarget,
   // may also require the same, since they can be called from within these
   // methods.
   void SetMode_Locked(
-      V8AppendMode::Enum,
+      AtomicString,
       ExceptionState*,
       MediaSourceAttachmentSupplement::ExclusiveKey /* passkey */);
   void GetBuffered_Locked(
@@ -142,8 +143,7 @@ class SourceBuffer final : public EventTarget,
   const AtomicString& InterfaceName() const override;
 
   // WebSourceBufferClient interface
-  bool InitializationSegmentReceived(
-      const std::vector<MediaTrackInfo>&) override;
+  bool InitializationSegmentReceived(const WebVector<MediaTrackInfo>&) override;
   void NotifyParseWarning(const ParseWarning) override;
 
   void Trace(Visitor*) const override;
@@ -156,7 +156,7 @@ class SourceBuffer final : public EventTarget,
 
   bool PrepareAppend(double media_time, size_t new_data_size, ExceptionState&);
   bool EvictCodedFrames(double media_time, size_t new_data_size);
-  void AppendBufferInternal(base::span<const unsigned char>, ExceptionState&);
+  void AppendBufferInternal(const unsigned char*, size_t, ExceptionState&);
   void AppendEncodedChunksAsyncPart();
   void AppendBufferAsyncPart();
   void AppendError(MediaSourceAttachmentSupplement::ExclusiveKey /* passkey */);
@@ -194,7 +194,8 @@ class SourceBuffer final : public EventTarget,
       ExceptionState* exception_state,
       MediaSourceAttachmentSupplement::ExclusiveKey /* passkey */);
   void AppendBufferInternal_Locked(
-      base::span<const unsigned char>,
+      const unsigned char*,
+      size_t,
       ExceptionState*,
       MediaSourceAttachmentSupplement::ExclusiveKey /* passkey */);
   void AppendEncodedChunksAsyncPart_Locked(
@@ -223,7 +224,7 @@ class SourceBuffer final : public EventTarget,
   // now to retain stable BackgroundVideoOptimization support with experimental
   // MSE-in-Workers.
   void AddPlaceholderCrossThreadTracks(
-      const std::vector<MediaTrackInfo>& new_tracks,
+      const WebVector<MediaTrackInfo>& new_tracks,
       scoped_refptr<MediaSourceAttachmentSupplement> attachment);
   void RemovePlaceholderCrossThreadTracks(
       scoped_refptr<MediaSourceAttachmentSupplement> attachment,
@@ -242,7 +243,7 @@ class SourceBuffer final : public EventTarget,
   Member<TrackDefaultList> track_defaults_;
   Member<EventQueue> async_event_queue_;
 
-  V8AppendMode::Enum mode_ = V8AppendMode::Enum::kSegments;
+  AtomicString mode_;
   bool updating_;
 
   double timestamp_offset_;
@@ -264,7 +265,7 @@ class SourceBuffer final : public EventTarget,
   // This resolver is set and valid only during the scope of synchronous and
   // asynchronous follow-up of appendEncodedChunks().
   std::unique_ptr<media::StreamParser::BufferQueue> pending_chunks_to_buffer_;
-  Member<ScriptPromiseResolver<IDLUndefined>> append_encoded_chunks_resolver_;
+  Member<ScriptPromiseResolver> append_encoded_chunks_resolver_;
   TaskHandle append_encoded_chunks_async_task_handle_;
 
   // These are valid only during the scope of synchronous and asynchronous

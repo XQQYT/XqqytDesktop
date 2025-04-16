@@ -9,14 +9,13 @@
 
 #include <memory>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "base/base_export.h"
-#include "base/compiler_specific.h"
 #include "base/logging.h"
 #include "base/memory/ptr_util.h"
+#include "base/strings/string_piece.h"
 #include "base/values.h"
 
 // JSONValueConverter converts a JSON value into a C++ struct in a
@@ -71,8 +70,8 @@
 //
 // Sometimes JSON format uses string representations for other types such
 // like enum, timestamp, or URL.  You can use RegisterCustomField method
-// and specify a function to convert a std::string_view to your type.
-//   bool ConvertFunc(std::string_view s, YourEnum* result) {
+// and specify a function to convert a StringPiece to your type.
+//   bool ConvertFunc(StringPiece s, YourEnum* result) {
 //     // do something and return true if succeed...
 //   }
 //   struct Message {
@@ -103,7 +102,7 @@ class FieldConverterBase {
   virtual ~FieldConverterBase() = default;
   virtual bool ConvertField(const base::Value& value,
                             StructType* obj) const = 0;
-  const std::string& field_path() const LIFETIME_BOUND { return field_path_; }
+  const std::string& field_path() const { return field_path_; }
 
  private:
   std::string field_path_;
@@ -220,7 +219,7 @@ class ValueFieldConverter : public ValueConverter<FieldType> {
 template <typename FieldType>
 class CustomFieldConverter : public ValueConverter<FieldType> {
  public:
-  typedef bool (*ConvertFunc)(std::string_view value, FieldType* field);
+  typedef bool (*ConvertFunc)(StringPiece value, FieldType* field);
 
   explicit CustomFieldConverter(ConvertFunc convert_func)
       : convert_func_(convert_func) {}
@@ -300,9 +299,8 @@ class RepeatedMessageConverter
   bool Convert(const base::Value& value,
                std::vector<std::unique_ptr<NestedType>>* field) const override {
     const Value::List* list = value.GetIfList();
-    if (!list) {
+    if (!list)
       return false;
-    }
 
     field->reserve(list->size());
     size_t i = 0;
@@ -339,9 +337,8 @@ class RepeatedCustomValueConverter
   bool Convert(const base::Value& value,
                std::vector<std::unique_ptr<NestedType>>* field) const override {
     const Value::List* list = value.GetIfList();
-    if (!list) {
+    if (!list)
       return false;
-    }
 
     field->reserve(list->size());
     size_t i = 0;
@@ -418,7 +415,7 @@ class JSONValueConverter {
   template <typename FieldType>
   void RegisterCustomField(const std::string& field_name,
                            FieldType StructType::*field,
-                           bool (*convert_func)(std::string_view, FieldType*)) {
+                           bool (*convert_func)(StringPiece, FieldType*)) {
     fields_.push_back(
         std::make_unique<internal::FieldConverter<StructType, FieldType>>(
             field_name, field,
@@ -506,9 +503,8 @@ class JSONValueConverter {
 
   bool Convert(const base::Value& value, StructType* output) const {
     const base::Value::Dict* dict = value.GetIfDict();
-    if (!dict) {
+    if (!dict)
       return false;
-    }
 
     return Convert(*dict, output);
   }

@@ -31,13 +31,11 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_PROBE_CORE_PROBES_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_PROBE_CORE_PROBES_H_
 
-#include "third_party/blink/renderer/bindings/core/v8/v8_binding_for_core.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/dom/document.h"
 #include "third_party/blink/renderer/core/execution_context/execution_context.h"
 #include "third_party/blink/renderer/core/frame/ad_tracker.h"
 #include "third_party/blink/renderer/core/frame/local_frame.h"
-#include "third_party/blink/renderer/platform/bindings/callback_function_base.h"
 #include "third_party/blink/renderer/platform/loader/fetch/resource.h"
 
 namespace network {
@@ -56,9 +54,6 @@ class OffscreenCanvas;
 class ThreadDebugger;
 
 namespace protocol {
-namespace Network {
-class DirectTCPSocketOptions;
-}  // namespace Network
 namespace Audits {
 class InspectorIssue;
 }  // namespace Audits
@@ -127,14 +122,6 @@ inline CoreProbeSink* ToCoreProbeSink(LocalFrame* frame) {
 
 inline CoreProbeSink* ToCoreProbeSink(ExecutionContext* context) {
   return context ? context->GetProbeSink() : nullptr;
-}
-
-inline CoreProbeSink* ToCoreProbeSink(v8::Isolate* isolate) {
-  return isolate ? CurrentExecutionContext(isolate)->GetProbeSink() : nullptr;
-}
-
-inline CoreProbeSink* ToCoreProbeSink(const ScriptState& script_state) {
-  return ToCoreProbeSink(ToExecutionContext(&script_state));
 }
 
 inline CoreProbeSink* ToCoreProbeSink(Document& document) {

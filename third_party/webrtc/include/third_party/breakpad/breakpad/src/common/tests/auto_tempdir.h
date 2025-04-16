@@ -52,7 +52,7 @@ class AutoTempDir {
  public:
   AutoTempDir() {
     char temp_dir[] = TEMPDIR "/breakpad.XXXXXX";
-    EXPECT_TRUE(mkdtemp(temp_dir) != nullptr);
+    EXPECT_TRUE(mkdtemp(temp_dir) != NULL);
     path_.assign(temp_dir);
   }
 
@@ -72,7 +72,7 @@ class AutoTempDir {
       return;
 
     dirent* entry;
-    while ((entry = readdir(dir)) != nullptr) {
+    while ((entry = readdir(dir)) != NULL) {
       if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
         continue;
       string entry_path = path + "/" + entry->d_name;

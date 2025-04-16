@@ -10,16 +10,18 @@
 
 namespace blink {
 
-class HTMLAnchorElementBase;
+class Document;
+class HTMLAnchorElement;
 
-// Exported for testing only.
-CORE_EXPORT uint32_t AnchorElementId(const HTMLAnchorElementBase& element);
+// Helper function that returns the root document the anchor element is in.
+Document* GetRootDocument(const HTMLAnchorElement& anchor);
 
-// Returns null if the given element should not be evaluated.
+uint32_t AnchorElementId(const HTMLAnchorElement& element);
+
 // Exported for testing only.
 CORE_EXPORT
 mojom::blink::AnchorElementMetricsPtr CreateAnchorElementMetrics(
-    const HTMLAnchorElementBase&);
+    const HTMLAnchorElement&);
 
 }  // namespace blink
 

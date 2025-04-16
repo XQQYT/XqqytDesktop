@@ -26,12 +26,12 @@ class StubLayerTreeViewDelegate : public LayerTreeViewDelegate {
   }
   void UpdateCompositorScrollState(
       const cc::CompositorCommitData& commit_data) override {}
-  void BeginMainFrame(const viz::BeginFrameArgs& args) override {}
+  void BeginMainFrame(base::TimeTicks frame_time) override {}
   void OnDeferMainFrameUpdatesChanged(bool) override {}
   void OnDeferCommitsChanged(
       bool defer_status,
       cc::PaintHoldingReason reason,
-      std::optional<cc::PaintHoldingCommitTrigger> trigger) override {}
+      absl::optional<cc::PaintHoldingCommitTrigger> trigger) override {}
   void OnCommitRequested() override {}
   void DidBeginMainFrame() override {}
   void DidCommitAndDrawCompositorFrame() override {}
@@ -48,6 +48,9 @@ class StubLayerTreeViewDelegate : public LayerTreeViewDelegate {
       cc::ActiveFrameSequenceTrackers trackers) override {}
   std::unique_ptr<cc::BeginMainFrameMetrics> GetBeginMainFrameMetrics()
       override {
+    return nullptr;
+  }
+  std::unique_ptr<cc::WebVitalMetrics> GetWebVitalMetrics() override {
     return nullptr;
   }
   void BeginUpdateLayers() override {}

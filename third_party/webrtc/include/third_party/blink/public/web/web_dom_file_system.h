@@ -40,6 +40,7 @@
 
 namespace v8 {
 class Isolate;
+class Object;
 class Value;
 }
 
@@ -88,9 +89,11 @@ class BLINK_EXPORT WebDOMFileSystem {
   WebFileSystemType GetType() const;
   WebURL RootURL() const;
 
-  v8::Local<v8::Value> ToV8Value(v8::Isolate*);
+  v8::Local<v8::Value> ToV8Value(v8::Local<v8::Object> creation_context,
+                                 v8::Isolate*);
   v8::Local<v8::Value> CreateV8Entry(const WebString& path,
                                      EntryType,
+                                     v8::Local<v8::Object> creation_context,
                                      v8::Isolate*);
 
   bool IsNull() const { return private_.IsNull(); }

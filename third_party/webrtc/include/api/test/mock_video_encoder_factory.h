@@ -14,7 +14,6 @@
 #include <memory>
 #include <vector>
 
-#include "api/environment/environment.h"
 #include "api/video_codecs/sdp_video_format.h"
 #include "api/video_codecs/video_encoder.h"
 #include "api/video_codecs/video_encoder_factory.h"
@@ -31,8 +30,8 @@ class MockVideoEncoderFactory : public webrtc::VideoEncoderFactory {
               (),
               (const, override));
   MOCK_METHOD(std::unique_ptr<VideoEncoder>,
-              Create,
-              (const Environment&, const SdpVideoFormat&),
+              CreateVideoEncoder,
+              (const SdpVideoFormat&),
               (override));
 
   MOCK_METHOD(void, Die, ());

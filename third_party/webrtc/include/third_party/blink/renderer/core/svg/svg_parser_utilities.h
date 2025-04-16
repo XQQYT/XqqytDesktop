@@ -22,7 +22,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_SVG_SVG_PARSER_UTILITIES_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_SVG_SVG_PARSER_UTILITIES_H_
 
-#include "base/compiler_specific.h"
 #include "third_party/blink/renderer/core/html/parser/html_parser_idioms.h"
 
 namespace blink {
@@ -44,12 +43,13 @@ bool ParseNumber(const UChar*& ptr,
                  float& number,
                  WhitespaceMode = kAllowLeadingAndTrailingWhitespace);
 bool ParseNumberOptionalNumber(const String& s, float& h, float& v);
+bool ParseArcFlag(const LChar*& ptr, const LChar* end, bool& flag);
+bool ParseArcFlag(const UChar*& ptr, const UChar* end, bool& flag);
 
 template <typename CharType>
 inline bool SkipOptionalSVGSpaces(const CharType*& ptr, const CharType* end) {
-  while (ptr < end && IsHTMLSpace<CharType>(*ptr)) {
-    UNSAFE_TODO(ptr++);
-  }
+  while (ptr < end && IsHTMLSpace<CharType>(*ptr))
+    ptr++;
   return ptr < end;
 }
 
@@ -61,7 +61,7 @@ inline bool SkipOptionalSVGSpacesOrDelimiter(const CharType*& ptr,
     return false;
   if (SkipOptionalSVGSpaces(ptr, end)) {
     if (*ptr == delimiter) {
-      UNSAFE_TODO(ptr++);
+      ptr++;
       SkipOptionalSVGSpaces(ptr, end);
     }
   }

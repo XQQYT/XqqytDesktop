@@ -11,7 +11,6 @@
 </head>
 <body>
 <script>
-test_valid_value("animation-name", 'none');
 test_valid_value("animation-name", 'NONE', 'none');
 
 test_valid_value("animation-name", 'foo');
@@ -21,27 +20,10 @@ test_valid_value("animation-name", 'infinite');
 test_valid_value("animation-name", 'paused');
 test_valid_value("animation-name", 'first, second, third');
 
-test_valid_value("animation-name", '"something"', 'something');
-test_valid_value("animation-name", '"---\\22---"', '---\\\"---');
-test_valid_value("animation-name", '"multi word string"', 'multi\\ word\\ string');
-
-// Restricted keywords as strings
-test_valid_value("animation-name", '"none"');
-test_valid_value("animation-name", '"none", "INITIAL", "inherit"');
-test_valid_value("animation-name", '"none", both, ease-in');
-test_valid_value("animation-name", '"NoNe"');
+test_valid_value("animation-name", '"string"', ['"string"', "string"]);
+test_valid_value("animation-name", '"multi word string"', ['"multi word string"', "multi\\ word\\ string"]);
 test_valid_value("animation-name", '"initial"');
-test_valid_value("animation-name", '"INITIAL"');
-test_valid_value("animation-name", '"inherit"');
-test_valid_value("animation-name", '"INHERIT"');
-test_valid_value("animation-name", '"revert"');
-test_valid_value("animation-name", '"REVERT"');
-test_valid_value("animation-name", '"revert-layer"');
-test_valid_value("animation-name", '"REVERT-LAYER"');
-test_valid_value("animation-name", '"unset"');
-test_valid_value("animation-name", '"UNSET"');
-test_valid_value("animation-name", '"default"');
-test_valid_value("animation-name", '"DEFAULT"');
+test_valid_value("animation-name", '"---\\22---"', ['\"---\\\"---\"', '---\\\"---']);
 </script>
 </body>
 </html>

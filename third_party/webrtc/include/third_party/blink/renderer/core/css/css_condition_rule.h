@@ -9,7 +9,7 @@
 
 namespace blink {
 
-class CORE_EXPORT CSSConditionRule : public CSSGroupingRule {
+class CSSConditionRule : public CSSGroupingRule {
   DEFINE_WRAPPERTYPEINFO();
 
  public:

@@ -64,11 +64,15 @@ namespace base {
 // returned callback is destroyed without being run then |callback| will be
 // be destroyed on |task_runner|.
 template <typename ReturnType, typename... Args>
-  requires std::is_void_v<ReturnType>
 OnceCallback<void(Args...)> BindPostTask(
     scoped_refptr<TaskRunner> task_runner,
     OnceCallback<ReturnType(Args...)> callback,
     const Location& location = FROM_HERE) {
+  static_assert(std::is_same_v<ReturnType, void>,
+                "OnceCallback must have void return type in order to produce a "
+                "closure for PostTask(). Use base::IgnoreResult() to drop the "
+                "return value if desired.");
+
   using Helper = internal::BindPostTaskTrampoline<OnceCallback<void(Args...)>>;
 
   return base::BindOnce(
@@ -81,11 +85,15 @@ OnceCallback<void(Args...)> BindPostTask(
 // the returned callback is destroyed a task will be posted to destroy the input
 // |callback| on |task_runner|.
 template <typename ReturnType, typename... Args>
-  requires std::is_void_v<ReturnType>
 RepeatingCallback<void(Args...)> BindPostTask(
     scoped_refptr<TaskRunner> task_runner,
     RepeatingCallback<ReturnType(Args...)> callback,
     const Location& location = FROM_HERE) {
+  static_assert(std::is_same_v<ReturnType, void>,
+                "RepeatingCallback must have void return type in order to "
+                "produce a closure for PostTask(). Use base::IgnoreResult() to "
+                "drop the return value if desired.");
+
   using Helper =
       internal::BindPostTaskTrampoline<RepeatingCallback<void(Args...)>>;
 
@@ -106,7 +114,6 @@ RepeatingCallback<void(Args...)> BindPostTask(
 // - Only use this helper as a last resort if none of the above apply.
 
 template <typename ReturnType, typename... Args>
-  requires std::is_void_v<ReturnType>
 OnceCallback<void(Args...)> BindPostTaskToCurrentDefault(
     OnceCallback<ReturnType(Args...)> callback,
     const Location& location = FROM_HERE) {
@@ -115,7 +122,6 @@ OnceCallback<void(Args...)> BindPostTaskToCurrentDefault(
 }
 
 template <typename ReturnType, typename... Args>
-  requires std::is_void_v<ReturnType>
 RepeatingCallback<void(Args...)> BindPostTaskToCurrentDefault(
     RepeatingCallback<ReturnType(Args...)> callback,
     const Location& location = FROM_HERE) {

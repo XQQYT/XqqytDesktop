@@ -86,18 +86,9 @@ class CORE_EXPORT OffsetMappingBuilder {
   // annotation to the builder.
   void AppendIdentityMapping(unsigned length);
 
-  // Cancel the last AppendIdentityMapping(1) call.
-  // This works only for kOpenRubyColumn.
-  void RevertIdentityMapping1();
-
   // Append a collapsed offset mapping from the specified length with null
   // annotation to the builder.
   void AppendCollapsedMapping(unsigned length);
-
-  // Append a variable offset mapping from the specified `dom_length` to the
-  // specified `text_content_length`.
-  // Either of `dom_length` or `text_content_length` should be 1.
-  void AppendVariableMapping(unsigned dom_length, unsigned text_content_length);
 
   // TODO(xiaochengh): Add the following API when we start to fix offset mapping
   // for text-transform.
@@ -128,9 +119,7 @@ class CORE_EXPORT OffsetMappingBuilder {
                                        unsigned offset);
 
   // Set the destination string of the offset mapping.
-  // Returns false if the specified string is inconsistent with
-  // `destination_length_`. We can't build an OffstMapping in such case.
-  bool SetDestinationString(const String&);
+  void SetDestinationString(String);
 
   // Finalize and return the offset mapping.
   // This method can only be called once, as it can invalidate the stored data.

@@ -31,9 +31,13 @@ class CORE_EXPORT NodePart : public Part {
                  node,
                  init && init->hasMetadata() ? init->metadata()
                                              : Vector<String>()) {}
+  NodePart(PartRoot& root, Node& node, const Vector<String> metadata)
+      : NodePart(root, node, /*add_to_parts_list*/ true, metadata) {}
   NodePart(PartRoot& root,
            Node& node,
-           Vector<String> metadata);
+           bool add_to_parts_list,
+           const Vector<String> metadata);
+  NodePart(const NodePart&) = delete;
   ~NodePart() override = default;
 
   void Trace(Visitor* visitor) const override;

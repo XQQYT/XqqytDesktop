@@ -23,14 +23,7 @@
 #ifndef AVCODEC_ADTS_HEADER_H
 #define AVCODEC_ADTS_HEADER_H
 
-#include "adts_parser.h"
-#include "defs.h"
-
-typedef enum {
-    AAC_PARSE_ERROR_SYNC        = -0x1030c0a,
-    AAC_PARSE_ERROR_SAMPLE_RATE = -0x3030c0a,
-    AAC_PARSE_ERROR_FRAME_SIZE  = -0x4030c0a,
-} AACParseError;
+#include "get_bits.h"
 
 typedef struct AACADTSHeaderInfo {
     uint32_t sample_rate;
@@ -44,24 +37,16 @@ typedef struct AACADTSHeaderInfo {
     uint32_t frame_length;
 } AACADTSHeaderInfo;
 
-struct GetBitContext;
-
 /**
  * Parse the ADTS frame header to the end of the variable header, which is
  * the first 54 bits.
  * @param[in]  gbc BitContext containing the first 54 bits of the frame.
  * @param[out] hdr Pointer to struct where header info is written.
- * @return the size in bytes of the header parsed on success and
- *         AAC_PARSE_ERROR_* values otherwise.
+ * @return Returns 0 on success, -1 if there is a sync word mismatch,
+ * -2 if the version element is invalid, -3 if the sample rate
+ * element is invalid, or -4 if the bit rate element is invalid.
  */
-int ff_adts_header_parse(struct GetBitContext *gbc, AACADTSHeaderInfo *hdr);
-
-/**
- * Wrapper around ff_adts_header_parse() for users that don't already have
- * a suitable GetBitContext.
- */
-int ff_adts_header_parse_buf(const uint8_t buf[AV_AAC_ADTS_HEADER_SIZE + AV_INPUT_BUFFER_PADDING_SIZE],
-                             AACADTSHeaderInfo *hdr);
+int ff_adts_header_parse(GetBitContext *gbc, AACADTSHeaderInfo *hdr);
 
 /**
  * Parse the ADTS frame header contained in the buffer, which is
@@ -71,8 +56,9 @@ int ff_adts_header_parse_buf(const uint8_t buf[AV_AAC_ADTS_HEADER_SIZE + AV_INPU
  * @param[out] phdr Pointer to pointer to struct AACADTSHeaderInfo for which
  * memory is allocated and header info is written into it. After using the header
  * information, the allocated memory must be freed by using av_free.
- * @return 0 on success, AAC_PARSE_ERROR_* values on invalid input and
- *         ordinary AVERROR codes otherwise.
+ * @return Returns 0 on success, -1 if there is a sync word mismatch,
+ * -2 if the version element is invalid, -3 if the sample rate
+ * element is invalid, or -4 if the bit rate element is invalid.
  */
 int avpriv_adts_header_parse(AACADTSHeaderInfo **phdr, const uint8_t *buf, size_t size);
 

@@ -17,21 +17,15 @@
 #ifndef SRC_TRACE_PROCESSOR_IMPORTERS_COMMON_METADATA_TRACKER_H_
 #define SRC_TRACE_PROCESSOR_IMPORTERS_COMMON_METADATA_TRACKER_H_
 
-#include <array>
-#include <cstddef>
-#include <cstdint>
-#include <optional>
-
-#include "perfetto/trace_processor/basic_types.h"
-#include "src/trace_processor/storage/metadata.h"
 #include "src/trace_processor/storage/trace_storage.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 // Tracks information in the metadata table.
 class MetadataTracker {
  public:
-  explicit MetadataTracker(TraceStorage* storage);
+  MetadataTracker(TraceStorage* storage);
 
   // Example usage:
   // SetMetadata(metadata::benchmark_name,
@@ -51,7 +45,7 @@ class MetadataTracker {
 
   // Reads back a set metadata value.
   // Only kSingle types are supported right now.
-  std::optional<SqlValue> GetMetadata(metadata::KeyId key);
+  SqlValue GetMetadata(metadata::KeyId key);
 
   // Tracks how many ChromeMetadata bundles have been parsed.
   uint32_t IncrementChromeMetadataBundleCount() {
@@ -73,6 +67,7 @@ class MetadataTracker {
   TraceStorage* storage_;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_IMPORTERS_COMMON_METADATA_TRACKER_H_

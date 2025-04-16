@@ -1,30 +1,19 @@
 // Copyright 2017 The Chromium Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #ifndef BSSL_PKI_GENERAL_NAMES_H_
 #define BSSL_PKI_GENERAL_NAMES_H_
 
+#include "fillins/openssl_util.h"
 #include <memory>
 #include <string_view>
 #include <vector>
 
-#include <openssl/base.h>
-
 
 #include "cert_error_id.h"
 
-BSSL_NAMESPACE_BEGIN
+namespace bssl {
 
 class CertErrors;
 
@@ -73,13 +62,15 @@ struct OPENSSL_EXPORT GeneralNames {
   // |general_names_tlv|, so is only valid as long as |general_names_tlv| is.
   // Returns nullptr on failure, and may fill |errors| with
   // additional information. |errors| must be non-null.
-  static std::unique_ptr<GeneralNames> Create(der::Input general_names_tlv,
-                                              CertErrors *errors);
+  static std::unique_ptr<GeneralNames> Create(
+      const der::Input& general_names_tlv,
+      CertErrors* errors);
 
   // As above, but takes the GeneralNames sequence value, without the tag and
   // length.
   static std::unique_ptr<GeneralNames> CreateFromValue(
-      der::Input general_names_value, CertErrors *errors);
+      const der::Input& general_names_value,
+      CertErrors* errors);
 
   // DER-encoded OtherName values.
   std::vector<der::Input> other_names;
@@ -132,10 +123,11 @@ struct OPENSSL_EXPORT GeneralNames {
 // |errors| must be non-null.
 // TODO(mattm): should this be a method on GeneralNames?
 [[nodiscard]] OPENSSL_EXPORT bool ParseGeneralName(
-    der::Input input,
+    const der::Input& input,
     GeneralNames::ParseGeneralNameIPAddressType ip_address_type,
-    GeneralNames *subtrees, CertErrors *errors);
+    GeneralNames* subtrees,
+    CertErrors* errors);
 
-BSSL_NAMESPACE_END
+}  // namespace net
 
 #endif  // BSSL_PKI_GENERAL_NAMES_H_

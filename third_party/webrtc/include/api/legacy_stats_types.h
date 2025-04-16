@@ -14,20 +14,16 @@
 #ifndef API_LEGACY_STATS_TYPES_H_
 #define API_LEGACY_STATS_TYPES_H_
 
-#include <stddef.h>
-#include <stdint.h>
-
+#include <algorithm>
 #include <list>
 #include <map>
 #include <string>
 #include <vector>
 
-#include "api/ref_count.h"
 #include "api/scoped_refptr.h"
 #include "api/sequence_checker.h"
-#include "rtc_base/checks.h"
+#include "rtc_base/ref_count.h"
 #include "rtc_base/system/rtc_export.h"
-#include "rtc_base/thread_annotations.h"
 
 namespace webrtc {
 
@@ -244,7 +240,7 @@ class RTC_EXPORT StatsReport {
     kStatsValueNameLocalCandidateRelayProtocol,
   };
 
-  class RTC_EXPORT IdBase : public webrtc::RefCountInterface {
+  class RTC_EXPORT IdBase : public rtc::RefCountInterface {
    public:
     ~IdBase() override;
     StatsType type() const;

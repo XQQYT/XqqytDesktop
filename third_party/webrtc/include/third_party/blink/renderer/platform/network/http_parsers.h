@@ -31,17 +31,12 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_NETWORK_HTTP_PARSERS_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_NETWORK_HTTP_PARSERS_H_
 
-#include <stdint.h>
-
-#include <memory>
-#include <optional>
-
 #include "base/time/time.h"
 #include "services/network/public/mojom/content_security_policy.mojom-blink-forward.h"
 #include "services/network/public/mojom/no_vary_search.mojom-blink-forward.h"
 #include "services/network/public/mojom/parsed_headers.mojom-blink-forward.h"
-#include "services/network/public/mojom/sri_message_signature.mojom-blink-forward.h"
 #include "services/network/public/mojom/timing_allow_origin.mojom-blink.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/network/content_security_policy_response_headers.h"
 #include "third_party/blink/renderer/platform/network/parsed_content_type.h"
 #include "third_party/blink/renderer/platform/network/server_timing_header.h"
@@ -54,12 +49,14 @@
 #include "third_party/blink/renderer/platform/wtf/text/string_hash.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
 
+#include <stdint.h>
+#include <memory>
+
 namespace blink {
 
 class HTTPHeaderMap;
-class KURL;
 class ResourceResponse;
-class UseCounter;
+class KURL;
 
 enum ContentTypeOptionsDisposition {
   kContentTypeOptionsNone,
@@ -74,8 +71,8 @@ struct CacheControlHeader {
   bool contains_no_cache : 1;
   bool contains_no_store : 1;
   bool contains_must_revalidate : 1;
-  std::optional<base::TimeDelta> max_age;
-  std::optional<base::TimeDelta> stale_while_revalidate;
+  absl::optional<base::TimeDelta> max_age;
+  absl::optional<base::TimeDelta> stale_while_revalidate;
 
   CacheControlHeader()
       : parsed(false),
@@ -101,7 +98,7 @@ PLATFORM_EXPORT bool ParseHTTPRefresh(const String& refresh,
                                       WTF::CharacterMatchFunctionPtr matcher,
                                       base::TimeDelta& delay,
                                       String& url);
-PLATFORM_EXPORT std::optional<base::Time> ParseDate(const String&, UseCounter&);
+PLATFORM_EXPORT absl::optional<base::Time> ParseDate(const String&);
 
 // Given a Media Type (like "foo/bar; baz=gazonk" - usually from the
 // 'Content-Type' HTTP header), extract and return the "type/subtype" portion
@@ -113,8 +110,6 @@ PLATFORM_EXPORT std::optional<base::Time> ParseDate(const String&, UseCounter&);
 // - OWSes at the head and the tail of the region before the first semicolon
 //   are trimmed.
 PLATFORM_EXPORT AtomicString ExtractMIMETypeFromMediaType(const AtomicString&);
-
-PLATFORM_EXPORT AtomicString MinimizedMIMEType(const AtomicString&);
 
 PLATFORM_EXPORT CacheControlHeader
 ParseCacheControlDirectives(const AtomicString& cache_control_header,
@@ -128,16 +123,17 @@ ParseContentTypeOptionsHeader(const String& header);
 // Returns true and stores the position of the end of the headers to |*end|
 // if the headers part ends in |bytes[0..size]|. Returns false otherwise.
 PLATFORM_EXPORT bool ParseMultipartFormHeadersFromBody(
-    base::span<const uint8_t> bytes,
+    const char* bytes,
+    wtf_size_t,
     HTTPHeaderMap* header_fields,
     wtf_size_t* end);
 
 // Returns true and stores the position of the end of the headers to |*end|
 // if the headers part ends in |bytes[0..size]|. Returns false otherwise.
-PLATFORM_EXPORT bool ParseMultipartHeadersFromBody(
-    base::span<const uint8_t> bytes,
-    ResourceResponse*,
-    wtf_size_t* end);
+PLATFORM_EXPORT bool ParseMultipartHeadersFromBody(const char* bytes,
+                                                   wtf_size_t,
+                                                   ResourceResponse*,
+                                                   wtf_size_t* end);
 
 // Extracts the values in a Content-Range header and returns true if all three
 // values are present and valid for a 206 response; otherwise returns false.
@@ -186,12 +182,6 @@ PLATFORM_EXPORT
 Vector<network::mojom::blink::ContentSecurityPolicyPtr>
 ParseContentSecurityPolicyHeaders(
     const ContentSecurityPolicyResponseHeaders& headers);
-
-// Parses SRI-relevant HTTP Message Signature headers. This wraps
-// network::ParseSRIMessageSignaturesFromHeaders with blink types.
-PLATFORM_EXPORT
-network::mojom::blink::SRIMessageSignaturesPtr
-ParseSRIMessageSignaturesFromHeaders(const String& raw_headers);
 
 PLATFORM_EXPORT
 network::mojom::blink::TimingAllowOriginPtr ParseTimingAllowOrigin(

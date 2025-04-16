@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_LINKER_WRAPPED_SYMBOLS_H_
+#ifdef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_LINKER_WRAPPED_SYMBOLS_H_
 #error This header is meant to be included only once by allocator_shim.cc
 #endif
 
-#ifndef PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_LINKER_WRAPPED_SYMBOLS_H_
-#define PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_LINKER_WRAPPED_SYMBOLS_H_
+#ifndef BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_LINKER_WRAPPED_SYMBOLS_H_
+#define BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_LINKER_WRAPPED_SYMBOLS_H_
 
 // This header overrides the __wrap_X symbols when using the link-time
 // -Wl,-wrap,malloc shim-layer approach (see README.md).
@@ -15,15 +15,10 @@
 // -wrap linker flags (e.g., libchrome.so) will be rewritten to the
 // linker as references to __wrap_malloc, __wrap_free, which are defined here.
 
-#include "partition_alloc/buildflags.h"
-
-#if PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
-#include <stdlib.h>
-
 #include <algorithm>
 #include <cstring>
 
-#include "partition_alloc/shim/allocator_shim_internals.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_internals.h"
 
 extern "C" {
 
@@ -65,12 +60,12 @@ SHIM_ALWAYS_EXPORT size_t __wrap_malloc_usable_size(void* address) {
   return ShimGetSizeEstimate(address, nullptr);
 }
 
-inline constexpr size_t kPathMaxSize = 8192;
+const size_t kPathMaxSize = 8192;
 static_assert(kPathMaxSize >= PATH_MAX, "");
 
 extern char* __wrap_strdup(const char* str);
 
-// Override <cstdlib>
+// Override <stdlib.h>
 
 extern char* __real_realpath(const char* path, char* resolved_path);
 
@@ -87,7 +82,7 @@ SHIM_ALWAYS_EXPORT char* __wrap_realpath(const char* path,
   return __wrap_strdup(buffer);
 }
 
-// Override <cstring> functions
+// Override <string.h> functions
 
 SHIM_ALWAYS_EXPORT char* __wrap_strdup(const char* str) {
   std::size_t length = std::strlen(str) + 1;
@@ -121,7 +116,7 @@ SHIM_ALWAYS_EXPORT char* __wrap_getcwd(char* buffer, size_t size) {
   if (!size) {
     size = kPathMaxSize;
   }
-  char local_buffer[kPathMaxSize];
+  char local_buffer[size];
   if (!__real_getcwd(local_buffer, size)) {
     return nullptr;
   }
@@ -180,6 +175,4 @@ SHIM_ALWAYS_EXPORT int __wrap_asprintf(char** strp, const char* fmt, ...) {
 
 }  // extern "C"
 
-#endif  // PA_BUILDFLAG(USE_ALLOCATOR_SHIM)
-
-#endif  // PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_LINKER_WRAPPED_SYMBOLS_H_
+#endif  // BASE_ALLOCATOR_PARTITION_ALLOCATOR_SRC_PARTITION_ALLOC_SHIM_ALLOCATOR_SHIM_OVERRIDE_LINKER_WRAPPED_SYMBOLS_H_

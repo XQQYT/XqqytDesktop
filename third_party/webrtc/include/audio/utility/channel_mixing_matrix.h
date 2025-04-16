@@ -36,14 +36,16 @@ class ChannelMixingMatrix {
   bool CreateTransformationMatrix(std::vector<std::vector<float>>* matrix);
 
  private:
+  const bool use_voip_channel_mapping_adjustments_;
+
   // Result transformation of input channels to output channels
   std::vector<std::vector<float>>* matrix_;
 
   // Input and output channel layout provided during construction.
-  const ChannelLayout input_layout_;
-  const int input_channels_;
-  const ChannelLayout output_layout_;
-  const int output_channels_;
+  ChannelLayout input_layout_;
+  int input_channels_;
+  ChannelLayout output_layout_;
+  int output_channels_;
 
   // Helper variable for tracking which inputs are currently unaccounted,
   // should be empty after construction completes.

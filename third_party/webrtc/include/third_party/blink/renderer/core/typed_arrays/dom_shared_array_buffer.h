@@ -2,15 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/390223051): Remove C-library calls to fix the errors.
-#pragma allow_unsafe_libc_calls
-#endif
-
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_TYPED_ARRAYS_DOM_SHARED_ARRAY_BUFFER_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_TYPED_ARRAYS_DOM_SHARED_ARRAY_BUFFER_H_
 
-#include "partition_alloc/oom.h"
+#include "base/allocator/partition_allocator/src/partition_alloc/oom.h"
 #include "third_party/blink/renderer/core/core_export.h"
 #include "third_party/blink/renderer/core/typed_arrays/array_buffer/array_buffer_contents.h"
 #include "third_party/blink/renderer/core/typed_arrays/dom_array_buffer_base.h"
@@ -29,21 +24,22 @@ class CORE_EXPORT DOMSharedArrayBuffer final : public DOMArrayBufferBase {
 
   static DOMSharedArrayBuffer* Create(unsigned num_elements,
                                       unsigned element_byte_size) {
-    ArrayBufferContents contents(
-        num_elements, element_byte_size, ArrayBufferContents::kShared,
-        ArrayBufferContents::kZeroInitialize,
-        ArrayBufferContents::AllocationFailureBehavior::kCrash);
-    CHECK(contents.IsValid());
+    ArrayBufferContents contents(num_elements, element_byte_size,
+                                 ArrayBufferContents::kShared,
+                                 ArrayBufferContents::kZeroInitialize);
+    if (UNLIKELY(!contents.DataShared())) {
+      OOM_CRASH(num_elements * element_byte_size);
+    }
     return Create(std::move(contents));
   }
 
   static DOMSharedArrayBuffer* Create(const void* source,
                                       unsigned byte_length) {
-    ArrayBufferContents contents(
-        byte_length, 1, ArrayBufferContents::kShared,
-        ArrayBufferContents::kDontInitialize,
-        ArrayBufferContents::AllocationFailureBehavior::kCrash);
-    CHECK(contents.IsValid());
+    ArrayBufferContents contents(byte_length, 1, ArrayBufferContents::kShared,
+                                 ArrayBufferContents::kDontInitialize);
+    if (UNLIKELY(!contents.DataShared())) {
+      OOM_CRASH(byte_length);
+    }
     memcpy(contents.DataShared(), source, byte_length);
     return Create(std::move(contents));
   }
@@ -60,7 +56,7 @@ class CORE_EXPORT DOMSharedArrayBuffer final : public DOMArrayBufferBase {
     return true;
   }
 
-  v8::Local<v8::Value> Wrap(ScriptState*) override;
+  v8::MaybeLocal<v8::Value> Wrap(ScriptState*) override;
 };
 
 }  // namespace blink

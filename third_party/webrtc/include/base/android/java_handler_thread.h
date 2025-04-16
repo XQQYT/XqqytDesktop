@@ -18,7 +18,7 @@
 
 namespace base {
 
-class MessagePumpAndroid;
+class MessagePumpForUI;
 
 namespace android {
 
@@ -52,7 +52,8 @@ class BASE_EXPORT JavaHandlerThread {
 
   // Called from java on the newly created thread.
   // Start() will not return before this methods has finished.
-  void InitializeThread(JNIEnv* env, jlong event);
+  void InitializeThread(JNIEnv* env,
+                        jlong event);
   // Called from java on this thread.
   void OnLooperStopped(JNIEnv* env);
 
@@ -80,7 +81,7 @@ class BASE_EXPORT JavaHandlerThread {
 
     std::unique_ptr<sequence_manager::SequenceManager> sequence_manager;
     sequence_manager::TaskQueue::Handle default_task_queue;
-    raw_ptr<MessagePumpAndroid> pump = nullptr;
+    raw_ptr<MessagePumpForUI> pump = nullptr;
   };
 
   State* state() const { return state_.get(); }

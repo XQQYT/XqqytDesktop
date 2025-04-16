@@ -34,9 +34,6 @@ public:
 
     void TestGetSize();
     void TestGetLocaleByType();
-    
-    void TestPersonUnits();
-    void TestZuluFields();
 
 private:
     /**

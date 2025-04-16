@@ -45,8 +45,8 @@
 #include "third_party/blink/renderer/core/inspector/inspector_highlight.h"
 #include "third_party/blink/renderer/core/inspector/inspector_overlay_host.h"
 #include "third_party/blink/renderer/core/inspector/protocol/overlay.h"
+#include "third_party/blink/renderer/platform/geometry/layout_rect.h"
 #include "third_party/blink/renderer/platform/graphics/color.h"
-#include "third_party/blink/renderer/platform/graphics/dom_node_id.h"
 #include "third_party/blink/renderer/platform/heap/collection_support/heap_hash_map.h"
 #include "third_party/blink/renderer/platform/heap/garbage_collected.h"
 #include "third_party/blink/renderer/platform/timer.h"
@@ -166,8 +166,8 @@ class CORE_EXPORT InspectorOverlayAgent final
   ToIsolationModeHighlightConfig(
       protocol::Overlay::IsolationModeHighlightConfig*,
       int highlight_index);
-  static std::optional<LineStyle> ToLineStyle(protocol::Overlay::LineStyle*);
-  static std::optional<BoxStyle> ToBoxStyle(protocol::Overlay::BoxStyle*);
+  static absl::optional<LineStyle> ToLineStyle(protocol::Overlay::LineStyle*);
+  static absl::optional<BoxStyle> ToBoxStyle(protocol::Overlay::BoxStyle*);
   static std::unique_ptr<InspectorHighlightConfig> ToHighlightConfig(
       protocol::Overlay::HighlightConfig*);
   InspectorOverlayAgent(WebLocalFrameImpl*,
@@ -191,43 +191,44 @@ class CORE_EXPORT InspectorOverlayAgent final
   protocol::Response setShowHitTestBorders(bool) override;
   protocol::Response setShowWebVitals(bool) override;
   protocol::Response setShowViewportSizeOnResize(bool) override;
-  protocol::Response setPausedInDebuggerMessage(std::optional<String>) override;
+  protocol::Response setPausedInDebuggerMessage(
+      protocol::Maybe<String>) override;
   protocol::Response setInspectMode(
       const String& mode,
-      std::unique_ptr<protocol::Overlay::HighlightConfig>) override;
+      protocol::Maybe<protocol::Overlay::HighlightConfig>) override;
   protocol::Response highlightRect(
       int x,
       int y,
       int width,
       int height,
-      std::unique_ptr<protocol::DOM::RGBA> color,
-      std::unique_ptr<protocol::DOM::RGBA> outline_color) override;
+      protocol::Maybe<protocol::DOM::RGBA> color,
+      protocol::Maybe<protocol::DOM::RGBA> outline_color) override;
   protocol::Response highlightQuad(
       std::unique_ptr<protocol::Array<double>> quad,
-      std::unique_ptr<protocol::DOM::RGBA> color,
-      std::unique_ptr<protocol::DOM::RGBA> outline_color) override;
+      protocol::Maybe<protocol::DOM::RGBA> color,
+      protocol::Maybe<protocol::DOM::RGBA> outline_color) override;
   protocol::Response highlightNode(
       std::unique_ptr<protocol::Overlay::HighlightConfig>,
-      std::optional<int> node_id,
-      std::optional<int> backend_node_id,
-      std::optional<String> object_id,
-      std::optional<String> selector_list) override;
+      protocol::Maybe<int> node_id,
+      protocol::Maybe<int> backend_node_id,
+      protocol::Maybe<String> object_id,
+      protocol::Maybe<String> selector_list) override;
   protocol::Response highlightSourceOrder(
       std::unique_ptr<protocol::Overlay::SourceOrderConfig>,
-      std::optional<int> node_id,
-      std::optional<int> backend_node_id,
-      std::optional<String> object_id) override;
+      protocol::Maybe<int> node_id,
+      protocol::Maybe<int> backend_node_id,
+      protocol::Maybe<String> object_id) override;
   protocol::Response hideHighlight() override;
   protocol::Response highlightFrame(
       const String& frame_id,
-      std::unique_ptr<protocol::DOM::RGBA> content_color,
-      std::unique_ptr<protocol::DOM::RGBA> content_outline_color) override;
+      protocol::Maybe<protocol::DOM::RGBA> content_color,
+      protocol::Maybe<protocol::DOM::RGBA> content_outline_color) override;
   protocol::Response getHighlightObjectForTest(
       int node_id,
-      std::optional<bool> include_distance,
-      std::optional<bool> include_style,
-      std::optional<String> color_format,
-      std::optional<bool> show_accessibility_info,
+      protocol::Maybe<bool> include_distance,
+      protocol::Maybe<bool> include_style,
+      protocol::Maybe<String> color_format,
+      protocol::Maybe<bool> show_accessibility_info,
       std::unique_ptr<protocol::DictionaryValue>* highlight) override;
   protocol::Response getGridHighlightObjectsForTest(
       std::unique_ptr<protocol::Array<int>> node_ids,
@@ -236,9 +237,9 @@ class CORE_EXPORT InspectorOverlayAgent final
       int node_id,
       std::unique_ptr<protocol::DictionaryValue>* highlights) override;
   protocol::Response setShowHinge(
-      std::unique_ptr<protocol::Overlay::HingeConfig> hinge_config) override;
+      protocol::Maybe<protocol::Overlay::HingeConfig> hinge_config) override;
   protocol::Response setShowWindowControlsOverlay(
-      std::unique_ptr<protocol::Overlay::WindowControlsOverlayConfig>
+      protocol::Maybe<protocol::Overlay::WindowControlsOverlayConfig>
           wco_config) override;
   protocol::Response setShowGridOverlays(
       std::unique_ptr<
@@ -266,7 +267,6 @@ class CORE_EXPORT InspectorOverlayAgent final
   void Dispose() override;
 
   void Inspect(Node*);
-  bool HasAXContext(Node*);
   void EnsureAXContext(Node*);
   void EnsureAXContext(Document&);
   void DispatchBufferedTouchEvents();
@@ -325,7 +325,7 @@ class CORE_EXPORT InspectorOverlayAgent final
       std::unique_ptr<protocol::Overlay::SourceOrderConfig>
           source_order_inspector_object);
   protocol::Response HighlightConfigFromInspectorObject(
-      std::unique_ptr<protocol::Overlay::HighlightConfig>
+      protocol::Maybe<protocol::Overlay::HighlightConfig>
           highlight_inspector_object,
       std::unique_ptr<InspectorHighlightConfig>*);
   Member<WebLocalFrameImpl> frame_impl_;

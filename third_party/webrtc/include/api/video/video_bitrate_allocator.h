@@ -11,8 +11,6 @@
 #ifndef API_VIDEO_VIDEO_BITRATE_ALLOCATOR_H_
 #define API_VIDEO_VIDEO_BITRATE_ALLOCATOR_H_
 
-#include <cstdint>
-
 #include "api/units/data_rate.h"
 #include "api/video/video_bitrate_allocation.h"
 

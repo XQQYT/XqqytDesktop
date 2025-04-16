@@ -5,8 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_GRAPHICS_PAINT_GEOMETRY_MAPPER_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_GRAPHICS_PAINT_GEOMETRY_MAPPER_H_
 
-#include <optional>
-
+#include "third_party/abseil-cpp/absl/types/optional.h"
 #include "third_party/blink/renderer/platform/graphics/overlay_scrollbar_clip_behavior.h"
 #include "third_party/blink/renderer/platform/graphics/paint/float_clip_rect.h"
 #include "third_party/blink/renderer/platform/graphics/paint/property_tree_state.h"
@@ -53,7 +52,7 @@ class PLATFORM_EXPORT GeometryMapper {
   // Same as SourceToDestinationProjection() except that it maps the rect
   // rather than returning the matrix.
   // |mapping_rect| is both input and output. Its type can be gfx::RectF,
-  // gfx::Rect, gfx::Rect or gfx::RectF.
+  // LayoutRect, gfx::Rect, gfx::Rect or gfx::RectF.
   template <typename Rect>
   static void SourceToDestinationRect(
       const TransformPaintPropertyNodeOrAlias& source,
@@ -172,7 +171,7 @@ class PLATFORM_EXPORT GeometryMapper {
   //
   // TODO(wangxianzhu): Investigate if this can be integrated into
   // LocalToAncestorVisualRect().
-  static std::optional<gfx::RectF> VisibilityLimit(
+  static absl::optional<gfx::RectF> VisibilityLimit(
       const PropertyTreeState& state);
 
   static void ClearCache();

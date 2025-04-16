@@ -37,7 +37,7 @@ class PLATFORM_EXPORT PointLightSource final : public LightSource {
   const gfx::Point3F& GetPosition() const { return position_; }
   bool SetPosition(const gfx::Point3F&) override;
 
-  StringBuilder& ExternalRepresentation(StringBuilder&) const override;
+  WTF::TextStream& ExternalRepresentation(WTF::TextStream&) const override;
 
  private:
   explicit PointLightSource(const gfx::Point3F& position)

@@ -15,28 +15,23 @@ class GPUTextureDescriptor;
 class GPUTextureView;
 class GPUTextureViewDescriptor;
 class StaticBitmapImage;
-class V8GPUTextureDimension;
-class V8GPUTextureFormat;
 class WebGPUMailboxTexture;
 
-class GPUTexture : public DawnObject<wgpu::Texture> {
+class GPUTexture : public DawnObject<WGPUTexture> {
   DEFINE_WRAPPERTYPEINFO();
 
  public:
   static GPUTexture* Create(GPUDevice* device,
                             const GPUTextureDescriptor* webgpu_desc,
                             ExceptionState& exception_state);
-  static GPUTexture* Create(GPUDevice* device,
-                            const wgpu::TextureDescriptor* desc);
   static GPUTexture* CreateError(GPUDevice* device,
-                                 const wgpu::TextureDescriptor* desc);
+                                 const WGPUTextureDescriptor* desc);
 
-  GPUTexture(GPUDevice* device, wgpu::Texture texture, const String& label);
+  GPUTexture(GPUDevice* device, WGPUTexture texture);
   GPUTexture(GPUDevice* device,
-             wgpu::TextureFormat format,
-             wgpu::TextureUsage usage,
-             scoped_refptr<WebGPUMailboxTexture> mailbox_texture,
-             const String& label);
+             WGPUTextureFormat format,
+             WGPUTextureUsage usage,
+             scoped_refptr<WebGPUMailboxTexture> mailbox_texture);
 
   ~GPUTexture() override;
 
@@ -52,20 +47,16 @@ class GPUTexture : public DawnObject<wgpu::Texture> {
   uint32_t depthOrArrayLayers() const;
   uint32_t mipLevelCount() const;
   uint32_t sampleCount() const;
-  V8GPUTextureDimension dimension() const;
-  V8GPUTextureFormat format() const;
+  String dimension() const;
+  String format() const;
   uint32_t usage() const;
 
-  wgpu::TextureDimension Dimension() { return dimension_; }
-  wgpu::TextureFormat Format() { return format_; }
-  wgpu::TextureUsage Usage() { return usage_; }
+  WGPUTextureDimension Dimension() { return dimension_; }
+  WGPUTextureFormat Format() { return format_; }
+  WGPUTextureUsageFlags Usage() { return usage_; }
   bool Destroyed() { return destroyed_; }
 
   void DissociateMailbox();
-
-  // Returns a shared pointer to the mailbox texture. The mailbox texture
-  // remains associated to the GPUTexture.
-  scoped_refptr<WebGPUMailboxTexture> GetMailboxTexture();
 
   // Sets a callback which is called if destroy is called manually, before the
   // WebGPU handle is actually destroyed.
@@ -75,12 +66,12 @@ class GPUTexture : public DawnObject<wgpu::Texture> {
  private:
   void setLabelImpl(const String& value) override {
     std::string utf8_label = value.Utf8();
-    GetHandle().SetLabel(utf8_label.c_str());
+    GetProcs().textureSetLabel(GetHandle(), utf8_label.c_str());
   }
 
-  wgpu::TextureDimension dimension_;
-  wgpu::TextureFormat format_;
-  wgpu::TextureUsage usage_;
+  WGPUTextureDimension dimension_;
+  WGPUTextureFormat format_;
+  WGPUTextureUsageFlags usage_;
   scoped_refptr<WebGPUMailboxTexture> mailbox_texture_;
   bool destroyed_ = false;
   base::OnceClosure destroy_callback_;

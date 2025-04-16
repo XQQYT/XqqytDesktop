@@ -37,13 +37,19 @@ promise_test(async t => {
   pc.addTransceiver('audio');
   const offer = await pc.createOffer();
   assert_false(offer.sdp.includes('\na=crypto:'));
-}, 'Does not create offers with SDES');
+}, 'does not create offers with SDES');
 
-promise_test(t => {
+promise_test(async t => {
   const pc = new RTCPeerConnection();
   t.add_cleanup(() => pc.close());
 
-  return promise_rejects_dom(t, 'InvalidAccessError',
-      pc.setRemoteDescription({type: 'offer', sdp}));
+  try {
+    await pc.setRemoteDescription({type: 'offer', sdp});
+    assert_unreached("Must not accept SDP without fingerprint");
+  } catch (e) {
+    // TODO: which error is correct? See
+    // https://github.com/w3c/webrtc-pc/issues/2672
+    assert_true(['OperationError', 'InvalidAccessError'].includes(e.name));
+  }
 }, 'rejects a remote offer that only includes SDES and no DTLS fingerprint');
 </script>

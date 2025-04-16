@@ -13,7 +13,6 @@ namespace blink {
 
 class Document;
 class Element;
-class ExceptionState;
 class CSSValue;
 
 struct TimelineOffset {
@@ -22,7 +21,7 @@ struct TimelineOffset {
   TimelineOffset() = default;
   TimelineOffset(NamedRange name,
                  Length offset,
-                 std::optional<String> style_dependent_offset = std::nullopt)
+                 absl::optional<String> style_dependent_offset = absl::nullopt)
       : name(name),
         offset(offset),
         style_dependent_offset(style_dependent_offset) {}
@@ -31,7 +30,7 @@ struct TimelineOffset {
 
   NamedRange name = NamedRange::kNone;
   Length offset = Length::Fixed();
-  std::optional<String> style_dependent_offset;
+  absl::optional<String> style_dependent_offset;
 
   bool operator==(const TimelineOffset& other) const {
     return name == other.name && offset == other.offset &&
@@ -44,12 +43,12 @@ struct TimelineOffset {
 
   static String TimelineRangeNameToString(NamedRange range_name);
 
-  static std::optional<TimelineOffset> Create(Element* element,
-                                              String value,
-                                              double default_percent,
-                                              ExceptionState& exception_state);
+  static absl::optional<TimelineOffset> Create(Element* element,
+                                               String value,
+                                               double default_percent,
+                                               ExceptionState& exception_state);
 
-  static std::optional<TimelineOffset> Create(
+  static absl::optional<TimelineOffset> Create(
       Element* element,
       const V8UnionStringOrTimelineRangeOffset* range_offset,
       double default_percent,

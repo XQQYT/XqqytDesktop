@@ -30,7 +30,6 @@
 #endif
 
 extern "C" {
-#include "libavutil/mem.h"
 #include "libavcodec/packet_internal.h"
 #include "libavfilter/ccfifo.h"
 }
@@ -147,7 +146,6 @@ struct decklink_ctx {
     DecklinkPtsSource video_pts_source;
     int draw_bars;
     BMDPixelFormat raw_format;
-    DecklinkSignalLossAction signal_loss_action;
 
     int frames_preroll;
     int frames_buffer;

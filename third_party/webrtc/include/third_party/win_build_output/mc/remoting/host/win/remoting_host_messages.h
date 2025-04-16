@@ -97,7 +97,6 @@
 //
 // MessageText:
 //
-// %1
 //
 #define MSG_HOST_LOG_EVENT               ((DWORD)0x40000006L)
 

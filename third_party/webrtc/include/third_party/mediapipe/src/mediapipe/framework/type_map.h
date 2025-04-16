@@ -148,7 +148,7 @@ class StaticMap {
    public:
     ValueInserter(const char* file_and_line, const KeyType& key,
                   const MediaPipeTypeData& value) {
-      StaticMap* static_map = GetMap();
+      MapName* static_map = GetMap();
       absl::MutexLock l(&(static_map->map_lock_));
 
       typename MapType::iterator it = static_map->internal_map_.find(key);

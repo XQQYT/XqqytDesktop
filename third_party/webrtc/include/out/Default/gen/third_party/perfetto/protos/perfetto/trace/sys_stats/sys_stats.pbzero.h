@@ -1128,7 +1128,7 @@ class SysStats_InterruptCount : public ::protozero::Message {
   }
 };
 
-class SysStats_CpuTimes_Decoder : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/8, /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
+class SysStats_CpuTimes_Decoder : public ::protozero::TypedProtoDecoder</*MAX_FIELD_ID=*/9, /*HAS_NONPACKED_REPEATED_FIELDS=*/false> {
  public:
   SysStats_CpuTimes_Decoder(const uint8_t* data, size_t len) : TypedProtoDecoder(data, len) {}
   explicit SysStats_CpuTimes_Decoder(const std::string& raw) : TypedProtoDecoder(reinterpret_cast<const uint8_t*>(raw.data()), raw.size()) {}
@@ -1149,6 +1149,8 @@ class SysStats_CpuTimes_Decoder : public ::protozero::TypedProtoDecoder</*MAX_FI
   uint64_t irq_ns() const { return at<7>().as_uint64(); }
   bool has_softirq_ns() const { return at<8>().valid(); }
   uint64_t softirq_ns() const { return at<8>().as_uint64(); }
+  bool has_steal_ns() const { return at<9>().valid(); }
+  uint64_t steal_ns() const { return at<9>().as_uint64(); }
 };
 
 class SysStats_CpuTimes : public ::protozero::Message {
@@ -1163,6 +1165,7 @@ class SysStats_CpuTimes : public ::protozero::Message {
     kIoWaitNsFieldNumber = 6,
     kIrqNsFieldNumber = 7,
     kSoftirqNsFieldNumber = 8,
+    kStealNsFieldNumber = 9,
   };
   static constexpr const char* GetName() { return ".perfetto.protos.SysStats.CpuTimes"; }
 
@@ -1304,6 +1307,24 @@ class SysStats_CpuTimes : public ::protozero::Message {
   static constexpr FieldMetadata_SoftirqNs kSoftirqNs{};
   void set_softirq_ns(uint64_t value) {
     static constexpr uint32_t field_id = FieldMetadata_SoftirqNs::kFieldId;
+    // Call the appropriate protozero::Message::Append(field_id, ...)
+    // method based on the type of the field.
+    ::protozero::internal::FieldWriter<
+      ::protozero::proto_utils::ProtoSchemaType::kUint64>
+        ::Append(*this, field_id, value);
+  }
+
+  using FieldMetadata_StealNs =
+    ::protozero::proto_utils::FieldMetadata<
+      9,
+      ::protozero::proto_utils::RepetitionType::kNotRepeated,
+      ::protozero::proto_utils::ProtoSchemaType::kUint64,
+      uint64_t,
+      SysStats_CpuTimes>;
+
+  static constexpr FieldMetadata_StealNs kStealNs{};
+  void set_steal_ns(uint64_t value) {
+    static constexpr uint32_t field_id = FieldMetadata_StealNs::kFieldId;
     // Call the appropriate protozero::Message::Append(field_id, ...)
     // method based on the type of the field.
     ::protozero::internal::FieldWriter<

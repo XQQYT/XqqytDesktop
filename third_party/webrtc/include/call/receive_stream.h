@@ -11,12 +11,11 @@
 #ifndef CALL_RECEIVE_STREAM_H_
 #define CALL_RECEIVE_STREAM_H_
 
-#include <cstdint>
 #include <vector>
 
 #include "api/crypto/frame_decryptor_interface.h"
 #include "api/frame_transformer_interface.h"
-#include "api/rtp_headers.h"
+#include "api/media_types.h"
 #include "api/scoped_refptr.h"
 #include "api/transport/rtp/rtp_source.h"
 
@@ -66,8 +65,6 @@ class MediaReceiveStreamInterface : public ReceiveStreamInterface {
       rtc::scoped_refptr<webrtc::FrameDecryptorInterface> frame_decryptor) = 0;
 
   virtual std::vector<RtpSource> GetSources() const = 0;
-
-  virtual void SetRtcpMode(RtcpMode mode) = 0;
 };
 
 }  // namespace webrtc

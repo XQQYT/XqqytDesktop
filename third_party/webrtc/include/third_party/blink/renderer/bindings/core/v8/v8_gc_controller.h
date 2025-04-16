@@ -54,7 +54,7 @@ class CORE_EXPORT V8GCController {
   static v8::EmbedderGraph::Node::Detachedness DetachednessFromWrapper(
       v8::Isolate*,
       const v8::Local<v8::Value>&,
-      uint16_t,
+      uint16_t class_id,
       void*);
 
   // Prologue and epilogue callbacks for V8 garbage collections.

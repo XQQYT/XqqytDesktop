@@ -27,8 +27,7 @@ class BASE_EXPORT HighResolutionTimerManager
   ~HighResolutionTimerManager() override;
 
   // base::PowerStateObserver methods.
-  void OnBatteryPowerStatusChange(
-      PowerStateObserver::BatteryPowerStatus battery_power_status) override;
+  void OnPowerStateChange(bool on_battery_power) override;
   // base::PowerSuspendObserver methods.
   void OnSuspend() override;
   void OnResume() override;

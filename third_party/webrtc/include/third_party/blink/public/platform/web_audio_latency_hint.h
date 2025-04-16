@@ -30,6 +30,7 @@ class WebAudioLatencyHint {
       category_ = kCategoryPlayback;
     } else {
       NOTREACHED();
+      category_ = kCategoryInteractive;
     }
   }
 

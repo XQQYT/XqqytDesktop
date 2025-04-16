@@ -11,14 +11,13 @@
 <body>
 <script>
 // These keywords must appear alone.
-for (const keyword of ['none', 'auto']) {
+for (const keyword of ['normal', 'none', 'auto']) {
   test_invalid_value("text-spacing", `${keyword} ${keyword}`);
   for (const keyword2 of ['no-autospace', 'space-first']) {
     test_invalid_value("text-spacing", `${keyword} ${keyword2}`);
     test_invalid_value("text-spacing", `${keyword2} ${keyword}`);
   }
 }
-test_invalid_value("text-spacing", `normal normal no-autospace`);
 </script>
 </body>
 </html>

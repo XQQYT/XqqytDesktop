@@ -51,15 +51,6 @@ const invalidConfigs = [
       height: 480,
     },
   },
-  {
-    comment: 'bitrate is present but zero',
-    config: {
-      codec: 'vp8',
-      width: 640,
-      height: 480,
-      bitrate: 0
-    },
-  },
 ];
 
 invalidConfigs.forEach(entry => {
@@ -99,14 +90,6 @@ const validButUnsupportedConfigs = [
     },
   },
   {
-  comment: 'VP8 codec string not accepted by Web Codecs',
-    config: {
-      codec: 'vp08.00.10.08',
-      width: 640,
-      height: 480,
-    },
-  },
-  {
     comment: 'Codec with bad casing',
     config: {
       codec: 'vP8',
@@ -135,8 +118,8 @@ const validButUnsupportedConfigs = [
     config: {
       codec: 'vp8',
       hardwareAcceleration: 'prefer-hardware',
-      width: 30000,
-      height: 30000,
+      width: 20000,
+      height: 20000,
       bitrate: 1,
       framerate: 240,
     }
@@ -183,14 +166,6 @@ const validButUnsupportedConfigs = [
       height: 480,
     },
   },
-  {
-    comment: 'codec with spaces',
-    config: {
-      codec: '  vp09.00.10.08  ',
-      width: 640,
-      height: 480,
-    }
-  }
 ];
 
 validButUnsupportedConfigs.forEach(entry => {

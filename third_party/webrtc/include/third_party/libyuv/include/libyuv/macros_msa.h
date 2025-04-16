@@ -20,9 +20,9 @@
   ({                                                   \
     const uint8_t* psrc_lw_m = (const uint8_t*)(psrc); \
     uint32_t val_m;                                    \
-    asm("lw  %[val_m],  %[psrc_lw_m]  \n"              \
-        : [val_m] "=r"(val_m)                          \
-        : [psrc_lw_m] "m"(*psrc_lw_m));                \
+    asm volatile("lw  %[val_m],  %[psrc_lw_m]  \n"     \
+                 : [val_m] "=r"(val_m)                 \
+                 : [psrc_lw_m] "m"(*psrc_lw_m));       \
     val_m;                                             \
   })
 
@@ -31,9 +31,9 @@
   ({                                                   \
     const uint8_t* psrc_ld_m = (const uint8_t*)(psrc); \
     uint64_t val_m = 0;                                \
-    asm("ld  %[val_m],  %[psrc_ld_m]  \n"              \
-        : [val_m] "=r"(val_m)                          \
-        : [psrc_ld_m] "m"(*psrc_ld_m));                \
+    asm volatile("ld  %[val_m],  %[psrc_ld_m]  \n"     \
+                 : [val_m] "=r"(val_m)                 \
+                 : [psrc_ld_m] "m"(*psrc_ld_m));       \
     val_m;                                             \
   })
 #else  // !(__mips == 64)
@@ -55,9 +55,9 @@
   ({                                                    \
     uint8_t* pdst_sw_m = (uint8_t*)(pdst); /* NOLINT */ \
     uint32_t val_m = (val);                             \
-    asm("sw  %[val_m],  %[pdst_sw_m]  \n"               \
-        : [pdst_sw_m] "=m"(*pdst_sw_m)                  \
-        : [val_m] "r"(val_m));                          \
+    asm volatile("sw  %[val_m],  %[pdst_sw_m]  \n"      \
+                 : [pdst_sw_m] "=m"(*pdst_sw_m)         \
+                 : [val_m] "r"(val_m));                 \
   })
 
 #if (__mips == 64)
@@ -65,9 +65,9 @@
   ({                                                    \
     uint8_t* pdst_sd_m = (uint8_t*)(pdst); /* NOLINT */ \
     uint64_t val_m = (val);                             \
-    asm("sd  %[val_m],  %[pdst_sd_m]  \n"               \
-        : [pdst_sd_m] "=m"(*pdst_sd_m)                  \
-        : [val_m] "r"(val_m));                          \
+    asm volatile("sd  %[val_m],  %[pdst_sd_m]  \n"      \
+                 : [pdst_sd_m] "=m"(*pdst_sd_m)         \
+                 : [val_m] "r"(val_m));                 \
   })
 #else  // !(__mips == 64)
 #define SD(val, pdst)                                        \
@@ -86,7 +86,8 @@
     uint8_t* psrc_lw_m = (uint8_t*)(psrc);      \
     uint32_t val_lw_m;                          \
                                                 \
-    asm("lwr %[val_lw_m], 0(%[psrc_lw_m]) \n\t" \
+    __asm__ volatile(                           \
+        "lwr %[val_lw_m], 0(%[psrc_lw_m]) \n\t" \
         "lwl %[val_lw_m], 3(%[psrc_lw_m]) \n\t" \
                                                 \
         : [val_lw_m] "=&r"(val_lw_m)            \
@@ -101,7 +102,8 @@
     uint8_t* psrc_ld_m = (uint8_t*)(psrc);      \
     uint64_t val_ld_m = 0;                      \
                                                 \
-    asm("ldr %[val_ld_m], 0(%[psrc_ld_m]) \n\t" \
+    __asm__ volatile(                           \
+        "ldr %[val_ld_m], 0(%[psrc_ld_m]) \n\t" \
         "ldl %[val_ld_m], 7(%[psrc_ld_m]) \n\t" \
                                                 \
         : [val_ld_m] "=&r"(val_ld_m)            \
@@ -128,9 +130,9 @@
   ({                                                    \
     uint8_t* pdst_sw_m = (uint8_t*)(pdst); /* NOLINT */ \
     uint32_t val_m = (val);                             \
-    asm("usw  %[val_m],  %[pdst_sw_m]  \n"              \
-        : [pdst_sw_m] "=m"(*pdst_sw_m)                  \
-        : [val_m] "r"(val_m));                          \
+    asm volatile("usw  %[val_m],  %[pdst_sw_m]  \n"     \
+                 : [pdst_sw_m] "=m"(*pdst_sw_m)         \
+                 : [val_m] "r"(val_m));                 \
   })
 
 #define SD(val, pdst)                                        \

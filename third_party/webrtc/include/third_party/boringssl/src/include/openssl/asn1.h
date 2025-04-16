@@ -1,21 +1,64 @@
-// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
+ * All rights reserved.
+ *
+ * This package is an SSL implementation written
+ * by Eric Young (eay@cryptsoft.com).
+ * The implementation was written so as to conform with Netscapes SSL.
+ *
+ * This library is free for commercial and non-commercial use as long as
+ * the following conditions are aheared to.  The following conditions
+ * apply to all code found in this distribution, be it the RC4, RSA,
+ * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
+ * included with this distribution is covered by the same copyright terms
+ * except that the holder is Tim Hudson (tjh@cryptsoft.com).
+ *
+ * Copyright remains Eric Young's, and as such any Copyright notices in
+ * the code are not to be removed.
+ * If this package is used in a product, Eric Young should be given attribution
+ * as the author of the parts of the library used.
+ * This can be in the form of a textual message at program startup or
+ * in documentation (online or textual) provided with the package.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    "This product includes cryptographic software written by
+ *     Eric Young (eay@cryptsoft.com)"
+ *    The word 'cryptographic' can be left out if the rouines from the library
+ *    being used are not cryptographic related :-).
+ * 4. If you include any Windows specific code (or a derivative thereof) from
+ *    the apps directory (application code) you must include an acknowledgement:
+ *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * The licence and distribution terms for any publically available version or
+ * derivative of this code cannot be changed.  i.e. this code cannot simply be
+ * copied and put under another distribution licence
+ * [including the GNU Public Licence.]
+ */
 
 #ifndef OPENSSL_HEADER_ASN1_H
 #define OPENSSL_HEADER_ASN1_H
 
-#include <openssl/base.h>   // IWYU pragma: export
+#include <openssl/base.h>
 
 #include <time.h>
 
@@ -425,8 +468,7 @@ DECLARE_ASN1_ITEM(ASN1_FBOOLEAN)
 
 // An asn1_string_st (aka |ASN1_STRING|) represents a value of a string-like
 // ASN.1 type. It contains a |type| field, and a byte string |data| field with a
-// type-specific representation. This type-specific representation does not
-// always correspond to the DER encoding of the type.
+// type-specific representation.
 //
 // If |type| is one of |V_ASN1_OCTET_STRING|, |V_ASN1_UTF8STRING|,
 // |V_ASN1_NUMERICSTRING|, |V_ASN1_PRINTABLESTRING|, |V_ASN1_T61STRING|,
@@ -526,10 +568,6 @@ OPENSSL_EXPORT int ASN1_STRING_type(const ASN1_STRING *str);
 // ASN1_STRING_get0_data returns a pointer to |str|'s contents. Callers should
 // use |ASN1_STRING_length| to determine the length of the string. The string
 // may have embedded NUL bytes and may not be NUL-terminated.
-//
-// The contents of an |ASN1_STRING| encode the value in some type-specific
-// representation that does not always correspond to the DER encoding of the
-// type. See the documentation for |ASN1_STRING| for details.
 OPENSSL_EXPORT const unsigned char *ASN1_STRING_get0_data(
     const ASN1_STRING *str);
 
@@ -537,18 +575,10 @@ OPENSSL_EXPORT const unsigned char *ASN1_STRING_get0_data(
 // should use |ASN1_STRING_length| to determine the length of the string. The
 // string may have embedded NUL bytes and may not be NUL-terminated.
 //
-// The contents of an |ASN1_STRING| encode the value in some type-specific
-// representation that does not always correspond to the DER encoding of the
-// type. See the documentation for |ASN1_STRING| for details.
-//
 // Prefer |ASN1_STRING_get0_data|.
 OPENSSL_EXPORT unsigned char *ASN1_STRING_data(ASN1_STRING *str);
 
 // ASN1_STRING_length returns the length of |str|, in bytes.
-//
-// The contents of an |ASN1_STRING| encode the value in some type-specific
-// representation that does not always correspond to the DER encoding of the
-// type. See the documentation for |ASN1_STRING| for details.
 OPENSSL_EXPORT int ASN1_STRING_length(const ASN1_STRING *str);
 
 // ASN1_STRING_cmp compares |a| and |b|'s type and contents. It returns an
@@ -1186,6 +1216,10 @@ OPENSSL_EXPORT ASN1_UTCTIME *ASN1_UTCTIME_adj(ASN1_UTCTIME *s,
 // If |s| is NULL, this function validates |str| without copying it.
 OPENSSL_EXPORT int ASN1_UTCTIME_set_string(ASN1_UTCTIME *s, const char *str);
 
+// ASN1_UTCTIME_cmp_time_t compares |s| to |t|. It returns -1 if |s| < |t|, 0 if
+// they are equal, 1 if |s| > |t|, and -2 on error.
+OPENSSL_EXPORT int ASN1_UTCTIME_cmp_time_t(const ASN1_UTCTIME *s, time_t t);
+
 // ASN1_GENERALIZEDTIME_new calls |ASN1_STRING_type_new| with
 // |V_ASN1_GENERALIZEDTIME|. The resulting object contains empty contents and
 // must be initialized to be a valid GeneralizedTime.
@@ -1327,21 +1361,13 @@ OPENSSL_EXPORT int ASN1_TIME_set_string(ASN1_TIME *s, const char *str);
 OPENSSL_EXPORT int ASN1_TIME_set_string_X509(ASN1_TIME *s, const char *str);
 
 // ASN1_TIME_to_time_t converts |t| to a time_t value in |out|. On
-// success, one is returned. On failure, zero is returned. This function
+// success, one is returned. On failure zero is returned. This function
 // will fail if the time can not be represented in a time_t.
 OPENSSL_EXPORT int ASN1_TIME_to_time_t(const ASN1_TIME *t, time_t *out);
 
 // ASN1_TIME_to_posix converts |t| to a POSIX time value in |out|. On
-// success, one is returned. On failure, zero is returned.
+// success, one is returned. On failure zero is returned.
 OPENSSL_EXPORT int ASN1_TIME_to_posix(const ASN1_TIME *t, int64_t *out);
-
-// ASN1_TIME_to_posix_nonstandard converts |t| to a POSIX time value in
-// |out|. It is exactly the same as |ASN1_TIME_to_posix| but allows for
-// non-standard four-digit timezone offsets on UTC times. On success, one is
-// returned. On failure, zero is returned. |ASN1_TIME_to_posix| should normally
-// be used instead of this function.
-OPENSSL_EXPORT int ASN1_TIME_to_posix_nonstandard(
-    const ASN1_TIME *t, int64_t *out);
 
 // TODO(davidben): Expand and document function prototypes generated in macros.
 
@@ -1610,18 +1636,18 @@ OPENSSL_EXPORT int ASN1_STRING_print(BIO *out, const ASN1_STRING *str);
 
 // ASN1_STRFLGS_ESC_2253 causes characters to be escaped as in RFC 2253, section
 // 2.4.
-#define ASN1_STRFLGS_ESC_2253 1ul
+#define ASN1_STRFLGS_ESC_2253 1
 
 // ASN1_STRFLGS_ESC_CTRL causes all control characters to be escaped.
-#define ASN1_STRFLGS_ESC_CTRL 2ul
+#define ASN1_STRFLGS_ESC_CTRL 2
 
 // ASN1_STRFLGS_ESC_MSB causes all characters above 127 to be escaped.
-#define ASN1_STRFLGS_ESC_MSB 4ul
+#define ASN1_STRFLGS_ESC_MSB 4
 
 // ASN1_STRFLGS_ESC_QUOTE causes the string to be surrounded by quotes, rather
 // than using backslashes, when characters are escaped. Fewer characters will
 // require escapes in this case.
-#define ASN1_STRFLGS_ESC_QUOTE 8ul
+#define ASN1_STRFLGS_ESC_QUOTE 8
 
 // ASN1_STRFLGS_UTF8_CONVERT causes the string to be encoded as UTF-8, with each
 // byte in the UTF-8 encoding treated as an individual character for purposes of
@@ -1629,29 +1655,29 @@ OPENSSL_EXPORT int ASN1_STRING_print(BIO *out, const ASN1_STRING *str);
 // as a character, with wide characters escaped as "\Uxxxx" or "\Wxxxxxxxx".
 // Note this can be ambiguous if |ASN1_STRFLGS_ESC_*| are all unset. In that
 // case, backslashes are not escaped, but wide characters are.
-#define ASN1_STRFLGS_UTF8_CONVERT 0x10ul
+#define ASN1_STRFLGS_UTF8_CONVERT 0x10
 
 // ASN1_STRFLGS_IGNORE_TYPE causes the string type to be ignored. The
 // |ASN1_STRING| in-memory representation will be printed directly.
-#define ASN1_STRFLGS_IGNORE_TYPE 0x20ul
+#define ASN1_STRFLGS_IGNORE_TYPE 0x20
 
 // ASN1_STRFLGS_SHOW_TYPE causes the string type to be included in the output.
-#define ASN1_STRFLGS_SHOW_TYPE 0x40ul
+#define ASN1_STRFLGS_SHOW_TYPE 0x40
 
 // ASN1_STRFLGS_DUMP_ALL causes all strings to be printed as a hexdump, using
 // RFC 2253 hexstring notation, such as "#0123456789ABCDEF".
-#define ASN1_STRFLGS_DUMP_ALL 0x80ul
+#define ASN1_STRFLGS_DUMP_ALL 0x80
 
 // ASN1_STRFLGS_DUMP_UNKNOWN behaves like |ASN1_STRFLGS_DUMP_ALL| but only
 // applies to values of unknown type. If unset, unknown values will print
 // their contents as single-byte characters with escape sequences.
-#define ASN1_STRFLGS_DUMP_UNKNOWN 0x100ul
+#define ASN1_STRFLGS_DUMP_UNKNOWN 0x100
 
 // ASN1_STRFLGS_DUMP_DER causes hexdumped strings (as determined by
 // |ASN1_STRFLGS_DUMP_ALL| or |ASN1_STRFLGS_DUMP_UNKNOWN|) to print the entire
 // DER element as in RFC 2253, rather than only the contents of the
 // |ASN1_STRING|.
-#define ASN1_STRFLGS_DUMP_DER 0x200ul
+#define ASN1_STRFLGS_DUMP_DER 0x200
 
 // ASN1_STRFLGS_RFC2253 causes the string to be escaped as in RFC 2253,
 // additionally escaping control characters.

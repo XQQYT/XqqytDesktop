@@ -15,10 +15,10 @@ namespace base {
 // address space of the process.
 class PlatformSharedMemoryMapper : public SharedMemoryMapper {
  public:
-  std::optional<span<uint8_t>> Map(subtle::PlatformSharedMemoryHandle handle,
-                                   bool write_allowed,
-                                   uint64_t offset,
-                                   size_t size) override;
+  absl::optional<span<uint8_t>> Map(subtle::PlatformSharedMemoryHandle handle,
+                                    bool write_allowed,
+                                    uint64_t offset,
+                                    size_t size) override;
 
   void Unmap(span<uint8_t> mapping) override;
 };

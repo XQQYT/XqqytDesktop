@@ -5,8 +5,6 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_CONTENT_DECRYPTION_MODULE_RESULT_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_CONTENT_DECRYPTION_MODULE_RESULT_H_
 
-#include <memory>
-
 #include "third_party/blink/public/platform/web_content_decryption_module_exception.h"
 #include "third_party/blink/public/platform/web_content_decryption_module_result.h"
 #include "third_party/blink/public/platform/web_encrypted_media_key_information.h"
@@ -25,7 +23,7 @@ class ContentDecryptionModuleResult
 
   virtual void Complete() = 0;
   virtual void CompleteWithContentDecryptionModule(
-      std::unique_ptr<WebContentDecryptionModule>) = 0;
+      WebContentDecryptionModule*) = 0;
   virtual void CompleteWithSession(
       WebContentDecryptionModuleResult::SessionStatus) = 0;
   virtual void CompleteWithKeyStatus(

@@ -17,24 +17,23 @@
 #include <memory>
 #include <vector>
 
-#include "api/environment/environment.h"
 #include "api/fec_controller.h"
 #include "modules/video_coding/media_opt_util.h"
 #include "rtc_base/synchronization/mutex.h"
 #include "rtc_base/thread_annotations.h"
+#include "system_wrappers/include/clock.h"
 
 namespace webrtc {
 
 class FecControllerDefault : public FecController {
  public:
-  FecControllerDefault(const Environment& env,
+  FecControllerDefault(Clock* clock,
                        VCMProtectionCallback* protection_callback);
-  explicit FecControllerDefault(const Environment& env);
+  explicit FecControllerDefault(Clock* clock);
+  ~FecControllerDefault() override;
 
   FecControllerDefault(const FecControllerDefault&) = delete;
   FecControllerDefault& operator=(const FecControllerDefault&) = delete;
-
-  ~FecControllerDefault() override;
 
   void SetProtectionCallback(
       VCMProtectionCallback* protection_callback) override;
@@ -55,7 +54,7 @@ class FecControllerDefault : public FecController {
 
  private:
   enum { kBitrateAverageWinMs = 1000 };
-  const Environment env_;
+  Clock* const clock_;
   VCMProtectionCallback* protection_callback_;
   Mutex mutex_;
   std::unique_ptr<media_optimization::VCMLossProtectionLogic> loss_prot_logic_

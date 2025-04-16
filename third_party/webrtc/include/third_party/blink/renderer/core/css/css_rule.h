@@ -59,33 +59,28 @@ class CORE_EXPORT CSSRule : public ScriptWrappable {
     kPageRule = 6,
     kKeyframesRule = 7,
     kKeyframeRule = 8,
-    kMarginRule = 9,
     kNamespaceRule = 10,
     kCounterStyleRule = 11,
     kSupportsRule = 12,
     kFontFeatureValuesRule = 14,
+    kViewportRule = 15,
     // CSSOM constants are deprecated [1], and there will be no new
     // web-exposed values.
     //
     // [1] https://wiki.csswg.org/spec/cssom-constants
 
     // Values for internal use, not web-exposed:
-    kFirstInternalRule = 16,
-    // go/keep-sorted start
-    kContainerRule = kFirstInternalRule,
-    kFontFeatureRule,
-    kFontPaletteValuesRule,
-    kFunctionDeclarationsRule,
-    kFunctionRule,
-    kLayerBlockRule,
-    kLayerStatementRule,
-    kNestedDeclarationsRule,
-    kPositionTryRule,
-    kPropertyRule,
-    kScopeRule,
-    kStartingStyleRule,
-    kViewTransitionRule,
-    // go/keep-sorted end
+    kPropertyRule = 16,
+    kContainerRule = 17,
+    kLayerBlockRule = 18,
+    kLayerStatementRule = 19,
+    kFontPaletteValuesRule = 20,
+    kScopeRule = 21,
+    kPositionFallbackRule = 22,
+    kTryRule = 23,
+    kFontFeatureRule = 24,
+    kStartingStyleRule = 25,
+    kViewTransitionsRule = 26,
   };
 
   virtual Type GetType() const = 0;
@@ -93,7 +88,7 @@ class CORE_EXPORT CSSRule : public ScriptWrappable {
   // https://drafts.csswg.org/cssom/#dom-cssrule-type
   int type() const {
     Type type = GetType();
-    return type >= Type::kFirstInternalRule ? 0 : static_cast<int>(type);
+    return type > Type::kViewportRule ? 0 : static_cast<int>(type);
   }
 
   virtual String cssText() const = 0;

@@ -49,9 +49,7 @@ class ClearButtonElement final : public HTMLDivElement {
 
  private:
   void DetachLayoutTree(bool performing_reattach) override;
-  FocusableState IsFocusableState(UpdateBehavior) const override {
-    return FocusableState::kNotFocusable;
-  }
+  bool IsFocusable(bool) const override { return false; }
   void DefaultEventHandler(Event&) override;
   bool IsClearButtonElement() const override;
 

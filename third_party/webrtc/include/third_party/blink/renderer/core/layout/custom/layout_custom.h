@@ -5,7 +5,7 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_CUSTOM_LAYOUT_CUSTOM_H_
 #define THIRD_PARTY_BLINK_RENDERER_CORE_LAYOUT_CUSTOM_LAYOUT_CUSTOM_H_
 
-#include "third_party/blink/renderer/core/layout/layout_block_flow.h"
+#include "third_party/blink/renderer/core/layout/ng/layout_ng_block_flow.h"
 #include "third_party/blink/renderer/platform/wtf/casting.h"
 
 namespace blink {
@@ -13,10 +13,10 @@ namespace blink {
 // The LayoutObject for elements which have "display: layout(foo);" specified.
 // https://drafts.css-houdini.org/css-layout-api/
 //
-// This class inherits from LayoutBlockFlow so that when a web developer's
+// This class inherits from LayoutNGBlockFlow so that when a web developer's
 // intrinsicSizes/layout callback fails, it can fallback onto the "default"
 // block-flow layout algorithm.
-class LayoutCustom final : public LayoutBlockFlow {
+class LayoutCustom final : public LayoutNGBlockFlow {
  public:
   // NOTE: In the future there may be a third state "normal", this will mean
   // that not everything is blockified, (e.g. root inline boxes, so that
@@ -50,9 +50,9 @@ class LayoutCustom final : public LayoutBlockFlow {
   }
 
  private:
-  bool IsLayoutCustom() const final {
+  bool IsOfType(LayoutObjectType type) const override {
     NOT_DESTROYED();
-    return true;
+    return type == kLayoutObjectCustom || LayoutNGBlockFlow::IsOfType(type);
   }
 
   State state_;

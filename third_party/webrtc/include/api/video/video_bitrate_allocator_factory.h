@@ -13,7 +13,6 @@
 
 #include <memory>
 
-#include "api/environment/environment.h"
 #include "api/video/video_bitrate_allocator.h"
 #include "api/video_codecs/video_codec.h"
 
@@ -24,10 +23,8 @@ namespace webrtc {
 class VideoBitrateAllocatorFactory {
  public:
   virtual ~VideoBitrateAllocatorFactory() = default;
-
   // Creates a VideoBitrateAllocator for a specific video codec.
-  virtual std::unique_ptr<VideoBitrateAllocator> Create(
-      const Environment& env,
+  virtual std::unique_ptr<VideoBitrateAllocator> CreateVideoBitrateAllocator(
       const VideoCodec& codec) = 0;
 };
 

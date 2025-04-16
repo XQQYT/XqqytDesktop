@@ -12,11 +12,11 @@
 #include <zircon/types.h>
 
 #include <string>
-#include <string_view>
 
 #include "base/base_export.h"
 #include "base/check.h"
 #include "base/logging.h"
+#include "base/strings/string_piece_forward.h"
 
 // Use the ZX_LOG family of macros along with a zx_status_t containing a Zircon
 // error. The error value will be decoded so that logged messages explain the
@@ -36,17 +36,8 @@ class BASE_EXPORT ZxLogMessage : public logging::LogMessage {
 
   ~ZxLogMessage() override;
 
- protected:
-  void AppendError();
-
  private:
   zx_status_t zx_status_;
-};
-
-class BASE_EXPORT ZxLogMessageFatal final : public ZxLogMessage {
- public:
-  using ZxLogMessage::ZxLogMessage;
-  [[noreturn]] ~ZxLogMessageFatal() override;
 };
 
 }  // namespace logging
@@ -76,7 +67,7 @@ class BASE_EXPORT ZxLogMessageFatal final : public ZxLogMessage {
 #endif  // DCHECK_IS_ON()
 
 #define ZX_DCHECK(condition, zx_status)         \
-  LAZY_STREAM(ZX_LOG_STREAM(DFATAL, zx_status), \
+  LAZY_STREAM(ZX_LOG_STREAM(DCHECK, zx_status), \
               DCHECK_IS_ON() && !(condition))   \
       << "Check failed: " #condition << ". "
 
@@ -85,12 +76,12 @@ namespace base {
 namespace internal {
 
 BASE_EXPORT std::string FidlMethodResultErrorMessage(
-    std::string_view formatted_error,
-    std::string_view method_name);
+    const base::StringPiece& formatted_error,
+    const base::StringPiece& method_name);
 
 BASE_EXPORT std::string FidlConnectionErrorMessage(
-    std::string_view protocol_name,
-    std::string_view status_string);
+    const base::StringPiece& protocol_name,
+    const base::StringPiece& status_string);
 
 }  // namespace internal
 
@@ -104,7 +95,7 @@ class Location;
 // as long as the returned fit::function<> remains live.
 BASE_EXPORT fit::function<void(zx_status_t)> LogFidlErrorAndExitProcess(
     const Location& from_here,
-    std::string_view protocol_name);
+    StringPiece protocol_name);
 
 template <typename Protocol>
 BASE_EXPORT std::string FidlConnectionErrorMessage(
@@ -117,7 +108,7 @@ BASE_EXPORT std::string FidlConnectionErrorMessage(
 template <typename FidlMethod>
 BASE_EXPORT std::string FidlMethodResultErrorMessage(
     const fidl::Result<FidlMethod>& result,
-    std::string_view method_name) {
+    const base::StringPiece& method_name) {
   CHECK(result.is_error());
   return internal::FidlMethodResultErrorMessage(
       result.error_value().FormatDescription(), method_name);
@@ -125,10 +116,10 @@ BASE_EXPORT std::string FidlMethodResultErrorMessage(
 
 BASE_EXPORT std::string FidlMethodResultErrorMessage(
     const fit::result<fidl::OneWayError>& result,
-    std::string_view method_name);
+    const base::StringPiece& method_name);
 
 BASE_EXPORT fit::function<void(fidl::UnbindInfo)>
-FidlBindingClosureWarningLogger(std::string_view protocol_name);
+FidlBindingClosureWarningLogger(base::StringPiece protocol_name);
 
 template <typename Protocol>
 BASE_EXPORT fit::function<void(fidl::UnbindInfo)>

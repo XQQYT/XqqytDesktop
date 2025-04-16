@@ -17,20 +17,12 @@
 #ifndef SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_EXPERIMENTAL_FLAMEGRAPH_H_
 #define SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_EXPERIMENTAL_FLAMEGRAPH_H_
 
-#include <cstdint>
-#include <memory>
-#include <optional>
-#include <string>
-#include <vector>
-
-#include "perfetto/ext/base/status_or.h"
-#include "perfetto/trace_processor/basic_types.h"
-#include "src/trace_processor/db/table.h"
 #include "src/trace_processor/perfetto_sql/intrinsics/table_functions/flamegraph_construction_algorithms.h"
 #include "src/trace_processor/perfetto_sql/intrinsics/table_functions/static_table_function.h"
 #include "src/trace_processor/storage/trace_storage.h"
 
-namespace perfetto::trace_processor {
+namespace perfetto {
+namespace trace_processor {
 
 class TraceProcessorContext;
 
@@ -40,11 +32,11 @@ class ExperimentalFlamegraph : public StaticTableFunction {
 
   struct InputValues {
     ProfileType profile_type;
-    std::optional<int64_t> ts;
+    int64_t ts;
     std::vector<TimeConstraints> time_constraints;
     std::optional<UniquePid> upid;
     std::optional<std::string> upid_group;
-    std::optional<std::string> focus_str;
+    std::string focus_str;
   };
 
   explicit ExperimentalFlamegraph(TraceProcessorContext* context);
@@ -53,13 +45,17 @@ class ExperimentalFlamegraph : public StaticTableFunction {
   Table::Schema CreateSchema() override;
   std::string TableName() override;
   uint32_t EstimateRowCount() override;
-  base::StatusOr<std::unique_ptr<Table>> ComputeTable(
-      const std::vector<SqlValue>& arguments) override;
+  base::Status ValidateConstraints(const QueryConstraints&) override;
+  base::Status ComputeTable(const std::vector<Constraint>& cs,
+                            const std::vector<Order>& ob,
+                            const BitVector& cols_used,
+                            std::unique_ptr<Table>& table_return) override;
 
  private:
   TraceProcessorContext* context_ = nullptr;
 };
 
-}  // namespace perfetto::trace_processor
+}  // namespace trace_processor
+}  // namespace perfetto
 
 #endif  // SRC_TRACE_PROCESSOR_PERFETTO_SQL_INTRINSICS_TABLE_FUNCTIONS_EXPERIMENTAL_FLAMEGRAPH_H_

@@ -8,18 +8,17 @@
 #include <stddef.h>
 
 #include <map>
-#include <optional>
 #include <unordered_map>
 #include <vector>
 
 #include "base/base_export.h"
-#include "base/compiler_specific.h"
 #include "base/gtest_prod_util.h"
 #include "base/trace_event/heap_profiler_allocation_context.h"
 #include "base/trace_event/memory_allocator_dump.h"
 #include "base/trace_event/memory_allocator_dump_guid.h"
 #include "base/trace_event/memory_dump_request_args.h"
 #include "build/build_config.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 // Define COUNT_RESIDENT_BYTES_SUPPORTED if platform supports counting of the
 // resident memory.
@@ -41,6 +40,7 @@ class UnguessableToken;
 
 namespace trace_event {
 
+class TraceEventMemoryOverhead;
 class TracedValue;
 
 // ProcessMemoryDump is as a strongly typed container which holds the dumps
@@ -48,8 +48,8 @@ class TracedValue;
 class BASE_EXPORT ProcessMemoryDump {
  public:
   struct BASE_EXPORT MemoryAllocatorDumpEdge {
-    friend bool operator==(const MemoryAllocatorDumpEdge&,
-                           const MemoryAllocatorDumpEdge&) = default;
+    bool operator==(const MemoryAllocatorDumpEdge&) const;
+    bool operator!=(const MemoryAllocatorDumpEdge&) const;
 
     MemoryAllocatorDumpGuid source;
     MemoryAllocatorDumpGuid target;
@@ -77,12 +77,12 @@ class BASE_EXPORT ProcessMemoryDump {
   // |start_address| and |mapped_size|. |mapped_size| is specified in bytes. The
   // value returned is valid only if the given range is currently mmapped by the
   // process. The |start_address| must be page-aligned.
-  static std::optional<size_t> CountResidentBytes(void* start_address,
-                                                  size_t mapped_size);
+  static absl::optional<size_t> CountResidentBytes(void* start_address,
+                                                   size_t mapped_size);
 
   // The same as above, but the given mapped range should belong to the
   // shared_memory's mapped region.
-  static std::optional<size_t> CountResidentBytesInSharedMemory(
+  static absl::optional<size_t> CountResidentBytesInSharedMemory(
       void* start_address,
       size_t mapped_size);
 #endif
@@ -148,9 +148,7 @@ class BASE_EXPORT ProcessMemoryDump {
       const MemoryAllocatorDumpGuid& guid) const;
 
   // Returns the map of the MemoryAllocatorDumps added to this dump.
-  const AllocatorDumpsMap& allocator_dumps() const LIFETIME_BOUND {
-    return allocator_dumps_;
-  }
+  const AllocatorDumpsMap& allocator_dumps() const { return allocator_dumps_; }
 
   AllocatorDumpsMap* mutable_allocator_dumps_for_serialization() const {
     // Mojo takes a const input argument even for move-only types that can be
@@ -163,6 +161,14 @@ class BASE_EXPORT ProcessMemoryDump {
   // Only for mojo serialization.
   std::vector<MemoryAllocatorDumpEdge> GetAllEdgesForSerialization() const;
   void SetAllEdgesForSerialization(const std::vector<MemoryAllocatorDumpEdge>&);
+
+  // Dumps heap usage with |allocator_name|.
+  void DumpHeapUsage(
+      const std::unordered_map<base::trace_event::AllocationContext,
+                               base::trace_event::AllocationMetrics>&
+          metrics_by_context,
+      base::trace_event::TraceEventMemoryOverhead& overhead,
+      const char* allocator_name);
 
   // Adds an ownership relationship between two MemoryAllocatorDump(s) with the
   // semantics: |source| owns |target|, and has the effect of attributing
@@ -204,7 +210,7 @@ class BASE_EXPORT ProcessMemoryDump {
       const UnguessableToken& shared_memory_guid,
       int importance);
 
-  const AllocatorDumpEdgesMap& allocator_dumps_edges() const LIFETIME_BOUND {
+  const AllocatorDumpEdgesMap& allocator_dumps_edges() const {
     return allocator_dumps_edges_;
   }
 
@@ -236,7 +242,7 @@ class BASE_EXPORT ProcessMemoryDump {
       perfetto::protos::pbzero::MemoryTrackerSnapshot* memory_snapshot,
       const base::ProcessId pid) const;
 
-  const MemoryDumpArgs& dump_args() const LIFETIME_BOUND { return dump_args_; }
+  const MemoryDumpArgs& dump_args() const { return dump_args_; }
 
  private:
   FRIEND_TEST_ALL_PREFIXES(ProcessMemoryDumpTest, BackgroundModeTest);
@@ -249,9 +255,7 @@ class BASE_EXPORT ProcessMemoryDump {
   // A per-process token, valid throughout all the lifetime of the current
   // process, used to disambiguate dumps with the same name generated in
   // different processes.
-  const UnguessableToken& process_token() const LIFETIME_BOUND {
-    return process_token_;
-  }
+  const UnguessableToken& process_token() const { return process_token_; }
   void set_process_token_for_testing(UnguessableToken token) {
     process_token_ = token;
   }

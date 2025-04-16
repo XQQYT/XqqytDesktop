@@ -12,7 +12,6 @@
 namespace blink {
 
 class ResourceFetcher;
-class WorkletGlobalScope;
 
 // WorkletModuleScriptFetcher is an implementation of ModuleScriptFetcher
 // interface for Worklets. This implements the custom "perform the fetch" hook
@@ -27,7 +26,7 @@ class CORE_EXPORT WorkletModuleScriptFetcher final
     : public GarbageCollected<WorkletModuleScriptFetcher>,
       public ModuleScriptFetcher {
  public:
-  WorkletModuleScriptFetcher(WorkletGlobalScope*,
+  WorkletModuleScriptFetcher(WorkletModuleResponsesMap*,
                              base::PassKey<ModuleScriptLoader>);
 
   // Implements ModuleScriptFetcher.
@@ -37,14 +36,18 @@ class CORE_EXPORT WorkletModuleScriptFetcher final
              ModuleGraphLevel,
              ModuleScriptFetcher::Client*) override;
 
-  void Trace(Visitor* visitor) const override;
-
  private:
   // Implements ResourceClient
   void NotifyFinished(Resource*) override;
   String DebugName() const override { return "WorkletModuleScriptFetcher"; }
 
-  const Member<WorkletGlobalScope> global_scope_;
+  // TODO(nhiroki): In general, CrossThreadPersistent is heavy and should not be
+  // owned by objects that can frequently be created like this class. Instead of
+  // retaining a reference to WorkletModuleResponsesMap, this class should
+  // access the map via WorkletGlobalScope::GetModuleResponsesMap().
+  // Bonus: WorkletGlobalScope can provide ResourceFetcher, too.
+  CrossThreadPersistent<WorkletModuleResponsesMap> module_responses_map_;
+
   KURL url_;
   ModuleType expected_module_type_;
 };

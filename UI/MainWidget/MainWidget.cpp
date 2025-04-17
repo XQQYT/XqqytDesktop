@@ -59,10 +59,10 @@ void MainWidget::onConnectRequest(std::string target_id)
     QMetaObject::invokeMethod(this, [this]() {
     ConfirmBeConnectDialog dialog(this);
     connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
-        std::cout<<"accept"<<std::endl;
+        EventBus::getInstance().publish("/network/connect_request_result",true);
     });
     connect(&dialog,&ConfirmBeConnectDialog::rejectConnection,this,[=](){
-        std::cout<<"reject"<<std::endl;
+        EventBus::getInstance().publish("/network/connect_request_result",false);
     });
     dialog.exec();
     }, Qt::QueuedConnection);

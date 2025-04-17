@@ -25,6 +25,9 @@ void MessageParser::initTypeFuncMap()
     type_func_map["connect_request"] = [this](std::unique_ptr<Parser> parser) {
         this->onConnectRequest(std::move(parser));
     };
+    type_func_map["connect_request_result"] = [this](std::unique_ptr<Parser> parser) {
+        this->onConnectRequestResult(std::move(parser));
+    };
 }
 
 
@@ -87,3 +90,16 @@ void MessageParser::onConnectRequest(std::unique_ptr<Parser> parser)
     }
 }
 
+void MessageParser::onConnectRequestResult(std::unique_ptr<Parser> parser)
+{
+    std::string result = parser->getKey("result");
+    //对方同意连接
+    if(result == "True")
+    {
+        std::cout<<"Target accepted"<<std::endl;
+    }
+    else
+    {
+        std::cout<<"Target rejected"<<std::endl;
+    }
+}

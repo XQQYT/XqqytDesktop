@@ -8,16 +8,16 @@
 class NetworkInterface{
 public:
     NetworkInterface(){};
-    NetworkInterface(const NetworkInterface& obj) = default;
-    NetworkInterface(NetworkInterface&& obj) = default;
-    NetworkInterface& operator=(NetworkInterface& other) = default;
-    NetworkInterface& operator=(NetworkInterface&& other) = default;
-    virtual ~NetworkInterface();
-    virtual void initSocket(const std::string& address,const std::string& port);
-    virtual void connectToServer(std::function<void(bool)> callback = nullptr);
-    virtual void sendMsg(std::string msg);
-    virtual void recvMsg(std::function<void(std::string&&)> callback);
-    virtual void closeSocket();
+    NetworkInterface(const NetworkInterface& obj) = delete;
+    NetworkInterface(NetworkInterface&& obj) = delete;
+    NetworkInterface& operator=(NetworkInterface& other) = delete;
+    NetworkInterface& operator=(NetworkInterface&& other) = delete;
+    virtual ~NetworkInterface(){};
+    virtual void initSocket(const std::string& address,const std::string& port) = 0;
+    virtual void connectToServer(std::function<void(bool)> callback = nullptr) = 0;
+    virtual void sendMsg(std::string msg) = 0;
+    virtual void recvMsg(std::function<void(std::string&&)> callback) = 0;
+    virtual void closeSocket() = 0;
 protected:
     std::string address;
     std::string port;

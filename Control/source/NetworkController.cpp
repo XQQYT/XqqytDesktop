@@ -98,9 +98,15 @@ void NetworkController::sendToServer(std::string msg)
 
 void NetworkController::dispatch_void(const std::string event_name)
 {
-    EventBus::getInstance().publish(event_name);
+    EventBus::getInstance().publish(std::move(event_name));
     std::cout<<"send "<<event_name<<std::endl;
 }
+
+void NetworkController::dispatch_string(std::string event_name,std::string str)
+{
+    EventBus::getInstance().publish(std::move(event_name),std::move(str));
+}
+
 
 void NetworkController::onCreateSDP(std::string sdp_str)
 {

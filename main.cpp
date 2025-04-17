@@ -11,6 +11,8 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/network/target_is_offline");
     EventBus::getInstance().registerEvent("/network/target_is_online");
     EventBus::getInstance().registerEvent("/network/failed_to_connect_server");
+    EventBus::getInstance().registerEvent("/network/has_connect_request");
+
     EventBus::getInstance().registerEvent("/webrtc/create_sdp");
 
 }

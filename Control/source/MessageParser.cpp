@@ -22,6 +22,9 @@ void MessageParser::initTypeFuncMap()
     type_func_map["target_status"] = [this](std::unique_ptr<Parser> parser) {
         this->onTargetStatusResult(std::move(parser));
     };
+    type_func_map["connect_request"] = [this](std::unique_ptr<Parser> parser) {
+        this->onConnectRequest(std::move(parser));
+    };
 }
 
 
@@ -60,11 +63,27 @@ void MessageParser::onTargetStatusResult(std::unique_ptr<Parser> parser)
     //目标不在线
     if(parser->getKey("status") == "False")
     {
-        network_operator.dispatch_void("/network/target_is_offline");
+        network_operator.dispatch_void("/network/target_is_offline");//会被ui层接收
     }
     //目标在线
     else
     {
-        network_operator.dispatch_void("/network/target_is_online");
+        network_operator.sendToServer(*json_factory->ws_connect_request(UserInfoManager::getInstance().getCurrentUserId(),
+                            UserInfoManager::getInstance().getCurrentTargetId()));
+        // network_operator.dispatch_void("/network/target_is_online");
     }
 }
+
+void MessageParser::onConnectRequest(std::unique_ptr<Parser> parser)
+{
+    std::string target_id = parser->getKey("target_id");
+    if(!target_id.empty())
+    {
+        network_operator.dispatch_string("/network/has_connect_request",target_id);
+    }
+    else
+    {
+        std::cout<<"json has error"<<std::endl;
+    }
+}
+

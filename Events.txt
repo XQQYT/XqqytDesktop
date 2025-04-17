@@ -4,5 +4,6 @@
 /network/registration_rejected
 /network/target_is_offline
 /network/target_is_online
+/network/has_connect_request
 
 /webrtc/create_sdp

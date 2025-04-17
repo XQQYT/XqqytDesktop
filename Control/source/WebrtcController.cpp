@@ -7,10 +7,10 @@ WebrtcController::WebrtcController()
 
 void WebrtcController::initWebrtcSubscribe()
 {
-    EventBus::getInstance().subscribe("/network/target_is_online",std::bind(
-        &WebrtcController::createSDP,
-        this
-    ));
+    // EventBus::getInstance().subscribe("/network/target_is_online",std::bind(
+    //     &WebrtcController::createSDP,
+    //     this
+    // ));
 }
 
 void WebrtcController::createSDP()
@@ -20,6 +20,6 @@ void WebrtcController::createSDP()
 
 void WebrtcController::dispatch_string(std::string event_name,std::string str)
 {
-    EventBus::getInstance().publish(event_name,std::move(str));
     std::cout<<"publish "<<event_name<<"  "<<str<<std::endl;
+    EventBus::getInstance().publish(std::move(event_name),std::move(str));
 }

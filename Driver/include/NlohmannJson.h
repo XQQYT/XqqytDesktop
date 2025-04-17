@@ -25,10 +25,11 @@ public:
     ~NlohmannJson();
     NlohmannJson(const NlohmannJson&) = delete;
     std::unique_ptr<Parser> getParser() override;
-    std::shared_ptr<std::string> ws_register(const std::string&& id) override;
-    std::shared_ptr<std::string> ws_message(const std::string&& user_id,const std::string&& target_id,const std::string&& msg) override;
-    std::shared_ptr<std::string> ws_get_target_status(const std::string&& user_id,const std::string&& target_id) override;
-    std::shared_ptr<std::string> ws_sdp_offer(const std::string&& user_id,const std::string&& target_id,const std::string&& sdp) override;
+    std::shared_ptr<std::string> ws_register(std::string id) override;
+    std::shared_ptr<std::string> ws_message(std::string user_id,std::string target_id,std::string msg) override;
+    std::shared_ptr<std::string> ws_get_target_status(std::string user_id,std::string target_id) override;
+    std::shared_ptr<std::string> ws_sdp_offer(std::string user_id,std::string target_id,std::string sdp) override;
+    std::shared_ptr<std::string> ws_connect_request(std::string user_id,std::string target_id) override;
 
 };
 

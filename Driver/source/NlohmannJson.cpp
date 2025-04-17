@@ -86,6 +86,12 @@ std::shared_ptr<std::string> NlohmannJson::ws_connect_request(std::string user_i
     return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::ws_connect_request_result(std::string user_id,std::string target_id,bool result)
+{
+    json result_msg = {{"type","connect_request_result"},{"content",{{"user_id",std::move(user_id)},{"target_id",std::move(target_id)},{"result",result ? "True":"False"}}}};
+    return std::make_shared<std::string>(result_msg.dump());
+}
+
 std::unique_ptr<Parser> NlohmannJson::getParser()
 {
     return std::make_unique<NlohmannJsonParser>();

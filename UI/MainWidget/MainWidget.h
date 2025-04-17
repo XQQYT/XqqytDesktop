@@ -8,6 +8,7 @@
 #include "RemoteControlWidget.h"
 #include "EventBus.h"
 #include "BubbleMessage.h"
+#include "ConfirmBeConnectDialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWidget; }

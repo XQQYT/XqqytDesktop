@@ -75,11 +75,17 @@ void NetworkController::initNetworkSubscribe()
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/network/connect_request_result",std::bind(
+        &NetworkController::onConnectRequestResult,
+        this,
+        std::placeholders::_1
+    ));
     EventBus::getInstance().subscribe("/webrtc/create_sdp",std::bind(
         &NetworkController::onCreateSDP,
         this,
         std::placeholders::_1
     ));
+    
 }
 
 
@@ -115,4 +121,13 @@ void NetworkController::onCreateSDP(std::string sdp_str)
     sendToServer(*json_factory->ws_sdp_offer(std::move(UserInfoManager::getInstance().getCurrentUserId()),
         std::move(UserInfoManager::getInstance().getCurrentTargetId()),
         std::move(sdp_str)));
+}
+
+void NetworkController::onConnectRequestResult(bool result)
+{
+    std::string userid = UserInfoManager::getInstance().getCurrentUserId();
+    std::string targetid = UserInfoManager::getInstance().getCurrentTargetId();
+    sendToServer(*json_factory->ws_connect_request_result(std::move(UserInfoManager::getInstance().getCurrentUserId()),
+        std::move(UserInfoManager::getInstance().getCurrentTargetId()),
+        result));
 }

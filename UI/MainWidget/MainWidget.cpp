@@ -29,7 +29,7 @@ void MainWidget::initSubscribe()
     EventBus::getInstance().subscribe("/network/target_is_offline",std::bind(&MainWidget::onTargetOffline,this));
     EventBus::getInstance().subscribe("/network/registration_rejected",std::bind(&MainWidget::onRegistrationRejected,this));
     EventBus::getInstance().subscribe("/network/failed_to_connect_server",std::bind(&MainWidget::onConnectServerFailed,this));
-
+    EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&MainWidget::onConnectRequest,this,std::placeholders::_1));
 }
 
 void MainWidget::on_btn_connect_clicked()
@@ -52,4 +52,9 @@ void MainWidget::onRegistrationRejected()
 void MainWidget::onConnectServerFailed()
 {
     bubble_message.error(this,"Failed to connect Server");
+}
+
+void MainWidget::onConnectRequest(std::string target_id)
+{
+    std::cout<<"mainwidget has connect request  "<<target_id<<std::endl;
 }

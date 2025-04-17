@@ -28,6 +28,7 @@ private:
     void onTargetOffline();
     void onConnectServerFailed();
     void onRegistrationRejected();
+    void onConnectRequest(std::string target_id);
 private:
     Ui::MainWidget *ui;
     RemoteControlWidget* w;

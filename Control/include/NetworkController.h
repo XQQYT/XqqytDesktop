@@ -16,6 +16,8 @@ class NetworkController : public Operator{
 public:
     void sendToServer(std::string msg) override;
     void dispatch_void(std::string event_name) override;
+    void dispatch_string(std::string event_name,std::string str) override;
+
 //NetworkController
 public:
     NetworkController();

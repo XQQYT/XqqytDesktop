@@ -105,7 +105,7 @@ public:
     }
 
     template<typename... Args>
-    void publish(const std::string& eventName, Args... args) {
+    void publish(std::string eventName, Args... args) {
         if (!isEventRegistered(eventName)) {
             throw std::runtime_error("Event not registered: " + eventName);
         }

@@ -13,6 +13,7 @@ target_include_directories(MainWidget PUBLIC
     ${CMAKE_SOURCE_DIR}/UI/RemoteControlWidget 
     ${CMAKE_CURRENT_SOURCE_DIR}/Control/include
     ${CMAKE_SOURCE_DIR}/UI/Dialog/Notify
+    ${CMAKE_SOURCE_DIR}/UI/Dialog/Dialog/ConfirmBeConnectDialog
 )
 
 # 链接 RemoteControlWidget 库

@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Qt路径
 set(CMAKE_PREFIX_PATH "/opt/Qt5.14.2/5.14.2/gcc_64")
+set(CMAKE_BUILD_TYPE Debug)
 
 # Find the Qt5 Widgets module
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets)

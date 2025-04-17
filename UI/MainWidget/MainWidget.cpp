@@ -41,12 +41,12 @@ void MainWidget::on_btn_connect_clicked()
 
 void MainWidget::onTargetOffline()
 {
-    bubble_message.error(this,"Target is offline");
+    bubble_message.error(this, "Target is offline");
 }
 
 void MainWidget::onRegistrationRejected()
 {
-    bubble_message.error(this,"Target is offline");
+    bubble_message.error(this,"RegistrationRejected");
 }
 
 void MainWidget::onConnectServerFailed()
@@ -56,5 +56,14 @@ void MainWidget::onConnectServerFailed()
 
 void MainWidget::onConnectRequest(std::string target_id)
 {
-    std::cout<<"mainwidget has connect request  "<<target_id<<std::endl;
+    QMetaObject::invokeMethod(this, [this]() {
+    ConfirmBeConnectDialog dialog(this);
+    connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
+        std::cout<<"accept"<<std::endl;
+    });
+    connect(&dialog,&ConfirmBeConnectDialog::rejectConnection,this,[=](){
+        std::cout<<"reject"<<std::endl;
+    });
+    dialog.exec();
+    }, Qt::QueuedConnection);
 }

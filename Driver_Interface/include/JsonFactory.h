@@ -20,11 +20,11 @@ public:
     virtual ~JsonFactory(){};
     JsonFactory(const JsonFactory&) = delete;
     virtual std::unique_ptr<Parser> getParser() = 0;
-    virtual std::shared_ptr<std::string> ws_register(const std::string&& id) = 0;
-    virtual std::shared_ptr<std::string> ws_message(const std::string&& user_id,const std::string&& target_id,const std::string&& msg) = 0;
-    virtual std::shared_ptr<std::string> ws_get_target_status(const std::string&& user_id,const std::string&& target_id) = 0;
-    virtual std::shared_ptr<std::string> ws_sdp_offer(const std::string&& user_id,const std::string&& target_id,const std::string&& sdp) = 0;
-
+    virtual std::shared_ptr<std::string> ws_register(std::string id) = 0;
+    virtual std::shared_ptr<std::string> ws_message(std::string user_id,std::string target_id,std::string msg) = 0;
+    virtual std::shared_ptr<std::string> ws_get_target_status(std::string user_id,std::string target_id) = 0;
+    virtual std::shared_ptr<std::string> ws_sdp_offer(std::string user_id,std::string target_id,std::string sdp) = 0;
+    virtual std::shared_ptr<std::string> ws_connect_request(std::string user_id,std::string target_id) = 0;
 };
 
 #endif

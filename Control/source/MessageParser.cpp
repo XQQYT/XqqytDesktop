@@ -60,11 +60,13 @@ void MessageParser::onTargetStatusResult(std::unique_ptr<Parser> parser)
     //目标不在线
     if(parser->getKey("status") == "False")
     {
-        network_operator.dispatch_void("/network/target_is_offline");
+        network_operator.dispatch_void("/network/target_is_offline");//会被ui层接收
     }
     //目标在线
     else
     {
-        network_operator.dispatch_void("/network/target_is_online");
+        network_operator.sendToServer(*json_factory->ws_connect_request(UserInfoManager::getInstance().getCurrentUserId(),
+                            UserInfoManager::getInstance().getCurrentTargetId()));
+        // network_operator.dispatch_void("/network/target_is_online");
     }
 }

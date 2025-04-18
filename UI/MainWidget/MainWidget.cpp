@@ -71,8 +71,13 @@ void MainWidget::onConnectRequest(std::string target_id)
 
 void MainWidget::onRecvConnectRequestResult(bool status)
 {
-    if(!status)
+    if (!status)
     {
-        std::cout<<"ui  rejected"<<std::endl;
+        QMetaObject::invokeMethod(this, [this]() {
+            reconnect(&info_dialog,&InfoDialog::OK,this,[](){
+                std::cout<<"test"<<std::endl;
+            });
+            info_dialog <<"Info"<<"The Peer reject your connect request"<< InfoDialog::InfoType::OK << InfoDialog::end;
+        }, Qt::QueuedConnection);
     }
 }

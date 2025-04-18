@@ -30,6 +30,7 @@ private:
     void onConnectServerFailed();
     void onRegistrationRejected();
     void onConnectRequest(std::string target_id);
+    void onRecvConnectRequestResult(bool status);
 private:
     Ui::MainWidget *ui;
     RemoteControlWidget* w;

@@ -75,7 +75,7 @@ void NetworkController::initNetworkSubscribe()
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/connect_request_result",std::bind(
+    EventBus::getInstance().subscribe("/network/send_connect_request_result",std::bind(
         &NetworkController::onConnectRequestResult,
         this,
         std::placeholders::_1
@@ -111,6 +111,11 @@ void NetworkController::dispatch_void(const std::string event_name)
 void NetworkController::dispatch_string(std::string event_name,std::string str)
 {
     EventBus::getInstance().publish(std::move(event_name),std::move(str));
+}
+
+void NetworkController::dispatch_bool(std::string event_name,bool status)
+{
+    EventBus::getInstance().publish(std::move(event_name),status);
 }
 
 

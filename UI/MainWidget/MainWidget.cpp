@@ -30,6 +30,7 @@ void MainWidget::initSubscribe()
     EventBus::getInstance().subscribe("/network/registration_rejected",std::bind(&MainWidget::onRegistrationRejected,this));
     EventBus::getInstance().subscribe("/network/failed_to_connect_server",std::bind(&MainWidget::onConnectServerFailed,this));
     EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&MainWidget::onConnectRequest,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(&MainWidget::onRecvConnectRequestResult,this,std::placeholders::_1));
 }
 
 void MainWidget::on_btn_connect_clicked()
@@ -59,11 +60,19 @@ void MainWidget::onConnectRequest(std::string target_id)
     QMetaObject::invokeMethod(this, [this]() {
     ConfirmBeConnectDialog dialog(this);
     connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
-        EventBus::getInstance().publish("/network/connect_request_result",true);
+        EventBus::getInstance().publish("/network/send_connect_request_result",true);
     });
     connect(&dialog,&ConfirmBeConnectDialog::rejectConnection,this,[=](){
-        EventBus::getInstance().publish("/network/connect_request_result",false);
+        EventBus::getInstance().publish("/network/send_connect_request_result",false);
     });
     dialog.exec();
     }, Qt::QueuedConnection);
+}
+
+void MainWidget::onRecvConnectRequestResult(bool status)
+{
+    if(!status)
+    {
+        std::cout<<"ui  rejected"<<std::endl;
+    }
 }

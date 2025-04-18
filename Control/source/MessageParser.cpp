@@ -96,10 +96,10 @@ void MessageParser::onConnectRequestResult(std::unique_ptr<Parser> parser)
     //对方同意连接
     if(result == "True")
     {
-        std::cout<<"Target accepted"<<std::endl;
+        network_operator.dispatch_bool("/network/recv_connect_request_result",true);
     }
     else
     {
-        std::cout<<"Target rejected"<<std::endl;
+        network_operator.dispatch_bool("/network/recv_connect_request_result",false);
     }
 }

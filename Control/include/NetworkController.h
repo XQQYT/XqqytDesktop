@@ -23,15 +23,15 @@ public:
     NetworkController();
     ~NetworkController();
     NetworkController(const NetworkController&) = delete;
-    void connectToServer(std::string target_id);
+    void connectToServer();
     void startRecvMsg();
     void stopRecvMsg();
     void sendMsg(std::string msg);
     void initNetworkSubscribe();
-    void onConnectRequestResult(bool result);
+    void onConnectRequestResult(std::string target_id,bool result);
     void onCreateSDP(std::string sdp_str);
 private:
-    void connectToTarget(std::string id, std::string target_id);
+    void connectToTarget(std::string target_id);
 private:
     std::shared_ptr<NetworkInterface> network_interface;
     std::thread *recv_thread;

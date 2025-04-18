@@ -10,6 +10,7 @@ NetworkController::NetworkController()
     recv_thread = nullptr;
     is_recv_thread_running = false;
     is_first_connect = true;
+    UserInfoManager::getInstance().setCurrentUserId("8888");
 }
 
 NetworkController::~NetworkController()
@@ -17,11 +18,11 @@ NetworkController::~NetworkController()
     stopRecvMsg();
 }
 
-void NetworkController::connectToServer(std::string user_id)
+void NetworkController::connectToServer()
 {
     if(is_first_connect)
     {
-        network_interface->connectToServer([this,user_id = std::move(user_id)](bool ret){
+        network_interface->connectToServer([this,user_id = std::move(UserInfoManager::getInstance().getCurrentUserId())](bool ret){
         if(ret){
             startRecvMsg();
             //发送注册消息
@@ -67,18 +68,17 @@ void NetworkController::initNetworkSubscribe()
     EventBus::getInstance().subscribe("/network/connect_to_target",std::bind(
         &NetworkController::connectToTarget,
         this,
-        std::placeholders::_1,
-        std::placeholders::_2
+        std::placeholders::_1
     ));
     EventBus::getInstance().subscribe("/ui/mainwidget_init_done",std::bind(
         &NetworkController::connectToServer,
-        this,
-        std::placeholders::_1
+        this
     ));
     EventBus::getInstance().subscribe("/network/send_connect_request_result",std::bind(
         &NetworkController::onConnectRequestResult,
         this,
-        std::placeholders::_1
+        std::placeholders::_1,
+        std::placeholders::_2
     ));
     EventBus::getInstance().subscribe("/webrtc/create_sdp",std::bind(
         &NetworkController::onCreateSDP,
@@ -89,9 +89,8 @@ void NetworkController::initNetworkSubscribe()
 }
 
 
-void NetworkController::connectToTarget(std::string user_id, std::string target_id)
+void NetworkController::connectToTarget(std::string target_id)
 {
-    UserInfoManager::getInstance().setCurrentUserId(user_id);
     UserInfoManager::getInstance().setCurrentTargetId(target_id);
     sendToServer(*json_factory->ws_get_target_status(std::move(UserInfoManager::getInstance().getCurrentUserId()),
         std::move(UserInfoManager::getInstance().getCurrentTargetId())));
@@ -128,11 +127,11 @@ void NetworkController::onCreateSDP(std::string sdp_str)
         std::move(sdp_str)));
 }
 
-void NetworkController::onConnectRequestResult(bool result)
+//send connect result to peer
+void NetworkController::onConnectRequestResult(std::string target_id,bool result)
 {
     std::string userid = UserInfoManager::getInstance().getCurrentUserId();
-    std::string targetid = UserInfoManager::getInstance().getCurrentTargetId();
     sendToServer(*json_factory->ws_connect_request_result(std::move(UserInfoManager::getInstance().getCurrentUserId()),
-        std::move(UserInfoManager::getInstance().getCurrentTargetId()),
+        std::move(target_id),
         result));
 }

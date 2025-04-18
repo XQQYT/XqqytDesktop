@@ -28,6 +28,9 @@ void MessageParser::initTypeFuncMap()
     type_func_map["connect_request_result"] = [this](std::unique_ptr<Parser> parser) {
         this->onConnectRequestResult(std::move(parser));
     };
+    type_func_map["sdp_offer"] = [this](std::unique_ptr<Parser> parser) {
+        this->onSdpOffer(std::move(parser));
+    };
 }
 
 
@@ -90,6 +93,7 @@ void MessageParser::onConnectRequest(std::unique_ptr<Parser> parser)
     }
 }
 
+//receive peer connect request result
 void MessageParser::onConnectRequestResult(std::unique_ptr<Parser> parser)
 {
     std::string result = parser->getKey("result");
@@ -102,4 +106,11 @@ void MessageParser::onConnectRequestResult(std::unique_ptr<Parser> parser)
     {
         network_operator.dispatch_bool("/network/recv_connect_request_result",false);
     }
+}
+
+//receive peer sdp offer
+void MessageParser::onSdpOffer(std::unique_ptr<Parser> parser)
+{
+    auto sdp_offer = parser->getKey("sdp");
+    network_operator.dispatch_string("/webrtc/recv_sdp_offer",std::move(sdp_offer));
 }

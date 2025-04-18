@@ -16,7 +16,7 @@ MainWidget::MainWidget(QWidget *parent)
     QGuiApplication::primaryScreen()->availableGeometry()
 ));
     initSubscribe();
-    EventBus::getInstance().publish("/ui/mainwidget_init_done",std::string("7788"));
+    EventBus::getInstance().publish("/ui/mainwidget_init_done");
 }
 
 MainWidget::~MainWidget()
@@ -36,7 +36,6 @@ void MainWidget::initSubscribe()
 void MainWidget::on_btn_connect_clicked()
 {
     EventBus::getInstance().publish("/network/connect_to_target",
-        ui->lineEdit_id->text().toStdString(),
         ui->lineEdit_target_id->text().toStdString());
 }
 
@@ -57,13 +56,13 @@ void MainWidget::onConnectServerFailed()
 
 void MainWidget::onConnectRequest(std::string target_id)
 {
-    QMetaObject::invokeMethod(this, [this]() {
+    QMetaObject::invokeMethod(this, [this,target_id]() {
     ConfirmBeConnectDialog dialog(this);
     connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
-        EventBus::getInstance().publish("/network/send_connect_request_result",true);
+        EventBus::getInstance().publish("/network/send_connect_request_result",target_id,true);
     });
     connect(&dialog,&ConfirmBeConnectDialog::rejectConnection,this,[=](){
-        EventBus::getInstance().publish("/network/send_connect_request_result",false);
+        EventBus::getInstance().publish("/network/send_connect_request_result",target_id,false);
     });
     dialog.exec();
     }, Qt::QueuedConnection);

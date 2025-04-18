@@ -12,7 +12,6 @@ void SDPO::OnSuccess(webrtc::SessionDescriptionInterface* desc)
 {
     std::string desc_str;
     desc->ToString(&desc_str);
-    std::cout<<"===  sdp  ==="<<desc_str<<std::endl;
     webrtc_instance.display_string("/webrtc/create_sdp",std::move(desc_str));
 }
 

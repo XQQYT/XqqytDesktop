@@ -10,6 +10,7 @@
 #include <atomic>
 #include <memory>
 #include <type_traits>
+#include <thread>
 
 // function_traits 定义
 template<typename T>
@@ -111,8 +112,11 @@ public:
         }
         for (auto& wrapper : callbacks_map[eventName]) {
             try {
-                auto& func = std::any_cast<std::function<void(Args...)>&>(wrapper.callback);
-                func(args...);
+                //TODO: add thread pool in plan
+                auto callback = std::any_cast<std::function<void(Args...)>>(wrapper.callback);
+                std::thread([callback, ...args = std::forward<Args>(args)]() mutable {
+                    callback(args...);
+                }).detach();
             } catch (const std::bad_any_cast&) {
                 throw std::runtime_error("Callback type mismatch for event: " + eventName);
             }

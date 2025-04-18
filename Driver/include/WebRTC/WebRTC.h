@@ -16,6 +16,7 @@ public:
     WebRTC(Operator& base_operator);
     void initWebRTC();
     void createSDP();
+    void setRemoteSDP(std::string remote_sdp);
 public:
     void display_string(std::string event_name,std::string str);
 private:
@@ -33,6 +34,7 @@ private:
     PCO pco;
     DCO dco;
     rtc::scoped_refptr<SDPO> sdpo;
+    rtc::scoped_refptr<SRDO> srdo;
 
     Operator& webrtc_operator;
 };

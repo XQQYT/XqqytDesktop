@@ -10,7 +10,7 @@ NetworkController::NetworkController()
     recv_thread = nullptr;
     is_recv_thread_running = false;
     is_first_connect = true;
-    UserInfoManager::getInstance().setCurrentUserId("8888");
+    UserInfoManager::getInstance().setCurrentUserId("7777");
 }
 
 NetworkController::~NetworkController()

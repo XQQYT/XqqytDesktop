@@ -34,4 +34,5 @@ void WebrtcController::dispatch_string(std::string event_name,std::string str)
 void WebrtcController::recvSDPOffer(std::string sdp)
 {
     std::cout<<"webrtc recvSDPOffer"<<std::endl;
+    webrtc_instance->setRemoteSDP(std::move(sdp));
 }

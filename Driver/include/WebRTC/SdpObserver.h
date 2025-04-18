@@ -11,7 +11,7 @@
 class WebRTC;
 class SDPO : public webrtc::CreateSessionDescriptionObserver {
  public:
-  SDPO(WebRTC&);
+  SDPO(WebRTC& instance):webrtc_instance(instance){};
   // This callback transfers the ownership of the `desc`.
   // TODO(deadbeef): Make this take an std::unique_ptr<> to avoid confusion
   // around ownership.
@@ -29,5 +29,16 @@ class SDPO : public webrtc::CreateSessionDescriptionObserver {
 private:
     WebRTC& webrtc_instance;
 };
+
+class SRDO : public webrtc::SetSessionDescriptionObserver {
+  public:
+      explicit SRDO(WebRTC& webrtc) : webrtc_instance(webrtc) {}
+      void OnSuccess();
+      void OnFailure(webrtc::RTCError error);
+  protected:
+      ~SRDO() override = default;
+  private:
+      WebRTC& webrtc_instance;
+  };
 
 #endif

@@ -5,6 +5,7 @@ WebRTC::WebRTC(Operator& base_operator):
   webrtc_operator(base_operator)
 {
   sdpo = new rtc::RefCountedObject<SDPO>(*this);
+  srdo = new rtc::RefCountedObject<SRDO>(*this);
   is_first = true;
 }
 
@@ -51,6 +52,35 @@ void WebRTC::createSDP()
       exit(EXIT_FAILURE);
     }
     peer_connection->CreateOffer(sdpo.get(), webrtc::PeerConnectionInterface::RTCOfferAnswerOptions());
+}
+
+void WebRTC::setRemoteSDP(std::string remote_sdp)
+{
+  if (is_first) {
+    initWebRTC();
+    is_first = false;
+  }
+
+  peer_connection = peer_connection_factory->CreatePeerConnection(
+      configuration, nullptr, nullptr, &pco);
+  if (!peer_connection) {
+      std::cerr << "Error creating PeerConnection" << std::endl;
+      return;
+  }
+
+  webrtc::SdpParseError error;
+  auto session_description = webrtc::CreateSessionDescription(
+      webrtc::SdpType::kOffer, remote_sdp, &error);
+  if (!session_description) {
+      std::cerr << "Failed to parse SDP: " << error.description << std::endl;
+      return;
+  }
+
+  // 正确调用 SetRemoteDescription
+  peer_connection->SetRemoteDescription(
+    srdo.get(),
+    session_description.get()
+  );
 }
 
 void WebRTC::display_string(std::string event_name,std::string str)

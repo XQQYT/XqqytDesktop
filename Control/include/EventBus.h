@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <thread>
 
+#include "ThreadPool.hpp"
+
 // function_traits 定义
 template<typename T>
 struct function_traits;
@@ -112,11 +114,10 @@ public:
         }
         for (auto& wrapper : callbacks_map[eventName]) {
             try {
-                //TODO: add thread pool in plan
                 auto callback = std::any_cast<std::function<void(Args...)>>(wrapper.callback);
-                std::thread([callback, ...args = std::forward<Args>(args)]() mutable {
+                thread_pool->addTask([callback, ...args = std::forward<Args>(args)]() mutable {
                     callback(args...);
-                }).detach();
+                });
             } catch (const std::bad_any_cast&) {
                 throw std::runtime_error("Callback type mismatch for event: " + eventName);
             }
@@ -152,6 +153,7 @@ private:
     std::unordered_map<std::string, std::vector<CallbackWrapper>> callbacks_map;
     std::unordered_set<std::string> registered_events;
     std::atomic<callback_id> next_id{0};
+    std::unique_ptr<ThreadPool<>> thread_pool;
 
     std::unique_ptr<NetworkController> network_controller;
     std::unique_ptr<WebrtcController> webrtc_controller;

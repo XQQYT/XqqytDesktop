@@ -11,7 +11,7 @@ public:
 public:
     WebrtcController();
     void initWebrtcSubscribe();
-    void createSDP();
+    void createSDP(bool status);
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
 };

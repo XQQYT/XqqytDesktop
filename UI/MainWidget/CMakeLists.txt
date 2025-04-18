@@ -10,10 +10,7 @@ find_package(nlohmann_json REQUIRED)
 # 添加 RemoteControlWidget 的头文件目录
 target_include_directories(MainWidget PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/UI/RemoteControlWidget 
-    ${CMAKE_CURRENT_SOURCE_DIR}/Control/include
-    ${CMAKE_SOURCE_DIR}/UI/Dialog/Notify
-    ${CMAKE_SOURCE_DIR}/UI/Dialog/Dialog/ConfirmBeConnectDialog
+    # ${CMAKE_SOURCE_DIR}/UI/RemoteControlWidget 
 )
 
 # 链接 RemoteControlWidget 库

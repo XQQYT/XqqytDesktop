@@ -5,6 +5,7 @@
 /network/target_is_offline
 /network/target_is_online
 /network/has_connect_request
-/network/connect_request_result
+/network/send_connect_request_result
+/network/recv_connect_request_result
 
 /webrtc/create_sdp

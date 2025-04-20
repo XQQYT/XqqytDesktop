@@ -7,7 +7,7 @@
 #include "api/create_peerconnection_factory.h"
 #include "rtc_base/platform_thread_types.h"
 #include "rtc_base/thread.h"
-
+#include <iostream>
 class WebRTC;
 class SDPO : public webrtc::CreateSessionDescriptionObserver {
  public:
@@ -30,13 +30,13 @@ private:
     WebRTC& webrtc_instance;
 };
 
-class SRDO : public webrtc::SetSessionDescriptionObserver {
+class SSDO : public webrtc::SetSessionDescriptionObserver {
   public:
-      explicit SRDO(WebRTC& webrtc) : webrtc_instance(webrtc) {}
+      explicit SSDO(WebRTC& webrtc) : webrtc_instance(webrtc) {}
       void OnSuccess();
       void OnFailure(webrtc::RTCError error);
   protected:
-      ~SRDO() override = default;
+      ~SSDO() = default;
   private:
       WebRTC& webrtc_instance;
   };

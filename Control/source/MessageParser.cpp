@@ -53,10 +53,7 @@ void MessageParser::onRegisterResult(std::unique_ptr<Parser> parser)
 {
     if(parser->getKey("status") == "success")
     {
-        // std::string current_user_id = std::move(UserInfoManager::getInstance().getCurrentUserId());
-        // std::string current_target_id = std::move(UserInfoManager::getInstance().getCurrentTargetId());
-        // network_operator.sendToServer(*json_factory->ws_get_target_status(std::move(current_user_id),std::move(current_target_id)));
-        std::cout<<"success to connect server"<<std::endl;
+        network_operator.dispatch_void("/network/registration_successed");
     }
     else
     {
@@ -111,6 +108,7 @@ void MessageParser::onConnectRequestResult(std::unique_ptr<Parser> parser)
 //receive peer sdp offer
 void MessageParser::onSdpOffer(std::unique_ptr<Parser> parser)
 {
+    UserInfoManager::getInstance().setEstablishingTargetId(parser->getKey("target_id"));
     auto sdp_offer = parser->getKey("sdp");
     network_operator.dispatch_string("/webrtc/recv_sdp_offer",std::move(sdp_offer));
 }

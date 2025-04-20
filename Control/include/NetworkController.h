@@ -29,7 +29,8 @@ public:
     void sendMsg(std::string msg);
     void initNetworkSubscribe();
     void onConnectRequestResult(std::string target_id,bool result);
-    void onCreateSDP(std::string sdp_str);
+    void onCreateSDPOffer(std::string sdp_str);
+    void onCreateSDPAnswer(std::string sdp_str);
 private:
     void connectToTarget(std::string target_id);
 private:

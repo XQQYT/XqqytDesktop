@@ -9,6 +9,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_PREFIX_PATH "/opt/Qt5.14.2/5.14.2/gcc_64")
 set(CMAKE_BUILD_TYPE Debug)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-g)  # 生成调试信息
+    add_link_options(-g)     # 链接时保留调试信息
+endif()
+
 # Find the Qt5 Widgets module
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
 

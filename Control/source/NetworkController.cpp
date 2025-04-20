@@ -10,7 +10,6 @@ NetworkController::NetworkController()
     recv_thread = nullptr;
     is_recv_thread_running = false;
     is_first_connect = true;
-    UserInfoManager::getInstance().setCurrentUserId("7777");
 }
 
 NetworkController::~NetworkController()
@@ -80,8 +79,13 @@ void NetworkController::initNetworkSubscribe()
         std::placeholders::_1,
         std::placeholders::_2
     ));
-    EventBus::getInstance().subscribe("/webrtc/create_sdp",std::bind(
-        &NetworkController::onCreateSDP,
+    EventBus::getInstance().subscribe("/webrtc/create_sdp_offer",std::bind(
+        &NetworkController::onCreateSDPOffer,
+        this,
+        std::placeholders::_1
+    ));
+    EventBus::getInstance().subscribe("/webrtc/create_sdp_answer",std::bind(
+        &NetworkController::onCreateSDPAnswer,
         this,
         std::placeholders::_1
     ));
@@ -118,12 +122,21 @@ void NetworkController::dispatch_bool(std::string event_name,bool status)
 }
 
 
-void NetworkController::onCreateSDP(std::string sdp_str)
+void NetworkController::onCreateSDPOffer(std::string sdp_str)
 {
     std::string userid = UserInfoManager::getInstance().getCurrentUserId();
     std::string targetid = UserInfoManager::getInstance().getCurrentTargetId();
     sendToServer(*json_factory->ws_sdp_offer(std::move(UserInfoManager::getInstance().getCurrentUserId()),
         std::move(UserInfoManager::getInstance().getCurrentTargetId()),
+        std::move(sdp_str)));
+}
+
+void NetworkController::onCreateSDPAnswer(std::string sdp_str)
+{
+    std::string userid = UserInfoManager::getInstance().getCurrentUserId();
+    std::string targetid = UserInfoManager::getInstance().getCurrentTargetId();
+    sendToServer(*json_factory->ws_sdp_answer(std::move(UserInfoManager::getInstance().getCurrentUserId()),
+        std::move(UserInfoManager::getInstance().getEstablishingTargetId()),
         std::move(sdp_str)));
 }
 

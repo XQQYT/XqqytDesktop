@@ -7,6 +7,10 @@ WebrtcController::WebrtcController()
 
 void WebrtcController::initWebrtcSubscribe()
 {
+    EventBus::getInstance().subscribe("/network/registration_successed",std::bind(
+        &WebrtcController::onInitWebrtc,
+        this
+    ));
     EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(
         &WebrtcController::createSDP,
         this,
@@ -17,19 +21,42 @@ void WebrtcController::initWebrtcSubscribe()
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/webrtc/set_remote_sdp_offer_done",std::bind(
+        &WebrtcController::onSetRemoteSDPOfferDone,
+        this
+    ));
 }
 
+void WebrtcController::onInitWebrtc()
+{
+    webrtc_instance->initWebRTC();
+}
+
+//The peer accept the connection request
 void WebrtcController::createSDP(bool status)
 {
     if(status)
-        webrtc_instance->createSDP();
+        webrtc_instance->createSDP(WebRTCInterface::SDPType::OFFER);
 }
+
+void WebrtcController::onSetRemoteSDPOfferDone()
+{
+    webrtc_instance->createSDP(WebRTC::SDPType::ANSWER);
+}
+
 
 void WebrtcController::dispatch_string(std::string event_name,std::string str)
 {
     std::cout<<"publish "<<event_name<<std::endl;
     EventBus::getInstance().publish(std::move(event_name),std::move(str));
 }
+
+void WebrtcController::dispatch_void(std::string event_name)
+{
+    std::cout<<"publish "<<event_name<<std::endl;
+    EventBus::getInstance().publish(std::move(event_name));
+}
+
 
 void WebrtcController::recvSDPOffer(std::string sdp)
 {

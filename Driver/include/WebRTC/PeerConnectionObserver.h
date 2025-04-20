@@ -5,8 +5,10 @@
 #include <rtc_base/ssl_adapter.h>
 #include <rtc_base/thread.h>
 
+class WebRTC;
 class PCO : public webrtc::PeerConnectionObserver{
     public:
+    PCO(WebRTC& instance):webrtc_instance(instance){}
     ~PCO() = default;
    
      // Triggered when the SignalingState changed.
@@ -123,6 +125,7 @@ class PCO : public webrtc::PeerConnectionObserver{
      // The heuristics for defining what constitutes "interesting" are
      // implementation-defined.
      void OnInterestingUsage(int usage_pattern) override;
+     WebRTC& webrtc_instance;
    };
 
 

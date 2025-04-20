@@ -31,6 +31,9 @@ void MessageParser::initTypeFuncMap()
     type_func_map["sdp_offer"] = [this](std::unique_ptr<Parser> parser) {
         this->onSdpOffer(std::move(parser));
     };
+    type_func_map["sdp_answer"] = [this](std::unique_ptr<Parser> parser) {
+        this->onSdpAnswer(std::move(parser));
+    };
 }
 
 
@@ -111,4 +114,10 @@ void MessageParser::onSdpOffer(std::unique_ptr<Parser> parser)
     UserInfoManager::getInstance().setEstablishingTargetId(parser->getKey("target_id"));
     auto sdp_offer = parser->getKey("sdp");
     network_operator.dispatch_string("/webrtc/recv_sdp_offer",std::move(sdp_offer));
+}
+
+void MessageParser::onSdpAnswer(std::unique_ptr<Parser> parser)
+{
+    auto sdp_answer = parser->getKey("sdp");
+    network_operator.dispatch_string("/webrtc/recv_sdp_answer",std::move(sdp_answer));
 }

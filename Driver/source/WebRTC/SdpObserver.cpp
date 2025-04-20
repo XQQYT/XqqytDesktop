@@ -4,7 +4,6 @@
 
 void SDPO::OnSuccess(webrtc::SessionDescriptionInterface* desc)
 {
-    std::cout<<"sdpo success"<<std::endl;
     std::string desc_str;
     desc->ToString(&desc_str);
     webrtc_instance.setLocalSDP(desc);
@@ -26,7 +25,7 @@ void SDPO::OnSuccess(webrtc::SessionDescriptionInterface* desc)
 
 void SDPO::OnFailure(webrtc::RTCError error)
 {
-
+    std::cout<<"create SDP failed"<<error.message()<<std::endl;
 }
 
 void SSDO::OnSuccess()
@@ -34,15 +33,17 @@ void SSDO::OnSuccess()
     switch(webrtc_instance.currentRole)
     {
         case WebRTC::Role::RECEIVER:
-            // webrtc_instance.display_void("/webrtc/set_remote_sdp_offer_done");
-            webrtc_instance.createSDP(WebRTC::SDPType::ANSWER);
-            std::cout<<"set remote sdp successed"<<std::endl;
+            //当前设置的是远程SDP，需要发送事件
+            if(webrtc_instance.set_sdp_type == WebRTC::SetSDPType::REMOTE)
+            {
+                webrtc_instance.display_void("/webrtc/set_remote_sdp_offer_done");
+            }
             break;
         case WebRTC::Role::SENDER:
-            std::cout<<"set local sdp successed"<<std::endl;
+            break;
     }
 }
 void SSDO::OnFailure(webrtc::RTCError error)
 {
-
+    std::cout<<"set SDP failed: "<<error.message()<<std::endl;
 }

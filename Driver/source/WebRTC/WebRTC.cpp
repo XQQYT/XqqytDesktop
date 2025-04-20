@@ -7,6 +7,7 @@ WebRTC::WebRTC(Operator& base_operator):
   sdpo = new rtc::RefCountedObject<SDPO>(*this);
   ssdo = new rtc::RefCountedObject<SSDO>(*this);
   currentRole = Role::UN_DEFINED; 
+  set_sdp_type = SetSDPType::UNDEFINED;
 }
 
 void WebRTC::initWebRTC()
@@ -56,7 +57,8 @@ void WebRTC::createSDP(SDPType type)
         std::cerr << "Error on CreatePeerConnection." << std::endl;
         return;
     }
-    
+    std::cout<<"create SDP status "<<static_cast<int>(peer_connection->signaling_state())<<std::endl;
+
     // 创建音频 track 并添加
     cricket::AudioOptions audio_options;
     rtc::scoped_refptr<webrtc::AudioSourceInterface> audio_source =
@@ -105,12 +107,17 @@ void WebRTC::createSDP(SDPType type)
 
 void WebRTC::setLocalSDP(webrtc::SessionDescriptionInterface* desc)
 {
-  peer_connection->SetLocalDescription(ssdo.get(),desc);
+  signaling_thread->PostTask([this, desc](){
+    set_sdp_type = SetSDPType::LOCAL;
+    peer_connection->SetLocalDescription(ssdo.get(),desc);
+  });
 }
 
-void WebRTC::setRemoteSDP(std::string remote_sdp)
+void WebRTC::setRemoteSDP(std::string remote_sdp, SDPType type)
 {
-  currentRole = Role::RECEIVER;
+  //远程SDP为offer，说明角色为receiver
+  if(type == SDPType::OFFER)
+    currentRole = Role::RECEIVER;
   if(!peer_connection)
   {
     peer_connection = peer_connection_factory->CreatePeerConnection(
@@ -120,16 +127,17 @@ void WebRTC::setRemoteSDP(std::string remote_sdp)
       std::cerr << "Error creating PeerConnection" << std::endl;
       return;
   }
+  std::cout<<"set remote SDP status "<<static_cast<int>(peer_connection->signaling_state())<<std::endl;
 
   webrtc::SdpParseError error;
   auto session_description = webrtc::CreateSessionDescription(
-    webrtc::SdpType::kOffer,remote_sdp, &error);
-  std::cout<<remote_sdp<<std::endl;
+    type == SDPType::ANSWER?webrtc::SdpType::kAnswer:webrtc::SdpType::kOffer,remote_sdp, &error);
   if (!session_description) {
       std::cerr << "Failed to parse SDP: " << error.description << std::endl;
       return;
   }
   signaling_thread->PostTask([this, sd = std::move(session_description)]() mutable {
+    set_sdp_type = SetSDPType::REMOTE;
   // 正确调用 SetRemoteDescription
     peer_connection->SetRemoteDescription(ssdo.get(), sd.release());
   });

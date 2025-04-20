@@ -14,6 +14,7 @@ public:
     void onInitWebrtc();
     void createSDP(bool status);
     void recvSDPOffer(std::string sdp);
+    void recvSDPAnswer(std::string sdp);
     void onSetRemoteSDPOfferDone();
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;

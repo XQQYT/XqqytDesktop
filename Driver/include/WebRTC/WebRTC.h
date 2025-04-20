@@ -20,12 +20,13 @@ public:
     WebRTC(Operator& base_operator);
     void initWebRTC();
     void createSDP(SDPType type);
-    void setRemoteSDP(std::string remote_sdp);
+    void setRemoteSDP(std::string remote_sdp, SDPType type);
     void setLocalSDP(webrtc::SessionDescriptionInterface* desc);
 public:
     void display_string(std::string event_name,std::string str);
     void display_void(std::string event_name);
     Role currentRole;
+    SetSDPType set_sdp_type;
     std::unique_ptr<rtc::Thread> signaling_thread;
     rtc::scoped_refptr<webrtc::PeerConnectionInterface> peer_connection;
 private:

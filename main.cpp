@@ -19,8 +19,9 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/webrtc/create_sdp_offer");
     EventBus::getInstance().registerEvent("/webrtc/create_sdp_answer");
     EventBus::getInstance().registerEvent("/webrtc/set_remote_sdp_offer_done");
-    
     EventBus::getInstance().registerEvent("/webrtc/recv_sdp_offer");
+    EventBus::getInstance().registerEvent("/webrtc/recv_sdp_answer");
+
 
 }
 //使模块订阅好事件

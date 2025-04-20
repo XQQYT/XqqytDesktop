@@ -24,6 +24,7 @@ public:
     virtual std::shared_ptr<std::string> ws_message(std::string user_id,std::string target_id,std::string msg) = 0;
     virtual std::shared_ptr<std::string> ws_get_target_status(std::string user_id,std::string target_id) = 0;
     virtual std::shared_ptr<std::string> ws_sdp_offer(std::string user_id,std::string target_id,std::string sdp) = 0;
+    virtual std::shared_ptr<std::string> ws_sdp_answer(std::string user_id,std::string target_id,std::string sdp) = 0;
     virtual std::shared_ptr<std::string> ws_connect_request(std::string user_id,std::string target_id) = 0;
     virtual std::shared_ptr<std::string> ws_connect_request_result(std::string user_id,std::string target_id,bool result) = 0;
 

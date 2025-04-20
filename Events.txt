@@ -2,11 +2,14 @@
 /network/connect_to_target
 /network/failed_to_connect_server
 /network/registration_rejected
+/network/registration_successed
 /network/target_is_offline
 /network/target_is_online
 /network/has_connect_request
 /network/send_connect_request_result
 /network/recv_connect_request_result
 
-/webrtc/create_sdp
+/webrtc/create_sdp_offer
+/webrtc/set_remote_sdp_offer_done
+/webrtc/create_sdp_answer
 /webrtc/recv_sdp_offer

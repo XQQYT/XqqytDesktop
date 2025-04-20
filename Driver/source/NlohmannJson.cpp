@@ -80,6 +80,12 @@ std::shared_ptr<std::string> NlohmannJson::ws_sdp_offer(std::string user_id,std:
     return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::ws_sdp_answer(std::string user_id,std::string target_id,std::string sdp)
+{
+    json result_msg = {{"type","sdp_answer"},{"content",{{"user_id",std::move(user_id)},{"target_id",std::move(target_id)},{"sdp",std::move(sdp)}}}};
+    return std::make_shared<std::string>(result_msg.dump());
+}
+
 std::shared_ptr<std::string> NlohmannJson::ws_connect_request(std::string user_id,std::string target_id)
 {
     json result_msg = {{"type","connect_request"},{"content",{{"user_id",std::move(user_id)},{"target_id",std::move(target_id)}}}};

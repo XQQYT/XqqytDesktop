@@ -1,8 +1,9 @@
 #include "PeerConnectionObserver.h"
-
+#include "WebRTC.h"
+#include <iostream>
 void PCO::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state)
 {
-
+    std::cout<<"peer connection status change to "<<static_cast<int>(new_state)<<std::endl;
 }
 
 void PCO::OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream)

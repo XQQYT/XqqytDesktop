@@ -18,6 +18,7 @@ private:
     void onConnectRequest(std::unique_ptr<Parser> parser);
     void onConnectRequestResult(std::unique_ptr<Parser> parser);
     void onSdpOffer(std::unique_ptr<Parser> parser);
+    void onSdpAnswer(std::unique_ptr<Parser> parser);
 private:
     std::unique_ptr<JsonFactory> json_factory;
     std::unordered_map<std::string,std::function<void(std::unique_ptr<Parser>)>> type_func_map;

@@ -21,6 +21,11 @@ void WebrtcController::initWebrtcSubscribe()
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/webrtc/recv_sdp_answer",std::bind(
+        &WebrtcController::recvSDPAnswer,
+        this,
+        std::placeholders::_1
+    ));
     EventBus::getInstance().subscribe("/webrtc/set_remote_sdp_offer_done",std::bind(
         &WebrtcController::onSetRemoteSDPOfferDone,
         this
@@ -61,5 +66,11 @@ void WebrtcController::dispatch_void(std::string event_name)
 void WebrtcController::recvSDPOffer(std::string sdp)
 {
     std::cout<<"webrtc recvSDPOffer"<<std::endl;
-    webrtc_instance->setRemoteSDP(std::move(sdp));
+    webrtc_instance->setRemoteSDP(std::move(sdp),WebRTC::SDPType::OFFER);
 }
+
+void WebrtcController::recvSDPAnswer(std::string sdp)
+{
+    webrtc_instance->setRemoteSDP(std::move(sdp),WebRTC::SDPType::ANSWER);
+}
+

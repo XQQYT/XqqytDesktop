@@ -89,6 +89,17 @@ void NetworkController::initNetworkSubscribe()
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/webrtc/send_ice_candidate",std::bind(
+        &NetworkController::onHaveICECondidate,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3
+    ));
+    EventBus::getInstance().subscribe("/webrtc/send_ice_gather_done",std::bind(
+        &NetworkController::onGatherICEDone,
+        this
+    ));
     
 }
 
@@ -96,6 +107,7 @@ void NetworkController::initNetworkSubscribe()
 void NetworkController::connectToTarget(std::string target_id)
 {
     UserInfoManager::getInstance().setCurrentTargetId(target_id);
+    UserInfoManager::getInstance().setEstablishingTargetId(target_id);
     sendToServer(*json_factory->ws_get_target_status(std::move(UserInfoManager::getInstance().getCurrentUserId()),
         std::move(UserInfoManager::getInstance().getCurrentTargetId())));
 }
@@ -116,11 +128,15 @@ void NetworkController::dispatch_string(std::string event_name,std::string str)
     EventBus::getInstance().publish(std::move(event_name),std::move(str));
 }
 
+void NetworkController::dispatch_string_string_string(std::string event_name, std::string str1, std::string str2, std::string str3)
+{
+    EventBus::getInstance().publish(std::move(event_name),std::move(str1),std::move(str2),std::move(str3));
+}
+
 void NetworkController::dispatch_bool(std::string event_name,bool status)
 {
     EventBus::getInstance().publish(std::move(event_name),status);
 }
-
 
 void NetworkController::onCreateSDPOffer(std::string sdp_str)
 {
@@ -143,8 +159,20 @@ void NetworkController::onCreateSDPAnswer(std::string sdp_str)
 //send connect result to peer
 void NetworkController::onConnectRequestResult(std::string target_id,bool result)
 {
-    std::string userid = UserInfoManager::getInstance().getCurrentUserId();
     sendToServer(*json_factory->ws_connect_request_result(std::move(UserInfoManager::getInstance().getCurrentUserId()),
         std::move(target_id),
         result));
 }
+
+void NetworkController::onHaveICECondidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index)
+{
+    sendToServer(*json_factory->ws_ice_condidate(std::move(UserInfoManager::getInstance().getCurrentUserId()),
+    std::move(UserInfoManager::getInstance().getEstablishingTargetId()),std::move(ice_str),std::move(sdp_mid),std::move(sdp_mline_index)));
+}
+
+void NetworkController::onGatherICEDone()
+{
+    sendToServer(*json_factory->ws_ice_gather_done(std::move(UserInfoManager::getInstance().getCurrentUserId()),
+    std::move(UserInfoManager::getInstance().getEstablishingTargetId())));
+}
+

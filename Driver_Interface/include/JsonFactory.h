@@ -27,6 +27,8 @@ public:
     virtual std::shared_ptr<std::string> ws_sdp_answer(std::string user_id,std::string target_id,std::string sdp) = 0;
     virtual std::shared_ptr<std::string> ws_connect_request(std::string user_id,std::string target_id) = 0;
     virtual std::shared_ptr<std::string> ws_connect_request_result(std::string user_id,std::string target_id,bool result) = 0;
+    virtual std::shared_ptr<std::string> ws_ice_condidate(std::string user_id,std::string target_id,std::string ice_str,std::string sdp_mid,std::string sdp_mline_index) = 0;
+    virtual std::shared_ptr<std::string> ws_ice_gather_done(std::string user_id,std::string target_id) = 0;
 
 };
 

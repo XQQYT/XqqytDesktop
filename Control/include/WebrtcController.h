@@ -7,6 +7,7 @@
 class WebrtcController : public Operator{
 public:
     void dispatch_string(std::string event_name,std::string str) override;
+    void dispatch_string_string_string(std::string event_name, std::string str1, std::string str2, std::string str3) override;
     void dispatch_void(std::string event_name) override;
 public:
     WebrtcController();
@@ -16,6 +17,7 @@ public:
     void recvSDPOffer(std::string sdp);
     void recvSDPAnswer(std::string sdp);
     void onSetRemoteSDPOfferDone();
+    void onRecvIceCandidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
 };

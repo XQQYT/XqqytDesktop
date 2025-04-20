@@ -34,6 +34,12 @@ void MessageParser::initTypeFuncMap()
     type_func_map["sdp_answer"] = [this](std::unique_ptr<Parser> parser) {
         this->onSdpAnswer(std::move(parser));
     };
+    type_func_map["ice_candidate"] = [this](std::unique_ptr<Parser> parser) {
+        this->onIceCondidate(std::move(parser));
+    };
+    type_func_map["ice_gather_done"] = [this](std::unique_ptr<Parser> parser) {
+        this->onIceGatherDone(std::move(parser));
+    };
 }
 
 
@@ -120,4 +126,16 @@ void MessageParser::onSdpAnswer(std::unique_ptr<Parser> parser)
 {
     auto sdp_answer = parser->getKey("sdp");
     network_operator.dispatch_string("/webrtc/recv_sdp_answer",std::move(sdp_answer));
+}
+
+void MessageParser::onIceCondidate(std::unique_ptr<Parser> parser)
+{
+    auto ice_content = parser->getObj("ice_content");
+    network_operator.dispatch_string_string_string("/webrtc/recv_ice_candidate",std::move(ice_content->getKey("ice")),
+                                                    std::move(ice_content->getKey("sdp_mid")),std::move(ice_content->getKey("sdp_mline_index")));
+}
+
+void MessageParser::onIceGatherDone(std::unique_ptr<Parser> parser)
+{
+    std::cout<<"ice done"<<std::endl;
 }

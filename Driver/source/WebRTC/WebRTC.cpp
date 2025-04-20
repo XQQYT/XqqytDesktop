@@ -8,6 +8,7 @@ WebRTC::WebRTC(Operator& base_operator):
   ssdo = new rtc::RefCountedObject<SSDO>(*this);
   currentRole = Role::UN_DEFINED; 
   set_sdp_type = SetSDPType::UNDEFINED;
+  ice_candidate_list.reserve(5);
 }
 
 void WebRTC::initWebRTC()
@@ -57,7 +58,6 @@ void WebRTC::createSDP(SDPType type)
         std::cerr << "Error on CreatePeerConnection." << std::endl;
         return;
     }
-    std::cout<<"create SDP status "<<static_cast<int>(peer_connection->signaling_state())<<std::endl;
 
     // 创建音频 track 并添加
     cricket::AudioOptions audio_options;
@@ -149,7 +149,45 @@ void WebRTC::display_string(std::string event_name,std::string str)
   webrtc_operator.dispatch_string(std::move(event_name),std::move(str));
 }
 
+void WebRTC::display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3)
+{
+  webrtc_operator.dispatch_string_string_string(std::move(event_name),std::move(str1),std::move(str2),std::move(str3));
+}
+
+
 void WebRTC::display_void(std::string event_name)
 {
   webrtc_operator.dispatch_void(event_name);
 }
+
+void WebRTC::addIceCandidateIntoBuffer(std::string ice_str)
+{
+  ice_candidate_list.emplace_back(std::move(ice_str));
+}
+
+void WebRTC::startAddIceCandidateIntoPeer()
+{
+  for (auto& ice_str : ice_candidate_list)
+  {
+    webrtc::SdpParseError error;
+    std::string sdp_mid = "0";       // 根据你的SDP设置，一般是"0"
+    int sdp_mline_index = 0;         // 一般是0，除非你有多个媒体轨
+
+    webrtc::IceCandidateInterface* candidate =
+        webrtc::CreateIceCandidate(sdp_mid, sdp_mline_index, ice_str, &error);
+
+    if (!candidate)
+    {
+      std::cerr << "Failed to parse ICE candidate: " << error.description << std::endl;
+      continue;
+    }
+
+    if (!peer_connection->AddIceCandidate(candidate))
+    {
+      std::cerr << "Failed to add ICE candidate." << std::endl;
+    }
+
+    delete candidate;
+  }
+}
+

@@ -9,6 +9,7 @@
 #include "api/video_codecs/builtin_video_decoder_factory.h"
 #include <iostream>
 #include <thread>
+#include <vector>
 #include "PeerConnectionObserver.h"
 #include "DataChannelObserver.h"
 #include "Operator.h"
@@ -22,15 +23,17 @@ public:
     void createSDP(SDPType type);
     void setRemoteSDP(std::string remote_sdp, SDPType type);
     void setLocalSDP(webrtc::SessionDescriptionInterface* desc);
+    void addIceCandidateIntoBuffer(std::string ice_str);
+    void startAddIceCandidateIntoPeer();
 public:
     void display_string(std::string event_name,std::string str);
+    void display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3);
     void display_void(std::string event_name);
     Role currentRole;
     SetSDPType set_sdp_type;
     std::unique_ptr<rtc::Thread> signaling_thread;
     rtc::scoped_refptr<webrtc::PeerConnectionInterface> peer_connection;
 private:
-
     rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
     webrtc::PeerConnectionInterface::RTCConfiguration configuration;
 
@@ -46,6 +49,8 @@ private:
     DCO dco;
     rtc::scoped_refptr<SDPO> sdpo;
     rtc::scoped_refptr<SSDO> ssdo;
+
+    std::vector<std::string> ice_candidate_list;
 
     Operator& webrtc_operator;
 };

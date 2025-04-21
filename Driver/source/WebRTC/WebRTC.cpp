@@ -8,6 +8,10 @@ WebRTC::WebRTC(Operator& base_operator):
   ssdo = new rtc::RefCountedObject<SSDO>(*this);
   currentRole = Role::UN_DEFINED; 
   set_sdp_type = SetSDPType::UNDEFINED;
+  ice_candidate_list.reserve(5);
+  hasSetRemoteSdp = false;
+  ice_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
+  peerconnection_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
 }
 
 void WebRTC::initWebRTC()
@@ -57,7 +61,6 @@ void WebRTC::createSDP(SDPType type)
         std::cerr << "Error on CreatePeerConnection." << std::endl;
         return;
     }
-    std::cout<<"create SDP status "<<static_cast<int>(peer_connection->signaling_state())<<std::endl;
 
     // 创建音频 track 并添加
     cricket::AudioOptions audio_options;
@@ -127,7 +130,6 @@ void WebRTC::setRemoteSDP(std::string remote_sdp, SDPType type)
       std::cerr << "Error creating PeerConnection" << std::endl;
       return;
   }
-  std::cout<<"set remote SDP status "<<static_cast<int>(peer_connection->signaling_state())<<std::endl;
 
   webrtc::SdpParseError error;
   auto session_description = webrtc::CreateSessionDescription(
@@ -149,7 +151,68 @@ void WebRTC::display_string(std::string event_name,std::string str)
   webrtc_operator.dispatch_string(std::move(event_name),std::move(str));
 }
 
+void WebRTC::display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3)
+{
+  webrtc_operator.dispatch_string_string_string(std::move(event_name),std::move(str1),std::move(str2),std::move(str3));
+}
+
+
 void WebRTC::display_void(std::string event_name)
 {
-  webrtc_operator.dispatch_void(event_name);
+  webrtc_operator.dispatch_void(std::move(event_name));
+}
+
+void WebRTC::dispatch_bool(std::string event_name,bool status)
+{
+  webrtc_operator.dispatch_bool(std::move(event_name),status);
+}
+
+void WebRTC::AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index)
+{
+  webrtc::SdpParseError error;
+  webrtc::IceCandidateInterface* candidate =
+  webrtc::CreateIceCandidate(sdp_mid, sdp_mline_index, ice_str, &error);
+  if (!candidate)
+  {
+    std::cerr << "Failed to parse ICE candidate: " << error.description << std::endl;
+  }
+
+  if (!peer_connection->AddIceCandidate(candidate))
+  {
+    std::cerr << "Failed to add ICE candidate." << std::endl;
+  }
+}
+
+void WebRTC::addIceCandidateIntoBuffer(std::string ice_str,std::string sdp_mid,int sdp_mline_index)
+{
+  if(!hasSetRemoteSdp)
+  {    
+    ice_candidate_list.emplace_back(std::move(ice_str), std::move(sdp_mid), sdp_mline_index);
+  }
+  else
+  {
+    AddIceCandidate(ice_str,sdp_mid,sdp_mline_index);
+  }
+}
+
+void WebRTC::startAddIceCandidateIntoPeer()
+{
+  std::cout<<"startAddIceCandidateIntoPeer  "<<ice_candidate_list.size()<<std::endl;
+  for (auto& ice : ice_candidate_list)
+  {
+    AddIceCandidate(ice.ice_str,ice.sdp_mid,ice.sdp_mline_index);
+  }
+  ice_candidate_list.clear();
+}
+
+void WebRTC::checkConnectionStatus()
+{
+  if (!peer_connection) {
+    std::cerr << "checkConnectionStatus called before PeerConnection is created." << std::endl;
+    webrtc_operator.dispatch_bool("/webrtc/connection_status", false);
+    return;
+  }
+  bool connection_status = peer_connection->ice_connection_state() == webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionConnected && 
+    peer_connection->peer_connection_state() == webrtc::PeerConnectionInterface::PeerConnectionState::kConnected;
+  webrtc_operator.dispatch_bool("/webrtc/connection_status",connection_status);
 }

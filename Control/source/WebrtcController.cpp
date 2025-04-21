@@ -30,6 +30,18 @@ void WebrtcController::initWebrtcSubscribe()
         &WebrtcController::onSetRemoteSDPOfferDone,
         this
     ));
+    EventBus::getInstance().subscribe("/webrtc/recv_ice_candidate",std::bind(
+        &WebrtcController::onRecvIceCandidate,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3
+    ));
+    EventBus::getInstance().subscribe("/webrtc/recv_ice_gather_done",std::bind(
+        &WebrtcController::onRecvIceCandidateDone,
+        this
+    ));
+    
 }
 
 void WebrtcController::onInitWebrtc()
@@ -56,12 +68,22 @@ void WebrtcController::dispatch_string(std::string event_name,std::string str)
     EventBus::getInstance().publish(std::move(event_name),std::move(str));
 }
 
+void WebrtcController::dispatch_string_string_string(std::string event_name, std::string str1, std::string str2, std::string str3)
+{
+    std::cout<<"publish "<<event_name<<std::endl;
+    EventBus::getInstance().publish(std::move(event_name),std::move(str1),std::move(str2),std::move(str3));
+}
+
 void WebrtcController::dispatch_void(std::string event_name)
 {
     std::cout<<"publish "<<event_name<<std::endl;
     EventBus::getInstance().publish(std::move(event_name));
 }
 
+void WebrtcController::dispatch_bool(std::string event_name,bool status)
+{
+    EventBus::getInstance().publish(std::move(event_name),status);
+}
 
 void WebrtcController::recvSDPOffer(std::string sdp)
 {
@@ -74,3 +96,12 @@ void WebrtcController::recvSDPAnswer(std::string sdp)
     webrtc_instance->setRemoteSDP(std::move(sdp),WebRTC::SDPType::ANSWER);
 }
 
+void WebrtcController::onRecvIceCandidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index)
+{
+    webrtc_instance->addIceCandidateIntoBuffer(std::move(ice_str),std::move(sdp_mid),std::stoi(sdp_mline_index));
+}
+
+void WebrtcController::onRecvIceCandidateDone()
+{
+    
+}

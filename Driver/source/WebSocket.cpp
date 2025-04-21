@@ -64,7 +64,6 @@ void WebSocket::sendMsg(std::string msg) {
 
     auto self = shared_from_this();
     auto msg_ptr = std::make_shared<std::string>(std::move(msg));
-
     asio::post(*ioc, [this, self, msg_ptr]() {
         try {
             if (!ws_socket->is_open()) {

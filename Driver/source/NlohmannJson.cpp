@@ -58,44 +58,117 @@ NlohmannJson::~NlohmannJson()
 
 std::shared_ptr<std::string> NlohmannJson::ws_register(std::string id)
 {
-    json result_msg = {{"type", "register"},{"content",{{"id",std::move(id)}}}};
+    json result_msg = {
+        {"type", "register"},
+        {"content", {
+            {"id", std::move(id)}
+        }}
+    };
     return std::make_shared<std::string>(result_msg.dump());
 }
 
 std::shared_ptr<std::string> NlohmannJson::ws_message(std::string user_id,std::string target_id,std::string msg)
 {
-    json result_msg = {{"type", "message"},{"content",{{"user_id",std::move(user_id)},{"target_id",std::move(target_id)},{"message",std::move(msg)}}}};
-    return std::make_shared<std::string>(result_msg.dump());
+    json result_msg = {
+        {"type", "message"},
+        {"content", {
+            {"user_id", std::move(user_id)},
+            {"target_id", std::move(target_id)},
+            {"message", std::move(msg)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
 }
 
 std::shared_ptr<std::string> NlohmannJson::ws_get_target_status(std::string user_id,std::string target_id)
 {
-    json result_msg = {{"type","get_target_status"},{"content",{{"user_id",std::move(user_id)},{"target_id",std::move(target_id)}}}};
-    return std::make_shared<std::string>(result_msg.dump());
+    json result_msg = {
+        {"type", "get_target_status"},
+        {"content", {
+            {"user_id", std::move(user_id)},
+            {"target_id", std::move(target_id)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
 }
 
 std::shared_ptr<std::string> NlohmannJson::ws_sdp_offer(std::string user_id,std::string target_id,std::string sdp)
 {
-    json result_msg = {{"type","sdp_offer"},{"content",{{"user_id",std::move(user_id)},{"target_id",std::move(target_id)},{"sdp",std::move(sdp)}}}};
-    return std::make_shared<std::string>(result_msg.dump());
+    json result_msg = {
+        {"type", "sdp_offer"},
+        {"content", {
+            {"user_id", std::move(user_id)},
+            {"target_id", std::move(target_id)},
+            {"sdp", std::move(sdp)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
 }
 
 std::shared_ptr<std::string> NlohmannJson::ws_sdp_answer(std::string user_id,std::string target_id,std::string sdp)
 {
-    json result_msg = {{"type","sdp_answer"},{"content",{{"user_id",std::move(user_id)},{"target_id",std::move(target_id)},{"sdp",std::move(sdp)}}}};
-    return std::make_shared<std::string>(result_msg.dump());
+    json result_msg = {
+        {"type", "sdp_answer"},
+        {"content", {
+            {"user_id", std::move(user_id)},
+            {"target_id", std::move(target_id)},
+            {"sdp", std::move(sdp)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
 }
 
 std::shared_ptr<std::string> NlohmannJson::ws_connect_request(std::string user_id,std::string target_id)
 {
-    json result_msg = {{"type","connect_request"},{"content",{{"user_id",std::move(user_id)},{"target_id",std::move(target_id)}}}};
-    return std::make_shared<std::string>(result_msg.dump());
+    json result_msg = {
+        {"type", "connect_request"},
+        {"content", {
+            {"user_id", std::move(user_id)},
+            {"target_id", std::move(target_id)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
 }
 
 std::shared_ptr<std::string> NlohmannJson::ws_connect_request_result(std::string user_id,std::string target_id,bool result)
 {
-    json result_msg = {{"type","connect_request_result"},{"content",{{"user_id",std::move(user_id)},{"target_id",std::move(target_id)},{"result",result ? "True":"False"}}}};
+    json result_msg = {
+        {"type", "connect_request_result"},
+        {"content", {
+            {"user_id", std::move(user_id)},
+            {"target_id", std::move(target_id)},
+            {"result", result ? "True" : "False"}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
+std::shared_ptr<std::string> NlohmannJson::ws_ice_condidate(std::string user_id,std::string target_id,std::string ice_str,std::string sdp_mid,std::string sdp_mline_index)
+{
+    json result_msg = {
+        {"type", "ice_candidate"},
+        {"content", {
+            {"user_id", std::move(user_id)},
+            {"target_id", std::move(target_id)},
+            {"ice_content", {
+                {"ice", std::move(ice_str)},
+                {"sdp_mid", std::move(sdp_mid)},
+                {"sdp_mline_index", std::move(sdp_mline_index)}
+            }}
+        }}
+    };
     return std::make_shared<std::string>(result_msg.dump());
+}
+std::shared_ptr<std::string> NlohmannJson::ws_ice_gather_done(std::string user_id,std::string target_id)
+{
+    json result_msg = {
+        {"type", "ice_gather_done"},
+        {"content", {
+            {"user_id", std::move(user_id)},
+            {"target_id", std::move(target_id)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
 }
 
 std::unique_ptr<Parser> NlohmannJson::getParser()

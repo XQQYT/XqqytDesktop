@@ -30,6 +30,11 @@ void SDPO::OnFailure(webrtc::RTCError error)
 
 void SSDO::OnSuccess()
 {
+    if(webrtc_instance.set_sdp_type == WebRTC::SetSDPType::REMOTE)
+    {
+        webrtc_instance.hasSetRemoteSdp = true;
+        webrtc_instance.startAddIceCandidateIntoPeer();
+    }
     switch(webrtc_instance.currentRole)
     {
         case WebRTC::Role::RECEIVER:
@@ -40,6 +45,8 @@ void SSDO::OnSuccess()
             }
             break;
         case WebRTC::Role::SENDER:
+            break;
+        case WebRTC::Role::UN_DEFINED:
             break;
     }
 }

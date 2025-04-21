@@ -14,3 +14,8 @@
 /webrtc/create_sdp_answer
 /webrtc/recv_sdp_offer
 /webrtc/recv_sdp_answer
+/webrtc/send_ice_candidate
+/webrtc/recv_ice_candidate
+/webrtc/send_ice_gather_done
+/webrtc/recv_ice_gather_done
+/webrtc/connection_status

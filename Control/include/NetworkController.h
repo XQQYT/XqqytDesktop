@@ -17,6 +17,7 @@ public:
     void sendToServer(std::string msg) override;
     void dispatch_void(std::string event_name) override;
     void dispatch_string(std::string event_name,std::string str) override;
+    void dispatch_string_string_string(std::string event_name, std::string str1, std::string str2, std::string str3) override;
     void dispatch_bool(std::string event_name,bool status) override;
 //NetworkController
 public:
@@ -31,6 +32,8 @@ public:
     void onConnectRequestResult(std::string target_id,bool result);
     void onCreateSDPOffer(std::string sdp_str);
     void onCreateSDPAnswer(std::string sdp_str);
+    void onHaveICECondidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
+    void onGatherICEDone();
 private:
     void connectToTarget(std::string target_id);
 private:

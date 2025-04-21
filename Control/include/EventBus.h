@@ -68,7 +68,7 @@ public:
     void registerEvent(std::string eventName) {
         auto [it, inserted] = registered_events.emplace(std::move(eventName));
         if (inserted) {
-            callbacks_map.try_emplace(*it).first->second.reserve(4);
+            callbacks_map.try_emplace(*it).first->second.reserve(3);
             std::cout << "register " << *it << std::endl;
         }
     }

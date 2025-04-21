@@ -18,6 +18,7 @@ public:
     void recvSDPAnswer(std::string sdp);
     void onSetRemoteSDPOfferDone();
     void onRecvIceCandidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
+    void onRecvIceCandidateDone();
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
 };

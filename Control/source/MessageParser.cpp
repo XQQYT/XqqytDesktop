@@ -137,5 +137,5 @@ void MessageParser::onIceCondidate(std::unique_ptr<Parser> parser)
 
 void MessageParser::onIceGatherDone(std::unique_ptr<Parser> parser)
 {
-    std::cout<<"ice done"<<std::endl;
+    network_operator.dispatch_void("/webrtc/recv_ice_gather_done");
 }

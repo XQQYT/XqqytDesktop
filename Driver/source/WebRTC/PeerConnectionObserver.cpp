@@ -48,9 +48,9 @@ void PCO::OnConnectionChange(webrtc::PeerConnectionInterface::PeerConnectionStat
 
 void PCO::OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state)
 {
-    if (new_state == webrtc::PeerConnectionInterface::kIceGatheringComplete) {
-        webrtc_instance.display_void("/webrtc/send_ice_gather_done");
-    }
+    // if (new_state == webrtc::PeerConnectionInterface::kIceGatheringComplete) {
+    //     webrtc_instance.display_void("/webrtc/send_ice_gather_done");
+    // }
 }
 
 void PCO::OnIceCandidate(const webrtc::IceCandidateInterface* candidate)

@@ -18,12 +18,20 @@
 class WebRTC : public WebRTCInterface
 {
 public:
+    struct Ice{
+        Ice(std::string ice, std::string mid, int index)
+        : ice_str(std::move(ice)), sdp_mid(std::move(mid)), sdp_mline_index(index) {}
+        std::string ice_str;
+        std::string sdp_mid;
+        int sdp_mline_index;
+    };
+public:
     WebRTC(Operator& base_operator);
     void initWebRTC();
     void createSDP(SDPType type);
     void setRemoteSDP(std::string remote_sdp, SDPType type);
     void setLocalSDP(webrtc::SessionDescriptionInterface* desc);
-    void addIceCandidateIntoBuffer(std::string ice_str);
+    void addIceCandidateIntoBuffer(std::string ice_str,std::string sdp_mid,int sdp_mline_index);
     void startAddIceCandidateIntoPeer();
 public:
     void display_string(std::string event_name,std::string str);
@@ -31,8 +39,11 @@ public:
     void display_void(std::string event_name);
     Role currentRole;
     SetSDPType set_sdp_type;
+    bool hasSetRemoteSdp;
     std::unique_ptr<rtc::Thread> signaling_thread;
     rtc::scoped_refptr<webrtc::PeerConnectionInterface> peer_connection;
+private:
+    void AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index);
 private:
     rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
     webrtc::PeerConnectionInterface::RTCConfiguration configuration;
@@ -50,7 +61,7 @@ private:
     rtc::scoped_refptr<SDPO> sdpo;
     rtc::scoped_refptr<SSDO> ssdo;
 
-    std::vector<std::string> ice_candidate_list;
+    std::vector<Ice> ice_candidate_list;
 
     Operator& webrtc_operator;
 };

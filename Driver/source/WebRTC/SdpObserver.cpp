@@ -30,6 +30,12 @@ void SDPO::OnFailure(webrtc::RTCError error)
 
 void SSDO::OnSuccess()
 {
+    if(webrtc_instance.set_sdp_type == WebRTC::SetSDPType::REMOTE)
+    {
+        webrtc_instance.hasSetRemoteSdp = true;
+        std::cout<<"has set remote sdp into peer connection"<<std::endl;
+        webrtc_instance.startAddIceCandidateIntoPeer();
+    }
     switch(webrtc_instance.currentRole)
     {
         case WebRTC::Role::RECEIVER:

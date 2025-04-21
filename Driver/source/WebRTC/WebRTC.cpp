@@ -10,6 +10,8 @@ WebRTC::WebRTC(Operator& base_operator):
   set_sdp_type = SetSDPType::UNDEFINED;
   ice_candidate_list.reserve(5);
   hasSetRemoteSdp = false;
+  ice_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
+  peerconnection_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
 }
 
 void WebRTC::initWebRTC()
@@ -128,7 +130,6 @@ void WebRTC::setRemoteSDP(std::string remote_sdp, SDPType type)
       std::cerr << "Error creating PeerConnection" << std::endl;
       return;
   }
-  std::cout<<"set remote SDP status "<<static_cast<int>(peer_connection->signaling_state())<<std::endl;
 
   webrtc::SdpParseError error;
   auto session_description = webrtc::CreateSessionDescription(
@@ -158,7 +159,12 @@ void WebRTC::display_string_string_string(std::string event_name,std::string str
 
 void WebRTC::display_void(std::string event_name)
 {
-  webrtc_operator.dispatch_void(event_name);
+  webrtc_operator.dispatch_void(std::move(event_name));
+}
+
+void WebRTC::dispatch_bool(std::string event_name,bool status)
+{
+  webrtc_operator.dispatch_bool(std::move(event_name),status);
 }
 
 void WebRTC::AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index)
@@ -175,20 +181,16 @@ void WebRTC::AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mli
   {
     std::cerr << "Failed to add ICE candidate." << std::endl;
   }
-  std::cout<<"add ice_candidate success"<<std::endl;
 }
 
 void WebRTC::addIceCandidateIntoBuffer(std::string ice_str,std::string sdp_mid,int sdp_mline_index)
 {
-  std::cout<<"current has set remote sdp  ->  "<<hasSetRemoteSdp<<std::endl;
   if(!hasSetRemoteSdp)
   {    
-    std::cout<<"add a ice into buffer"<<std::endl;
     ice_candidate_list.emplace_back(std::move(ice_str), std::move(sdp_mid), sdp_mline_index);
   }
   else
   {
-    std::cout<<"add a ice directly"<<std::endl;
     AddIceCandidate(ice_str,sdp_mid,sdp_mline_index);
   }
 }
@@ -198,9 +200,19 @@ void WebRTC::startAddIceCandidateIntoPeer()
   std::cout<<"startAddIceCandidateIntoPeer  "<<ice_candidate_list.size()<<std::endl;
   for (auto& ice : ice_candidate_list)
   {
-    std::cout<<"add ->  "<<ice.ice_str<<std::endl;
     AddIceCandidate(ice.ice_str,ice.sdp_mid,ice.sdp_mline_index);
   }
   ice_candidate_list.clear();
 }
 
+void WebRTC::checkConnectionStatus()
+{
+  if (!peer_connection) {
+    std::cerr << "checkConnectionStatus called before PeerConnection is created." << std::endl;
+    webrtc_operator.dispatch_bool("/webrtc/connection_status", false);
+    return;
+  }
+  bool connection_status = peer_connection->ice_connection_state() == webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionConnected && 
+    peer_connection->peer_connection_state() == webrtc::PeerConnectionInterface::PeerConnectionState::kConnected;
+  webrtc_operator.dispatch_bool("/webrtc/connection_status",connection_status);
+}

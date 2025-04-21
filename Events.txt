@@ -18,3 +18,4 @@
 /webrtc/recv_ice_candidate
 /webrtc/send_ice_gather_done
 /webrtc/recv_ice_gather_done
+/webrtc/connection_status

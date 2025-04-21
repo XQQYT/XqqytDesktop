@@ -33,7 +33,6 @@ void SSDO::OnSuccess()
     if(webrtc_instance.set_sdp_type == WebRTC::SetSDPType::REMOTE)
     {
         webrtc_instance.hasSetRemoteSdp = true;
-        std::cout<<"has set remote sdp into peer connection"<<std::endl;
         webrtc_instance.startAddIceCandidateIntoPeer();
     }
     switch(webrtc_instance.currentRole)
@@ -46,6 +45,8 @@ void SSDO::OnSuccess()
             }
             break;
         case WebRTC::Role::SENDER:
+            break;
+        case WebRTC::Role::UN_DEFINED:
             break;
     }
 }

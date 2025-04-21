@@ -31,6 +31,7 @@ void MainWidget::initSubscribe()
     EventBus::getInstance().subscribe("/network/failed_to_connect_server",std::bind(&MainWidget::onConnectServerFailed,this));
     EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&MainWidget::onConnectRequest,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(&MainWidget::onRecvConnectRequestResult,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe("/webrtc/connection_status",std::bind(&MainWidget::onConnectionStatus,this,std::placeholders::_1));
 }
 
 void MainWidget::on_btn_connect_clicked()
@@ -78,5 +79,16 @@ void MainWidget::onRecvConnectRequestResult(bool status)
             });
             info_dialog <<"Info"<<"The Peer reject your connect request"<< InfoDialog::InfoType::OK << InfoDialog::end;
         }, Qt::QueuedConnection);
+    }
+}
+void MainWidget::onConnectionStatus(bool status)
+{
+    if(status)
+    {
+        std::cout<<"Connection successed"<<std::endl;
+    }
+    else
+    {
+        std::cout<<"Connection failed"<<std::endl;
     }
 }

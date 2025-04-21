@@ -80,6 +80,10 @@ void WebrtcController::dispatch_void(std::string event_name)
     EventBus::getInstance().publish(std::move(event_name));
 }
 
+void WebrtcController::dispatch_bool(std::string event_name,bool status)
+{
+    EventBus::getInstance().publish(std::move(event_name),status);
+}
 
 void WebrtcController::recvSDPOffer(std::string sdp)
 {
@@ -99,5 +103,5 @@ void WebrtcController::onRecvIceCandidate(std::string ice_str,std::string sdp_mi
 
 void WebrtcController::onRecvIceCandidateDone()
 {
-    std::cout<<"recv Ice Candidata Done"<<std::endl;
+    
 }

@@ -64,10 +64,8 @@ void WebSocket::sendMsg(std::string msg) {
 
     auto self = shared_from_this();
     auto msg_ptr = std::make_shared<std::string>(std::move(msg));
-    std::cout<<"post send task"<<std::endl;
     asio::post(*ioc, [this, self, msg_ptr]() {
         try {
-            std::cout<<"start send"<<std::endl;
             if (!ws_socket->is_open()) {
                 std::cerr << "WebSocket is closed" << std::endl;
                 return;

@@ -33,13 +33,17 @@ public:
     void setLocalSDP(webrtc::SessionDescriptionInterface* desc);
     void addIceCandidateIntoBuffer(std::string ice_str,std::string sdp_mid,int sdp_mline_index);
     void startAddIceCandidateIntoPeer();
+    void checkConnectionStatus();
 public:
     void display_string(std::string event_name,std::string str);
     void display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3);
     void display_void(std::string event_name);
+    void dispatch_bool(std::string event_name,bool status);
     Role currentRole;
     SetSDPType set_sdp_type;
     bool hasSetRemoteSdp;
+    WebRTCInterface::ConnectionStatus ice_status;
+    WebRTCInterface::ConnectionStatus peerconnection_status;
     std::unique_ptr<rtc::Thread> signaling_thread;
     rtc::scoped_refptr<webrtc::PeerConnectionInterface> peer_connection;
 private:

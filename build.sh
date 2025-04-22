@@ -31,7 +31,7 @@ rm "$temp_file"
 #cat "$file"
 sudo apt-get install gcc g++ cmake -y
 
-sudo apt-get install libg11-mesa-dev -y
+sudo apt-get install libgl1-mesa-dev -y
 
 sudo apt-get install nlohmann-json3-dev -y
 

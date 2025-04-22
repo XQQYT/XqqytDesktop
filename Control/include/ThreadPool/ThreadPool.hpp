@@ -7,6 +7,7 @@
 #include "PriorityQueue.hpp"
 #include <chrono>
 #include <unordered_map>
+#include <vector>
 
 static const int default_thread_min = 8;
 static const int default_thread_max = 16;
@@ -62,7 +63,11 @@ public:
 		closeThreadPool();
 		manager_thread.join();
 		for (auto& thread : thread_map) {
-			thread.second.join();
+			if(thread.second.joinable())
+			{
+				std::cout<<"worker thread exit"<<std::endl;
+				thread.second.join();
+			}
 		}
 	}
 
@@ -99,6 +104,7 @@ public:
 		for (int i = 0; i < thread_size; i++)
 			task_queue->release();
 		mtx.unlock();
+		
 	}
 
 	inline int getThreadPoolSize() noexcept {
@@ -123,6 +129,8 @@ private:
 
 	std::thread manager_thread;
 
+	std::vector<std::thread::id> need_to_erase;
+
 	bool shutdown;
 
 	int need_to_close_num;
@@ -132,7 +140,11 @@ private:
 		while (!shutdown) {
 			std::shared_lock<std::shared_mutex> read_lock(rw_mtx);
 			int task_num = task_queue->getSize();
-			
+			for(auto& id : need_to_erase)
+			{
+				thread_map.erase(id);
+			}
+			need_to_erase.clear();
 			bool add = false, remove = false;
 
         	if (scaling_rule) {
@@ -203,16 +215,8 @@ private:
 
 	void shutdownThread() {
 		std::thread::id id = std::this_thread::get_id();
-		auto it = thread_map.find(id);
-		if (it != thread_map.end() && it->second.joinable()) {
-			it->second.join();
-			thread_map.erase(it);
-			std::cout<<"kill a worker thread"<<std::endl;
-		}
-		else {
-
-			std::cerr << "Warning: Thread ID not found in thread_map." << std::endl;
-		}
+		std::unique_lock<std::mutex> lock(mtx);
+		need_to_erase.push_back(id);
 	}
 };
 

@@ -1,4 +1,4 @@
-/ui/mainwidget_init_done
+/ui/connectwidget_init_done
 /network/connect_to_target
 /network/failed_to_connect_server
 /network/registration_rejected

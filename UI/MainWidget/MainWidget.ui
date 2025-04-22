@@ -11,92 +11,194 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Widget</string>
+   <string>XqqytDesktop</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <property name="styleSheet">
+   <string notr="true">/* 主窗口背景 */
+QWidget#MainWidget {
+    background-color: #f5f7fa;
+    font-family: &quot;Segoe UI&quot;, &quot;Arial&quot;, sans-serif;
+    font-size: 14px;
+    color: #333;
+}
+
+/* 左侧按钮区域背景 */
+QWidget#left_btn_widget {
+    background-color: #ffffff;
+    border-right: 1px solid #e0e0e0;
+}
+
+/* 所有按钮通用样式 */
+QPushButton {
+    background-color: #e9eef3;
+    border: none;
+    border-radius: 8px;
+    padding: 5px;
+	text-align: center;
+    color: #333;
+	
+	font: 75 16px &quot;Ubuntu Mono&quot;;
+}
+
+QPushButton:hover {
+    background-color: #d0dce5;
+}
+
+QPushButton:pressed {
+    background-color: #b0c4d0;
+}
+
+/* 圆形图标按钮（pushButton）样式 */
+QPushButton#btn_logo {
+    border-radius: 48px;
+	border: none;
+	border-image: url(:/images/pic/logo.png);
+}
+
+/* 文字按钮（Connect、Device、Settings）样式细节 */
+QPushButton#btn_connect,
+QPushButton#btn_device,
+QPushButton#btn_settings {
+    text-align: center;
+    height: 40px;
+}
+
+/* 标签样式（XqqytDesktop） */
+QLabel#label_XqqytDesktop {
+    color: #999;
+    font-size: 14px;
+    margin-top: 20px;
+    qproperty-alignment: AlignCenter;
+}
+
+/* 分隔线样式 */
+Line {
+    background-color: #e0e0e0;
+    height: 1px;
+    margin: 8px 0;
+}</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
    <item row="0" column="0">
-    <widget class="QWidget" name="widget_5" native="true">
+    <widget class="QWidget" name="left_btn_widget" native="true">
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QWidget" name="widget_4" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QLabel" name="label_target_id">
-           <property name="text">
-            <string>Target ID :</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lineEdit_target_id"/>
-         </item>
-        </layout>
+       <widget class="QPushButton" name="btn_logo">
+        <property name="minimumSize">
+         <size>
+          <width>96</width>
+          <height>96</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>96</width>
+          <height>96</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="widget_3" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QLabel" name="label_id">
-           <property name="text">
-            <string>    Your ID : </string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lineEdit_id">
-           <property name="text">
-            <string>7788</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+       <spacer name="verticalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Preferred</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>10</width>
+          <height>10</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_connect">
+        <property name="font">
+         <font>
+          <family>Ubuntu Mono</family>
+          <pointsize>-1</pointsize>
+          <weight>9</weight>
+          <italic>false</italic>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Connect</string>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_device">
+        <property name="text">
+         <string>Device</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_settings">
+        <property name="text">
+         <string>Settings</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_XqqytDesktop">
+        <property name="text">
+         <string>XqqytDesktop</string>
+        </property>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QWidget" name="widget_6" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout_5">
-      <item>
-       <spacer name="horizontalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btn_connect">
-        <property name="text">
-         <string>Connect</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_4">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
+   <item row="0" column="1">
+    <widget class="QWidget" name="right_content_widget" native="true">
+    <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <layout class="QGridLayout" name="widget_gridLayout"/>
       </item>
      </layout>
     </widget>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../Resources/res.qrc"/>
+ </resources>
  <connections/>
 </ui>

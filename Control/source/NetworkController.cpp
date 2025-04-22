@@ -69,7 +69,7 @@ void NetworkController::initNetworkSubscribe()
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/ui/mainwidget_init_done",std::bind(
+    EventBus::getInstance().subscribe("/ui/connectwidget_init_done",std::bind(
         &NetworkController::connectToServer,
         this
     ));

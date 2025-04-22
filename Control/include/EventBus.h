@@ -141,7 +141,6 @@ public:
         }
         return false;
     }
-
     void initModuleSubscribe();
 private:
     EventBus();

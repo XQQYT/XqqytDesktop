@@ -5,7 +5,7 @@
 //注册必需事件
 void initEventBusRegisterEvent()
 {
-    EventBus::getInstance().registerEvent("/ui/mainwidget_init_done");
+    EventBus::getInstance().registerEvent("/ui/connectwidget_init_done");
     EventBus::getInstance().registerEvent("/network/connect_to_target");
     EventBus::getInstance().registerEvent("/network/registration_rejected");\
     EventBus::getInstance().registerEvent("/network/registration_successed");
@@ -35,6 +35,8 @@ void initModuleSubscribe()
 
 int main(int argc, char *argv[])
 {
+    if(argc != 2)
+        return 0;
     QApplication a(argc, argv);
     initEventBusRegisterEvent();
     initModuleSubscribe();

@@ -1,94 +1,73 @@
 #include "MainWidget.h"
 #include "ui_MainWidget.h"
+#include "RemoteControlWidget.h"
 
 MainWidget::MainWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MainWidget)
 {
-    w=nullptr;
     ui->setupUi(this);
-
-    this->setFixedSize(800, 600);
-    this->setGeometry(QStyle::alignedRect(
-    Qt::LeftToRight,
-    Qt::AlignCenter,
-    this->size(),
-    QGuiApplication::primaryScreen()->availableGeometry()
-));
-    initSubscribe();
-    EventBus::getInstance().publish("/ui/mainwidget_init_done");
+    current_widget = WidgetManager::WidgetType::UnDefined;
+    current_btn = ui->btn_connect;
+    setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
+    auto i = new RemoteControlWidget();
+    i->show();
 }
 
 MainWidget::~MainWidget()
 {
+    WidgetManager::getInstance().closeAllWidget();
     delete ui;
 }
 
-void MainWidget::initSubscribe()
+void MainWidget::setCurrentWidget(const WidgetManager::WidgetType type)
 {
-    EventBus::getInstance().subscribe("/network/target_is_offline",std::bind(&MainWidget::onTargetOffline,this));
-    EventBus::getInstance().subscribe("/network/registration_rejected",std::bind(&MainWidget::onRegistrationRejected,this));
-    EventBus::getInstance().subscribe("/network/failed_to_connect_server",std::bind(&MainWidget::onConnectServerFailed,this));
-    EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&MainWidget::onConnectRequest,this,std::placeholders::_1));
-    EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(&MainWidget::onRecvConnectRequestResult,this,std::placeholders::_1));
-    EventBus::getInstance().subscribe("/webrtc/connection_status",std::bind(&MainWidget::onConnectionStatus,this,std::placeholders::_1));
-}
-
-void MainWidget::on_btn_connect_clicked()
-{
-    EventBus::getInstance().publish("/network/connect_to_target",
-        ui->lineEdit_target_id->text().toStdString());
-}
-
-void MainWidget::onTargetOffline()
-{
-    bubble_message.error(this, "Target is offline");
-}
-
-void MainWidget::onRegistrationRejected()
-{
-    bubble_message.error(this,"RegistrationRejected");
-}
-
-void MainWidget::onConnectServerFailed()
-{
-    bubble_message.error(this,"Failed to connect Server");
-}
-
-void MainWidget::onConnectRequest(std::string target_id)
-{
-    QMetaObject::invokeMethod(this, [this,target_id]() {
-    ConfirmBeConnectDialog dialog(this);
-    connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
-        EventBus::getInstance().publish("/network/send_connect_request_result",target_id,true);
-    });
-    connect(&dialog,&ConfirmBeConnectDialog::rejectConnection,this,[=](){
-        EventBus::getInstance().publish("/network/send_connect_request_result",target_id,false);
-    });
-    dialog.exec();
-    }, Qt::QueuedConnection);
-}
-
-void MainWidget::onRecvConnectRequestResult(bool status)
-{
-    if (!status)
+    if(current_widget == type)
+        return;
+    QWidget* new_widget = WidgetManager::getInstance().getWidget(type);
+    if(!new_widget)
     {
-        QMetaObject::invokeMethod(this, [this]() {
-            reconnect(&info_dialog,&InfoDialog::OK,this,[](){
-                std::cout<<"test"<<std::endl;
-            });
-            info_dialog <<"Info"<<"The Peer reject your connect request"<< InfoDialog::InfoType::OK << InfoDialog::end;
-        }, Qt::QueuedConnection);
+        std::cout<<"New Widget is null"<<std::endl;
     }
+
+    QLayout* layout = ui->right_content_widget->layout();
+
+    QLayoutItem* item;
+    while ((item = layout->takeAt(0)) != nullptr) {
+        if (QWidget* old_widget = item->widget()) {
+            old_widget->hide();
+            old_widget->setParent(nullptr);
+        }
+        delete item;
+    }
+
+    layout->addWidget(new_widget);
+    new_widget->show();
+    current_widget = type;
 }
-void MainWidget::onConnectionStatus(bool status)
+
+void MainWidget::on_btn_device_clicked(bool checked)
 {
-    if(status)
+    if(current_btn == ui->btn_device && !checked)
     {
-        std::cout<<"Connection successed"<<std::endl;
+        ui->btn_device->setChecked(true);
+        return;
     }
-    else
+    current_btn->setChecked(false);
+    current_btn = ui->btn_device;
+    setCurrentWidget(WidgetManager::WidgetType::DeviceWidget);
+    current_btn = ui->btn_device;
+}
+
+void MainWidget::on_btn_connect_clicked(bool checked)
+{
+    if(current_btn == ui->btn_connect && !checked)
     {
-        std::cout<<"Connection failed"<<std::endl;
+        ui->btn_connect->setChecked(true);
+        return;
     }
+    current_btn->setChecked(false);
+    setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
+    current_btn = ui->btn_connect;
+
 }

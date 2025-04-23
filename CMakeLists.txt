@@ -22,6 +22,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+qt5_add_resources(RESOURCE_FILES "Resources/res.qrc")
 
 # 添加包含目录
 include_directories(UI/MainWidget
@@ -38,7 +39,8 @@ add_subdirectory(Control)
 # Define the executable target
 add_executable(${PROJECT_NAME}
     main.cpp
+    ${RESOURCE_FILES}
 )
 
 # Link against Qt5 Widgets
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets UI RemoteControlWidget Control)
+target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets UI MainWidget)

@@ -2,8 +2,12 @@
 # You are in UI/CMakeLists.txt
 
 add_subdirectory(Dialog)
+add_subdirectory(WidgetManager)
 add_subdirectory(MainWidget)
+add_subdirectory(ConnectWidget)
 add_subdirectory(RemoteControlWidget)
+add_subdirectory(DeviceWidget)
+
 
 add_library(UI STATIC
     MainWidget/MainWidget.cpp
@@ -11,7 +15,6 @@ add_library(UI STATIC
 
 target_include_directories(UI PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/MainWidget
-    ${CMAKE_CURRENT_SOURCE_DIR}/RemoteControlWidget
 )
 
 target_link_libraries(UI 

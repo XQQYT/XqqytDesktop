@@ -2,6 +2,7 @@
 #define REMOTECONTROLWIDGET_H
 
 #include <QWidget>
+#include "OpenGLWidget/OpenGLWidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class RemoteControlWidget; }

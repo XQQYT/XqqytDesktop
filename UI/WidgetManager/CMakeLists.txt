@@ -12,5 +12,6 @@ target_include_directories(WidgetManager PUBLIC
 # 链接 RemoteControlWidget 库
 target_link_libraries(WidgetManager 
 ConnectWidget
+DeviceWidget
 RemoteControlWidget 
 )

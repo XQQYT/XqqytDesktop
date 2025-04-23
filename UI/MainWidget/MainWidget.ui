@@ -29,7 +29,9 @@ QWidget#left_btn_widget {
 }
 
 /* 所有按钮通用样式 */
-QPushButton {
+QPushButton#btn_connect,
+QPushButton#btn_device,
+QPushButton#btn_settings {
     background-color: #e9eef3;
     border: none;
     border-radius: 8px;
@@ -40,12 +42,22 @@ QPushButton {
 	font: 75 16px &quot;Ubuntu Mono&quot;;
 }
 
-QPushButton:hover {
+QPushButton#btn_connect:hover,
+QPushButton#btn_device:hover,
+QPushButton#btn_settings:hover {
     background-color: #d0dce5;
 }
 
-QPushButton:pressed {
+QPushButton#btn_connect:pressed,
+QPushButton#btn_device:pressed,
+QPushButton#btn_settings:pressed {
     background-color: #b0c4d0;
+}
+
+QPushButton#btn_connect:checked,
+QPushButton#btn_device:checked,
+QPushButton#btn_settings:checked {
+	background-color: rgb(156, 176, 188);
 }
 
 /* 圆形图标按钮（pushButton）样式 */
@@ -141,6 +153,12 @@ Line {
         <property name="text">
          <string>Connect</string>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
         <property name="flat">
          <bool>false</bool>
         </property>
@@ -151,12 +169,18 @@ Line {
         <property name="text">
          <string>Device</string>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="btn_settings">
         <property name="text">
          <string>Settings</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -185,9 +209,9 @@ Line {
    </item>
    <item row="0" column="1">
     <widget class="QWidget" name="right_content_widget" native="true">
-    <property name="styleSheet">
-   <string notr="true"/>
-  </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
        <layout class="QGridLayout" name="widget_gridLayout"/>

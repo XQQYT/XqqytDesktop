@@ -2,6 +2,7 @@
 #define _WIDGETMANAGER_H
 
 #include "ConnectWidget.h"
+#include "DeviceWidget.h"
 #include <QMap>
 #include <iostream>
 
@@ -10,7 +11,9 @@ class WidgetManager : public QObject
 public:
     enum class WidgetType
     {
-        Connect_Widget
+        UnDefined,
+        ConnectWidget,
+        DeviceWidget,
     };
     Q_OBJECT
 public:
@@ -22,13 +25,13 @@ public:
         return widget_manager;
     }
     QWidget* getWidget(const WidgetType type);
-    QString typeToStiring(const WidgetType type);
     ~WidgetManager();
+    void closeAllWidget();
 private:
     WidgetManager();
     void initWidget();
 private:
-    QMap<QString,QWidget*> widget_map;
+    QMap<WidgetType,QWidget*> widget_map;
 };
 
 #endif

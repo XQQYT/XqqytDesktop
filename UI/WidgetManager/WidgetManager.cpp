@@ -7,37 +7,24 @@ WidgetManager::WidgetManager()
 
 WidgetManager::~WidgetManager()
 {
-    for(auto& widget_ptr : widget_map)
-    {
-        widget_ptr->close();
-    }
+    
 }
 
 void WidgetManager::initWidget()
 {
-    widget_map["ConnectWidget"] = new ConnectWidget();
+    widget_map[WidgetType::ConnectWidget] = new ConnectWidget();
+    widget_map[WidgetType::DeviceWidget] = new DeviceWidget();
 }
 
 QWidget* WidgetManager::getWidget(const WidgetType type)
 {
-    QString widget_name = std::move(typeToStiring(type));
-    if(widget_name.isEmpty())
-    {
-        std::cout<<"Invalid Widget Type"<<std::endl;
-        return nullptr;
-    }
-    return widget_map[widget_name];
+    return widget_map[type];
 }
 
-QString WidgetManager::typeToStiring(const WidgetType type)
+void WidgetManager::closeAllWidget()
 {
-    switch(type)
+    for(auto& widget_ptr : widget_map)
     {
-        case WidgetType::Connect_Widget:
-            return "ConnectWidget";
-            break;
-        default:
-            return "";
-            break;
+        widget_ptr->close();
     }
 }

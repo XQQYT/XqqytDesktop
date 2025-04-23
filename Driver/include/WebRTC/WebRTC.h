@@ -14,6 +14,7 @@
 #include "DataChannelObserver.h"
 #include "Operator.h"
 #include "SdpObserver.h"
+#include "DesktopCaptureSource.h"
 
 class WebRTC : public WebRTCInterface
 {
@@ -52,8 +53,10 @@ private:
     rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
     webrtc::PeerConnectionInterface::RTCConfiguration configuration;
 
-    rtc::scoped_refptr<webrtc::AudioTrackInterface> audio_track;
-    rtc::scoped_refptr<webrtc::VideoTrackInterface> video_track;
+    std::unique_ptr<DesktopCaptureSource> desktop_source;
+
+    rtc::scoped_refptr<webrtc::AudioTrackInterface> desktop_audio_track;
+    rtc::scoped_refptr<webrtc::VideoTrackInterface> desktop_video_track;
 
     rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peer_connection_factory;
 

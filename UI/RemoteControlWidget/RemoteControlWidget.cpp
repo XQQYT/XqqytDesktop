@@ -11,6 +11,17 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
     layout->addWidget(i);
 }
 
+void RemoteControlWidget::initRemoteControlWidget()
+{
+    if (!opengl_widget)
+    {
+        opengl_widget = new QOpenGLWidget(this);
+        QVBoxLayout *layout = new QVBoxLayout(this);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->addWidget(opengl_widget);
+        setLayout(layout);
+    }
+}
 RemoteControlWidget::~RemoteControlWidget()
 {
     delete ui;

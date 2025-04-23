@@ -35,8 +35,8 @@ void WebRTC::initWebRTC()
       nullptr, // default audio device module
       webrtc::CreateBuiltinAudioEncoderFactory(),
       webrtc::CreateBuiltinAudioDecoderFactory(),
-      nullptr, // default video encoder factory
-      nullptr, // default video decoder factory
+      webrtc::CreateBuiltinVideoEncoderFactory(),
+      webrtc::CreateBuiltinVideoDecoderFactory(),
       nullptr, // audio_mixer
       nullptr  // audio_processing
   );
@@ -45,6 +45,16 @@ void WebRTC::initWebRTC()
       exit(EXIT_FAILURE);
     }
     configuration.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
+
+    // 创建音频 track
+    cricket::AudioOptions audio_options;
+    rtc::scoped_refptr<webrtc::AudioSourceInterface> audio_source =
+        peer_connection_factory->CreateAudioSource(audio_options);
+    
+    desktop_audio_track = peer_connection_factory->CreateAudioTrack("desktop_audio_track", audio_source.get());
+
+    desktop_source = std::make_unique<DesktopCaptureSource>(std::make_unique<webrtc::DesktopCapturer>());
+    desktop_video_track = peer_connection_factory->CreateVideoTrack("desktop_video_track",desktop_source.get());
 }
 
 void WebRTC::createSDP(SDPType type)
@@ -61,23 +71,23 @@ void WebRTC::createSDP(SDPType type)
         std::cerr << "Error on CreatePeerConnection." << std::endl;
         return;
     }
-
-    // 创建音频 track 并添加
-    cricket::AudioOptions audio_options;
-    rtc::scoped_refptr<webrtc::AudioSourceInterface> audio_source =
-        peer_connection_factory->CreateAudioSource(audio_options);
-
-    rtc::scoped_refptr<webrtc::AudioTrackInterface> audio_track =
-        peer_connection_factory->CreateAudioTrack("audio_track", audio_source.get());
     
-    if (audio_track) {
-        auto result = peer_connection->AddTrack(audio_track, {"media_stream"});
+    if (desktop_audio_track) {
+        auto result = peer_connection->AddTrack(desktop_audio_track, {"media_stream"});
         if (!result.ok()) {
             std::cerr << "Failed to add audio track: " << result.error().message() << std::endl;
         } else {
             std::cout << "Audio track added successfully." << std::endl;
         }
     }
+    if (desktop_video_track) {
+      auto result = peer_connection->AddTrack(desktop_video_track, {"media_stream"});
+      if (!result.ok()) {
+          std::cerr << "Failed to add video track: " << result.error().message() << std::endl;
+      } else {
+          std::cout << "Audio track video successfully." << std::endl;
+      }
+  }
   
       webrtc::DataChannelInit config;
       data_channel = peer_connection->CreateDataChannel("data_channel", &config);

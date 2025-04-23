@@ -6,6 +6,9 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
     , ui(new Ui::RemoteControlWidget)
 {
     ui->setupUi(this);
+    auto i = new OpenGLWidget(this);
+    auto layout = this->layout();
+    layout->addWidget(i);
 }
 
 RemoteControlWidget::~RemoteControlWidget()

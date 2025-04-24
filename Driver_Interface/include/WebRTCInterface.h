@@ -33,7 +33,8 @@ public:
     virtual void createSDP(SDPType type) = 0;
     virtual void setRemoteSDP(std::string remote_sdp, SDPType type) = 0;
     virtual void addIceCandidateIntoBuffer(std::string ice_str,std::string sdp_mid,int sdp_mline_index) = 0;
-
+    virtual void startCaptureDesktop() = 0;
+    virtual void stopCaptureDesktop() = 0;
 };
 
 #endif

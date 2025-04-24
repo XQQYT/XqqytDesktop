@@ -15,8 +15,9 @@ class RemoteControlWidget : public QWidget
 public:
     RemoteControlWidget(QWidget *parent = nullptr);
     ~RemoteControlWidget();
-
+    void initRemoteControlWidget();
 private:
+    QOpenGLWidget* opengl_widget;
     Ui::RemoteControlWidget *ui;
 };
 #endif // WIDGET_H

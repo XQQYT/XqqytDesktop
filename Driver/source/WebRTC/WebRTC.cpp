@@ -1,5 +1,18 @@
 #include "WebRTC.h"
 
+#include "api/audio_codecs/builtin_audio_decoder_factory.h"
+#include "api/audio_codecs/builtin_audio_encoder_factory.h"
+#include "api/video_codecs/video_decoder_factory_template.h"
+#include "api/video_codecs/video_decoder_factory_template_dav1d_adapter.h"
+#include "api/video_codecs/video_decoder_factory_template_libvpx_vp8_adapter.h"
+#include "api/video_codecs/video_decoder_factory_template_libvpx_vp9_adapter.h"
+#include "api/video_codecs/video_decoder_factory_template_open_h264_adapter.h"
+#include "api/video_codecs/video_encoder_factory_template.h"
+#include "api/video_codecs/video_encoder_factory_template_libaom_av1_adapter.h"
+#include "api/video_codecs/video_encoder_factory_template_libvpx_vp8_adapter.h"
+#include "api/video_codecs/video_encoder_factory_template_libvpx_vp9_adapter.h"
+#include "api/video_codecs/video_encoder_factory_template_open_h264_adapter.h"
+
 WebRTC::WebRTC(Operator& base_operator):
   webrtc_operator(base_operator)
 {
@@ -24,10 +37,7 @@ void WebRTC::initWebRTC()
     worker_thread->Start();
     signaling_thread = rtc::Thread::Create();
     signaling_thread->Start();
-    webrtc::PeerConnectionFactoryDependencies dependencies;
-    dependencies.network_thread   = network_thread.get();
-    dependencies.worker_thread    = worker_thread.get();
-    dependencies.signaling_thread = signaling_thread.get();
+
     peer_connection_factory = webrtc::CreatePeerConnectionFactory(
       network_thread.get(),
       worker_thread.get(),
@@ -35,21 +45,50 @@ void WebRTC::initWebRTC()
       nullptr, // default audio device module
       webrtc::CreateBuiltinAudioEncoderFactory(),
       webrtc::CreateBuiltinAudioDecoderFactory(),
-      nullptr, // default video encoder factory
-      nullptr, // default video decoder factory
+      std::make_unique<webrtc::VideoEncoderFactoryTemplate<
+        webrtc::LibvpxVp8EncoderTemplateAdapter,
+        webrtc::LibvpxVp9EncoderTemplateAdapter,
+        webrtc::OpenH264EncoderTemplateAdapter,
+        webrtc::LibaomAv1EncoderTemplateAdapter>>(),
+        std::make_unique<webrtc::VideoDecoderFactoryTemplate<
+        webrtc::LibvpxVp8DecoderTemplateAdapter,
+        webrtc::LibvpxVp9DecoderTemplateAdapter,
+        webrtc::OpenH264DecoderTemplateAdapter,
+        webrtc::Dav1dDecoderTemplateAdapter>>(),
       nullptr, // audio_mixer
       nullptr  // audio_processing
   );
+
+    
     if (peer_connection_factory.get() == nullptr) {
       std::cout << "Error on CreateModularPeerConnectionFactory." << std::endl;
       exit(EXIT_FAILURE);
     }
+    
     configuration.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
+
+    signaling_thread->PostTask([this](){
+      // 创建音频 track
+      cricket::AudioOptions audio_options;
+      rtc::scoped_refptr<webrtc::AudioSourceInterface> audio_source =
+      peer_connection_factory->CreateAudioSource(audio_options);
+      desktop_audio_track = peer_connection_factory->CreateAudioTrack("desktop_audio_track", audio_source.get());
+
+      auto capture_option = webrtc::DesktopCaptureOptions::CreateDefault();
+      std::unique_ptr<webrtc::DesktopCapturer> capturer = webrtc::DesktopCapturer::CreateScreenCapturer(capture_option);
+      if (!capturer) {
+        std::cerr << "Failed to create DesktopCapturer!" << std::endl;
+      } else {
+        std::cout << "DesktopCapturer created successfully!" << std::endl;
+      }
+      desktop_source = rtc::make_ref_counted<DesktopCaptureSource>(std::move(capturer));
+      desktop_video_track = peer_connection_factory->CreateVideoTrack(desktop_source,"desktop_video_track");
+  });
 }
 
 void WebRTC::createSDP(SDPType type)
 {  
-  switch(type){
+    switch(type){
     case SDPType::OFFER:
     {
       currentRole = Role::SENDER;
@@ -61,23 +100,23 @@ void WebRTC::createSDP(SDPType type)
         std::cerr << "Error on CreatePeerConnection." << std::endl;
         return;
     }
-
-    // 创建音频 track 并添加
-    cricket::AudioOptions audio_options;
-    rtc::scoped_refptr<webrtc::AudioSourceInterface> audio_source =
-        peer_connection_factory->CreateAudioSource(audio_options);
-
-    rtc::scoped_refptr<webrtc::AudioTrackInterface> audio_track =
-        peer_connection_factory->CreateAudioTrack("audio_track", audio_source.get());
     
-    if (audio_track) {
-        auto result = peer_connection->AddTrack(audio_track, {"media_stream"});
+    if (desktop_audio_track) {
+        auto result = peer_connection->AddTrack(desktop_audio_track, {"desktop_audio_stream"});
         if (!result.ok()) {
             std::cerr << "Failed to add audio track: " << result.error().message() << std::endl;
         } else {
             std::cout << "Audio track added successfully." << std::endl;
         }
     }
+    if (desktop_video_track) {
+      auto result = peer_connection->AddTrack(desktop_video_track, {"desktop_video_stream"});
+      if (!result.ok()) {
+          std::cerr << "Failed to add video track: " << result.error().message() << std::endl;
+      } else {
+          std::cout << "Audio track video successfully." << std::endl;
+      }
+  }
   
       webrtc::DataChannelInit config;
       data_channel = peer_connection->CreateDataChannel("data_channel", &config);
@@ -215,4 +254,27 @@ void WebRTC::checkConnectionStatus()
   bool connection_status = peer_connection->ice_connection_state() == webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionConnected && 
     peer_connection->peer_connection_state() == webrtc::PeerConnectionInterface::PeerConnectionState::kConnected;
   webrtc_operator.dispatch_bool("/webrtc/connection_status",connection_status);
+  if(connection_status&&currentRole == Role::SENDER)
+  {
+    startCaptureDesktop();
+  }
+}
+
+void WebRTC::startCaptureDesktop()
+{
+  auto desktop_source_ptr = dynamic_cast<DesktopCaptureSource*>(desktop_source.get());
+    if (desktop_source_ptr) {
+        desktop_source_ptr->Start();
+    } else {
+        std::cerr << "Failed to cast to DesktopCaptureSource" << std::endl;
+    }
+}
+void WebRTC::stopCaptureDesktop()
+{
+  auto desktop_source_ptr = dynamic_cast<DesktopCaptureSource*>(desktop_source.get());
+    if (desktop_source_ptr) {
+        desktop_source_ptr->Stop();
+    } else {
+        std::cerr << "Failed to cast to DesktopCaptureSource" << std::endl;
+    }
 }

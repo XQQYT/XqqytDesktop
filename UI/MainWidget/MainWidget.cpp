@@ -10,8 +10,6 @@ MainWidget::MainWidget(QWidget *parent)
     current_widget = WidgetManager::WidgetType::UnDefined;
     current_btn = ui->btn_connect;
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
-    auto i = new RemoteControlWidget();
-    i->show();
 }
 
 MainWidget::~MainWidget()

@@ -1,29 +1,30 @@
 #include "RemoteControlWidget.h"
+#include "OpenGLWidget/OpenGLWidget.h"
 #include "ui_RemoteControlWidget.h"
+#include "EventBus.h"
+#include <iostream>
 
 RemoteControlWidget::RemoteControlWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::RemoteControlWidget)
 {
     ui->setupUi(this);
-    auto i = new OpenGLWidget(this);
+    opengl_widget = new OpenGLWidget(this);
     auto layout = this->layout();
-    layout->addWidget(i);
+    layout->addWidget(opengl_widget);
+    opengl_widget->show();
+    EventBus::getInstance().publish("/render/set_render_instance",dynamic_cast<RenderInterface*>(this));
 }
 
-void RemoteControlWidget::initRemoteControlWidget()
-{
-    if (!opengl_widget)
-    {
-        opengl_widget = new QOpenGLWidget(this);
-        QVBoxLayout *layout = new QVBoxLayout(this);
-        layout->setContentsMargins(0, 0, 0, 0);
-        layout->addWidget(opengl_widget);
-        setLayout(layout);
-    }
-}
 RemoteControlWidget::~RemoteControlWidget()
 {
+    delete opengl_widget;
     delete ui;
 }
 
+void RemoteControlWidget::addRenderFrame(VideoFrame&& render_frame)
+{
+    std::cout<<" RemoteControlWidget  addRenderFrame"<<std::endl;
+    opengl_widget->addRenderFrame(std::move(render_frame));
+    opengl_widget->update();
+}

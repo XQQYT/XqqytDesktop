@@ -41,6 +41,13 @@ void WebrtcController::initWebrtcSubscribe()
         &WebrtcController::onRecvIceCandidateDone,
         this
     ));
+
+    EventBus::getInstance().subscribe("/render/set_render_instance",std::bind(
+        &WebrtcController::onSetRenderInstance,
+        this,
+        std::placeholders::_1
+    ));
+    
     
 }
 
@@ -105,3 +112,9 @@ void WebrtcController::onRecvIceCandidateDone()
 {
     
 }
+
+void WebrtcController::onSetRenderInstance(RenderInterface* instance)
+{
+    webrtc_instance->setRenderInstance(instance);
+}
+

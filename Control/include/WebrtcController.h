@@ -3,6 +3,7 @@
 #include "EventBus.h"
 #include "WebRTC.h"
 #include "Operator.h"
+#include "Render.h"
 
 class WebrtcController : public Operator{
 public:
@@ -20,6 +21,7 @@ public:
     void onSetRemoteSDPOfferDone();
     void onRecvIceCandidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
     void onRecvIceCandidateDone();
+    void onSetRenderInstance(RenderInterface* instance);
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
 };

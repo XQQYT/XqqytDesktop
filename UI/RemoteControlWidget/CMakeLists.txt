@@ -11,4 +11,4 @@ target_include_directories(RemoteControlWidget PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(RemoteControlWidget Qt5::Widgets OpenGLWidget)
+target_link_libraries(RemoteControlWidget Qt5::Widgets Control OpenGLWidget)

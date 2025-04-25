@@ -95,36 +95,21 @@ void WebRTC::createSDP(SDPType type)
       if (!peer_connection) {
         peer_connection = peer_connection_factory->CreatePeerConnection(
             configuration, nullptr, nullptr, pco.get());
-    }
-    if (!peer_connection) {
+      }
+      if (!peer_connection) {
         std::cerr << "Error on CreatePeerConnection." << std::endl;
         return;
-    }
-    
-    if (desktop_audio_track) {
-        auto result = peer_connection->AddTrack(desktop_audio_track, {"desktop_audio_stream"});
-        if (!result.ok()) {
-            std::cerr << "Failed to add audio track: " << result.error().message() << std::endl;
-        } else {
-            std::cout << "Audio track added successfully." << std::endl;
-        }
-    }
-    if (desktop_video_track) {
-      auto result = peer_connection->AddTrack(desktop_video_track, {"desktop_video_stream"});
-      if (!result.ok()) {
-          std::cerr << "Failed to add video track: " << result.error().message() << std::endl;
-      } else {
-          std::cout << "Audio track video successfully." << std::endl;
       }
-  }
-  
+      video_render = std::make_unique<VideoRender>();
       webrtc::DataChannelInit config;
       data_channel = peer_connection->CreateDataChannel("data_channel", &config);
       data_channel->RegisterObserver(&dco);
       
       signaling_thread->PostTask([this](){
-        webrtc::PeerConnectionInterface::RTCOfferAnswerOptions option;
-        peer_connection->CreateOffer(sdpo.get(), option);
+        webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
+        options.offer_to_receive_video = 1;  // 接收视频
+        options.offer_to_receive_audio = 1;  // 接收音频
+        peer_connection->CreateOffer(sdpo.get(), options);
       });
       break;
     }
@@ -134,7 +119,22 @@ void WebRTC::createSDP(SDPType type)
         std::cerr << "Error: peer_connection or sdpo is null" << std::endl;
         return;
       }
-
+      if (desktop_audio_track) {
+        auto result = peer_connection->AddTrack(desktop_audio_track, {"desktop_audio_stream"});
+        if (!result.ok()) {
+            std::cerr << "Failed to add audio track: " << result.error().message() << std::endl;
+        } else {
+            std::cout << "Audio track added successfully." << std::endl;
+        }
+      }
+      if (desktop_video_track) {
+        auto result = peer_connection->AddTrack(desktop_video_track, {"desktop_video_stream"});
+        if (!result.ok()) {
+            std::cerr << "Failed to add video track: " << result.error().message() << std::endl;
+        } else {
+            std::cout << "Audio track video successfully." << std::endl;
+        }
+      }
         signaling_thread->PostTask([this](){
           peer_connection->CreateAnswer(sdpo.get(), webrtc::PeerConnectionInterface::RTCOfferAnswerOptions());
         });
@@ -143,8 +143,6 @@ void WebRTC::createSDP(SDPType type)
     default:
       break;
   }
-
-
 }
 
 void WebRTC::setLocalSDP(webrtc::SessionDescriptionInterface* desc)
@@ -254,7 +252,7 @@ void WebRTC::checkConnectionStatus()
   bool connection_status = peer_connection->ice_connection_state() == webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionConnected && 
     peer_connection->peer_connection_state() == webrtc::PeerConnectionInterface::PeerConnectionState::kConnected;
   webrtc_operator.dispatch_bool("/webrtc/connection_status",connection_status);
-  if(connection_status&&currentRole == Role::SENDER)
+  if(connection_status&&currentRole == Role::RECEIVER)
   {
     startCaptureDesktop();
   }
@@ -269,6 +267,7 @@ void WebRTC::startCaptureDesktop()
         std::cerr << "Failed to cast to DesktopCaptureSource" << std::endl;
     }
 }
+
 void WebRTC::stopCaptureDesktop()
 {
   auto desktop_source_ptr = dynamic_cast<DesktopCaptureSource*>(desktop_source.get());
@@ -277,4 +276,9 @@ void WebRTC::stopCaptureDesktop()
     } else {
         std::cerr << "Failed to cast to DesktopCaptureSource" << std::endl;
     }
+}
+
+void WebRTC::setRenderInstance(RenderInterface* instance)
+{
+  video_render->setRenderInstance(instance);
 }

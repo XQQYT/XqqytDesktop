@@ -26,6 +26,8 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/webrtc/recv_ice_candidate");
     EventBus::getInstance().registerEvent("/webrtc/recv_ice_gather_done");
     EventBus::getInstance().registerEvent("/webrtc/connection_status");
+
+    EventBus::getInstance().registerEvent("/render/set_render_instance");
 }
 //使模块订阅好事件
 void initModuleSubscribe()

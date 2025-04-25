@@ -24,6 +24,5 @@ void VideoRender::OnFrame(const webrtc::VideoFrame& frame)
     render_frame.stride_y = buffer->StrideY();
     render_frame.stride_u = buffer->StrideU();
     render_frame.stride_v = buffer->StrideV();
-    // instance->addRenderFrame(std::move(render_frame));
-    std::cout<<"VideoRender::OnFrame"<<std::endl;
+    instance->addRenderFrame(std::move(render_frame));
 }

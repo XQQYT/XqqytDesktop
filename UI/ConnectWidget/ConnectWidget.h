@@ -10,6 +10,7 @@
 #include "BubbleMessage.h"
 #include "ConfirmBeConnectDialog.h"
 #include "InfoDialog.h"
+#include "UserInfo.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ConnectWidget; }
@@ -42,8 +43,9 @@ private:
     void onConnectionStatus(bool status);
 private:
     Ui::ConnectWidget *ui;
-    RemoteControlWidget* w;
+    RemoteControlWidget* remote_widget;
     BubbleMessage bubble_message;
     InfoDialog info_dialog;
+    bool remote_widget_alive;
 };
 #endif // WIDGET_H

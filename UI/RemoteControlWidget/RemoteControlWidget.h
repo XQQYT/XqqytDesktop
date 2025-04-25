@@ -17,6 +17,8 @@ public:
     RemoteControlWidget(QWidget *parent = nullptr);
     ~RemoteControlWidget();
     void addRenderFrame(VideoFrame&& render_frame) override;
+public slots:
+    void handleFrameUpdated();
 private:
     OpenGLWidget* opengl_widget;
     Ui::RemoteControlWidget *ui;

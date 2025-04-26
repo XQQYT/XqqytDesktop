@@ -150,7 +150,7 @@ X11Driver::X11Driver()
     display = XOpenDisplay(NULL);
 }
 
-void X11Driver::syncKeyboard(KeyEventPacket packet)
+void X11Driver::syncKeyboard(const KeyEventPacket& packet)
 {
     if (!display) {
         std::cerr << "Failed to open X display" << std::endl;
@@ -179,4 +179,51 @@ void X11Driver::syncKeyboard(KeyEventPacket packet)
     XFlush(display);
 
     XCloseDisplay(display);
+}
+
+void X11Driver::syncMouseEvent(const MouseEventPacket& packet) {
+    if (!display) return;
+
+    switch (packet.type) {
+        case MouseEventType::Move:
+            // 移动鼠标
+            XTestFakeMotionEvent(display, -1, packet.x, packet.y, CurrentTime);
+            break;
+
+        case MouseEventType::Press:
+        case MouseEventType::Release: {
+            // 按下或释放按键
+            unsigned int button = 0;
+            switch (packet.button) {
+                case MouseButton::LeftButton: button = Button1; break;
+                case MouseButton::MiddleButton: button = Button2; break;
+                case MouseButton::RightButton: button = Button3; break;
+                case MouseButton::NoButton: 
+                if(packet.wheelDelta == 0)
+                    break;
+                button = packet.wheelDelta > 0 ? Button4 : Button5; 
+                break;
+                default: break;
+            }
+            if (button != 0) {
+                XTestFakeButtonEvent(display, button, packet.type == MouseEventType::Press, CurrentTime);
+            }
+            break;
+        }
+
+        case MouseEventType::Wheel: {
+            // 滚轮滚动，这里 wheelDelta > 0 上滚，<0 下滚
+            int clicks = abs(packet.wheelDelta) / 120; // 1滚动 = 120单位（兼容Windows、Qt）
+            unsigned int button = (packet.wheelDelta > 0) ? Button4 : Button5;
+            for (int i = 0; i < clicks; ++i) {
+                XTestFakeButtonEvent(display, button, True, CurrentTime);
+                XTestFakeButtonEvent(display, button, False, CurrentTime);
+            }
+            break;
+        }
+
+        default:
+            break;
+    }
+    XFlush(display);
 }

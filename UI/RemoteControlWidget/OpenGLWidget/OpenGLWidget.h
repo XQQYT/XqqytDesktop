@@ -46,27 +46,29 @@ private:
         })";
 
     const char* fragmentShaderSource = R"(
-        #version 330 core
-        in vec2 fragTexCoord;
-        out vec4 fragColor;
+            #version 330 core
+            in vec2 fragTexCoord;
+            out vec4 fragColor;
 
-        uniform sampler2D yTexture;
-        uniform sampler2D uTexture;
-        uniform sampler2D vTexture;
+            uniform sampler2D yTexture;
+            uniform sampler2D uTexture;
+            uniform sampler2D vTexture;
 
-        void main()
-        {
-            float y = texture(yTexture, fragTexCoord).r;
-            float u = texture(uTexture, fragTexCoord).r - 0.5;
-            float v = texture(vTexture, fragTexCoord).r - 0.5;
+            void main()
+            {
+                float y = texture(yTexture, fragTexCoord).r;
+                float u = texture(uTexture, fragTexCoord).r - 0.5;
+                float v = texture(vTexture, fragTexCoord).r - 0.5;
 
-            // YUV to RGB conversion
-            float r = y + 1.402 * v;
-            float g = y - 0.344136 * u - 0.714136 * v;
-            float b = y + 1.772 * u;
+                // Y range correction (if your YUV is limited range)
+                y = (y - 16.0/255.0) * (255.0/(235.0-16.0));
 
-            fragColor = vec4(r, g, b, 1.0);
-        })";
+                float r = y + 1.402 * v;
+                float g = y - 0.344136 * u - 0.714136 * v;
+                float b = y + 1.772 * u;
+
+                fragColor = vec4(r, g, b, 1.0);
+            })";
 
     QOpenGLShaderProgram m_program;
     QOpenGLTexture* m_yTexture = nullptr;

@@ -10,7 +10,8 @@ class X11Driver : public KeyboardMouseInterface
 {
 public:
     X11Driver();
-    void syncKeyboard(KeyEventPacket packet) override;
+    void syncKeyboard(const KeyEventPacket& packet) override;
+    void syncMouseEvent(const MouseEventPacket& packet) override;
 private:
     Display* display;
 };

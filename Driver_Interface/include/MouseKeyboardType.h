@@ -6,7 +6,6 @@
 enum class MouseEventType : uint8_t {
     Move,
     Press,
-    Hold,
     Release,
     Wheel
 };

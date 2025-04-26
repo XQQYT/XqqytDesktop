@@ -6,7 +6,8 @@
 class KeyboardMouseInterface
 {
 public:
-    virtual void syncKeyboard(KeyEventPacket packet) = 0;
+    virtual void syncKeyboard(const KeyEventPacket& packet) = 0;
+    virtual void syncMouseEvent(const MouseEventPacket& packet) = 0;
 };
 
 #endif

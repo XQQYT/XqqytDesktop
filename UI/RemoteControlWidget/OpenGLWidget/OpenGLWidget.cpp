@@ -187,13 +187,13 @@ MouseButton OpenGLWidget::toMouseButton(Qt::MouseButton qtButton)
 
 void OpenGLWidget::mouseMoveEvent(QMouseEvent* event)
 {
-    if (!event | left_button_pressed |right_button_pressed) return;
+    // if (!event | left_button_pressed |right_button_pressed) return;
 
+    if (!event) return;
     QPoint pos = event->pos();
 
     MouseEventPacket packet;
     packet.type = MouseEventType::Move;
-    packet.button = MouseButton::NoButton;
     packet.x = pos.x();
     packet.y = pos.y();
     packet.wheelDelta = 0;
@@ -266,7 +266,7 @@ void OpenGLWidget::sendHoldPackets()
     if (rect().contains(pos)) { // 确保鼠标还在窗口内
         if (left_button_pressed || right_button_pressed) {
             MouseEventPacket packet;
-            packet.type = MouseEventType::Hold;
+            packet.type = MouseEventType::Press;
             packet.button = left_button_pressed ? MouseButton::LeftButton :
                            right_button_pressed ? MouseButton::RightButton :
                            MouseButton::NoButton;

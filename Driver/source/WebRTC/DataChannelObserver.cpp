@@ -23,7 +23,7 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
         // 处理 MouseEventPacket
         MouseEventPacket packet;
         std::memcpy(&packet, data, sizeof(MouseEventPacket));
-
+        driver->syncMouseEvent(packet);
         std::ostringstream oss;
         oss << "Received MouseEventPacket: { ";
         
@@ -33,7 +33,6 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
             case MouseEventType::Press: oss << "Press"; break;
             case MouseEventType::Release: oss << "Release"; break;
             case MouseEventType::Wheel: oss << "Wheel"; break;
-            case MouseEventType::Hold: oss << "Hold"; break;
             default: oss << "Unknown"; break;
         }
         oss << ", ";

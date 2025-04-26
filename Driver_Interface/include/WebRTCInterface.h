@@ -1,6 +1,7 @@
 #ifndef _WEBRTCINTERFACE_H
 #define _WEBRTCINTERFACE_H
 #include <string>
+#include "Render.h"
 
 class WebRTCInterface
 {
@@ -11,6 +12,7 @@ public:
         OFFER,
         ANSWER
     };
+    //for offer/answer SDP direction
     enum class Role
     {
         UN_DEFINED,
@@ -35,6 +37,7 @@ public:
     virtual void addIceCandidateIntoBuffer(std::string ice_str,std::string sdp_mid,int sdp_mline_index) = 0;
     virtual void startCaptureDesktop() = 0;
     virtual void stopCaptureDesktop() = 0;
+    virtual void setRenderInstance(RenderInterface* instance) = 0;
 };
 
 #endif

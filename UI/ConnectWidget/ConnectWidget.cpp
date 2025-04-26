@@ -5,8 +5,8 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::ConnectWidget)
 {
-    std::cout<<"1"<<std::endl;
-    w=nullptr;
+    remote_widget = nullptr;
+    remote_widget_alive = false;
     ui->setupUi(this);
 
     this->setFixedSize(800, 600);
@@ -39,6 +39,7 @@ void ConnectWidget::on_btn_connect_clicked()
 {
     EventBus::getInstance().publish("/network/connect_to_target",
         ui->lineEdit_target_id->text().toStdString());
+    UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::Controller);
 }
 
 void ConnectWidget::onTargetOffline()
@@ -62,6 +63,8 @@ void ConnectWidget::onConnectRequest(std::string target_id)
     ConfirmBeConnectDialog dialog(this);
     connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
         EventBus::getInstance().publish("/network/send_connect_request_result",target_id,true);
+        UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::BeControlled);
+
     });
     connect(&dialog,&ConfirmBeConnectDialog::rejectConnection,this,[=](){
         EventBus::getInstance().publish("/network/send_connect_request_result",target_id,false);
@@ -86,6 +89,15 @@ void ConnectWidget::onConnectionStatus(bool status)
 {
     if(status)
     {
+        if(!remote_widget_alive && UserInfoManager::getInstance().getCurrentRole() == UserInfoManager::Role::Controller)
+        {
+            QMetaObject::invokeMethod(this, [this]() {
+                remote_widget = new RemoteControlWidget;
+                remote_widget->show();
+                remote_widget_alive = true;
+            }, Qt::QueuedConnection);
+            
+        }
         std::cout<<"Connection successed"<<std::endl;
     }
     else

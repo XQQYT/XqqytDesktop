@@ -38,7 +38,6 @@ void DesktopCaptureSource::Start()
   capture_thread->PostTask([this](){
     const int interval_ms = 1000 / fps;
     while (running) {
-      std::cout<<"capture"<<std::endl;
       capturer->CaptureFrame();
       rtc::Thread::Current()->SleepMs(interval_ms);
     }
@@ -70,7 +69,7 @@ bool DesktopCaptureSource::GetStats(Stats* stats) {
 }
 
 void DesktopCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
-  std::cout<<"onFrame result"<<std::endl;
+  std::cout<<"capture"<<std::endl;
 
   rtc::scoped_refptr<webrtc::VideoFrameBuffer> buffer(
       frame.video_frame_buffer());
@@ -164,7 +163,6 @@ int64_t DesktopCaptureSource::GetCurrentNtpTimeMs() {
 void DesktopCaptureSource::CaptureCallback::OnCaptureResult(
     webrtc::DesktopCapturer::Result result,
     std::unique_ptr<webrtc::DesktopFrame> frame) {
-      std::cout<<"callback result"<<std::endl;
         if (!frame) {
             return;
         }

@@ -2,22 +2,25 @@
 #define REMOTECONTROLWIDGET_H
 
 #include <QWidget>
-#include "OpenGLWidget/OpenGLWidget.h"
+#include "Render.h" 
 
+class OpenGLWidget;
 QT_BEGIN_NAMESPACE
 namespace Ui { class RemoteControlWidget; }
 QT_END_NAMESPACE
 
-class RemoteControlWidget : public QWidget
+class RemoteControlWidget : public QWidget, private RenderInterface
 {
     Q_OBJECT
 
 public:
     RemoteControlWidget(QWidget *parent = nullptr);
     ~RemoteControlWidget();
-    void initRemoteControlWidget();
+    void addRenderFrame(VideoFrame&& render_frame) override;
+public slots:
+    void handleFrameUpdated();
 private:
-    QOpenGLWidget* opengl_widget;
+    OpenGLWidget* opengl_widget;
     Ui::RemoteControlWidget *ui;
 };
 #endif // WIDGET_H

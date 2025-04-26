@@ -10,6 +10,7 @@
 #include "Operator.h"
 #include "SdpObserver.h"
 #include "DesktopCaptureSource.h"
+#include "VideoRender.h"
 
 class WebRTC : public WebRTCInterface
 {
@@ -32,6 +33,8 @@ public:
     void checkConnectionStatus();
     void startCaptureDesktop() override;
     void stopCaptureDesktop() override;
+    void setRenderInstance(RenderInterface* instance);
+
 public:
     void display_string(std::string event_name,std::string str);
     void display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3);
@@ -44,13 +47,14 @@ public:
     WebRTCInterface::ConnectionStatus peerconnection_status;
     std::unique_ptr<rtc::Thread> signaling_thread;
     rtc::scoped_refptr<webrtc::PeerConnectionInterface> peer_connection;
+    rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> desktop_source;
+    std::unique_ptr<VideoRender> video_render;
 private:
     void AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index);
 private:
     rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
     webrtc::PeerConnectionInterface::RTCConfiguration configuration;
 
-    rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> desktop_source;
 
     rtc::scoped_refptr<webrtc::AudioTrackInterface> desktop_audio_track;
     rtc::scoped_refptr<webrtc::VideoTrackInterface> desktop_video_track;

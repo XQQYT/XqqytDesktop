@@ -5,6 +5,12 @@
 
 class UserInfoManager {
 public:
+    enum class Role
+    {
+        UN_DEFINED,
+        Controller,
+        BeControlled
+    };
     static UserInfoManager& getInstance() {
         static UserInfoManager instance;
         return instance;
@@ -22,12 +28,17 @@ public:
     void setEstablishingTargetId(const std::string& id) { establishing_target_id = id; }
     const std::string& getEstablishingTargetId() const { return establishing_target_id; }
     
+    void setCurrentRole(const Role& role) { current_role = role; }
+    const Role& getCurrentRole() const { return current_role; }
 private:
-    UserInfoManager() = default;
+    UserInfoManager(){
+        current_role = Role::UN_DEFINED;
+    };
     std::string currentUserId_; //your id
     std::string currendTargetId;   //target id which you want to connect
 
     std::string establishing_target_id;   //target id which try to connect to you
+    Role current_role;
 };
 
 #endif

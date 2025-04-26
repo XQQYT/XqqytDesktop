@@ -1,6 +1,7 @@
 #include "PeerConnectionObserver.h"
 #include "WebRTC.h"
 #include <iostream>
+
 void PCO::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state)
 {
 
@@ -169,7 +170,14 @@ void PCO::OnAddTrack(
 
 void PCO::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) 
 {
-
+    std::cout<<"onTrack"<<std::endl;
+    auto receiver = transceiver->receiver();
+    auto track = receiver->track();
+    if (track && track->kind() == webrtc::MediaStreamTrackInterface::kVideoKind)
+    {
+        auto video_track = static_cast<webrtc::VideoTrackInterface*>(track.get());
+        video_track->AddOrUpdateSink(webrtc_instance.video_render.get(), rtc::VideoSinkWants());
+    }
 }
 
 void PCO::OnRemoveTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver) 

@@ -19,7 +19,8 @@ void PCO::OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream
 
 void PCO::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel)
 {
-
+    webrtc_instance.data_channel = data_channel;
+    webrtc_instance.data_channel->RegisterObserver(&webrtc_instance.dco);
 }
 
 void PCO::OnRenegotiationNeeded() 

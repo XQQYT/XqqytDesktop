@@ -2,6 +2,7 @@
 #define _WEBRTCINTERFACE_H
 #include <string>
 #include "Render.h"
+#include "MouseKeyboardType.h"
 
 class WebRTCInterface
 {
@@ -38,6 +39,7 @@ public:
     virtual void startCaptureDesktop() = 0;
     virtual void stopCaptureDesktop() = 0;
     virtual void setRenderInstance(RenderInterface* instance) = 0;
+    virtual void sendMouseEventPacket(const MouseEventPacket packet) = 0;
 };
 
 #endif

@@ -18,6 +18,7 @@ public:
     void createSDP(bool status);
     void recvSDPOffer(std::string sdp);
     void recvSDPAnswer(std::string sdp);
+    void onSendMouseData(const MouseEventPacket packet);
     void onSetRemoteSDPOfferDone();
     void onRecvIceCandidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
     void onRecvIceCandidateDone();

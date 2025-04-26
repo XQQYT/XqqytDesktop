@@ -69,7 +69,6 @@ bool DesktopCaptureSource::GetStats(Stats* stats) {
 }
 
 void DesktopCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
-  std::cout<<"capture"<<std::endl;
 
   rtc::scoped_refptr<webrtc::VideoFrameBuffer> buffer(
       frame.video_frame_buffer());

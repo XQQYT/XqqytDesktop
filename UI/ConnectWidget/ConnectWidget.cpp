@@ -92,11 +92,11 @@ void ConnectWidget::onConnectionStatus(bool status)
         if(!remote_widget_alive && UserInfoManager::getInstance().getCurrentRole() == UserInfoManager::Role::Controller)
         {
             QMetaObject::invokeMethod(this, [this]() {
+                std::cout<<"new a remote widget"<<std::endl;
                 remote_widget = new RemoteControlWidget;
                 remote_widget->show();
-                remote_widget_alive = true;
             }, Qt::QueuedConnection);
-            
+            remote_widget_alive = true;
         }
         std::cout<<"Connection successed"<<std::endl;
     }

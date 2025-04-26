@@ -29,6 +29,10 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
     void sendHoldPackets();
+
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
+
 private:
     const char* vertexShaderSource = R"(
         #version 330 core

@@ -30,6 +30,7 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/render/set_render_instance");
 
     EventBus::getInstance().registerEvent("/mouse_event/has_event");
+    EventBus::getInstance().registerEvent("/keyboard_event/has_event");
 }
 //使模块订阅好事件
 void initModuleSubscribe()

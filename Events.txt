@@ -23,3 +23,4 @@
 /render/set_render_instance
 
 /mouse_event/has_event
+/keyboard_event/has_event

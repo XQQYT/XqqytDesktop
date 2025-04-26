@@ -11,6 +11,7 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
     ui->setupUi(this);
     opengl_widget = new OpenGLWidget();
     opengl_widget->setMouseTracking(true);
+    opengl_widget->setFocusPolicy(Qt::StrongFocus);
     auto layout = this->layout();
     layout->addWidget(opengl_widget);
     EventBus::getInstance().publish("/render/set_render_instance",dynamic_cast<RenderInterface*>(this));

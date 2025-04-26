@@ -35,6 +35,7 @@ public:
     void stopCaptureDesktop() override;
     void setRenderInstance(RenderInterface* instance) override;
     void sendMouseEventPacket(const MouseEventPacket packet) override;
+    void sendKeyboardEventPacket(const KeyEventPacket packet) override;
 public:
     void display_string(std::string event_name,std::string str);
     void display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3);

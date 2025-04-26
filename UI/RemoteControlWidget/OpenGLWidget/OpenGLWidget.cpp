@@ -278,3 +278,23 @@ void OpenGLWidget::sendHoldPackets()
         }
     }
 }
+
+void OpenGLWidget::keyPressEvent(QKeyEvent* event)
+{
+    std::cout<<"keyPressEvent"<<std::endl;
+    KeyEventPacket packet;
+    packet.key = event->key();
+    packet.modifiers = event->modifiers();
+    packet.is_pressed = true;
+    EventBus::getInstance().publish("/keyboard_event/has_event",packet);
+}
+
+void OpenGLWidget::keyReleaseEvent(QKeyEvent* event)
+{
+    std::cout<<"keyReleaseEvent"<<std::endl;
+    KeyEventPacket packet;
+    packet.key = event->key();
+    packet.modifiers = event->modifiers();
+    packet.is_pressed = false;
+    EventBus::getInstance().publish("/keyboard_event/has_event",packet);
+}

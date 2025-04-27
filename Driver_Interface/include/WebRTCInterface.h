@@ -32,7 +32,7 @@ public:
         FAILED,
         SUCCESSED
     };
-    virtual void initWebRTC() = 0;
+    virtual void initWebRTC(bool is_offer) = 0;
     virtual void createSDP(SDPType type) = 0;
     virtual void setRemoteSDP(std::string remote_sdp, SDPType type) = 0;
     virtual void addIceCandidateIntoBuffer(std::string ice_str,std::string sdp_mid,int sdp_mline_index) = 0;

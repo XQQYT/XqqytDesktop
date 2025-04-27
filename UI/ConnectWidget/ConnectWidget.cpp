@@ -89,6 +89,7 @@ void ConnectWidget::onConnectionStatus(bool status)
 {
     if(status)
     {
+        UserInfoManager::getInstance().setCurrentTargetId(UserInfoManager::getInstance().getEstablishingTargetId());
         if(!remote_widget_alive && UserInfoManager::getInstance().getCurrentRole() == UserInfoManager::Role::Controller)
         {
             QMetaObject::invokeMethod(this, [this]() {

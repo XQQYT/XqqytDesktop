@@ -16,6 +16,8 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/network/send_connect_request_result");
     EventBus::getInstance().registerEvent("/network/recv_connect_request_result");
 
+    EventBus::getInstance().registerEvent("/webrtc/init_webrtc_done");
+    EventBus::getInstance().registerEvent("/webrtc/remote_ready");
     EventBus::getInstance().registerEvent("/webrtc/create_sdp_offer");
     EventBus::getInstance().registerEvent("/webrtc/create_sdp_answer");
     EventBus::getInstance().registerEvent("/webrtc/set_remote_sdp_offer_done");

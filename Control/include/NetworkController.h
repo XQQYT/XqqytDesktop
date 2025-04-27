@@ -34,6 +34,7 @@ public:
     void onCreateSDPAnswer(std::string sdp_str);
     void onHaveICECondidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
     void onGatherICEDone();
+    void onWebRTCInitDone();
 private:
     void connectToTarget(std::string target_id);
 private:

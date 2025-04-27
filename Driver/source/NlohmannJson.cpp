@@ -92,6 +92,18 @@ std::shared_ptr<std::string> NlohmannJson::ws_get_target_status(std::string user
         return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::ws_ready(std::string user_id,std::string target_id)
+{
+    json result_msg = {
+        {"type", "ready"},
+        {"content", {
+            {"user_id", std::move(user_id)},
+            {"target_id", std::move(target_id)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
 std::shared_ptr<std::string> NlohmannJson::ws_sdp_offer(std::string user_id,std::string target_id,std::string sdp)
 {
     json result_msg = {

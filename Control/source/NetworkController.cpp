@@ -79,6 +79,10 @@ void NetworkController::initNetworkSubscribe()
         std::placeholders::_1,
         std::placeholders::_2
     ));
+    EventBus::getInstance().subscribe("/webrtc/init_webrtc_done",std::bind(
+        &NetworkController::onWebRTCInitDone,
+        this
+    ));
     EventBus::getInstance().subscribe("/webrtc/create_sdp_offer",std::bind(
         &NetworkController::onCreateSDPOffer,
         this,
@@ -176,3 +180,8 @@ void NetworkController::onGatherICEDone()
     std::move(UserInfoManager::getInstance().getEstablishingTargetId())));
 }
 
+void NetworkController::onWebRTCInitDone()
+{
+    sendToServer(*json_factory->ws_ready(std::move(UserInfoManager::getInstance().getCurrentUserId()),
+    std::move(UserInfoManager::getInstance().getEstablishingTargetId())));
+}

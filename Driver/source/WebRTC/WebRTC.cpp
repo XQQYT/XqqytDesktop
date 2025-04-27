@@ -30,7 +30,7 @@ WebRTC::WebRTC(Operator& base_operator):
   peerconnection_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
 }
 
-void WebRTC::initWebRTC()
+void WebRTC::initWebRTC(bool is_offer)
 {
     std::cout << "init WebRTC"<<std::endl;
 
@@ -88,6 +88,9 @@ void WebRTC::initWebRTC()
       desktop_video_track = peer_connection_factory->CreateVideoTrack(desktop_source,"desktop_video_track");
   });
   std::cout << "init WebRTC done"<<std::endl;
+
+  if(!is_offer)
+    webrtc_operator.dispatch_void("/webrtc/init_webrtc_done");
 }
 
 void WebRTC::createSDP(SDPType type)

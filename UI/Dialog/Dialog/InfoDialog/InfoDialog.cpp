@@ -127,10 +127,11 @@ void InfoDialog::reset()
     ui->label_title->clear();
     ui->label_content->clear();
     title_content_count = 0;
-    QLayoutItem* item;
-    while (item = ui->btn_layout->takeAt(0)) {
-        if (item->widget()) {
-            delete item->widget();
+    QLayoutItem* item = nullptr;
+    while ((item = ui->btn_layout->takeAt(0)) != nullptr) 
+    {
+        if (QWidget* widget = item->widget()) {
+            delete widget;
         }
         delete item;
     }

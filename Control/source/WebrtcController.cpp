@@ -7,12 +7,14 @@ WebrtcController::WebrtcController()
 
 void WebrtcController::initWebrtcSubscribe()
 {
-    EventBus::getInstance().subscribe("/network/registration_successed",std::bind(
+    EventBus::getInstance().subscribe("/network/send_connect_request_result",std::bind(
         &WebrtcController::onInitWebrtc,
-        this
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
     ));
     EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(
-        &WebrtcController::createSDP,
+        &WebrtcController::onRecvConnectRequestResult,
         this,
         std::placeholders::_1
     ));
@@ -57,16 +59,27 @@ void WebrtcController::initWebrtcSubscribe()
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/control/close_control",std::bind(
+        &WebrtcController::onCloseControl,
+        this
+    ));
+    EventBus::getInstance().subscribe("/control/recv_close_control",std::bind(
+        &WebrtcController::onRecvCloseControl,
+        this
+    ));
+    
 }
 
-void WebrtcController::onInitWebrtc()
+void WebrtcController::onInitWebrtc(std::string, bool status)
 {
-    webrtc_instance->initWebRTC();
+    if(status)
+        webrtc_instance->initWebRTC();
 }
 
 //The peer accept the connection request
-void WebrtcController::createSDP(bool status)
+void WebrtcController::onRecvConnectRequestResult(bool status)
 {
+    webrtc_instance->initWebRTC();
     if(status)
         webrtc_instance->createSDP(WebRTCInterface::SDPType::OFFER);
 }
@@ -134,4 +147,14 @@ void WebrtcController::onSendMouseData(MouseEventPacket packet)
 void WebrtcController::onSendKeyboardData(KeyEventPacket packet)
 {
     webrtc_instance->sendKeyboardEventPacket(std::move(packet));
+}
+
+void WebrtcController::onCloseControl()
+{
+    webrtc_instance->closeWebRTC();
+}
+
+void WebrtcController::onRecvCloseControl()
+{
+    webrtc_instance->closeWebRTC();
 }

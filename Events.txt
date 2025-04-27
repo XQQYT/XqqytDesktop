@@ -24,3 +24,6 @@
 
 /mouse_event/has_event
 /keyboard_event/has_event
+
+/control/close_control
+/control/recv_close_control

@@ -41,6 +41,7 @@ public:
     virtual void setRenderInstance(RenderInterface* instance) = 0;
     virtual void sendMouseEventPacket(const MouseEventPacket packet) = 0;
     virtual void sendKeyboardEventPacket(const KeyEventPacket packet) = 0;
+    virtual void closeWebRTC() = 0;
 };
 
 #endif

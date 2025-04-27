@@ -23,6 +23,12 @@ RemoteControlWidget::~RemoteControlWidget()
     delete ui;
 }
 
+void RemoteControlWidget::closeEvent(QCloseEvent *event)
+{
+    EventBus::getInstance().publish("/control/close_control");
+    emit remote_widget_closed();
+}
+
 
 void RemoteControlWidget::addRenderFrame(VideoFrame&& render_frame) {
     // std::cout << "Width: " << render_frame.width << std::endl;

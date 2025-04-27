@@ -50,6 +50,7 @@ void OpenGLWidget::setCurrent(RenderInterface::VideoFrame frame)
     scale_x = (float)frame.width / this->width();
     scale_y = (float)frame.height / this->height();
     
+    std::cout<<frame.width<<" x "<<frame.height<<std::endl;
     makeCurrent();
     
     // Update Y texture
@@ -167,7 +168,6 @@ void OpenGLWidget::convertPos(MouseEventPacket& packet)
 {
     packet.x = packet.x * scale_x;
     packet.y = packet.y * scale_y;
-    qDebug() << "Remote screen coordinates: (" << packet.x << ", " << packet.y << ")";
 }
 
 MouseButton OpenGLWidget::toMouseButton(Qt::MouseButton qtButton)

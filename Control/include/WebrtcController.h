@@ -14,8 +14,8 @@ public:
 public:
     WebrtcController();
     void initWebrtcSubscribe();
-    void onInitWebrtc();
-    void createSDP(bool status);
+    void onInitWebrtc(std::string, bool status);
+    void onRecvConnectRequestResult(bool status);
     void recvSDPOffer(std::string sdp);
     void recvSDPAnswer(std::string sdp);
     void onSendMouseData(MouseEventPacket packet);
@@ -24,6 +24,8 @@ public:
     void onRecvIceCandidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
     void onRecvIceCandidateDone();
     void onSetRenderInstance(RenderInterface* instance);
+    void onCloseControl();
+    void onRecvCloseControl();
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
 };

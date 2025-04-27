@@ -2,6 +2,7 @@
 #define REMOTECONTROLWIDGET_H
 
 #include <QWidget>
+#include <QCloseEvent>
 #include "Render.h" 
 
 class OpenGLWidget;
@@ -17,6 +18,13 @@ public:
     RemoteControlWidget(QWidget *parent = nullptr);
     ~RemoteControlWidget();
     void addRenderFrame(VideoFrame&& render_frame) override;
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+signals:
+    void remote_widget_closed();
+
 public slots:
     void handleFrameUpdated();
 private:

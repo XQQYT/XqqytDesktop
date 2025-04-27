@@ -1,11 +1,14 @@
 #include "DataChannelObserver.h"
 #include <iostream>
+#include <string>
 #include "MouseKeyboardType.h"
 #include <X11/Xlib.h>
 #include <X11/extensions/XTest.h>
 #include <unordered_map>
+#include "WebRTC.h"
 
-DCO::DCO()
+DCO::DCO(WebRTC& instance)
+    :webrtc_instance(instance)
 {
     driver = std::make_unique<X11Driver>();
 }
@@ -43,7 +46,17 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
 
         std::cout << oss.str() << std::endl;
     } else {
-        std::cerr << "Received unknown data size: " << size << std::endl;
+        // 处理字符串消息
+        std::string msg(reinterpret_cast<const char*>(data), size-1); // 直接构造
+        if (msg == "close_webrtc") 
+        {
+            webrtc_instance.display_void("/control/recv_close_control");
+            std::cout << "Received close_webrtc command, closing connection..." << std::endl;
+        } 
+        else 
+        {
+            std::cerr << "Received unknown text message: " << msg << std::endl;
+        }
     }
 }
 

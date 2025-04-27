@@ -31,6 +31,9 @@ void initEventBusRegisterEvent()
 
     EventBus::getInstance().registerEvent("/mouse_event/has_event");
     EventBus::getInstance().registerEvent("/keyboard_event/has_event");
+
+    EventBus::getInstance().registerEvent("/control/close_control");
+    EventBus::getInstance().registerEvent("/control/recv_close_control");
 }
 //使模块订阅好事件
 void initModuleSubscribe()

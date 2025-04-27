@@ -5,9 +5,10 @@
 #include "KeyboardMouseDriver/X11.h"
 #include <memory>
 
+class WebRTC;
 class DCO : public webrtc::DataChannelObserver {
     public:
-    DCO();
+    DCO(WebRTC& instance);
      // The data channel state have changed.
      void OnStateChange() override;
      //  A data buffer was successfully received.
@@ -29,6 +30,7 @@ class DCO : public webrtc::DataChannelObserver {
      ~DCO() = default;
     private:
       std::unique_ptr<KeyboardMouseInterface> driver; 
+      WebRTC& webrtc_instance;
    };
 
 

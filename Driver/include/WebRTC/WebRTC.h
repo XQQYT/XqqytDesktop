@@ -36,6 +36,7 @@ public:
     void setRenderInstance(RenderInterface* instance) override;
     void sendMouseEventPacket(const MouseEventPacket packet) override;
     void sendKeyboardEventPacket(const KeyEventPacket packet) override;
+    void closeWebRTC() override;
 public:
     void display_string(std::string event_name,std::string str);
     void display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3);
@@ -51,10 +52,11 @@ public:
     rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> desktop_source;
     std::unique_ptr<VideoRender> video_render;
     rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
-    DCO dco;
+    std::unique_ptr<DCO> dco;
 
 private:
     void AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index);
+    void sendCloseWebRTC();
 private:
     webrtc::PeerConnectionInterface::RTCConfiguration configuration;
 

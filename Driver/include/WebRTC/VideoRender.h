@@ -15,7 +15,7 @@ class VideoRender : public rtc::VideoSinkInterface<webrtc::VideoFrame>{
 
         void OnFrame(const webrtc::VideoFrame& frame) override;
         void setRenderInstance(RenderInterface* instance);
-        
+        void closeRender();
     private:
         RenderInterface* instance;
     };

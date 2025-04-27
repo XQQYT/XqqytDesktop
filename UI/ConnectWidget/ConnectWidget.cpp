@@ -95,6 +95,10 @@ void ConnectWidget::onConnectionStatus(bool status)
                 std::cout<<"new a remote widget"<<std::endl;
                 remote_widget = new RemoteControlWidget;
                 remote_widget->show();
+                connect(remote_widget,&RemoteControlWidget::remote_widget_closed,this,[this](){
+                    std::cout<<"reset remote_widget_alive"<<std::endl;
+                    remote_widget_alive = false;
+                });
             }, Qt::QueuedConnection);
             remote_widget_alive = true;
         }

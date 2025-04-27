@@ -150,6 +150,14 @@ X11Driver::X11Driver()
     display = XOpenDisplay(NULL);
 }
 
+X11Driver::~X11Driver()
+{
+    if(display)
+    {
+        XCloseDisplay(display);
+        display = nullptr;
+    }
+}
 void X11Driver::syncKeyboard(const KeyEventPacket& packet)
 {
     if (!display) {
@@ -160,7 +168,6 @@ void X11Driver::syncKeyboard(const KeyEventPacket& packet)
     auto it = qtKeyToX11KeySym.find(packet.key);
     if (it == qtKeyToX11KeySym.end()) {
         std::cerr << "Unknown Qt Key: " << packet.key << std::endl;
-        XCloseDisplay(display);
         return;
     }
 
@@ -169,7 +176,6 @@ void X11Driver::syncKeyboard(const KeyEventPacket& packet)
 
     if (keycode == 0) {
         std::cerr << "Failed to convert KeySym to KeyCode" << std::endl;
-        XCloseDisplay(display);
         return;
     }
 
@@ -178,7 +184,6 @@ void X11Driver::syncKeyboard(const KeyEventPacket& packet)
     XTestFakeKeyEvent(display, keycode, packet.is_pressed, CurrentTime);
     XFlush(display);
 
-    XCloseDisplay(display);
 }
 
 void X11Driver::syncMouseEvent(const MouseEventPacket& packet) {

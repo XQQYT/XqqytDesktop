@@ -14,6 +14,7 @@ void DCO::OnStateChange()
 {
 
 }
+
 void DCO::OnMessage(const webrtc::DataBuffer& buffer)
 {
     const uint8_t* data = buffer.data.data();
@@ -24,41 +25,23 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
         MouseEventPacket packet;
         std::memcpy(&packet, data, sizeof(MouseEventPacket));
         driver->syncMouseEvent(packet);
-        std::ostringstream oss;
-        oss << "Received MouseEventPacket: { ";
-        
-        oss << "type: ";
-        switch (packet.type) {
-            case MouseEventType::Move: oss << "Move"; break;
-            case MouseEventType::Press: oss << "Press"; break;
-            case MouseEventType::Release: oss << "Release"; break;
-            case MouseEventType::Wheel: oss << "Wheel"; break;
-            default: oss << "Unknown"; break;
-        }
-        oss << ", ";
-
-        oss << "button: ";
-        switch (packet.button) {
-            case MouseButton::NoButton: oss << "NoButton"; break;
-            case MouseButton::LeftButton: oss << "LeftButton"; break;
-            case MouseButton::RightButton: oss << "RightButton"; break;
-            case MouseButton::MiddleButton: oss << "MiddleButton"; break;
-            default: oss << "Unknown"; break;
-        }
-        oss << ", ";
-
-        oss << "x: " << packet.x << ", ";
-        oss << "y: " << packet.y << ", ";
-        oss << "wheelDelta: " << packet.wheelDelta;
-
-        oss << " }";
-
-        std::cout << oss.str() << std::endl;
 
     } else if (size == sizeof(KeyEventPacket)) {
         KeyEventPacket packet;
         std::memcpy(&packet, data, sizeof(KeyEventPacket));
         driver->syncKeyboard(packet);
+
+        // 打印 KeyEventPacket 信息
+        std::ostringstream oss;
+        oss << "Received KeyEventPacket: { ";
+
+        oss << "key: 0x" << std::hex << packet.key << std::dec << ", ";
+        oss << "modifiers: 0x" << std::hex << packet.modifiers << std::dec << ", ";
+        oss << "is_pressed: " << static_cast<int>(packet.is_pressed);
+
+        oss << " }";
+
+        std::cout << oss.str() << std::endl;
     } else {
         std::cerr << "Received unknown data size: " << size << std::endl;
     }

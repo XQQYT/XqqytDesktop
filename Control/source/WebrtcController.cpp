@@ -47,8 +47,16 @@ void WebrtcController::initWebrtcSubscribe()
         this,
         std::placeholders::_1
     ));
-    
-    
+    EventBus::getInstance().subscribe("/mouse_event/has_event",std::bind(
+        &WebrtcController::onSendMouseData,
+        this,
+        std::placeholders::_1
+    ));
+    EventBus::getInstance().subscribe("/keyboard_event/has_event",std::bind(
+        &WebrtcController::onSendKeyboardData,
+        this,
+        std::placeholders::_1
+    ));
 }
 
 void WebrtcController::onInitWebrtc()
@@ -118,3 +126,12 @@ void WebrtcController::onSetRenderInstance(RenderInterface* instance)
     webrtc_instance->setRenderInstance(instance);
 }
 
+void WebrtcController::onSendMouseData(MouseEventPacket packet)
+{
+    webrtc_instance->sendMouseEventPacket(std::move(packet));
+}
+
+void WebrtcController::onSendKeyboardData(KeyEventPacket packet)
+{
+    webrtc_instance->sendKeyboardEventPacket(std::move(packet));
+}

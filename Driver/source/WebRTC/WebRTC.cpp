@@ -135,9 +135,9 @@ void WebRTC::createSDP(SDPType type)
             std::cout << "Audio track video successfully." << std::endl;
         }
       }
-        signaling_thread->PostTask([this](){
-          peer_connection->CreateAnswer(sdpo.get(), webrtc::PeerConnectionInterface::RTCOfferAnswerOptions());
-        });
+      signaling_thread->PostTask([this](){
+        peer_connection->CreateAnswer(sdpo.get(), webrtc::PeerConnectionInterface::RTCOfferAnswerOptions());
+      });
       break;
     }
     default:
@@ -281,4 +281,35 @@ void WebRTC::stopCaptureDesktop()
 void WebRTC::setRenderInstance(RenderInterface* instance)
 {
   video_render->setRenderInstance(instance);
+}
+
+void WebRTC::sendMouseEventPacket(const MouseEventPacket packet)
+{
+
+  if (data_channel->state() == webrtc::DataChannelInterface::kOpen) 
+  {
+    const char* data = reinterpret_cast<const char*>(&packet);
+    size_t size = sizeof(packet);
+    rtc::CopyOnWriteBuffer buffer(data, size);
+    webrtc::DataBuffer data_buffer(buffer, true);
+    data_channel->Send(data_buffer);
+  } else 
+  {
+    std::cerr << "DataChannel is not open, state: " << data_channel->state() << std::endl;
+  }
+}
+
+void WebRTC::sendKeyboardEventPacket(const KeyEventPacket packet)
+{
+  if (data_channel->state() == webrtc::DataChannelInterface::kOpen) 
+  {
+    const char* data = reinterpret_cast<const char*>(&packet);
+    size_t size = sizeof(packet);
+    rtc::CopyOnWriteBuffer buffer(data, size);
+    webrtc::DataBuffer data_buffer(buffer, true);
+    data_channel->Send(data_buffer);
+  } else 
+  {
+    std::cerr << "DataChannel is not open, state: " << data_channel->state() << std::endl;
+  }
 }

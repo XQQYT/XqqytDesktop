@@ -2,9 +2,12 @@
 #define _DATACHANNELOBSERVER_H
 
 #include "api/create_peerconnection_factory.h"
+#include "KeyboardMouseDriver/X11.h"
+#include <memory>
 
 class DCO : public webrtc::DataChannelObserver {
     public:
+    DCO();
      // The data channel state have changed.
      void OnStateChange() override;
      //  A data buffer was successfully received.
@@ -24,6 +27,8 @@ class DCO : public webrtc::DataChannelObserver {
      bool IsOkToCallOnTheNetworkThread() override;
    
      ~DCO() = default;
+    private:
+      std::unique_ptr<KeyboardMouseInterface> driver; 
    };
 
 

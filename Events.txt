@@ -19,3 +19,8 @@
 /webrtc/send_ice_gather_done
 /webrtc/recv_ice_gather_done
 /webrtc/connection_status
+
+/render/set_render_instance
+
+/mouse_event/has_event
+/keyboard_event/has_event

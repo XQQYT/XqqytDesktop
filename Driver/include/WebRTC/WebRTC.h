@@ -33,8 +33,9 @@ public:
     void checkConnectionStatus();
     void startCaptureDesktop() override;
     void stopCaptureDesktop() override;
-    void setRenderInstance(RenderInterface* instance);
-
+    void setRenderInstance(RenderInterface* instance) override;
+    void sendMouseEventPacket(const MouseEventPacket packet) override;
+    void sendKeyboardEventPacket(const KeyEventPacket packet) override;
 public:
     void display_string(std::string event_name,std::string str);
     void display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3);
@@ -49,10 +50,12 @@ public:
     rtc::scoped_refptr<webrtc::PeerConnectionInterface> peer_connection;
     rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> desktop_source;
     std::unique_ptr<VideoRender> video_render;
+    rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
+    DCO dco;
+
 private:
     void AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index);
 private:
-    rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
     webrtc::PeerConnectionInterface::RTCConfiguration configuration;
 
 
@@ -65,7 +68,6 @@ private:
     std::unique_ptr<rtc::Thread> worker_thread;
 
     std::unique_ptr<PCO> pco;
-    DCO dco;
     rtc::scoped_refptr<SDPO> sdpo;
     rtc::scoped_refptr<SSDO> ssdo;
 

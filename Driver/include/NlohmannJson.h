@@ -28,6 +28,7 @@ public:
     std::shared_ptr<std::string> ws_register(std::string id) override;
     std::shared_ptr<std::string> ws_message(std::string user_id,std::string target_id,std::string msg) override;
     std::shared_ptr<std::string> ws_get_target_status(std::string user_id,std::string target_id) override;
+    std::shared_ptr<std::string> ws_ready(std::string user_id,std::string target_id) override;
     std::shared_ptr<std::string> ws_sdp_offer(std::string user_id,std::string target_id,std::string sdp) override;
     std::shared_ptr<std::string> ws_sdp_answer(std::string user_id,std::string target_id,std::string sdp) override;
     std::shared_ptr<std::string> ws_connect_request(std::string user_id,std::string target_id) override;

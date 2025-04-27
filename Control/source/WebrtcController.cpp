@@ -13,6 +13,11 @@ void WebrtcController::initWebrtcSubscribe()
         std::placeholders::_1,
         std::placeholders::_2
     ));
+    
+    EventBus::getInstance().subscribe("/webrtc/remote_ready",std::bind(
+        &WebrtcController::onReady,
+        this
+    ));
     EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(
         &WebrtcController::onRecvConnectRequestResult,
         this,
@@ -73,15 +78,19 @@ void WebrtcController::initWebrtcSubscribe()
 void WebrtcController::onInitWebrtc(std::string, bool status)
 {
     if(status)
-        webrtc_instance->initWebRTC();
+        webrtc_instance->initWebRTC(false);
+}
+
+void WebrtcController::onReady()
+{
+    webrtc_instance->createSDP(WebRTCInterface::SDPType::OFFER);
 }
 
 //The peer accept the connection request
 void WebrtcController::onRecvConnectRequestResult(bool status)
 {
-    webrtc_instance->initWebRTC();
     if(status)
-        webrtc_instance->createSDP(WebRTCInterface::SDPType::OFFER);
+        webrtc_instance->initWebRTC(true);
 }
 
 void WebrtcController::onSetRemoteSDPOfferDone()

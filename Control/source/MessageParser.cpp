@@ -28,6 +28,9 @@ void MessageParser::initTypeFuncMap()
     type_func_map["connect_request_result"] = [this](std::unique_ptr<Parser> parser) {
         this->onConnectRequestResult(std::move(parser));
     };
+    type_func_map["ready"] = [this](std::unique_ptr<Parser> parser) {
+        this->onReady(std::move(parser));
+    };
     type_func_map["sdp_offer"] = [this](std::unique_ptr<Parser> parser) {
         this->onSdpOffer(std::move(parser));
     };
@@ -91,6 +94,7 @@ void MessageParser::onConnectRequest(std::unique_ptr<Parser> parser)
     std::string target_id = parser->getKey("target_id");
     if(!target_id.empty())
     {
+        UserInfoManager::getInstance().setEstablishingTargetId(target_id);
         network_operator.dispatch_string("/network/has_connect_request",target_id);
     }
     else
@@ -138,4 +142,9 @@ void MessageParser::onIceCondidate(std::unique_ptr<Parser> parser)
 void MessageParser::onIceGatherDone(std::unique_ptr<Parser> parser)
 {
     network_operator.dispatch_void("/webrtc/recv_ice_gather_done");
+}
+
+void MessageParser::onReady(std::unique_ptr<Parser> parser)
+{
+    network_operator.dispatch_void("/webrtc/remote_ready");
 }

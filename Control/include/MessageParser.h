@@ -17,6 +17,7 @@ private:
     void onTargetStatusResult(std::unique_ptr<Parser> parser);
     void onConnectRequest(std::unique_ptr<Parser> parser);
     void onConnectRequestResult(std::unique_ptr<Parser> parser);
+    void onReady(std::unique_ptr<Parser> parser);
     void onSdpOffer(std::unique_ptr<Parser> parser);
     void onSdpAnswer(std::unique_ptr<Parser> parser);
     void onIceCondidate(std::unique_ptr<Parser> parser);

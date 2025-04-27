@@ -7,20 +7,65 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>250</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Connection Request</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+     QDialog {
+         background-color: #f0f0f0;
+         border-radius: 10px;
+         padding: 20px;
+     }
+
+     QLabel {
+         color: #333333;
+         font-size: 16px;
+     }
+
+     QLabel#label_title {
+         font-size: 18px;
+         font-weight: bold;
+         color: #4CAF50;
+     }
+
+     QLabel#label_content {
+         font-size: 14px;
+         color: #555555;
+         padding: 10px;
+         background-color: #ffffff;
+         border-radius: 8px;
+         border: 1px solid #dddddd;
+     }
+
+     QPushButton {
+         background-color: #4CAF50;
+         color: white;
+         font-size: 14px;
+         border-radius: 8px;
+         padding: 8px 16px;
+         border: none;
+     }
+
+     QPushButton:hover {
+         background-color: #45a049;
+     }
+
+     QPushButton:pressed {
+         background-color: #388e3c;
+     }
+
+     QHBoxLayout {
+         margin-top: 20px;
+     }
+   </string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
     <widget class="QLabel" name="label_title">
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
      <property name="text">
       <string>New Connection Request</string>
      </property>
@@ -52,7 +97,7 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>40</width>
+          <width>50</width>
           <height>20</height>
          </size>
         </property>
@@ -72,7 +117,7 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>40</width>
+          <width>20</width>
           <height>20</height>
          </size>
         </property>
@@ -92,7 +137,7 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>40</width>
+          <width>50</width>
           <height>20</height>
          </size>
         </property>

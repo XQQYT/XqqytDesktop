@@ -1,5 +1,6 @@
 #include "InfoDialog.h"
 #include "ui_InfoDialog.h"
+#include <iostream>
 
 InfoDialog::InfoDialog(QWidget *parent)
     : QDialog(parent)
@@ -12,6 +13,11 @@ InfoDialog::InfoDialog(QWidget *parent)
 InfoDialog::~InfoDialog()
 {
     delete ui;
+}
+
+void InfoDialog::setPargentWidget(QWidget* parent_widget)
+{
+    this->parent_widget =  parent_widget;
 }
 
 InfoDialog& InfoDialog::operator<<(const std::any& input)
@@ -127,11 +133,22 @@ void InfoDialog::reset()
     ui->label_title->clear();
     ui->label_content->clear();
     title_content_count = 0;
-    QLayoutItem* item;
-    while (item = ui->btn_layout->takeAt(0)) {
-        if (item->widget()) {
-            delete item->widget();
+    QLayoutItem* item = nullptr;
+    while ((item = ui->btn_layout->takeAt(0)) != nullptr) 
+    {
+        if (QWidget* widget = item->widget()) {
+            delete widget;
         }
         delete item;
+    }
+}
+
+void InfoDialog::showEvent(QShowEvent* event)
+{
+    QDialog::showEvent(event);
+
+    if (parent_widget) {
+        QRect parentRect = parent_widget->geometry();
+        move(parentRect.center());
     }
 }

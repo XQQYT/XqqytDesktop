@@ -8,7 +8,7 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     remote_widget = nullptr;
     remote_widget_alive = false;
     ui->setupUi(this);
-
+    info_dialog.setPargentWidget(this);
     this->setFixedSize(800, 600);
     this->setGeometry(QStyle::alignedRect(
     Qt::LeftToRight,

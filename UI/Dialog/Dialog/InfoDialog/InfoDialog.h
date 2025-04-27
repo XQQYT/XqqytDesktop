@@ -30,6 +30,7 @@ public:
 public:
     InfoDialog(QWidget *parent = nullptr);
     InfoDialog& operator<<(const std::any& input);
+    void setPargentWidget(QWidget* parent_widget);
     ~InfoDialog();
 signals:
     void YES();
@@ -43,8 +44,11 @@ private:
     void setContent(QString&& str);
     void appendContent(QString&& str);
     void reset();
+protected:
+    void showEvent(QShowEvent* event);
 private:
     Ui::InfoDialog *ui;
     int title_content_count;
+    QWidget* parent_widget;
 };
 #endif // INFODIALOG_H

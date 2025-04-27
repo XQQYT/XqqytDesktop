@@ -83,6 +83,8 @@ void WebrtcController::onInitWebrtc(std::string, bool status)
 
 void WebrtcController::onReady()
 {
+    static bool is_first = true;
+    while(!webrtc_instance->getWebRtcReady()){if(is_first){std::cout<<"watting for webrtc ready"<<std::endl;is_first = false;}}
     webrtc_instance->createSDP(WebRTCInterface::SDPType::OFFER);
 }
 

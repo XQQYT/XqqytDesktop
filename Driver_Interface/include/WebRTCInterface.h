@@ -42,6 +42,7 @@ public:
     virtual void sendMouseEventPacket(const MouseEventPacket packet) = 0;
     virtual void sendKeyboardEventPacket(const KeyEventPacket packet) = 0;
     virtual void closeWebRTC() = 0;
+    virtual bool getWebRtcReady() = 0;
 };
 
 #endif

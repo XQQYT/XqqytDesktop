@@ -28,6 +28,7 @@ WebRTC::WebRTC(Operator& base_operator):
   hasSetRemoteSdp = false;
   ice_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
   peerconnection_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
+  webrtc_ready = false;
 }
 
 void WebRTC::initWebRTC(bool is_offer)
@@ -91,6 +92,7 @@ void WebRTC::initWebRTC(bool is_offer)
 
   if(!is_offer)
     webrtc_operator.dispatch_void("/webrtc/init_webrtc_done");
+  webrtc_ready = true;
 }
 
 void WebRTC::createSDP(SDPType type)
@@ -379,5 +381,11 @@ void WebRTC::closeWebRTC()
   hasSetRemoteSdp = false;
   ice_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
   peerconnection_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
+  webrtc_ready = false;
   std::cout << "WebRTC Closed." << std::endl;
+}
+
+bool WebRTC::getWebRtcReady()
+{
+  return webrtc_ready;
 }

@@ -28,6 +28,11 @@ QWidget#left_btn_widget {
     border-right: 1px solid #e0e0e0;
 }
 
+QWidget#right_content_widget {
+    
+	background-color: rgb(240, 240, 240);
+}
+
 /* 所有按钮通用样式 */
 QPushButton#btn_connect,
 QPushButton#btn_device,
@@ -45,19 +50,20 @@ QPushButton#btn_settings {
 QPushButton#btn_connect:hover,
 QPushButton#btn_device:hover,
 QPushButton#btn_settings:hover {
-    background-color: #d0dce5;
+	background-color: rgb(218, 230, 239);
 }
 
 QPushButton#btn_connect:pressed,
 QPushButton#btn_device:pressed,
 QPushButton#btn_settings:pressed {
-    background-color: #b0c4d0;
+	
+	background-color: rgb(196, 216, 228);
 }
 
 QPushButton#btn_connect:checked,
 QPushButton#btn_device:checked,
 QPushButton#btn_settings:checked {
-	background-color: rgb(156, 176, 188);
+	background-color: rgb(206, 226, 238);
 }
 
 /* 圆形图标按钮（pushButton）样式 */

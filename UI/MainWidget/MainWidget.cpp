@@ -69,3 +69,15 @@ void MainWidget::on_btn_connect_clicked(bool checked)
     current_btn = ui->btn_connect;
 
 }
+
+void MainWidget::on_btn_settings_clicked(bool checked)
+{
+    if(current_btn == ui->btn_settings && !checked)
+    {
+        ui->btn_settings->setChecked(true);
+        return;
+    }
+    current_btn->setChecked(false);
+    setCurrentWidget(WidgetManager::WidgetType::SettingsWidget);
+    current_btn = ui->btn_settings;
+}

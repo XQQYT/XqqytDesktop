@@ -14,6 +14,7 @@ void WidgetManager::initWidget()
 {
     widget_map[WidgetType::ConnectWidget] = new ConnectWidget();
     widget_map[WidgetType::DeviceWidget] = new DeviceWidget();
+    widget_map[WidgetType::SettingsWidget] = new SettingsWidget();
 }
 
 QWidget* WidgetManager::getWidget(const WidgetType type)
@@ -26,5 +27,7 @@ void WidgetManager::closeAllWidget()
     for(auto& widget_ptr : widget_map)
     {
         widget_ptr->close();
+        delete widget_ptr;
+        widget_ptr = nullptr;
     }
 }

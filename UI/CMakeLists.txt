@@ -7,7 +7,7 @@ add_subdirectory(MainWidget)
 add_subdirectory(ConnectWidget)
 add_subdirectory(RemoteControlWidget)
 add_subdirectory(DeviceWidget)
-
+add_subdirectory(SettingsWidget)
 
 add_library(UI STATIC
     MainWidget/MainWidget.cpp

@@ -14,4 +14,5 @@ target_link_libraries(WidgetManager
 ConnectWidget
 DeviceWidget
 RemoteControlWidget 
+SettingsWidget
 )

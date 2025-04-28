@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingsWidget</class>
+ <widget class="QWidget" name="SettingsWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Settings</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+QWidget#SettingsWidget {
+    background-color: #f9f9f9;
+    font-family: &quot;Segoe UI&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+    font-size: 18px;
+    color: #333;
+}
+QPushButton#btn_general,
+ QPushButton#btn_display,
+QPushButton#btn_network,
+QPushButton#btn_about{
+	
+    background-color: transparent;
+    border: none;
+    padding: 8px 16px;
+    color: #666;
+}
+QPushButton#btn_general:hover,
+ QPushButton#btn_display:hover,
+QPushButton#btn_network:hover,
+QPushButton#btn_about:hover {
+    color: #111;
+}
+QPushButton#btn_general:checked,
+ QPushButton#btn_display:checked,
+QPushButton#btn_network:checked,
+QPushButton#btn_about:checked {
+    color: #0066ff;
+    border-bottom: 2px solid #0066ff;
+}
+#contentFrame {
+    background-color: #ffffff;
+    border-radius: 12px;
+}
+QStackedWidget {
+    background-color: #ffffff;
+    border: none;
+}
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>16</number>
+   </property>
+   <property name="leftMargin">
+    <number>24</number>
+   </property>
+   <property name="topMargin">
+    <number>24</number>
+   </property>
+   <property name="rightMargin">
+    <number>24</number>
+   </property>
+   <property name="bottomMargin">
+    <number>24</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="topBar" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>20</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="btn_general">
+        <property name="text">
+         <string>General</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_display">
+        <property name="text">
+         <string>Display</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_network">
+        <property name="text">
+         <string>Network</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_about">
+        <property name="text">
+         <string>About</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="contentFrame">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <layout class="QVBoxLayout" name="frameLayout">
+      <item>
+       <widget class="QStackedWidget" name="stackedWidget">
+        <widget class="QWidget" name="page_general"/>
+        <widget class="QWidget" name="page_display"/>
+        <widget class="QWidget" name="page_network"/>
+        <widget class="QWidget" name="page_about"/>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

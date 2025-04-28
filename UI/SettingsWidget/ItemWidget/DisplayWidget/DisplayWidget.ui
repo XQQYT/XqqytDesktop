@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DisplayWidget</class>
+ <widget class="QWidget" name="DisplayWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Settings</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget#DisplayWidget {
+    
+	background-color: rgb(255, 255, 255);
+    font-family: &quot;Segoe UI&quot;, &quot;Microsoft YaHei&quot;, &quot;Helvetica Neue&quot;, sans-serif;
+    font-size: 14px;
+    color: #333333;
+}
+
+QLabel#label_display {
+	background-color: rgb(255, 255, 255);
+    color: #2c3e50;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+QLabel {
+	background-color: rgb(255, 255, 255);
+    color: #555555;
+}
+
+QCheckBox {
+	background-color: rgb(255, 255, 255);
+    spacing: 8px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+}
+
+QComboBox{
+	background-color: rgb(255, 255, 255);
+}
+
+QComboBox:hover {
+    border: 1px solid #999999;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: #cccccc;
+    border-left-style: solid;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+QComboBox QAbstractItemView {
+    border: 1px solid #cccccc;
+    background-color: white;
+    color: #333333;
+    selection-background-color: #e0e0e0;
+    selection-color: #333333;
+    outline: 0;
+}
+
+QComboBox QAbstractItemView::item {
+    padding: 4px 8px;
+}
+
+QComboBox QAbstractItemView::item:hover {
+    background-color: #f0f0f0;
+    color: #333333;
+}
+
+</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <item>
+    <widget class="QLabel" name="label_display">
+     <property name="font">
+      <font>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Display Settings</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_render">
+       <property name="text">
+        <string>Render</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QCheckBox" name="checkbox_render">
+       <property name="text">
+        <string>GPU Acceleration</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_render_rate">
+       <property name="text">
+        <string>Render Rate</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="combobox_render_rate">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <item>
+        <property name="text">
+         <string>30fps</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>60fps</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>90fps</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Auto (Remote Sync)</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_capture_rate">
+       <property name="text">
+        <string>Capture Rate</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="combobox_capture_rate">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <item>
+        <property name="text">
+         <string>30fps</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>60fps</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>90fps</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string/>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="bottomSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

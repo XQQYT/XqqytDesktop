@@ -19,6 +19,7 @@ public:
 private slots:
     void on_btn_device_clicked(bool checked);
     void on_btn_connect_clicked(bool checked);
+    void on_btn_settings_clicked(bool checked);
 private:
     Ui::MainWidget *ui;
     WidgetManager::WidgetType current_widget;

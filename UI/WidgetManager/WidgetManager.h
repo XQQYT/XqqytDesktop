@@ -3,6 +3,7 @@
 
 #include "ConnectWidget.h"
 #include "DeviceWidget.h"
+#include "SettingsWidget.h"
 #include <QMap>
 #include <iostream>
 
@@ -14,6 +15,7 @@ public:
         UnDefined,
         ConnectWidget,
         DeviceWidget,
+        SettingsWidget
     };
     Q_OBJECT
 public:

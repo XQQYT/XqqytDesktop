@@ -32,16 +32,26 @@ static std::unordered_map<uint32_t, KeySym> qtKeyToX11KeySym = {
     { 0x5a, XK_z },  // Qt::Key_Z
 
     // 数字键 (0-9)
-    { 0x30, XK_0 },  // Qt::Key_0
+    { 0x29, XK_0 },  // Qt::Key_0
+    { 0x30, XK_0 },
     { 0x31, XK_1 },  // Qt::Key_1
+    { 0x21, XK_1 },
     { 0x32, XK_2 },  // Qt::Key_2
+    { 0x40, XK_2 },
     { 0x33, XK_3 },  // Qt::Key_3
+    { 0x23, XK_3 },
     { 0x34, XK_4 },  // Qt::Key_4
+    { 0x24, XK_4 },
     { 0x35, XK_5 },  // Qt::Key_5
+    { 0x25, XK_5 },
     { 0x36, XK_6 },  // Qt::Key_6
+    { 0x5e, XK_6 },
     { 0x37, XK_7 },  // Qt::Key_7
+    { 0x26, XK_7 },
     { 0x38, XK_8 },  // Qt::Key_8
+    { 0x2a, XK_8 },
     { 0x39, XK_9 },  // Qt::Key_9
+    { 0x28, XK_9 },
 
     // 符号键 (上档键未按下)
     { 0x20, XK_space },      // Qt::Key_Space
@@ -56,25 +66,25 @@ static std::unordered_map<uint32_t, KeySym> qtKeyToX11KeySym = {
     { 0x2e, XK_period },       // Qt::Key_Period
     { 0x2f, XK_slash },        // Qt::Key_Slash
     { 0x60, XK_grave },        // Qt::Key_QuoteLeft
-
+    { 0x7e, XK_grave },
     // 功能键
     { 0x01000004, XK_Return },       // Qt::Key_Enter/Return
     { 0x01000005, XK_Return },       // Qt::Key_Enter (小键盘)
-    { 0x01000013, XK_BackSpace },    // Qt::Key_Backspace
-    { 0x01000014, XK_Tab },          // Qt::Key_Tab
-    { 0x01000015, XK_Clear },        // Qt::Key_Clear
-    { 0x01000016, XK_Escape },       // Qt::Key_Escape
-    { 0x01000017, XK_Mode_switch },  // Qt::Key_Mode_switch
+    { 0x01000003, XK_BackSpace },    // Qt::Key_Backspace
+    { 0x01000001, XK_Tab },          // Qt::Key_Tab
+    { 0x00000000, XK_Clear },        // Qt::Key_Clear
+    { 0x01000000, XK_Escape },       // Qt::Key_Escape
+    { 0x00000000, XK_Mode_switch },  // Qt::Key_Mode_switch
     { 0x01000020, XK_Shift_L },      // Qt::Key_Shift (左)
-    { 0x01000021, XK_Shift_R },      // Qt::Key_Shift (右)
-    { 0x01000022, XK_Control_L },    // Qt::Key_Control (左)
-    { 0x01000023, XK_Control_R },    // Qt::Key_Control (右)
-    { 0x01000024, XK_Meta_L },       // Qt::Key_Meta (左)
-    { 0x01000025, XK_Meta_R },       // Qt::Key_Meta (右)
-    { 0x01000026, XK_Alt_L },        // Qt::Key_Alt (左)
-    { 0x01000027, XK_Alt_R },        // Qt::Key_Alt (右)
-    { 0x01000028, XK_Caps_Lock },    // Qt::Key_CapsLock
-    { 0x01000029, XK_Num_Lock },     // Qt::Key_NumLock
+    { 0x01000020, XK_Shift_R },      // Qt::Key_Shift (右)
+    { 0x01000021, XK_Control_L },    // Qt::Key_Control (左)
+    { 0x01000021, XK_Control_R },    // Qt::Key_Control (右)
+    { 0x00000000, XK_Meta_L },       // Qt::Key_Meta (左)
+    { 0x00000000, XK_Meta_R },       // Qt::Key_Meta (右)
+    { 0x01000023, XK_Alt_L },        // Qt::Key_Alt (左)
+    { 0x01000023, XK_Alt_R },        // Qt::Key_Alt (右)
+    { 0x01000024, XK_Caps_Lock },    // Qt::Key_CapsLock
+    { 0x01000025, XK_Num_Lock },     // Qt::Key_NumLock
     { 0x0100002a, XK_Scroll_Lock },  // Qt::Key_ScrollLock
     { 0x01000030, XK_F1 },           // Qt::Key_F1
     { 0x01000031, XK_F2 },           // Qt::Key_F2
@@ -102,17 +112,17 @@ static std::unordered_map<uint32_t, KeySym> qtKeyToX11KeySym = {
     { 0x01000047, XK_F24 },          // Qt::Key_F24
     { 0x01000048, XK_Menu },         // Qt::Key_Menu
     { 0x01000051, XK_Help },         // Qt::Key_Help
-    { 0x01000052, XK_Prior },        // Qt::Key_PageUp
-    { 0x01000053, XK_Next },         // Qt::Key_PageDown
-    { 0x01000054, XK_Home },         // Qt::Key_Home
-    { 0x01000055, XK_End },          // Qt::Key_End
-    { 0x01000056, XK_Left },         // Qt::Key_Left
-    { 0x01000057, XK_Up },           // Qt::Key_Up
-    { 0x01000058, XK_Right },        // Qt::Key_Right
-    { 0x01000059, XK_Down },         // Qt::Key_Down
+    { 0x01000016, XK_Prior },        // Qt::Key_PageUp
+    { 0x01000017, XK_Next },         // Qt::Key_PageDown
+    { 0x01000010, XK_Home },         // Qt::Key_Home
+    { 0x01000011, XK_End },          // Qt::Key_End
+    { 0x01000012, XK_Left },         // Qt::Key_Left
+    { 0x01000013, XK_Up },           // Qt::Key_Up
+    { 0x01000014, XK_Right },        // Qt::Key_Right
+    { 0x01000015, XK_Down },         // Qt::Key_Down
     { 0x01000060, XK_Print },        // Qt::Key_Print
-    { 0x01000061, XK_Insert },       // Qt::Key_Insert
-    { 0x01000062, XK_Delete },       // Qt::Key_Delete
+    { 0x01000006, XK_Insert },       // Qt::Key_Insert
+    { 0x01000007, XK_Delete },       // Qt::Key_Delete
     { 0x01000063, XK_Pause },        // Qt::Key_Pause
     { 0x01000064, XK_Sys_Req },      // Qt::Key_SysReq
 
@@ -127,9 +137,9 @@ static std::unordered_map<uint32_t, KeySym> qtKeyToX11KeySym = {
     { 0x01000077, XK_KP_7 },        // Qt::Key_7 (小键盘)
     { 0x01000078, XK_KP_8 },        // Qt::Key_8 (小键盘)
     { 0x01000079, XK_KP_9 },        // Qt::Key_9 (小键盘)
-    { 0x0100007a, XK_KP_Add },      // Qt::Key_Plus (小键盘)
+    { 0x2b, XK_KP_Add },      // Qt::Key_Plus (小键盘)
     { 0x0100007b, XK_KP_Subtract }, // Qt::Key_Minus (小键盘)
-    { 0x0100007c, XK_KP_Multiply }, // Qt::Key_Asterisk (小键盘)
+    { 0x2a, XK_KP_Multiply }, // Qt::Key_Asterisk (小键盘)
     { 0x0100007d, XK_KP_Divide },   // Qt::Key_Slash (小键盘)
     { 0x0100007e, XK_KP_Enter },    // Qt::Key_Enter (小键盘)
     { 0x0100007f, XK_KP_Equal },    // Qt::Key_Equal (小键盘)
@@ -143,6 +153,16 @@ static std::unordered_map<uint32_t, KeySym> qtKeyToX11KeySym = {
     { 0x01001138, XK_Super_R },      // Qt::Key_Super_R (右Win键)
     { 0x0100117e, XK_Hyper_L },      // Qt::Key_Hyper_L
     { 0x0100117f, XK_Hyper_R },      // Qt::Key_Hyper_R
+
+    { 0x5f, XK_underscore},    //_
+    { 0x7b, XK_braceleft },   // {
+    { 0x7d, XK_braceright },  // }
+    { 0x7c, XK_bar },         // |
+    { 0x3a, XK_colon },       // :
+    { 0x22, XK_quotedbl },    // "
+    { 0x3f, XK_question },    // ?
+    { 0x3c, XK_less },      // <
+    { 0x3e, XK_greater },   // >
 };
 
 X11Driver::X11Driver()
@@ -181,6 +201,10 @@ void X11Driver::syncKeyboard(const KeyEventPacket& packet)
 
     Window root = DefaultRootWindow(display);
 
+    if(keycode == 94)//if key is less, need to disable shift, 0x3c->94 
+    {
+        XTestFakeKeyEvent(display, 50, false, CurrentTime);//0x1000020->50
+    }
     XTestFakeKeyEvent(display, keycode, packet.is_pressed, CurrentTime);
     XFlush(display);
 

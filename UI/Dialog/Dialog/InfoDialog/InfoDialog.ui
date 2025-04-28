@@ -6,51 +6,80 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>0</width>
+    <height>0</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Information</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="label_title">
-     <property name="font">
-      <font>
-       <pointsize>22</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
+  <property name="styleSheet">
+   <string notr="true">QPushButton {
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+}
+
+QPushButton:hover {
+  background-color: #45a049;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <item>
+    <layout class="QVBoxLayout" name="topLayout">
+     <item>
+      <widget class="QLabel" name="label_title">
+       <property name="font">
+        <font>
+         <pointsize>24</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Information</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
-   <item row="1" column="0">
+   <item>
     <widget class="QLabel" name="label_content">
      <property name="font">
       <font>
        <pointsize>16</pointsize>
       </font>
      </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel#label_content {
+  color: #555555;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 10px;
+}</string>
+     </property>
      <property name="text">
-      <string/>
+      <string>This is the content of the dialog. You can display more details about the application or instructions here.</string>
      </property>
      <property name="alignment">
-      <set>Qt::AlignHCenter|Qt::AlignTop</set>
+      <set>Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignTop|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item>
     <layout class="QHBoxLayout" name="btn_layout"/>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../../../Resources/res.qrc"/>
+ </resources>
  <connections/>
 </ui>

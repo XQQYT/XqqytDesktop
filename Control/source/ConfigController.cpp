@@ -1,11 +1,13 @@
 #include "ConfigController.h"
 #include "ConfigDriver.h"
+#include "UserInfo.h"
 #include <iostream>
 
 ConfigController::ConfigController()
 {
     config_driver = std::make_unique<ConfigDriver>("settings.json");
     all_config = std::move(config_driver->getAllConfig());
+    UserInfoManager::getInstance().setCurrentUserId((*all_config)["User"]["user_id"]);
     std::cout<<"config init done"<<std::endl;
 }
 

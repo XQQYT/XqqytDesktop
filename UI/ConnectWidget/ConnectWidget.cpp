@@ -9,13 +9,7 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     remote_widget_alive = false;
     ui->setupUi(this);
     info_dialog.setPargentWidget(this);
-    this->setFixedSize(800, 600);
-    this->setGeometry(QStyle::alignedRect(
-    Qt::LeftToRight,
-    Qt::AlignCenter,
-    this->size(),
-    QGuiApplication::primaryScreen()->availableGeometry()
-));
+    ui->lineEdit_id->setText(UserInfoManager::getInstance().getCurrentUserId().data());
     initSubscribe();
     EventBus::getInstance().publish("/ui/connectwidget_init_done");
 }

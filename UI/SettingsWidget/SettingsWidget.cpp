@@ -1,5 +1,6 @@
 #include "SettingsWidget.h"
 #include "ui_SettingsWidget.h"
+#include <QDebug>
 
 SettingsWidget::SettingsWidget(QWidget *parent)
     : QWidget(parent)
@@ -7,6 +8,12 @@ SettingsWidget::SettingsWidget(QWidget *parent)
 {
     ui->setupUi(this);
 
+    EventBus::getInstance().subscribe("/config/all_config_result",std::bind(
+        &SettingsWidget::onAllConfigResult,
+        this,
+        std::placeholders::_1
+    ));
+    EventBus::getInstance().publish("/config/get_all_config");
     general_widget = new GeneralWidget(this);
     display_widget = new DisplayWidget(this);
     network_widget = new NetworkWidget(this);
@@ -73,4 +80,15 @@ void SettingsWidget::on_btn_about_clicked(bool checked)
     current_btn->setChecked(false);
     ui->stackedWidget->setCurrentWidget(about_widget);
     current_btn = ui->btn_about;
+}
+
+void SettingsWidget::onAllConfigResult(std::unordered_map<std::string, std::unordered_map<std::string, std::string>> all_config)
+{
+    std::cout<<"recv all config"<<all_config.size()<<std::endl;
+    for (const auto& [outer_key, inner_map] : all_config) {
+        std::cout << "Outer key: " << outer_key << std::endl;
+        for (const auto& [inner_key, value] : inner_map) {
+            std::cout << "  " << inner_key << ": " << value << std::endl;
+        }
+    }
 }

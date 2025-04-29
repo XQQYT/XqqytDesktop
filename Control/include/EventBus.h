@@ -53,6 +53,7 @@ using callback_id = size_t;
 
 class NetworkController;
 class WebrtcController;
+class ConfigController;
 class EventBus {
 public:
     EventBus(const EventBus&) = delete;
@@ -156,6 +157,7 @@ private:
 
     std::unique_ptr<NetworkController> network_controller;
     std::unique_ptr<WebrtcController> webrtc_controller;
+    std::unique_ptr<ConfigController> config_controller;
 };
 
 #endif

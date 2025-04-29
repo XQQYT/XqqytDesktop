@@ -15,5 +15,6 @@ target_include_directories(SettingsWidget PUBLIC
 # 链接 SettingsWidget 库
 target_link_libraries(SettingsWidget 
 Qt5::Widgets
+Control
 ItemWidget
 )

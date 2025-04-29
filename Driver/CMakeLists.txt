@@ -4,6 +4,7 @@
 add_library(Driver STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebSocket.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/NlohmannJson.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/ConfigDriver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/WebRTC.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/DataChannelObserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/PeerConnectionObserver.cpp

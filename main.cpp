@@ -36,6 +36,9 @@ void initEventBusRegisterEvent()
 
     EventBus::getInstance().registerEvent("/control/close_control");
     EventBus::getInstance().registerEvent("/control/recv_close_control");
+
+    EventBus::getInstance().registerEvent("/config/get_all_config");
+    EventBus::getInstance().registerEvent("/config/all_config_result");
 }
 //使模块订阅好事件
 void initModuleSubscribe()

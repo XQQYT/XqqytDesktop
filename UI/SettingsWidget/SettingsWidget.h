@@ -7,6 +7,7 @@
 #include "DisplayWidget.h"
 #include "NetworkWidget.h"
 #include "AboutWidget.h"
+#include"EventBus.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class SettingsWidget; }
@@ -25,6 +26,9 @@ private slots:
     void on_btn_display_clicked(bool checked);
     void on_btn_network_clicked(bool checked);
     void on_btn_about_clicked(bool checked);
+
+private:
+    void onAllConfigResult(std::unordered_map<std::string, std::unordered_map<std::string, std::string>> all_config);
 private:
     Ui::SettingsWidget *ui;
     QPushButton *current_btn;

@@ -35,6 +35,8 @@ public:
     void onHaveICECondidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
     void onGatherICEDone();
     void onWebRTCInitDone();
+    void onModuleConfigResult(std::string module,std::unordered_map<std::string,std::string> config);
+    void onModuleConfigUpdated(std::string module,std::unordered_map<std::string,std::string> config);
 private:
     void connectToTarget(std::string target_id);
 private:

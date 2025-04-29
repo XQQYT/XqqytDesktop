@@ -1,5 +1,7 @@
 #include "NetworkController.h"
 
+static const std::string module_name = "Network";
+
 NetworkController::NetworkController()
 {
     //使用websocket驱动
@@ -64,6 +66,18 @@ void NetworkController::sendMsg(std::string msg)
 
 void NetworkController::initNetworkSubscribe()
 {
+    EventBus::getInstance().subscribe("/config/module_config_result",std::bind(
+        &NetworkController::onModuleConfigResult,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
+    ));
+    EventBus::getInstance().subscribe("/config/module_config_updated",std::bind(
+        &NetworkController::onModuleConfigUpdated,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
+    ));
     EventBus::getInstance().subscribe("/network/connect_to_target",std::bind(
         &NetworkController::connectToTarget,
         this,
@@ -104,9 +118,21 @@ void NetworkController::initNetworkSubscribe()
         &NetworkController::onGatherICEDone,
         this
     ));
-    
+    EventBus::getInstance().publish("/config/get_module_config",module_name);
+
 }
 
+void NetworkController::onModuleConfigResult(std::string module,std::unordered_map<std::string,std::string> config)
+{
+    if(module != module_name)
+        return;
+    std::cout<<"receive network config"<<std::endl;
+}
+
+void NetworkController::onModuleConfigUpdated(std::string module,std::unordered_map<std::string,std::string> config)
+{
+    std::cout<<"network config receive changed"<<std::endl;
+}
 
 void NetworkController::connectToTarget(std::string target_id)
 {

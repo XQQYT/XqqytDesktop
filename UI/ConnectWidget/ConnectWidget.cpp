@@ -1,4 +1,5 @@
 #include "ConnectWidget.h"
+#include "utils.h"
 #include "ui_ConnectWidget.h"
 
 ConnectWidget::ConnectWidget(QWidget *parent)
@@ -8,6 +9,7 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     remote_widget = nullptr;
     remote_widget_alive = false;
     ui->setupUi(this);
+    applyStyleSheet("./Theme/Light/ConnectWidget.qss",this);
     info_dialog.setPargentWidget(this);
     ui->lineEdit_id->setText(UserInfoManager::getInstance().getCurrentUserId().data());
     initSubscribe();

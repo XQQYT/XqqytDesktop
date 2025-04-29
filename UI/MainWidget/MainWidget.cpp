@@ -1,12 +1,15 @@
 #include "MainWidget.h"
 #include "ui_MainWidget.h"
 #include "RemoteControlWidget.h"
+#include "utils.h"
+#include <QDebug>
 
 MainWidget::MainWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MainWidget)
 {
     ui->setupUi(this);
+    applyStyleSheet("./Theme/Dark/MainWidget.qss",this);
     current_widget = WidgetManager::WidgetType::UnDefined;
     current_btn = ui->btn_connect;
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);

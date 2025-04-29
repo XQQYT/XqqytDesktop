@@ -1,5 +1,6 @@
 #include "NetworkWidget.h"
 #include "ui_NetworkWidget.h"
+#include "utils.h"
 
 static const std::string module_name = "Network";
 
@@ -8,6 +9,7 @@ NetworkWidget::NetworkWidget(QWidget *parent)
     , ui(new Ui::NetworkWidget)
 {
     ui->setupUi(this);
+    applyStyleSheet("./Theme/Light/SettingsWidget/ItemWidget/GeneralWidget.qss",this);
     init_done = false;
 }
 

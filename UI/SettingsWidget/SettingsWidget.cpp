@@ -1,6 +1,10 @@
 #include "SettingsWidget.h"
 #include "ui_SettingsWidget.h"
+<<<<<<< HEAD
 #include "SettingInfo.h"
+=======
+#include "utils.h"
+>>>>>>> 82bfeb01d (decouple_ui_and_qss)
 #include <QDebug>
 
 SettingsWidget::SettingsWidget(QWidget *parent)
@@ -8,7 +12,7 @@ SettingsWidget::SettingsWidget(QWidget *parent)
     , ui(new Ui::SettingsWidget)
 {
     ui->setupUi(this);
-
+    applyStyleSheet("./Theme/Light/SettingsWidget/SettingsWidget.qss",this);
     write_timer = new QTimer(this);
     connect(write_timer,&QTimer::timeout,this,&SettingsWidget::publishWrite);
 

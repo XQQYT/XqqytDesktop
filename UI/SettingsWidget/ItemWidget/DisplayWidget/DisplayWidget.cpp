@@ -1,5 +1,6 @@
 #include "DisplayWidget.h"
 #include "ui_DisplayWidget.h"
+#include "utils.h"
 
 static const std::string module_name = "Display";
 
@@ -8,6 +9,7 @@ DisplayWidget::DisplayWidget(QWidget *parent)
     , ui(new Ui::DisplayWidget)
 {
     ui->setupUi(this);
+    applyStyleSheet("./Theme/Light/SettingsWidget/ItemWidget/DisplayWidget.qss",this);
     init_done = false;
 }
 

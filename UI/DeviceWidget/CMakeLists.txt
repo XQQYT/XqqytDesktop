@@ -16,4 +16,5 @@ target_include_directories(DeviceWidget PUBLIC
 target_link_libraries(DeviceWidget 
 Qt5::Widgets 
 DeviceItem
+utils
 )

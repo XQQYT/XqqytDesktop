@@ -1,5 +1,6 @@
 #include "GeneralWidget.h"
 #include "ui_GeneralWidget.h"
+#include "utils.h"
 #include <iostream>
 
 static const std::string module_name = "General";
@@ -9,6 +10,7 @@ GeneralWidget::GeneralWidget(QWidget *parent)
     , ui(new Ui::GeneralWidget)
 {
     ui->setupUi(this);
+    applyStyleSheet("./Theme/Light/SettingsWidget/ItemWidget/GeneralWidget.qss",this);
     init_done = false;
 }
 

@@ -10,6 +10,12 @@ MainWidget::MainWidget(QWidget *parent)
     current_widget = WidgetManager::WidgetType::UnDefined;
     current_btn = ui->btn_connect;
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
+    // 居中窗口
+    QScreen *screen = QGuiApplication::primaryScreen();
+    QRect screenGeometry = screen->geometry();
+    int x = screenGeometry.x() + (screenGeometry.width() - this->width()) / 2;
+    int y = screenGeometry.y() + (screenGeometry.height() - this->height()) / 2;
+    this->move(x, y);
 }
 
 MainWidget::~MainWidget()

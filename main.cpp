@@ -1,7 +1,6 @@
 #include "MainWidget.h"
 #include "EventBus.h"
 #include <QApplication>
-#include "UserInfo.h"
 //注册必需事件
 void initEventBusRegisterEvent()
 {
@@ -53,12 +52,9 @@ void initModuleSubscribe()
 
 int main(int argc, char *argv[])
 {
-    if(argc != 2)
-        return 0;
     QApplication a(argc, argv);
     initEventBusRegisterEvent();
     initModuleSubscribe();
-    UserInfoManager::getInstance().setCurrentUserId(argv[1]);
     MainWidget w;
     w.show();
     return a.exec();

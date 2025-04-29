@@ -39,6 +39,11 @@ void initEventBusRegisterEvent()
 
     EventBus::getInstance().registerEvent("/config/get_all_config");
     EventBus::getInstance().registerEvent("/config/all_config_result");
+    EventBus::getInstance().registerEvent("/config/updata_module_config");
+    EventBus::getInstance().registerEvent("/config/write_into_file");
+    EventBus::getInstance().registerEvent("/config/get_module_config");
+    EventBus::getInstance().registerEvent("/config/module_config_result");
+    EventBus::getInstance().registerEvent("/config/module_config_updated");
 }
 //使模块订阅好事件
 void initModuleSubscribe()

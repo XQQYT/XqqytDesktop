@@ -1,5 +1,7 @@
 #include "WebrtcController.h"
 
+static const std::string module_name = "Network";
+
 WebrtcController::WebrtcController()
 {
     webrtc_instance = std::make_unique<WebRTC>(*this);
@@ -7,6 +9,20 @@ WebrtcController::WebrtcController()
 
 void WebrtcController::initWebrtcSubscribe()
 {
+    EventBus::getInstance().subscribe("/config/module_config_result",std::bind(
+        &WebrtcController::onModuleConfigResult,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
+    ));
+
+    EventBus::getInstance().subscribe("/config/module_config_updated",std::bind(
+        &WebrtcController::onModuleConfigUpdated,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
+    ));
+
     EventBus::getInstance().subscribe("/network/send_connect_request_result",std::bind(
         &WebrtcController::onInitWebrtc,
         this,
@@ -72,7 +88,19 @@ void WebrtcController::initWebrtcSubscribe()
         &WebrtcController::onRecvCloseControl,
         this
     ));
-    
+    EventBus::getInstance().publish("/config/get_module_config",module_name);
+}
+
+void WebrtcController::onModuleConfigResult(std::string module,std::unordered_map<std::string,std::string> config)
+{
+    if(module != module_name)
+        return;
+    std::cout<<"receive webrtc config"<<std::endl;
+}
+
+void WebrtcController::onModuleConfigUpdated(std::string module,std::unordered_map<std::string,std::string> config)
+{
+    std::cout<<"webrtc config receive changed"<<std::endl;
 }
 
 void WebrtcController::onInitWebrtc(std::string, bool status)

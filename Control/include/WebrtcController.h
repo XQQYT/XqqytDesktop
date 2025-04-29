@@ -27,6 +27,8 @@ public:
     void onSetRenderInstance(RenderInterface* instance);
     void onCloseControl();
     void onRecvCloseControl();
+    void onModuleConfigResult(std::string module,std::unordered_map<std::string,std::string> config);
+    void onModuleConfigUpdated(std::string module,std::unordered_map<std::string,std::string> config);
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
 };

@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QPushButton>
+#include <QTimer>
 #include "GeneralWidget.h"
 #include "DisplayWidget.h"
 #include "NetworkWidget.h"
@@ -26,13 +27,14 @@ private slots:
     void on_btn_display_clicked(bool checked);
     void on_btn_network_clicked(bool checked);
     void on_btn_about_clicked(bool checked);
-
+    void updataModuleConfig(std::string module, std::string key, std::string value);
+    void publishWrite();
 signals:
     void updataGeneral(std::unordered_map<std::string, std::string> config);
     void updataDisplay(std::unordered_map<std::string, std::string> config);
     void updataNetwork(std::unordered_map<std::string, std::string> config);
     void updataAbout(std::unordered_map<std::string, std::string> config);
-    
+
 private:
     void onAllConfigResult(std::unordered_map<std::string, std::unordered_map<std::string, std::string>> all_config);
 private:
@@ -42,5 +44,6 @@ private:
     DisplayWidget *display_widget;
     NetworkWidget *network_widget;
     AboutWidget *about_widget;
+    QTimer* write_timer;
 };
 #endif // SETTINGSWIDGET_H

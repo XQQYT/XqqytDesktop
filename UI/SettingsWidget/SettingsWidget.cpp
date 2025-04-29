@@ -8,6 +8,9 @@ SettingsWidget::SettingsWidget(QWidget *parent)
 {
     ui->setupUi(this);
 
+    write_timer = new QTimer(this);
+    connect(write_timer,&QTimer::timeout,this,&SettingsWidget::publishWrite);
+
     general_widget = new GeneralWidget(this);
     display_widget = new DisplayWidget(this);
     network_widget = new NetworkWidget(this);
@@ -19,6 +22,10 @@ SettingsWidget::SettingsWidget(QWidget *parent)
     connect(this,&SettingsWidget::updataDisplay,display_widget,&DisplayWidget::onDisplayConfig);
     connect(this,&SettingsWidget::updataNetwork,network_widget,&NetworkWidget::onNetworkConfig);
     connect(this,&SettingsWidget::updataAbout,about_widget,&AboutWidget::onAboutConfig);
+
+    connect(general_widget,&GeneralWidget::updataGeneralConfig,this,&SettingsWidget::updataModuleConfig);
+    connect(display_widget,&DisplayWidget::updataDisplayConfig,this,&SettingsWidget::updataModuleConfig);
+    connect(network_widget,&NetworkWidget::updataNetworkConfig,this,&SettingsWidget::updataModuleConfig);
 
     EventBus::getInstance().subscribe("/config/all_config_result",std::bind(
         &SettingsWidget::onAllConfigResult,
@@ -96,4 +103,20 @@ void SettingsWidget::onAllConfigResult(std::unordered_map<std::string, std::unor
     emit updataDisplay(all_config["Display"]);
     emit updataNetwork(all_config["Network"]);
     emit updataAbout(all_config["Meta"]);
+}
+
+void SettingsWidget::updataModuleConfig(std::string module, std::string key, std::string value)
+{
+    if((write_timer->isActive()))
+    {
+        write_timer->stop();
+    }
+    write_timer->start(2000);
+    EventBus::getInstance().publish("/config/updata_module_config",std::move(module),std::move(key),std::move(value));
+}
+
+void SettingsWidget::publishWrite()
+{
+    EventBus::getInstance().publish("/config/write_into_file");
+    write_timer->stop();
 }

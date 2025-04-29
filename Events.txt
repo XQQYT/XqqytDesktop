@@ -32,3 +32,8 @@
 
 /config/get_all_config
 /config/all_config_result
+/config/updata_module_config
+/config/write_into_file
+/config/get_module_config
+/config/module_config_result
+/config/module_config_updated

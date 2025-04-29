@@ -14,10 +14,19 @@ class NetworkWidget : public QWidget
 public:
     NetworkWidget(QWidget *parent = nullptr);
     ~NetworkWidget();
+signals:
+    void updataNetworkConfig(std::string module,std::string key,std::string value);
 
 public slots:
-    void onNetworkConfig(std::unordered_map<std::string,std::string> network_config);
+    void onNetworkConfig(std::unordered_map<std::string,std::string> general_config);
+    void on_lineedit_proxy_ip_editingFinished();
+    void on_lineedit_proxy_port_editingFinished();
+    void on_lineedit_username_editingFinished();
+
+private:
+    void sendUpdataSignal(std::string key,std::string value);
 private:
     Ui::NetworkWidget *ui;
+    bool init_done;
 };
 #endif // NETWORKWIDGET_H

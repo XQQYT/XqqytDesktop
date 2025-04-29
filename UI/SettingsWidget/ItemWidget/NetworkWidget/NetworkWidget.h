@@ -14,6 +14,9 @@ class NetworkWidget : public QWidget
 public:
     NetworkWidget(QWidget *parent = nullptr);
     ~NetworkWidget();
+
+public slots:
+    void onNetworkConfig(std::unordered_map<std::string,std::string> network_config);
 private:
     Ui::NetworkWidget *ui;
 };

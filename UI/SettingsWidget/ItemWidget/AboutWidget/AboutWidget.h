@@ -14,6 +14,8 @@ class AboutWidget : public QWidget
 public:
     AboutWidget(QWidget *parent = nullptr);
     ~AboutWidget();
+public slots:
+    void onAboutConfig(std::unordered_map<std::string,std::string> about_config);
 private:
     Ui::AboutWidget *ui;
 };

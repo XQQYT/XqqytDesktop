@@ -14,6 +14,9 @@ class DisplayWidget : public QWidget
 public:
     DisplayWidget(QWidget *parent = nullptr);
     ~DisplayWidget();
+
+public slots:
+    void onDisplayConfig(std::unordered_map<std::string,std::string> display_config);
 private:
     Ui::DisplayWidget *ui;
 };

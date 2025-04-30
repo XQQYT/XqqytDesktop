@@ -36,7 +36,7 @@ signals:
     void updataAbout(std::unordered_map<std::string, std::string> config);
 
 private:
-    void onAllConfigResult(std::unordered_map<std::string, std::unordered_map<std::string, std::string>> all_config);
+    void initConfig();
 private:
     Ui::SettingsWidget *ui;
     QPushButton *current_btn;

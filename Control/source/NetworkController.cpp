@@ -1,4 +1,5 @@
 #include "NetworkController.h"
+#include "SettingInfo.h"
 
 static const std::string module_name = "Network";
 
@@ -12,11 +13,18 @@ NetworkController::NetworkController()
     recv_thread = nullptr;
     is_recv_thread_running = false;
     is_first_connect = true;
+    loadSetting();
 }
 
 NetworkController::~NetworkController()
 {
     stopRecvMsg();
+}
+
+void NetworkController::loadSetting()
+{
+    SettingInfoManager::getInstance().getModuleConfig("Network");
+    std::cout<<"catch network config"<<std::endl;
 }
 
 void NetworkController::connectToServer()
@@ -66,12 +74,6 @@ void NetworkController::sendMsg(std::string msg)
 
 void NetworkController::initNetworkSubscribe()
 {
-    EventBus::getInstance().subscribe("/config/module_config_result",std::bind(
-        &NetworkController::onModuleConfigResult,
-        this,
-        std::placeholders::_1,
-        std::placeholders::_2
-    ));
     EventBus::getInstance().subscribe("/config/module_config_updated",std::bind(
         &NetworkController::onModuleConfigUpdated,
         this,
@@ -118,16 +120,8 @@ void NetworkController::initNetworkSubscribe()
         &NetworkController::onGatherICEDone,
         this
     ));
-    EventBus::getInstance().publish("/config/get_module_config",module_name);
-
 }
 
-void NetworkController::onModuleConfigResult(std::string module,std::unordered_map<std::string,std::string> config)
-{
-    if(module != module_name)
-        return;
-    std::cout<<"receive network config"<<std::endl;
-}
 
 void NetworkController::onModuleConfigUpdated(std::string module,std::unordered_map<std::string,std::string> config)
 {

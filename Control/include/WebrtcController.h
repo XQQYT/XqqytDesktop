@@ -17,6 +17,7 @@ public:
     void onInitWebrtc(std::string, bool status);
     void onRecvConnectRequestResult(bool status);
     void onReady();
+    void loadSetting();
     void recvSDPOffer(std::string sdp);
     void recvSDPAnswer(std::string sdp);
     void onSendMouseData(MouseEventPacket packet);

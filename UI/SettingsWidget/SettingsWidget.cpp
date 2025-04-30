@@ -1,5 +1,6 @@
 #include "SettingsWidget.h"
 #include "ui_SettingsWidget.h"
+#include "SettingInfo.h"
 #include <QDebug>
 
 SettingsWidget::SettingsWidget(QWidget *parent)
@@ -27,12 +28,7 @@ SettingsWidget::SettingsWidget(QWidget *parent)
     connect(display_widget,&DisplayWidget::updataDisplayConfig,this,&SettingsWidget::updataModuleConfig);
     connect(network_widget,&NetworkWidget::updataNetworkConfig,this,&SettingsWidget::updataModuleConfig);
 
-    EventBus::getInstance().subscribe("/config/all_config_result",std::bind(
-        &SettingsWidget::onAllConfigResult,
-        this,
-        std::placeholders::_1
-    ));
-    EventBus::getInstance().publish("/config/get_all_config");
+    initConfig();
 
     ui->stackedWidget->addWidget(general_widget);
     ui->stackedWidget->addWidget(display_widget);
@@ -97,12 +93,13 @@ void SettingsWidget::on_btn_about_clicked(bool checked)
     current_btn = ui->btn_about;
 }
 
-void SettingsWidget::onAllConfigResult(std::unordered_map<std::string, std::unordered_map<std::string, std::string>> all_config)
+void SettingsWidget::initConfig()
 {
-    emit updataGeneral(all_config["General"]);
-    emit updataDisplay(all_config["Display"]);
-    emit updataNetwork(all_config["Network"]);
-    emit updataAbout(all_config["Meta"]);
+    auto all_config = SettingInfoManager::getInstance().getAllConfig();
+    emit updataGeneral((*all_config)["General"]);
+    emit updataDisplay((*all_config)["Display"]);
+    emit updataNetwork((*all_config)["Network"]);
+    emit updataAbout((*all_config)["Meta"]);
 }
 
 void SettingsWidget::updataModuleConfig(std::string module, std::string key, std::string value)

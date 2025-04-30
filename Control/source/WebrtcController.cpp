@@ -1,20 +1,22 @@
 #include "WebrtcController.h"
+#include "SettingInfo.h"
 
 static const std::string module_name = "Network";
 
 WebrtcController::WebrtcController()
 {
     webrtc_instance = std::make_unique<WebRTC>(*this);
+    loadSetting();
+}
+
+void WebrtcController::loadSetting()
+{
+    SettingInfoManager::getInstance().getModuleConfig("Network");
+    std::cout<<"catch webrtc config"<<std::endl;
 }
 
 void WebrtcController::initWebrtcSubscribe()
 {
-    EventBus::getInstance().subscribe("/config/module_config_result",std::bind(
-        &WebrtcController::onModuleConfigResult,
-        this,
-        std::placeholders::_1,
-        std::placeholders::_2
-    ));
 
     EventBus::getInstance().subscribe("/config/module_config_updated",std::bind(
         &WebrtcController::onModuleConfigUpdated,
@@ -88,15 +90,8 @@ void WebrtcController::initWebrtcSubscribe()
         &WebrtcController::onRecvCloseControl,
         this
     ));
-    EventBus::getInstance().publish("/config/get_module_config",module_name);
 }
 
-void WebrtcController::onModuleConfigResult(std::string module,std::unordered_map<std::string,std::string> config)
-{
-    if(module != module_name)
-        return;
-    std::cout<<"receive webrtc config"<<std::endl;
-}
 
 void WebrtcController::onModuleConfigUpdated(std::string module,std::unordered_map<std::string,std::string> config)
 {

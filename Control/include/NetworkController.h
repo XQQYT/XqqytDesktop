@@ -28,6 +28,7 @@ public:
     void startRecvMsg();
     void stopRecvMsg();
     void sendMsg(std::string msg);
+    void loadSetting();
     void initNetworkSubscribe();
     void onConnectRequestResult(std::string target_id,bool result);
     void onCreateSDPOffer(std::string sdp_str);
@@ -35,7 +36,6 @@ public:
     void onHaveICECondidate(std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
     void onGatherICEDone();
     void onWebRTCInitDone();
-    void onModuleConfigResult(std::string module,std::unordered_map<std::string,std::string> config);
     void onModuleConfigUpdated(std::string module,std::unordered_map<std::string,std::string> config);
 private:
     void connectToTarget(std::string target_id);

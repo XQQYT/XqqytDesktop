@@ -31,7 +31,9 @@ void ConfigController::onUpdateModule(std::string module, std::string key, std::
 {
     std::cout<<"updata "<<module<<" "<<key<<" "<<value<<std::endl;
     SettingInfoManager::getInstance().updataModuleConfig(module, key, value);
-    updated_module.insert(std::move(module));
+    updated_module.insert(module);
+    EventBus::getInstance().publish("/config/updata_module_config_done",std::move(module),std::move(key),std::move(value));
+    std::cout <<"publish done"<<std::endl;
 }
 
 void ConfigController::onWrite()

@@ -1,6 +1,7 @@
 #include "DeviceWidget.h"
 #include "ui_DeviceWidget.h"
 #include "utils.h"
+#include "SettingInfo.h"
 #include <QGraphicsDropShadowEffect>
 
 DeviceWidget::DeviceWidget(QWidget *parent)
@@ -8,7 +9,7 @@ DeviceWidget::DeviceWidget(QWidget *parent)
     , ui(new Ui::DeviceWidget)
 {
     ui->setupUi(this);
-    applyStyleSheet("./Theme/Light/DeviceWidget.qss",this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/DeviceWidget/DeviceWidget.qss")),this);
     DeviceItem *device_item = new DeviceItem;
     auto *shadow = new QGraphicsDropShadowEffect(device_item);
     shadow->setBlurRadius(12);

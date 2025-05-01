@@ -1,6 +1,7 @@
 #include "GeneralWidget.h"
 #include "ui_GeneralWidget.h"
 #include "utils.h"
+#include "SettingInfo.h"
 #include <iostream>
 
 static const std::string module_name = "General";
@@ -10,7 +11,7 @@ GeneralWidget::GeneralWidget(QWidget *parent)
     , ui(new Ui::GeneralWidget)
 {
     ui->setupUi(this);
-    applyStyleSheet("./Theme/Light/SettingsWidget/ItemWidget/GeneralWidget.qss",this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/GeneralWidget.qss")),this);
     init_done = false;
 }
 
@@ -46,4 +47,14 @@ void GeneralWidget::sendUpdataSignal(std::string key,std::string value)
 {
     if(init_done)
         emit updataGeneralConfig(module_name,key,value);
+}
+
+void GeneralWidget::onSettingChanged(std::string module, std::string key, std::string value)
+{
+    if(key == "theme")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/SettingsWidget.qss")), this);
+        }, Qt::QueuedConnection);
+    }
 }

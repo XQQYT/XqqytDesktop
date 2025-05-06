@@ -113,11 +113,23 @@ public:
         if (!isEventRegistered(eventName)) {
             throw std::runtime_error("Event not registered: " + eventName);
         }
+        // for (auto& wrapper : callbacks_map[eventName]) {
+        //     try {
+        //         auto callback = std::any_cast<std::function<void(Args...)>>(wrapper.callback);
+        //         thread_pool->addTask([callback, args_tuple = std::make_tuple(std::forward<Args>(args)...)]() mutable {
+        //             std::apply(callback, std::move(args_tuple));
+        //         });
+        //     } catch (const std::bad_any_cast&) {
+        //         throw std::runtime_error("Callback type mismatch for event: " + eventName);
+        //     }
+        // }
+        auto args_tuple = std::make_shared<std::tuple<std::decay_t<Args>...>>(std::forward<Args>(args)...);
+
         for (auto& wrapper : callbacks_map[eventName]) {
             try {
                 auto callback = std::any_cast<std::function<void(Args...)>>(wrapper.callback);
-                thread_pool->addTask([callback, ...args = std::forward<Args>(args)]() mutable {
-                    callback(args...);
+                thread_pool->addTask([callback, args_tuple]() {
+                    std::apply(callback, *args_tuple);
                 });
             } catch (const std::bad_any_cast&) {
                 throw std::runtime_error("Callback type mismatch for event: " + eventName);

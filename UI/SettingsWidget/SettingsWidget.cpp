@@ -40,7 +40,7 @@ SettingsWidget::SettingsWidget(QWidget *parent)
     current_btn = ui->btn_general;
     ui->btn_general->setChecked(true);
 
-    EventBus::getInstance().subscribe("/config/updata_module_config_done",std::bind(
+    EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &SettingsWidget::onSettingChanged,
         this,
         std::placeholders::_1,
@@ -118,7 +118,7 @@ void SettingsWidget::updataModuleConfig(std::string module, std::string key, std
         write_timer->stop();
     }
     write_timer->start(2000);
-    EventBus::getInstance().publish("/config/updata_module_config",std::move(module),std::move(key),std::move(value));
+    EventBus::getInstance().publish("/config/update_module_config",std::move(module),std::move(key),std::move(value));
 }
 
 void SettingsWidget::publishWrite()
@@ -132,7 +132,11 @@ void SettingsWidget::onSettingChanged(std::string module, std::string key, std::
     if(key == "theme")
     {
         QMetaObject::invokeMethod(this, [=]() {
-            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/SettingsWidget.qss")), this);
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/SettingsWidget.qss")),this);
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/GeneralWidget.qss")),general_widget);
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/DisplayWidget.qss")),display_widget);
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/NetworkWidget.qss")),network_widget);
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/AboutWidget.qss")),about_widget);
         }, Qt::QueuedConnection);
     }
 }

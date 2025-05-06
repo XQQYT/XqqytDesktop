@@ -16,6 +16,9 @@ public:
     DeviceWidget(QWidget *parent = nullptr);
     ~DeviceWidget();
 private:
+    void onSettingChanged(std::string module, std::string key, std::string value);
+
+private:
     Ui::DeviceWidget *ui;
 };
 #endif // DEVICEWIDGET_H

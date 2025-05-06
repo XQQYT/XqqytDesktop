@@ -13,7 +13,7 @@ ConfigController::ConfigController()
 
 void ConfigController::initConfigSubscribe()
 {
-    EventBus::getInstance().subscribe("/config/updata_module_config",std::bind(
+    EventBus::getInstance().subscribe("/config/update_module_config",std::bind(
         &ConfigController::onUpdateModule,
         this,
         std::placeholders::_1,
@@ -32,7 +32,7 @@ void ConfigController::onUpdateModule(std::string module, std::string key, std::
     std::cout<<"updata "<<module<<" "<<key<<" "<<value<<std::endl;
     SettingInfoManager::getInstance().updataModuleConfig(module, key, value);
     updated_module.insert(module);
-    EventBus::getInstance().publish("/config/updata_module_config_done",std::move(module),std::move(key),std::move(value));
+    EventBus::getInstance().publish("/config/update_module_config_done",std::move(module),std::move(key),std::move(value));
     std::cout <<"publish done"<<std::endl;
 }
 

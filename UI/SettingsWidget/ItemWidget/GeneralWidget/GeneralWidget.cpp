@@ -49,12 +49,3 @@ void GeneralWidget::sendUpdataSignal(std::string key,std::string value)
         emit updataGeneralConfig(module_name,key,value);
 }
 
-void GeneralWidget::onSettingChanged(std::string module, std::string key, std::string value)
-{
-    if(key == "theme")
-    {
-        QMetaObject::invokeMethod(this, [=]() {
-            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/SettingsWidget.qss")), this);
-        }, Qt::QueuedConnection);
-    }
-}

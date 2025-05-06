@@ -17,4 +17,5 @@ target_link_libraries(DeviceWidget
 Qt5::Widgets 
 DeviceItem
 utils
+Control
 )

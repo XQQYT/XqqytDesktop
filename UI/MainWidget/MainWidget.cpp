@@ -20,6 +20,13 @@ MainWidget::MainWidget(QWidget *parent)
     int x = screenGeometry.x() + (screenGeometry.width() - this->width()) / 2;
     int y = screenGeometry.y() + (screenGeometry.height() - this->height()) / 2;
     this->move(x, y);
+    EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
+        &MainWidget::onSettingChanged,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3
+    ));
 }
 
 MainWidget::~MainWidget()
@@ -90,4 +97,15 @@ void MainWidget::on_btn_settings_clicked(bool checked)
     current_btn->setChecked(false);
     setCurrentWidget(WidgetManager::WidgetType::SettingsWidget);
     current_btn = ui->btn_settings;
+}
+
+void MainWidget::onSettingChanged(std::string module, std::string key, std::string value)
+{
+    std::cout<<"on changed 1"<<module<<" "<<key<<" "<<value<<std::endl;
+    if(key == "theme")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/MainWidget.qss")),this);
+        }, Qt::QueuedConnection);
+    }
 }

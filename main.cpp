@@ -36,8 +36,8 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/control/close_control");
     EventBus::getInstance().registerEvent("/control/recv_close_control");
 
-    EventBus::getInstance().registerEvent("/config/updata_module_config");
-    EventBus::getInstance().registerEvent("/config/updata_module_config_done");
+    EventBus::getInstance().registerEvent("/config/update_module_config");
+    EventBus::getInstance().registerEvent("/config/update_module_config_done");
     EventBus::getInstance().registerEvent("/config/write_into_file");
     EventBus::getInstance().registerEvent("/config/module_config_updated");
 }

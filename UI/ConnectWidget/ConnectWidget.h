@@ -41,6 +41,7 @@ private:
     void onConnectRequest(std::string target_id);
     void onRecvConnectRequestResult(bool status);
     void onConnectionStatus(bool status);
+    void onSettingChanged(std::string module, std::string key, std::string value);
 private:
     Ui::ConnectWidget *ui;
     RemoteControlWidget* remote_widget;

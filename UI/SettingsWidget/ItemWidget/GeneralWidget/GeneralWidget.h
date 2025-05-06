@@ -27,7 +27,6 @@ public slots:
 
 private:
     void sendUpdataSignal(std::string key,std::string value);
-    void onSettingChanged(std::string module, std::string key, std::string value);
 private:
     Ui::GeneralWidget *ui;
     bool init_done;

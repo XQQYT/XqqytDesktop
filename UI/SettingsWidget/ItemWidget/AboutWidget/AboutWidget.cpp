@@ -20,3 +20,8 @@ void AboutWidget::onAboutConfig(std::unordered_map<std::string,std::string> abou
 {
     ui->label_version->setText(about_config["version"].data());
 }
+
+void AboutWidget::retranslateUi()
+{
+    ui->retranslateUi(this);
+}

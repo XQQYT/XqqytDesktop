@@ -22,9 +22,11 @@ private slots:
     void on_btn_settings_clicked(bool checked);
 private:
     void onSettingChanged(std::string module, std::string key, std::string value);
+    void switchLanguage(const std::string language);
 private:
     Ui::MainWidget *ui;
     WidgetManager::WidgetType current_widget;
     QPushButton* current_btn;
+    QTranslator *translator;
 };
 #endif // MAINWIDGET_H

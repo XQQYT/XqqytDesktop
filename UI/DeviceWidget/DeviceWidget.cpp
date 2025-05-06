@@ -53,4 +53,10 @@ void DeviceWidget::onSettingChanged(std::string module, std::string key, std::st
             }
         }, Qt::QueuedConnection);
     }
+    else if(key == "language")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            ui->retranslateUi(this);
+        }, Qt::QueuedConnection);
+    }
 }

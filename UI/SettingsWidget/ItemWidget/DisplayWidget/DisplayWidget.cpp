@@ -47,3 +47,8 @@ void DisplayWidget::sendUpdataSignal(std::string key,std::string value)
     if(init_done)
         emit updataDisplayConfig(module_name,key,value);
 }
+
+void DisplayWidget::retranslateUi()
+{
+    ui->retranslateUi(this);
+}

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>关于</string>
+   <string>Settings</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -85,7 +85,7 @@
    <item>
     <widget class="QLabel" name="label_version">
      <property name="text">
-      <string>版本: 1.0.0</string>
+      <string>Version: </string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -129,7 +129,7 @@
         </size>
        </property>
        <property name="text">
-        <string>检查更新</string>
+        <string>Check for Updates</string>
        </property>
       </widget>
      </item>
@@ -164,7 +164,7 @@
    <item>
     <widget class="QLabel" name="label_team">
      <property name="text">
-      <string>开发团队: Xqqyt
+      <string>Development Team: Xqqyt
 Develop: Qyt  Tester: Qbz</string>
      </property>
      <property name="alignment">

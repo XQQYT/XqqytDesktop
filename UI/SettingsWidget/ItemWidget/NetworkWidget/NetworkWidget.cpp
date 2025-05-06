@@ -47,3 +47,8 @@ void NetworkWidget::sendUpdataSignal(std::string key,std::string value)
     if(init_done)
         emit updataNetworkConfig(module_name,key,value);
 }
+
+void NetworkWidget::retranslateUi()
+{
+    ui->retranslateUi(this);
+}

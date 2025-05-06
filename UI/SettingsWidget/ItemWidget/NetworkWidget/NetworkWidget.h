@@ -14,6 +14,7 @@ class NetworkWidget : public QWidget
 public:
     NetworkWidget(QWidget *parent = nullptr);
     ~NetworkWidget();
+    void retranslateUi();
 signals:
     void updataNetworkConfig(std::string module,std::string key,std::string value);
 

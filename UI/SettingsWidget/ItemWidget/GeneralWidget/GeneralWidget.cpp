@@ -49,3 +49,7 @@ void GeneralWidget::sendUpdataSignal(std::string key,std::string value)
         emit updataGeneralConfig(module_name,key,value);
 }
 
+void GeneralWidget::retranslateUi()
+{
+    ui->retranslateUi(this);
+}

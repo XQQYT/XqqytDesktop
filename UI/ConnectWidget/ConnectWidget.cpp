@@ -125,4 +125,10 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
             applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/ConnectWidget.qss")),this);
         }, Qt::QueuedConnection);
     }
+    else if(key == "language")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            ui->retranslateUi(this);
+        }, Qt::QueuedConnection);
+    }
 }

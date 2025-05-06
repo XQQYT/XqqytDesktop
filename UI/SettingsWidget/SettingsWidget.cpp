@@ -139,4 +139,14 @@ void SettingsWidget::onSettingChanged(std::string module, std::string key, std::
             applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/AboutWidget.qss")),about_widget);
         }, Qt::QueuedConnection);
     }
+    else if(key == "language")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            ui->retranslateUi(this);
+            general_widget->retranslateUi();
+            display_widget->retranslateUi();
+            network_widget->retranslateUi();
+            about_widget->retranslateUi();
+        }, Qt::QueuedConnection);
+    }
 }

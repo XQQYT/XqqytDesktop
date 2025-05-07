@@ -17,7 +17,7 @@ private:
     void onWrite(); 
 private:
     std::unique_ptr<ConfigInterface> config_driver;
-    std::set<std::string> updated_module;
+    std::unordered_map<std::string, std::unordered_map<std::string, std::string>> updated_config;
     std::shared_mutex mtx;
 };
 

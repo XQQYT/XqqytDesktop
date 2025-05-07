@@ -78,7 +78,8 @@ void NetworkController::initNetworkSubscribe()
         &NetworkController::onModuleConfigUpdated,
         this,
         std::placeholders::_1,
-        std::placeholders::_2
+        std::placeholders::_2,
+        std::placeholders::_3
     ));
     EventBus::getInstance().subscribe("/network/connect_to_target",std::bind(
         &NetworkController::connectToTarget,
@@ -123,7 +124,7 @@ void NetworkController::initNetworkSubscribe()
 }
 
 
-void NetworkController::onModuleConfigUpdated(std::string module,std::unordered_map<std::string,std::string> config)
+void NetworkController::onModuleConfigUpdated(std::string module,std::string key,std::string value)
 {
     std::cout<<"network config receive changed"<<std::endl;
 }

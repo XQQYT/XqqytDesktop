@@ -43,6 +43,7 @@ public:
     virtual void sendKeyboardEventPacket(const KeyEventPacket packet) = 0;
     virtual void closeWebRTC() = 0;
     virtual bool getWebRtcReady() = 0;
+    virtual void setCaptureRate(int rate) = 0;
 };
 
 #endif

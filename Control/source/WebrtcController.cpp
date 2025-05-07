@@ -11,7 +11,10 @@ WebrtcController::WebrtcController()
 
 void WebrtcController::loadSetting()
 {
-    SettingInfoManager::getInstance().getModuleConfig("Network");
+    auto config = SettingInfoManager::getInstance().getModuleConfig("Display");
+    std::string capture_rate = (*config)["capture_rate"];
+    int fpsValue = std::atoi(capture_rate.c_str());
+    webrtc_instance->setCaptureRate(fpsValue);
     std::cout<<"catch webrtc config"<<std::endl;
 }
 
@@ -22,7 +25,8 @@ void WebrtcController::initWebrtcSubscribe()
         &WebrtcController::onModuleConfigUpdated,
         this,
         std::placeholders::_1,
-        std::placeholders::_2
+        std::placeholders::_2,
+        std::placeholders::_3
     ));
 
     EventBus::getInstance().subscribe("/network/send_connect_request_result",std::bind(
@@ -93,9 +97,14 @@ void WebrtcController::initWebrtcSubscribe()
 }
 
 
-void WebrtcController::onModuleConfigUpdated(std::string module,std::unordered_map<std::string,std::string> config)
+void WebrtcController::onModuleConfigUpdated(std::string module,std::string key,std::string value)
 {
-    std::cout<<"webrtc config receive changed"<<std::endl;
+    if(key == "capture_rate")
+    {
+        int fpsValue = std::atoi(value.c_str());
+        webrtc_instance->setCaptureRate(fpsValue);
+        std::cout<<"webrtc receive capture rate "<<fpsValue<<std::endl;
+    }
 }
 
 void WebrtcController::onInitWebrtc(std::string, bool status)

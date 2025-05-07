@@ -28,6 +28,7 @@ class DesktopCaptureSource : public webrtc::Notifier<webrtc::VideoTrackSourceInt
 public:
     DesktopCaptureSource(std::unique_ptr<webrtc::DesktopCapturer> capturer);
     ~DesktopCaptureSource() override;
+    inline void setCaptureRate(int rate){fps = rate;}
     void Start();
     void Stop();
     protected:
@@ -110,7 +111,7 @@ private:
 
     rtc::Thread* capture_thread;
 
-    int fps;
+    std::atomic<int> fps;
 
     SourceState current_status;
 };

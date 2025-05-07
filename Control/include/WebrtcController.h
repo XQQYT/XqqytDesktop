@@ -29,7 +29,7 @@ public:
     void onCloseControl();
     void onRecvCloseControl();
     void onModuleConfigResult(std::string module,std::unordered_map<std::string,std::string> config);
-    void onModuleConfigUpdated(std::string module,std::unordered_map<std::string,std::string> config);
+    void onModuleConfigUpdated(std::string module,std::string key,std::string value);
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
 };

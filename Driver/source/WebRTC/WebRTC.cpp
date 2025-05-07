@@ -271,7 +271,8 @@ void WebRTC::startCaptureDesktop()
 {
   auto desktop_source_ptr = dynamic_cast<DesktopCaptureSource*>(desktop_source.get());
     if (desktop_source_ptr) {
-        desktop_source_ptr->Start();
+      desktop_source_ptr->setCaptureRate(webrtc_capture_rate);
+      desktop_source_ptr->Start();
     } else {
         std::cerr << "Failed to cast to DesktopCaptureSource" << std::endl;
     }
@@ -388,4 +389,16 @@ void WebRTC::closeWebRTC()
 bool WebRTC::getWebRtcReady()
 {
   return webrtc_ready;
+}
+
+void WebRTC::setCaptureRate(int rate)
+{
+  if(desktop_source)
+  {
+    auto desktop_source_ptr = dynamic_cast<DesktopCaptureSource*>(desktop_source.get());
+    desktop_source_ptr->setCaptureRate(rate);
+  }
+  webrtc_capture_rate = rate;
+ 
+  std::cout<<"set capture rate  "<<rate<<std::endl;
 }

@@ -29,20 +29,25 @@ void ConfigController::initConfigSubscribe()
 
 void ConfigController::onUpdateModule(std::string module, std::string key, std::string value)
 {
-    std::cout<<"updata "<<module<<" "<<key<<" "<<value<<std::endl;
+    std::cout << "update " << module << " " << key << " " << value << std::endl;
     SettingInfoManager::getInstance().updataModuleConfig(module, key, value);
-    updated_module.insert(module);
-    EventBus::getInstance().publish("/config/update_module_config_done",std::move(module),std::move(key),std::move(value));
-    std::cout <<"publish done"<<std::endl;
+    {
+        std::unique_lock<std::shared_mutex> lock(mtx);
+        updated_config[module][key] = value;
+    }
+    EventBus::getInstance().publish("/config/update_module_config_done", module, key, value);
+    std::cout << "publish done" << std::endl;
 }
 
 void ConfigController::onWrite()
 {
     std::shared_lock<std::shared_mutex> lock(mtx);
     config_driver->updataConfig(*(SettingInfoManager::getInstance().getAllConfig()));
-    for(auto& module: updated_module)
-    {
-        EventBus::getInstance().publish("/config/module_config_updated",module,std::move(*(SettingInfoManager::getInstance().getModuleConfig(module))));
+
+    for (const auto& [module, key_value_map] : updated_config) {
+        for (const auto& [key, value] : key_value_map) {
+            EventBus::getInstance().publish("/config/module_config_updated", std::move(module), std::move(key), std::move(value));
+        }
     }
-    updated_module.clear();
+    updated_config.clear();
 }

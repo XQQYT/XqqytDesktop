@@ -57,6 +57,15 @@ void DeviceWidget::onSettingChanged(std::string module, std::string key, std::st
     {
         QMetaObject::invokeMethod(this, [=]() {
             ui->retranslateUi(this);
+            for (int i = 0; i < ui->listWidget->count(); ++i) {
+                QListWidgetItem* item = ui->listWidget->item(i);
+                if (item) {
+                    DeviceItem* device_item = dynamic_cast<DeviceItem*>(ui->listWidget->itemWidget(item));
+                    if (device_item) {
+                        device_item->retranslateUi();
+                    }
+                }
+            }
         }, Qt::QueuedConnection);
     }
 }

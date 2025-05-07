@@ -27,3 +27,8 @@ void DeviceItem::leaveEvent(QEvent *event)
 {
 
 }
+
+void DeviceItem::retranslateUi()
+{
+    ui->retranslateUi(this);
+}

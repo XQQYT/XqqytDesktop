@@ -15,6 +15,7 @@ class DeviceItem : public QWidget
 public:
     DeviceItem(QWidget *parent = nullptr);
     ~DeviceItem();
+    void retranslateUi();
 protected:
     void enterEvent(QEvent *event) override;
     void leaveEvent(QEvent *event) override;

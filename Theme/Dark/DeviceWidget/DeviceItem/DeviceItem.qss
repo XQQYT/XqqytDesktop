@@ -1,0 +1,38 @@
+QWidget#DeviceItem {
+    border-radius: 12px;
+    border: 1px solid #444444;
+    padding: 12px;
+    margin: 6px 0;
+    background-color: #2a2a2a;
+    color: white;
+}
+
+/* 左侧 ID 标签 */
+QLabel#label_id {
+    font-size: 18px;
+    font-weight: bold;
+    color:rgb(255, 255, 255);
+}
+
+/* 下方 IP 地址 */
+QLabel#label_ip {
+    font-size: 14px;
+    color:rgb(255, 255, 255);
+}
+
+QPushButton {
+    background-color: #3c4c5c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 14px;
+}
+
+QPushButton:hover {
+    background-color: #4a5e70;
+}
+
+QPushButton:pressed {
+    background-color: #5b7187;
+}

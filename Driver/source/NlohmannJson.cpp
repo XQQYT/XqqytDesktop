@@ -183,6 +183,17 @@ std::shared_ptr<std::string> NlohmannJson::ws_ice_gather_done(std::string user_i
         return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::ws_logout(std::string user_id)
+{
+    json result_msg = {
+        {"type", "logout"},
+        {"content", {
+            {"user_id", std::move(user_id)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
 std::unique_ptr<Parser> NlohmannJson::getParser()
 {
     return std::make_unique<NlohmannJsonParser>();

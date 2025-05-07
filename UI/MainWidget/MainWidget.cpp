@@ -33,6 +33,7 @@ MainWidget::MainWidget(QWidget *parent)
 
 MainWidget::~MainWidget()
 {
+    EventBus::getInstance().publish("/network/send_logout");
     WidgetManager::getInstance().closeAllWidget();
     delete ui;
 }

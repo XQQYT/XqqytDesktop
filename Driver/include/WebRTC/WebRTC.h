@@ -38,6 +38,7 @@ public:
     void sendKeyboardEventPacket(const KeyEventPacket packet) override;
     void closeWebRTC() override;
     bool getWebRtcReady() override;
+    void setCaptureRate(int rate) override;
 public:
     void display_string(std::string event_name,std::string str);
     void display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3);
@@ -78,6 +79,8 @@ private:
 
     Operator& webrtc_operator;
     bool webrtc_ready;
+
+    int webrtc_capture_rate;
 };
 
 #endif

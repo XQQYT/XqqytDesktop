@@ -16,4 +16,5 @@ WidgetManager
 Dialog
 Qt5::Widgets 
 Control
+utils
 )

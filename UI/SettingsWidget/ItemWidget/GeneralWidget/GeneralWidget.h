@@ -15,7 +15,7 @@ class GeneralWidget : public QWidget
 public:
     GeneralWidget(QWidget *parent = nullptr);
     ~GeneralWidget();
-
+    void retranslateUi();
 signals:
     void updataGeneralConfig(std::string module,std::string key,std::string value);
 

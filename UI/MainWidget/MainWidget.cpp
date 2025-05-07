@@ -1,14 +1,27 @@
 #include "MainWidget.h"
 #include "ui_MainWidget.h"
 #include "RemoteControlWidget.h"
+#include "SettingInfo.h"
+#include "utils.h"
+#include <QDebug>
+#include <QTranslator>
 
 MainWidget::MainWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MainWidget)
 {
     ui->setupUi(this);
+    translator = nullptr;
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/MainWidget.qss")),this);
     current_widget = WidgetManager::WidgetType::UnDefined;
     current_btn = ui->btn_connect;
+    EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
+        &MainWidget::onSettingChanged,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3
+    ));
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
     // 居中窗口
     QScreen *screen = QGuiApplication::primaryScreen();
@@ -33,6 +46,9 @@ void MainWidget::setCurrentWidget(const WidgetManager::WidgetType type)
     {
         std::cout<<"New Widget is null"<<std::endl;
     }
+
+    switchLanguage(SettingInfoManager::getInstance().getValue("General","language"));
+    EventBus::getInstance().publish("/config/update_module_config_done",std::string("General"),std::string("language"),SettingInfoManager::getInstance().getValue("General","language"));
 
     QLayout* layout = ui->right_content_widget->layout();
 
@@ -86,4 +102,36 @@ void MainWidget::on_btn_settings_clicked(bool checked)
     current_btn->setChecked(false);
     setCurrentWidget(WidgetManager::WidgetType::SettingsWidget);
     current_btn = ui->btn_settings;
+}
+
+void MainWidget::switchLanguage(const std::string language)
+{
+    if (translator) {
+        qApp->removeTranslator(translator);
+        delete translator;
+        translator = nullptr;
+    }
+
+    // 加载新的翻译器
+    translator = new QTranslator(qApp);
+    if (translator->load(QString("Translations/XqqytDesktop_%1").arg(QString::fromStdString(language)))) {
+        qApp->installTranslator(translator);
+    }
+    ui->retranslateUi(this);
+}
+
+void MainWidget::onSettingChanged(std::string module, std::string key, std::string value)
+{
+    if(key == "theme")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/MainWidget.qss")),this);
+        }, Qt::QueuedConnection);
+    }
+    else if(key == "language")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            switchLanguage((value));
+        }, Qt::QueuedConnection);
+    }
 }

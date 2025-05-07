@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QCloseEvent>
+#include <QElapsedTimer>
 #include "Render.h" 
 
 class OpenGLWidget;
@@ -28,7 +29,15 @@ signals:
 public slots:
     void handleFrameUpdated();
 private:
+    void onSettingChanged(std::string module, std::string key, std::string value);
+    void setFPS(QString config_frame);
+private:
     OpenGLWidget* opengl_widget;
     Ui::RemoteControlWidget *ui;
+    QElapsedTimer* elapsed_timer;
+    qint64 frame_interval_ms;
+    qint64 last_render_time;
+    int render_count;
+    int stats_start_time;
 };
 #endif // WIDGET_H

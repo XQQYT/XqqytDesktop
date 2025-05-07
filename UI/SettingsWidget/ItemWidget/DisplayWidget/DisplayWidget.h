@@ -14,7 +14,7 @@ class DisplayWidget : public QWidget
 public:
     DisplayWidget(QWidget *parent = nullptr);
     ~DisplayWidget();
-
+    void retranslateUi();
 signals:
     void updataDisplayConfig(std::string module,std::string key,std::string value);
 

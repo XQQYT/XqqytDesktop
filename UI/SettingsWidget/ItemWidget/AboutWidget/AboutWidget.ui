@@ -11,49 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>关于</string>
-  </property>
-  <property name="styleSheet">
-   <string notr="true">QWidget {
-    background-color: #ffffff;
-    font-family: &quot;Microsoft YaHei&quot;;
-}
-
-QLabel{
-    background-color: #ffffff;
-}
-
-QLabel#label_title {
-    font-size: 24px;
-    font-weight: bold;
-    color: #333333;
-}
-QLabel#label_logo{
-	border-image: url(:/images/pic/logo.png);
-}
-QLabel#label_version {
-    font-size: 16px;
-    color: #666666;
-}
-QLabel#label_team {
-    font-size: 14px;
-    color: #444444;
-}
-QPushButton {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    font-size: 14px;
-    border-radius: 4px;
-}
-QPushButton:hover {
-    background-color: #45a049;
-}
-
-QPushButton:pressed {
-	background-color: rgb(59, 150, 63);
-}</string>
+   <string>Settings</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -127,7 +85,7 @@ QPushButton:pressed {
    <item>
     <widget class="QLabel" name="label_version">
      <property name="text">
-      <string>版本: 1.0.0</string>
+      <string>Version: </string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -171,7 +129,7 @@ QPushButton:pressed {
         </size>
        </property>
        <property name="text">
-        <string>检查更新</string>
+        <string>Check for Updates</string>
        </property>
       </widget>
      </item>
@@ -206,7 +164,7 @@ QPushButton:pressed {
    <item>
     <widget class="QLabel" name="label_team">
      <property name="text">
-      <string>开发团队: Xqqyt
+      <string>Development Team: Xqqyt
 Develop: Qyt  Tester: Qbz</string>
      </property>
      <property name="alignment">

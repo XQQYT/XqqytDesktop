@@ -1,5 +1,7 @@
 #include "DisplayWidget.h"
 #include "ui_DisplayWidget.h"
+#include "utils.h"
+#include "SettingInfo.h"
 
 static const std::string module_name = "Display";
 
@@ -8,6 +10,7 @@ DisplayWidget::DisplayWidget(QWidget *parent)
     , ui(new Ui::DisplayWidget)
 {
     ui->setupUi(this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/DisplayWidget.qss")),this);
     init_done = false;
 }
 
@@ -43,4 +46,9 @@ void DisplayWidget::sendUpdataSignal(std::string key,std::string value)
 {
     if(init_done)
         emit updataDisplayConfig(module_name,key,value);
+}
+
+void DisplayWidget::retranslateUi()
+{
+    ui->retranslateUi(this);
 }

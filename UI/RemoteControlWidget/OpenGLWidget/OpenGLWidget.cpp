@@ -50,7 +50,6 @@ void OpenGLWidget::setCurrent(RenderInterface::VideoFrame frame)
     scale_x = (float)frame.width / this->width();
     scale_y = (float)frame.height / this->height();
     
-    std::cout<<frame.width<<" x "<<frame.height<<std::endl;
     makeCurrent();
     
     // Update Y texture

@@ -1,4 +1,6 @@
 #include "ConnectWidget.h"
+#include "utils.h"
+#include "SettingInfo.h"
 #include "ui_ConnectWidget.h"
 
 ConnectWidget::ConnectWidget(QWidget *parent)
@@ -8,6 +10,7 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     remote_widget = nullptr;
     remote_widget_alive = false;
     ui->setupUi(this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/ConnectWidget.qss")),this);
     info_dialog.setPargentWidget(this);
     ui->lineEdit_id->setText(UserInfoManager::getInstance().getCurrentUserId().data());
     initSubscribe();
@@ -27,6 +30,13 @@ void ConnectWidget::initSubscribe()
     EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&ConnectWidget::onConnectRequest,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(&ConnectWidget::onRecvConnectRequestResult,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/webrtc/connection_status",std::bind(&ConnectWidget::onConnectionStatus,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
+        &ConnectWidget::onSettingChanged,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3
+    ));
 }
 
 void ConnectWidget::on_btn_connect_clicked()
@@ -102,5 +112,23 @@ void ConnectWidget::onConnectionStatus(bool status)
     else
     {
         std::cout<<"Connection failed"<<std::endl;
+    }
+}
+
+void ConnectWidget::onSettingChanged(std::string module, std::string key, std::string value)
+{
+    std::cout<<"on changed 5"<<module<<" "<<key<<" "<<value<<std::endl;
+    if(key == "theme")
+    {
+        std::cout<<"change theme "<<std::endl;
+        QMetaObject::invokeMethod(this, [=]() {
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/ConnectWidget.qss")),this);
+        }, Qt::QueuedConnection);
+    }
+    else if(key == "language")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            ui->retranslateUi(this);
+        }, Qt::QueuedConnection);
     }
 }

@@ -19,4 +19,5 @@ target_include_directories(ItemWidget PUBLIC
 # 链接 ItemWidget 库
 target_link_libraries(ItemWidget 
 Qt5::Widgets
+utils
 )

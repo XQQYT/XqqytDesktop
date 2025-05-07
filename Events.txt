@@ -30,6 +30,7 @@
 /control/close_control
 /control/recv_close_control
 
-/config/updata_module_config
+/config/update_module_config
+/config/update_module_config_done
 /config/write_into_file
 /config/module_config_updated

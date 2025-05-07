@@ -16,26 +16,6 @@
   <property name="windowTitle">
    <string>Remote Control Connection</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">
-           QPushButton#btn_connect {
-               background-color: #4CAF50;
-               color: white;
-               font-size: 18px;
-               border-radius: 5px;
-               padding: 8px;
-               width: 150px;
-               margin-top: 15px;
-           }
-           #btn_connect:hover {
-               background-color: #45a049;
-           }
-         		
-			#btn_connect:pressed {
-               
-	background-color: rgb(57, 132, 60);
-           }</string>
-  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
     <widget class="QWidget" name="widget_user_id" native="true">

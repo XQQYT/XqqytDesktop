@@ -37,6 +37,7 @@ signals:
 
 private:
     void initConfig();
+    void onSettingChanged(std::string module, std::string key, std::string value);
 private:
     Ui::SettingsWidget *ui;
     QPushButton *current_btn;

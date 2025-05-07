@@ -1,6 +1,7 @@
 #include "SettingsWidget.h"
 #include "ui_SettingsWidget.h"
 #include "SettingInfo.h"
+#include "utils.h"
 #include <QDebug>
 
 SettingsWidget::SettingsWidget(QWidget *parent)
@@ -8,7 +9,7 @@ SettingsWidget::SettingsWidget(QWidget *parent)
     , ui(new Ui::SettingsWidget)
 {
     ui->setupUi(this);
-
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/SettingsWidget.qss")),this);
     write_timer = new QTimer(this);
     connect(write_timer,&QTimer::timeout,this,&SettingsWidget::publishWrite);
 
@@ -38,6 +39,14 @@ SettingsWidget::SettingsWidget(QWidget *parent)
     ui->stackedWidget->setCurrentWidget(general_widget);
     current_btn = ui->btn_general;
     ui->btn_general->setChecked(true);
+
+    EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
+        &SettingsWidget::onSettingChanged,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3
+    ));
 }
 
 SettingsWidget::~SettingsWidget()
@@ -109,11 +118,35 @@ void SettingsWidget::updataModuleConfig(std::string module, std::string key, std
         write_timer->stop();
     }
     write_timer->start(2000);
-    EventBus::getInstance().publish("/config/updata_module_config",std::move(module),std::move(key),std::move(value));
+    EventBus::getInstance().publish("/config/update_module_config",std::move(module),std::move(key),std::move(value));
 }
 
 void SettingsWidget::publishWrite()
 {
     EventBus::getInstance().publish("/config/write_into_file");
     write_timer->stop();
+}
+
+void SettingsWidget::onSettingChanged(std::string module, std::string key, std::string value)
+{
+    if(key == "theme")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/SettingsWidget.qss")),this);
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/GeneralWidget.qss")),general_widget);
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/DisplayWidget.qss")),display_widget);
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/NetworkWidget.qss")),network_widget);
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/AboutWidget.qss")),about_widget);
+        }, Qt::QueuedConnection);
+    }
+    else if(key == "language")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            ui->retranslateUi(this);
+            general_widget->retranslateUi();
+            display_widget->retranslateUi();
+            network_widget->retranslateUi();
+            about_widget->retranslateUi();
+        }, Qt::QueuedConnection);
+    }
 }

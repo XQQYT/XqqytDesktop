@@ -1,5 +1,7 @@
 #include "NetworkWidget.h"
 #include "ui_NetworkWidget.h"
+#include "utils.h"
+#include "SettingInfo.h"
 
 static const std::string module_name = "Network";
 
@@ -8,6 +10,7 @@ NetworkWidget::NetworkWidget(QWidget *parent)
     , ui(new Ui::NetworkWidget)
 {
     ui->setupUi(this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/NetworkWidget.qss")),this);
     init_done = false;
 }
 
@@ -43,4 +46,9 @@ void NetworkWidget::sendUpdataSignal(std::string key,std::string value)
 {
     if(init_done)
         emit updataNetworkConfig(module_name,key,value);
+}
+
+void NetworkWidget::retranslateUi()
+{
+    ui->retranslateUi(this);
 }

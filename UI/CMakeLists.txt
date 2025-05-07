@@ -1,6 +1,7 @@
 # UI  CMakeLists.txt
 # You are in UI/CMakeLists.txt
 
+add_subdirectory(utils)
 add_subdirectory(Dialog)
 add_subdirectory(WidgetManager)
 add_subdirectory(MainWidget)

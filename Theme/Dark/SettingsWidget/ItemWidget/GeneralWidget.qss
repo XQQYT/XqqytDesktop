@@ -1,0 +1,63 @@
+QWidget#GeneralWidget {
+    background-color: #1e1e1e;
+    font-family: Segoe UI, Microsoft YaHei, Helvetica Neue, sans-serif;
+    font-size: 14px;
+    color: #dddddd;
+}
+
+QLabel#label_general {
+    background-color: transparent;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+QLabel {
+    background-color: transparent;
+    color: #cccccc;
+}
+
+QCheckBox {
+    color: #dddddd;
+    spacing: 8px;
+}
+
+QComboBox {
+    background-color: #2c2c2c;
+    color: #ffffff;
+    border: 1px solid #444444;
+    border-radius: 4px;
+}
+
+QComboBox:hover {
+    border: 1px solid #666666;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left: 1px solid #444444;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    background-color: #3a3a3a;
+}
+
+QComboBox QAbstractItemView {
+    border: 1px solid #555555;
+    background-color: #2b2b2b;
+    color: #ffffff;
+    selection-background-color: #409eff;
+    selection-color: #ffffff;
+    outline: 0;
+}
+
+QComboBox QAbstractItemView::item {
+    padding: 4px 8px;
+}
+
+QComboBox QAbstractItemView::item:hover {
+    background-color: #3a3a3a;
+    color: #ffffff;
+}

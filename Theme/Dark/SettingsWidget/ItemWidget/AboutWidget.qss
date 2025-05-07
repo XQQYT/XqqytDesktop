@@ -1,0 +1,44 @@
+QWidget {
+    background-color: #1e1e1e;
+    font-family: Microsoft YaHei;
+}
+
+QLabel {
+    background-color: transparent;
+    color: #ffffff;
+}
+
+QLabel#label_title {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+QLabel#label_logo {
+    border-image: url(:/images/pic/logo.png);
+    border-radius: 40px;
+}
+
+QLabel#label_version {
+    font-size: 16px;
+}
+
+QLabel#label_team {
+    font-size: 14px;
+}
+
+QPushButton {
+    background-color: #388e3c;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #43a047;
+}
+
+QPushButton:pressed {
+    background-color: #2e7d32;
+}

@@ -1,0 +1,37 @@
+QWidget#SettingsWidget {
+    background-color: #f9f9f9;
+    font-family: Segoe UI, Microsoft YaHei, sans-serif;
+    font-size: 18px;
+    color: #333;
+}
+QPushButton#btn_general,
+ QPushButton#btn_display,
+QPushButton#btn_network,
+QPushButton#btn_about{
+	
+    background-color: transparent;
+    border: none;
+    padding: 8px 16px;
+    color: #666;
+}
+QPushButton#btn_general:hover,
+ QPushButton#btn_display:hover,
+QPushButton#btn_network:hover,
+QPushButton#btn_about:hover {
+    color: #111;
+}
+QPushButton#btn_general:checked,
+ QPushButton#btn_display:checked,
+QPushButton#btn_network:checked,
+QPushButton#btn_about:checked {
+    color: #0066ff;
+    border-bottom: 2px solid #0066ff;
+}
+#contentFrame {
+    background-color: #ffffff;
+    border-radius: 12px;
+}
+QStackedWidget {
+    background-color: #ffffff;
+    border: none;
+}

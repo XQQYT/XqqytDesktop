@@ -1,0 +1,21 @@
+QWidget#DeviceWidget {
+    background-color: #f5f7fa;
+}
+
+QListWidget {
+    border: none;
+    background-color: transparent;
+    padding: 12px;
+    spacing: 10px;
+}
+
+QListWidget::item {
+	background-color: rgb(235, 235, 235);
+    border-radius: 10px;
+	border:2px solid rgb(225, 225, 225);
+}
+
+QListWidget::item:hover{
+	background-color: rgb(225, 225, 225);
+	border:2px solid rgb(215, 215, 215);
+}

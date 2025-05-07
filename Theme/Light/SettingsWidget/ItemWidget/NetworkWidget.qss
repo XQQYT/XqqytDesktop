@@ -1,0 +1,59 @@
+/* Background and general appearance */
+    QWidget {
+        background-color: #ffffff;
+        color: #333;
+        font-family: Arial, sans-serif;
+    }
+    
+    /* Title label */
+    QLabel#label_network {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2a2a2a;
+        padding-bottom: 10px;
+    }
+    
+    /* Input fields */
+    QLineEdit {
+        background-color: #ffffff;
+        background-color: #ffffff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 5px;
+        font-size: 14px;
+        margin: 5px 0;
+    }
+    
+    /* Focused input fields */
+    QLineEdit:focus {
+        border: 1px solid #4a90e2;
+        background-color: #eef4fc;
+    }
+    
+    /* Labels */
+    QLabel {
+        background-color: #ffffff;
+        font-size: 14px;
+        color: #555;
+    }
+    
+    /* Button */
+    QPushButton {
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 16px;
+        margin-top: 20px;
+    }
+   
+
+    QPushButton:checked {
+		background-color: rgb(246, 97, 81);
+    }
+    
+    /* Spacer */
+    QSpacerItem {
+        background-color: transparent;
+    }

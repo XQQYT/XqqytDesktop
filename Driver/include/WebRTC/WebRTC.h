@@ -61,7 +61,7 @@ private:
     void sendCloseWebRTC();
 private:
     webrtc::PeerConnectionInterface::RTCConfiguration configuration;
-
+    rtc::scoped_refptr<webrtc::AudioDeviceModule> adm;
 
     rtc::scoped_refptr<webrtc::AudioTrackInterface> desktop_audio_track;
     rtc::scoped_refptr<webrtc::VideoTrackInterface> desktop_video_track;

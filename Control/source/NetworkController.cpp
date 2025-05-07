@@ -121,6 +121,10 @@ void NetworkController::initNetworkSubscribe()
         &NetworkController::onGatherICEDone,
         this
     ));
+    EventBus::getInstance().subscribe("/network/send_logout",std::bind(
+        &NetworkController::onSendLogout,
+        this
+    ));
 }
 
 
@@ -205,4 +209,9 @@ void NetworkController::onWebRTCInitDone()
 {
     sendToServer(*json_factory->ws_ready(std::move(UserInfoManager::getInstance().getCurrentUserId()),
     std::move(UserInfoManager::getInstance().getEstablishingTargetId())));
+}
+
+void NetworkController::onSendLogout()
+{
+    sendToServer(*json_factory->ws_logout(std::move(UserInfoManager::getInstance().getCurrentUserId())));
 }

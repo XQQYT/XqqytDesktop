@@ -8,6 +8,7 @@
 /network/has_connect_request
 /network/send_connect_request_result
 /network/recv_connect_request_result
+/network/send_logout
 
 /webrtc/init_webrtc_done
 /webrtc/remote_ready

@@ -37,6 +37,7 @@ public:
     void onGatherICEDone();
     void onWebRTCInitDone();
     void onModuleConfigUpdated(std::string module,std::string key,std::string value);
+    void onSendLogout();
 private:
     void connectToTarget(std::string target_id);
 private:

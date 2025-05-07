@@ -12,7 +12,6 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     ui->setupUi(this);
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/ConnectWidget.qss")),this);
     info_dialog.setPargentWidget(this);
-    ui->lineEdit_id->setText(UserInfoManager::getInstance().getCurrentUserId().data());
     initSubscribe();
     EventBus::getInstance().publish("/ui/connectwidget_init_done");
 }
@@ -129,6 +128,7 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
     {
         QMetaObject::invokeMethod(this, [=]() {
             ui->retranslateUi(this);
+            ui->lineEdit_id->setText(UserInfoManager::getInstance().getCurrentUserId().data());
         }, Qt::QueuedConnection);
     }
 }

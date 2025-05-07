@@ -19,5 +19,6 @@ public slots:
     void onAboutConfig(std::unordered_map<std::string,std::string> about_config);
 private:
     Ui::AboutWidget *ui;
+    QString version;
 };
 #endif // ABOUTWIDGET_H

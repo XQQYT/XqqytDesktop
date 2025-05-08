@@ -56,7 +56,7 @@ public:
     std::unique_ptr<VideoRender> video_render;
     rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
     std::unique_ptr<DCO> dco;
-    std::unique_ptr<PulseAudioPlayer> audio_player;
+    std::unique_ptr<PipeWireAudioPlayer> audio_player;
 
 private:
     void AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index);

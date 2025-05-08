@@ -23,7 +23,7 @@ pkg_check_modules(PIPEWIRE REQUIRED libpipewire-0.3)
 
 include_directories(${GLIB_INCLUDE_DIRS})
 include_directories(${PIPEWIRE_INCLUDE_DIRS})
-include_directories(/usr/include/spa-0.2)
+include_directories(/usr/include/pipewire-0.3 /usr/include/spa-0.2)
 link_directories(${GLIB_LIBRARY_DIRS})
 add_definitions(${GLIB_CFLAGS_OTHER} )
 
@@ -36,7 +36,8 @@ target_include_directories(Driver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include/AudioDriver/Player
     ${CMAKE_SOURCE_DIR}/third_party/webrtc/include
     ${CMAKE_SOURCE_DIR}/third_party/webrtc/include/third_party/libyuv/include
-
+    /usr/include/pipewire-0.3
+    /usr/include/spa-0.2
 )
 
 target_link_libraries(Driver 

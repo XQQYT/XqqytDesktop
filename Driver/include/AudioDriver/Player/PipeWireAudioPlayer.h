@@ -1,13 +1,14 @@
 #pragma once
 
-#include <pulse/simple.h>
-#include <pulse/error.h>
+#include <pipewire/pipewire.h>
+#include <mutex>
+#include <queue>
 #include "api/media_stream_interface.h"
 
-class PulseAudioPlayer : public webrtc::AudioTrackSinkInterface {
+class PipeWireAudioPlayer : public webrtc::AudioTrackSinkInterface {
 public:
-    PulseAudioPlayer();
-    ~PulseAudioPlayer();
+    PipeWireAudioPlayer();
+    ~PipeWireAudioPlayer();
 
     void OnData(const void* audio_data,
                 int bits_per_sample,
@@ -16,5 +17,9 @@ public:
                 size_t number_of_frames) override;
 
 private:
-    pa_simple* stream_ = nullptr;
+    struct pw_stream* stream_ = nullptr;
+    struct pw_main_loop* loop_ = nullptr;
+    static void on_process(void* userdata);
+    std::mutex buffer_mutex_;
+    std::queue<std::vector<uint8_t>> audio_queue_;
 };

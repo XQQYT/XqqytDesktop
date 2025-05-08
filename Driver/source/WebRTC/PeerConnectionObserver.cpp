@@ -1,5 +1,6 @@
 #include "PeerConnectionObserver.h"
 #include "WebRTC.h"
+#include "PulseAudioPlayer.h"
 #include <iostream>
 
 void PCO::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state)
@@ -178,6 +179,14 @@ void PCO::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceive
     {
         auto video_track = static_cast<webrtc::VideoTrackInterface*>(track.get());
         video_track->AddOrUpdateSink(webrtc_instance.video_render.get(), rtc::VideoSinkWants());
+    }
+    else if (track->kind() == webrtc::MediaStreamTrackInterface::kAudioKind)
+    {
+        auto audio_track = static_cast<webrtc::AudioTrackInterface*>(track.get());
+        webrtc_instance.audio_player = std::make_unique<PulseAudioPlayer>();
+        // 连接音频 sink
+        audio_track->AddSink(webrtc_instance.audio_player.get());
+        std::cout << "Audio track added to PulseAudio player." << std::endl;
     }
 }
 

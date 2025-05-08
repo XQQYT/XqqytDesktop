@@ -6,7 +6,7 @@
 #include "rtc_base/thread.h"
 #include "rtc_base/ref_counted_object.h"
 
-#include <pulse/simple.h>
+#include <pulse//pulseaudio.h>
 #include <pulse/error.h>
 #include <thread>
 #include <atomic>
@@ -14,11 +14,9 @@
 class PulseAudioCapture : public webrtc::AudioDeviceModule, public rtc::RefCountInterface{
 public:
     PulseAudioCapture(webrtc::AudioDeviceModule::AudioLayer audio_layer,
-        webrtc::TaskQueueFactory* task_queue_factory)
-    : audio_layer_(audio_layer), task_queue_factory_(task_queue_factory) {
+        webrtc::TaskQueueFactory* task_queue_factory);
 
-    }
-    ~PulseAudioCapture() override{};
+    ~PulseAudioCapture() override;
     // Creates a default ADM for usage in production code.
     static rtc::scoped_refptr<AudioDeviceModule> Create(
         AudioLayer audio_layer,
@@ -38,7 +36,7 @@ public:
     // Main initialization and termination
     int32_t Init() override;
     int32_t Terminate() override;
-    bool Initialized() const override;
+    bool Initialized() const override{return initialized_;};
 
     // Device enumeration
     int16_t PlayoutDevices() override{return 0;};
@@ -69,7 +67,7 @@ public:
     int32_t StopPlayout() override{return 0;};
     bool Playing() const override{return false;};
     int32_t StartRecording() override;
-    int32_t StopRecording() override{return 0;};
+    int32_t StopRecording() override;
     bool Recording() const override;
 
     // Audio mixer initialization
@@ -131,18 +129,22 @@ public:
     // not be present in the stats.
     absl::optional<Stats> GetStats() const { return absl::nullopt; }
 
+
+    static void ContextStateCallback(pa_context* context, void* userdata);
+    static void StreamStateCallback(pa_stream* stream, void* userdata);
+    static void StreamReadCallback(pa_stream* stream, size_t nbytes, void* userdata);
 private:
 
     void CaptureLoop();
 
     std::atomic<bool> recording_{false};
     std::atomic<bool> initialized_{false};
-    std::unique_ptr<std::thread> capture_thread_;
     webrtc::AudioTransport* audio_callback_ = nullptr;
 
     webrtc::AudioDeviceModule::AudioLayer audio_layer_;
     webrtc::TaskQueueFactory* task_queue_factory_;
 
-    // PulseAudio
-    pa_simple* pa_stream_ = nullptr;
+    pa_threaded_mainloop* mainloop_;
+    pa_context* context_;
+    pa_stream* stream_;
 };

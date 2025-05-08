@@ -31,6 +31,7 @@ WebRTC::WebRTC(Operator& base_operator):
   ice_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
   peerconnection_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
   webrtc_ready = false;
+  adm = nullptr;
 }
 
 void WebRTC::initWebRTC(bool is_offer)
@@ -43,8 +44,12 @@ void WebRTC::initWebRTC(bool is_offer)
     worker_thread->Start();
     signaling_thread = rtc::Thread::Create();
     signaling_thread->Start();
-    auto task_queue_factory = webrtc::CreateDefaultTaskQueueFactory();
-    adm = PulseAudioCapture::Create(webrtc::AudioDeviceModule::kLinuxPulseAudio, task_queue_factory.get());
+
+    if(!is_offer)
+    {
+      auto task_queue_factory = webrtc::CreateDefaultTaskQueueFactory();
+      adm = PulseAudioCapture::Create(webrtc::AudioDeviceModule::kLinuxPulseAudio, task_queue_factory.get());
+    }
     peer_connection_factory = webrtc::CreatePeerConnectionFactory(
       network_thread.get(),
       worker_thread.get(),

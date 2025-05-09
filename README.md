@@ -76,3 +76,6 @@ Run the application:
 #### Additional Notes:
 If you encounter issues with dependencies or missing packages, ensure that your package list is up to date (sudo apt update).
 
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

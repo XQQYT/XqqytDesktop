@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include <iostream>
 #include "KeyboardMouseDriver/X11.h"
 #include <unordered_map>

@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "ConfigController.h"
 #include "ConfigDriver.h"
 #include "UserInfo.h"

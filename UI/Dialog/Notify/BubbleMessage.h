@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef BUBBLEMESSAGE_H
 #define BUBBLEMESSAGE_H
 

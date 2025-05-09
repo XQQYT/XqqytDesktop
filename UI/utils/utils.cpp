@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "utils.h"
 
 void applyStyleSheet(const QString filePath, QWidget* widget)

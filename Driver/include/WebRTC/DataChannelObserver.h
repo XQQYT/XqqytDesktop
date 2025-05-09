@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef _DATACHANNELOBSERVER_H
 #define _DATACHANNELOBSERVER_H
 

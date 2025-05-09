@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "EventBus.h"
 #include "NetworkController.h"
 #include "WebrtcController.h"

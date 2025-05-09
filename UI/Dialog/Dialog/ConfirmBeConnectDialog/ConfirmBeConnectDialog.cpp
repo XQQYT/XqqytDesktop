@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "ConfirmBeConnectDialog.h"
 #include "ui_ConfirmBeConnectDialog.h"
 

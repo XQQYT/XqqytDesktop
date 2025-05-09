@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef _WEBRTCINTERFACE_H
 #define _WEBRTCINTERFACE_H
 #include <string>

@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "ConnectWidget.h"
 #include "utils.h"
 #include "SettingInfo.h"

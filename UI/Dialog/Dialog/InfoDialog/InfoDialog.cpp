@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "InfoDialog.h"
 #include "ui_InfoDialog.h"
 #include <iostream>

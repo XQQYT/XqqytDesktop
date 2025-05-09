@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef CONFIRMBECONNECTDIALOG_H
 #define CONFIRMBECONNECTDIALOG_H
 

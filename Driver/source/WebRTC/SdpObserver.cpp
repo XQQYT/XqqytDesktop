@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "SdpObserver.h"
 #include "WebRTC.h"
 #include <iostream>

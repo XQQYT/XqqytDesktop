@@ -11,6 +11,8 @@ add_library(Driver STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/SdpObserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/DesktopCaptureSource.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/VideoRender.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/AudioDriver/Capturer/PulseAudioCapture.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/AudioDriver/Player/PulseAudioPlayer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/KeyboardMouseDriver/X11.cpp
 )
 
@@ -27,6 +29,8 @@ find_package(X11 REQUIRED)
 target_include_directories(Driver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/WebRTC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/AudioDriver/Capturer
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/AudioDriver/Player
     ${CMAKE_SOURCE_DIR}/third_party/webrtc/include
     ${CMAKE_SOURCE_DIR}/third_party/webrtc/include/third_party/libyuv/include
 
@@ -45,5 +49,7 @@ target_link_libraries(Driver
     Xtst
     gbm
     drm
+    pulse-simple
+    pulse
     ${GLIB_LIBRARIES}
 )

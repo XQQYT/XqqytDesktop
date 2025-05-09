@@ -11,6 +11,7 @@
 #include "SdpObserver.h"
 #include "DesktopCaptureSource.h"
 #include "VideoRender.h"
+#include "PulseAudioPlayer.h"
 
 class WebRTC : public WebRTCInterface
 {
@@ -55,13 +56,14 @@ public:
     std::unique_ptr<VideoRender> video_render;
     rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
     std::unique_ptr<DCO> dco;
+    std::unique_ptr<PulseAudioPlayer> audio_player;
 
 private:
     void AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index);
     void sendCloseWebRTC();
 private:
     webrtc::PeerConnectionInterface::RTCConfiguration configuration;
-
+    rtc::scoped_refptr<webrtc::AudioDeviceModule> adm;
 
     rtc::scoped_refptr<webrtc::AudioTrackInterface> desktop_audio_track;
     rtc::scoped_refptr<webrtc::VideoTrackInterface> desktop_video_track;

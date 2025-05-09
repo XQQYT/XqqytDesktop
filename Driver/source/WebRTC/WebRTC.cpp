@@ -12,8 +12,10 @@
 #include "api/video_codecs/video_encoder_factory_template_libvpx_vp8_adapter.h"
 #include "api/video_codecs/video_encoder_factory_template_libvpx_vp9_adapter.h"
 #include "api/video_codecs/video_encoder_factory_template_open_h264_adapter.h"
+#include "api/task_queue/default_task_queue_factory.h"
 
 #include <string.h>
+#include "PulseAudioCapture.h"
 
 WebRTC::WebRTC(Operator& base_operator):
   webrtc_operator(base_operator)
@@ -29,6 +31,7 @@ WebRTC::WebRTC(Operator& base_operator):
   ice_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
   peerconnection_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
   webrtc_ready = false;
+  adm = nullptr;
 }
 
 void WebRTC::initWebRTC(bool is_offer)
@@ -42,11 +45,16 @@ void WebRTC::initWebRTC(bool is_offer)
     signaling_thread = rtc::Thread::Create();
     signaling_thread->Start();
 
+    if(!is_offer)
+    {
+      auto task_queue_factory = webrtc::CreateDefaultTaskQueueFactory();
+      adm = PulseAudioCapture::Create(webrtc::AudioDeviceModule::kLinuxPulseAudio, task_queue_factory.get());
+    }
     peer_connection_factory = webrtc::CreatePeerConnectionFactory(
       network_thread.get(),
       worker_thread.get(),
       signaling_thread.get(),
-      nullptr, // default audio device module
+      adm,
       webrtc::CreateBuiltinAudioEncoderFactory(),
       webrtc::CreateBuiltinAudioDecoderFactory(),
       std::make_unique<webrtc::VideoEncoderFactoryTemplate<

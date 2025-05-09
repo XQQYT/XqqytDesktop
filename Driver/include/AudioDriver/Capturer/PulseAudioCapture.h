@@ -5,6 +5,7 @@
 #include "modules/audio_device/include/audio_device_defines.h"
 #include "rtc_base/thread.h"
 #include "rtc_base/ref_counted_object.h"
+#include "modules/audio_processing/include/audio_processing.h"
 
 #include <pulse//pulseaudio.h>
 #include <pulse/error.h>
@@ -147,4 +148,6 @@ private:
     pa_threaded_mainloop* mainloop_;
     pa_context* context_;
     pa_stream* stream_;
+
+    static rtc::scoped_refptr<webrtc::AudioProcessing> apm_;
 };

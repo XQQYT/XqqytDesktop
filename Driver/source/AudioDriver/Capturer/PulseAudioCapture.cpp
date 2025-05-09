@@ -5,6 +5,8 @@
 #include <cstring>
 #include "PulseAudioCapture.h"
 
+rtc::scoped_refptr<webrtc::AudioProcessing> PulseAudioCapture::apm_ = nullptr;
+
 PulseAudioCapture::PulseAudioCapture(webrtc::AudioDeviceModule::AudioLayer audio_layer,
     webrtc::TaskQueueFactory* task_queue_factory)
     : mainloop_(nullptr), context_(nullptr), stream_(nullptr),
@@ -82,17 +84,24 @@ int32_t PulseAudioCapture::RegisterAudioCallback(webrtc::AudioTransport* audioCa
 int32_t PulseAudioCapture::InitRecording() {
     if (!initialized_ || stream_) return 0;
 
+    apm_ = webrtc::AudioProcessingBuilder().Create();
+    webrtc::AudioProcessing::Config config;
+    config.echo_canceller.enabled = true;
+    config.noise_suppression.enabled = true;
+    config.noise_suppression.level = webrtc::AudioProcessing::Config::NoiseSuppression::kHigh;
+    apm_->ApplyConfig(config);
+
     pa_sample_spec ss;
     ss.format = PA_SAMPLE_S16LE;
     ss.rate = 48000;
     ss.channels = 1;
 
     pa_buffer_attr attr;
-    attr.maxlength = (uint32_t)-1;
-    attr.tlength = 0;
+    attr.maxlength = 960*4;        // 40ms缓冲区
+    attr.tlength = 960;            // 10ms目标长度
     attr.prebuf = 0;
-    attr.minreq = (uint32_t)-1;
-    attr.fragsize = 48000 * 2 / 100; // 10ms buffer
+    attr.minreq = 960;             // 10ms最小请求
+    attr.fragsize = 960;           // 10ms片段大小
 
     const char* device = "alsa_output.pci-0000_00_1f.3.analog-stereo.2.monitor";
 
@@ -173,7 +182,13 @@ void PulseAudioCapture::StreamReadCallback(pa_stream* stream, size_t nbytes, voi
     const void* data;
     if (pa_stream_peek(stream, &data, &nbytes) < 0 || !data || nbytes == 0)
         return;
-
+    webrtc::StreamConfig stream_config(48000, 1);
+    apm_->ProcessStream(
+        static_cast<int16_t*>(const_cast<void*>(data)),
+        stream_config,
+        stream_config,
+        static_cast<int16_t*>(const_cast<void*>(data))
+    );
     const int kBytesPerSample = 2;
     const int kChannels = 1;
     const int samples = nbytes / (kBytesPerSample * kChannels);

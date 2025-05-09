@@ -8,11 +8,11 @@ PulseAudioPlayer::PulseAudioPlayer() {
     ss.channels = 1;
 
     pa_buffer_attr buffer_attr;
-    buffer_attr.maxlength = 960 * 4;
-    buffer_attr.tlength = 960;  // 10ms (480 samples * 2 bytes)
+    buffer_attr.maxlength = (uint32_t)-1;
+    buffer_attr.tlength = 48000 * 2 * 1 / 100;  // 10ms (480 samples * 2 bytes)
     buffer_attr.prebuf = 0;
-    buffer_attr.minreq = 960;
-    buffer_attr.fragsize = 960;
+    buffer_attr.minreq = (uint32_t)-1;
+    buffer_attr.fragsize = (uint32_t)-1;
 
     int error;
     stream_ = pa_simple_new(nullptr, "WebRTCPlayback", PA_STREAM_PLAYBACK,

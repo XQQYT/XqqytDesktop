@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "RemoteControlWidget.h"
 #include "OpenGLWidget/OpenGLWidget.h"
 #include "ui_RemoteControlWidget.h"

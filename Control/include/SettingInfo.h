@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef SETTINGINFO_H
 #define SETTINGINFO_H
 

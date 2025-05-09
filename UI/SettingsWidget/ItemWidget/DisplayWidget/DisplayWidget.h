@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef DISPLAYWIDGET_H
 #define DISPLAYWIDGET_H
 

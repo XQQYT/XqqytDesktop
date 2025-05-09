@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef _JSONFACTORY_H
 #define _JSONFACTORY_H
 

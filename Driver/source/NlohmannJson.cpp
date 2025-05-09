@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "NlohmannJson.h"
 #include <iostream>
 NlohmannJsonParser::NlohmannJsonParser():has_loaded(false)

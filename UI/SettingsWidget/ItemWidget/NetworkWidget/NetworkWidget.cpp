@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "NetworkWidget.h"
 #include "ui_NetworkWidget.h"
 #include "utils.h"

@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef _WEBRTCCONTROLLER_H
 #define _WEBRTCCONTROLLER_H
 #include "EventBus.h"

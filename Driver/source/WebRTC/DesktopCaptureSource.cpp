@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "DesktopCaptureSource.h"
 
 #include "api/scoped_refptr.h"

@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "GeneralWidget.h"
 #include "ui_GeneralWidget.h"
 #include "utils.h"

@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef _NLOHMANNJSON_H
 #define _NLOHMANNJSON_H
 #include "JsonFactory.h"

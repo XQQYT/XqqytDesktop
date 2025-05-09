@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include <pulse/pulseaudio.h>
 #include <iostream>
 #include <thread>

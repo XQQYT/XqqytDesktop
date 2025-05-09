@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "SettingsWidget.h"
 #include "ui_SettingsWidget.h"
 #include "SettingInfo.h"

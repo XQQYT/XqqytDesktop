@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef _NETWORKOPERATOR_H
 #define _NETWORKOPERATOR_H
 

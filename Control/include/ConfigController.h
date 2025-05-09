@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef CONFIGCONTROLLER_H
 #define CONFIGCONTROLLER_H
 

@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "DeviceWidget.h"
 #include "ui_DeviceWidget.h"
 #include "utils.h"

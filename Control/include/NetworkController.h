@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #ifndef _NETWORKCONTROLLER_H
 #define _NETWORKCONTROLLER_H
 

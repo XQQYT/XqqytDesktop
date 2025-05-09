@@ -1,3 +1,10 @@
+/*
+ * XqqytDesktop
+ * Author: XQQYT
+ * License: MIT
+ * Year: 2025
+ */
+
 #include "WebRTC.h"
 
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"

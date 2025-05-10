@@ -22,6 +22,11 @@ OpenGLWidget::OpenGLWidget(QWidget* parent)
 
 OpenGLWidget::~OpenGLWidget()
 {
+    makeCurrent();  // 进入OpenGL上下文
+    if (m_vao) glDeleteVertexArrays(1, &m_vao);
+    if (m_vbo) glDeleteBuffers(1, &m_vbo);
+    if (m_ebo) glDeleteBuffers(1, &m_ebo);
+    doneCurrent();
     delete m_yTexture;
     delete m_uTexture;
     delete m_vTexture;
@@ -50,6 +55,54 @@ void OpenGLWidget::initializeGL()
         tex->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
         tex->setWrapMode(QOpenGLTexture::ClampToEdge);
     }
+
+    GLfloat vertices[] = {
+        // Positions      // Texture coords
+        -1.0f,  1.0f,     0.0f, 0.0f,
+        -1.0f, -1.0f,     0.0f, 1.0f,
+         1.0f, -1.0f,     1.0f, 1.0f,
+         1.0f,  1.0f,     1.0f, 0.0f
+    };
+
+    GLuint indices[] = {
+        0, 1, 2,
+        0, 2, 3
+    };
+
+    glGenVertexArrays(1, &m_vao);
+    glGenBuffers(1, &m_vbo);
+    glGenBuffers(1, &m_ebo);
+
+    glBindVertexArray(m_vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // Vertex attributes
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0); // Unbind
+}
+
+void OpenGLWidget::ensureTextureSize(QOpenGLTexture*& tex, int width, int height) {
+    if (!tex || !tex->isStorageAllocated() || tex->width() != width || tex->height() != height) {
+        if (tex) {
+            delete tex;
+        }
+        tex = new QOpenGLTexture(QOpenGLTexture::Target2D);
+        tex->setFormat(QOpenGLTexture::R8_UNorm);
+        tex->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
+        tex->setWrapMode(QOpenGLTexture::ClampToEdge);
+        tex->setSize(width, height);
+        tex->allocateStorage();
+    }
 }
 
 void OpenGLWidget::setCurrent(RenderInterface::VideoFrame frame)
@@ -57,15 +110,20 @@ void OpenGLWidget::setCurrent(RenderInterface::VideoFrame frame)
     scale_x = (float)frame.width / this->width();
     scale_y = (float)frame.height / this->height();
     
+    if (!frame.y_plane || !frame.u_plane || !frame.v_plane) {
+        qWarning() << "Invalid frame data received!";
+        return;
+    }
+
+    if (frame.width <= 0 || frame.height <= 0) {
+        qWarning() << "Invalid frame dimensions:" << frame.width << "x" << frame.height;
+        return;
+    }
+
     makeCurrent();
     
     // Update Y texture
-    if (!m_yTexture->isStorageAllocated() || 
-        m_yTexture->width() != frame.width || 
-        m_yTexture->height() != frame.height) {
-        m_yTexture->setSize(frame.width, frame.height);
-        m_yTexture->allocateStorage();
-    }
+    ensureTextureSize(m_yTexture,frame.width,frame.height);
     m_yTexture->bind();
     glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.stride_y);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frame.width, frame.height, 
@@ -74,24 +132,14 @@ void OpenGLWidget::setCurrent(RenderInterface::VideoFrame frame)
     // Update U texture
     int uv_width = frame.width / 2;
     int uv_height = frame.height / 2;
-    if (!m_uTexture->isStorageAllocated() || 
-        m_uTexture->width() != uv_width || 
-        m_uTexture->height() != uv_height) {
-        m_uTexture->setSize(uv_width, uv_height);
-        m_uTexture->allocateStorage();
-    }
+    ensureTextureSize(m_uTexture,uv_width,uv_height);
     m_uTexture->bind();
     glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.stride_u);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, uv_width, uv_height, 
                    GL_RED, GL_UNSIGNED_BYTE, frame.u_plane);
 
     // Update V texture
-    if (!m_vTexture->isStorageAllocated() || 
-        m_vTexture->width() != uv_width || 
-        m_vTexture->height() != uv_height) {
-        m_vTexture->setSize(uv_width, uv_height);
-        m_vTexture->allocateStorage();
-    }
+    ensureTextureSize(m_vTexture,uv_width,uv_height);
     m_vTexture->bind();
     glPixelStorei(GL_UNPACK_ROW_LENGTH, frame.stride_v);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, uv_width, uv_height, 
@@ -121,47 +169,11 @@ void OpenGLWidget::paintGL()
     m_program.setUniformValue("yTexture", 0);
     m_program.setUniformValue("uTexture", 1);
     m_program.setUniformValue("vTexture", 2);
-
-    GLfloat vertices[] = {
-        // Positions      // Texture coords (Y flipped)
-        -1.0f,  1.0f,     0.0f, 0.0f,
-        -1.0f, -1.0f,     0.0f, 1.0f,
-         1.0f, -1.0f,     1.0f, 1.0f,
-         1.0f,  1.0f,     1.0f, 0.0f
-    };
     
-    GLuint indices[] = {
-        0, 1, 2,
-        0, 2, 3
-    };
-
-    GLuint VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // Position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)0);
-    glEnableVertexAttribArray(0);
-    
-    // Texture coordinate attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
+    glBindVertexArray(m_vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-
+    glBindVertexArray(0);
+    
     m_program.release();
 }
 

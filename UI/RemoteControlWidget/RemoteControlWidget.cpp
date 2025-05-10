@@ -17,7 +17,14 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
     , ui(new Ui::RemoteControlWidget)
 {
     ui->setupUi(this);
-    opengl_widget = new OpenGLWidget();
+    opengl_widget = new OpenGLWidget(this);
+    QSurfaceFormat format;
+    format.setRenderableType(QSurfaceFormat::OpenGL);
+    format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+    format.setSwapInterval(1);
+
+    QSurfaceFormat::setDefaultFormat(format);
+
     opengl_widget->setMouseTracking(true);
     opengl_widget->setFocusPolicy(Qt::StrongFocus);
     auto layout = this->layout();
@@ -42,7 +49,6 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
 RemoteControlWidget::~RemoteControlWidget()
 {
     delete elapsed_timer;
-    delete opengl_widget;
     delete ui;
 }
 

@@ -41,6 +41,9 @@ protected:
     void keyReleaseEvent(QKeyEvent* event) override;
 
 private:
+
+    void ensureTextureSize(QOpenGLTexture*& tex, int width, int height);
+
     const char* vertexShaderSource = R"(
         #version 330 core
         layout(location = 0) in vec4 vertexPosition;
@@ -87,6 +90,11 @@ private:
     const uint8_t* m_vData = nullptr;
     int m_width = 0;
     int m_height = 0;
+
+    // OpenGL buffer handles
+    GLuint m_vao = 0;
+    GLuint m_vbo = 0;
+    GLuint m_ebo = 0;
    
     float scale_x;
     float scale_y;

@@ -138,15 +138,17 @@ public:
     absl::optional<Stats> GetStats() const { return absl::nullopt; }
 
 
+    void FindMonitorSourceName();
+
+    static void SourceInfoCallback(pa_context* context, const pa_source_info* info, int eol, void* userdata);
     static void ContextStateCallback(pa_context* context, void* userdata);
     static void StreamStateCallback(pa_stream* stream, void* userdata);
     static void StreamReadCallback(pa_stream* stream, size_t nbytes, void* userdata);
 private:
 
-    void CaptureLoop();
-
     std::atomic<bool> recording_{false};
     std::atomic<bool> initialized_{false};
+    static std::string device;
     webrtc::AudioTransport* audio_callback_ = nullptr;
 
     webrtc::AudioDeviceModule::AudioLayer audio_layer_;

@@ -13,6 +13,7 @@
 #include "PulseAudioCapture.h"
 
 rtc::scoped_refptr<webrtc::AudioProcessing> PulseAudioCapture::apm_ = nullptr;
+std::string PulseAudioCapture::device = "";
 
 PulseAudioCapture::PulseAudioCapture(webrtc::AudioDeviceModule::AudioLayer audio_layer,
     webrtc::TaskQueueFactory* task_queue_factory)
@@ -25,6 +26,63 @@ PulseAudioCapture::PulseAudioCapture(webrtc::AudioDeviceModule::AudioLayer audio
 
 PulseAudioCapture::~PulseAudioCapture() {
     Terminate();
+}
+
+void PulseAudioCapture::SourceInfoCallback(pa_context* context, 
+    const pa_source_info* info, 
+    int eol, 
+    void* userdata) 
+{
+    auto mainloop = static_cast<pa_threaded_mainloop*>(userdata);
+
+    if (eol < 0) {
+        std::cerr << "Error getting source info" << std::endl;
+        pa_threaded_mainloop_signal(mainloop, 0);
+        return;
+    }
+
+    if (eol > 0) {
+        pa_threaded_mainloop_signal(mainloop, 0);
+        return;
+    }
+
+    std::cout << "Found source: " << info->name 
+    << " (monitor: " << (strstr(info->name, ".monitor") ? "yes" : "no") 
+    << ")" << std::endl;
+
+    if (strstr(info->name, ".monitor")) {
+        device = info->name;
+    }
+}
+
+void PulseAudioCapture::FindMonitorSourceName() {
+    
+    // 1. 锁定主循环（必须在所有PA操作前）
+    pa_threaded_mainloop_lock(mainloop_);
+
+    // 2. 检查上下文状态
+    if (pa_context_get_state(context_) != PA_CONTEXT_READY) {
+        pa_threaded_mainloop_unlock(mainloop_);
+        std::cerr << "PulseAudio context not ready" << std::endl;
+        return;
+    }
+
+    // 4. 发起查询操作
+    pa_operation* op = pa_context_get_source_info_list(
+        context_, 
+        PulseAudioCapture::SourceInfoCallback, 
+        mainloop_
+    );
+
+    if (!op) {
+        pa_threaded_mainloop_unlock(mainloop_);
+        std::cerr << "Failed to create source info operation" << std::endl;
+        return;
+    }
+
+    // 6. 清理资源
+    pa_operation_unref(op);
+    pa_threaded_mainloop_unlock(mainloop_);
 }
 
 int32_t PulseAudioCapture::Init() {
@@ -55,6 +113,7 @@ int32_t PulseAudioCapture::Init() {
         pa_threaded_mainloop_wait(mainloop_);
     }
     pa_threaded_mainloop_unlock(mainloop_);
+    FindMonitorSourceName();
     initialized_ = true;
     return 0;
 }
@@ -110,8 +169,6 @@ int32_t PulseAudioCapture::InitRecording() {
     attr.minreq = 960;             // 10ms最小请求
     attr.fragsize = 960;           // 10ms片段大小
 
-    const char* device = "alsa_output.pci-0000_00_1f.3.analog-stereo.2.monitor";
-
     pa_threaded_mainloop_lock(mainloop_);
     stream_ = pa_stream_new(context_, "CaptureStream", &ss, nullptr);
     if (!stream_) {
@@ -122,7 +179,13 @@ int32_t PulseAudioCapture::InitRecording() {
     pa_stream_set_read_callback(stream_, &PulseAudioCapture::StreamReadCallback, this);
     pa_stream_set_state_callback(stream_, &PulseAudioCapture::StreamStateCallback, this);
 
-    if (pa_stream_connect_record(stream_, device, &attr, PA_STREAM_ADJUST_LATENCY) < 0) {
+    if (device.empty()) {
+        std::cerr << "No monitor source found." << std::endl;
+        pa_threaded_mainloop_unlock(mainloop_);
+        return -1;
+    }
+
+    if (pa_stream_connect_record(stream_, device.data(), &attr, PA_STREAM_ADJUST_LATENCY) < 0) {
         std::cerr << "Failed to connect record stream." << std::endl;
         pa_threaded_mainloop_unlock(mainloop_);
         return -1;

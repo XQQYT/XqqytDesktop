@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [v1.1.0] - 2025-05-11
+
+### Added
+
+- 增加打包脚本以及打包文档
+
+### Fixed
+
+- 修复了openGL渲染中途图像尺寸发生改变导致的崩溃问题
+- 修复了openGL在高帧率下发生的崩溃问题
+
+### updated
+
+- 更改客户端从settings.json中获取信令服务器的ip和port
+
 ## [v1.0.0] - 2025-05-10
 
 ### Added

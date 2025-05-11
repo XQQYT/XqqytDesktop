@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # 用法：
-# ./collect_deps.sh ./XqqytDesktop /opt/Qt5.14.2/5.14.2/gcc_64
+# ./package_release.sh ./XqqytDesktop /opt/Qt5.14.2/5.14.2/gcc_64
 
 EXECUTABLE="$1"
-QT_GCC_PATH="$2"
+PACKAGE_DIR="$2"
+QT_GCC_PATH="$3"
 
-if [[ -z "$EXECUTABLE" || -z "$QT_GCC_PATH" ]]; then
-    echo "Usage: $0 <executable_path> <qt_gcc_path>"
+if [[ -z "$EXECUTABLE" ||-z "$PACKAGE_DIR"|| -z "$QT_GCC_PATH" ]]; then
+    echo "Usage: $0 <executable_path> <output_path> <qt_gcc_path>"
     exit 1
 fi
 
-PACKAGE_DIR="./ReleasePackage"
 LIB_DIR="$PACKAGE_DIR/lib"
 
 mkdir -p "$LIB_DIR"
@@ -60,25 +60,25 @@ done
 patch_rpath "$PACKAGE_DIR/platforms/libqxcb.so" '$ORIGIN/../lib'
 
 # 拷贝 Theme 文件夹
-if [[ -d "../../Theme" ]]; then
+if [[ -d "Theme" ]]; then
     echo "Copying Theme folder..."
-    cp -r "../../Theme" "$PACKAGE_DIR/Theme"
+    cp -r "Theme" "$PACKAGE_DIR/Theme"
 else
     echo "Theme directory not found: ../../Theme"
 fi
 
 # 拷贝 Translations 文件夹
-if [[ -d "../../Translations" ]]; then
+if [[ -d "Translations" ]]; then
     echo "Copying Translations folder..."
-    cp -r "../../Translations" "$PACKAGE_DIR/Translations"
+    cp -r "Translations" "$PACKAGE_DIR/Translations"
 else
-    echo "Translations directory not found: ../../Translations"
+    echo "Translations directory not found: Translations"
 fi
 
 # 拷贝设置文件
-cp "../../settings-example.json" "$PACKAGE_DIR/settings.json"
+cp "settings-example.json" "$PACKAGE_DIR/settings.json"
 
 # 拷贝构建好的可执行文件
-cp "../../build/XqqytDesktop" "$PACKAGE_DIR/XqqytDesktop"
+cp "build/XqqytDesktop" "$PACKAGE_DIR/XqqytDesktop"
 
 echo "Done. Libraries and plugins are ready in: $PACKAGE_DIR"

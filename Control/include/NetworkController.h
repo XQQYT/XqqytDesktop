@@ -15,8 +15,6 @@
 #include "MessageParser.h"
 #include "UserInfo.h"
 #include "Operator.h"
-const std::string server_address = "127.0.0.1";
-const std::string server_port = "8888";
 
 class NetworkController : public Operator{
 //NetworkOperator

@@ -14,7 +14,8 @@ NetworkController::NetworkController()
 {
     //使用websocket驱动
     network_interface = WebSocket::create();
-    network_interface->initSocket(server_address,server_port);
+    auto meta_config = SettingInfoManager::getInstance().getModuleConfig("Meta");
+    network_interface->initSocket((*meta_config)["signal_server_ip"],(*meta_config)["signal_server_port"]);
     json_factory = std::make_unique<NlohmannJson>();
     msg_parser = std::make_unique<MessageParser>(*this);
     recv_thread = nullptr;

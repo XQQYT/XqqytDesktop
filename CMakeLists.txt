@@ -10,8 +10,9 @@ set(CMAKE_PREFIX_PATH "/opt/Qt5.14.2/5.14.2/gcc_64")
 set(CMAKE_BUILD_TYPE Debug)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-g)  # 生成调试信息
-    add_link_options(-g)     # 链接时保留调试信息
+    add_compile_definitions(DEBUG_BUILD)  # 定义宏 DEBUG_BUILD
+    add_compile_options(-g)
+    add_link_options(-g)
 endif()
 
 # Find the Qt5 Widgets module
@@ -35,6 +36,9 @@ add_subdirectory(UI)
 add_subdirectory(Driver_Interface)
 add_subdirectory(Driver)
 add_subdirectory(Control)
+
+set(CMAKE_BUILD_RPATH "\$ORIGIN/lib;\$ORIGIN/platforms")
+set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
 # Define the executable target
 add_executable(${PROJECT_NAME}

@@ -6,7 +6,7 @@
  */
 
 #include <iostream>
-#include "KeyboardMouseDriver/X11.h"
+#include "KeyboardMouseDriver/X11KeyboardMouseDriver.h"
 #include <unordered_map>
 
 static std::unordered_map<uint32_t, KeySym> qtKeyToX11KeySym = {
@@ -172,12 +172,12 @@ static std::unordered_map<uint32_t, KeySym> qtKeyToX11KeySym = {
     { 0x3e, XK_greater },   // >
 };
 
-X11Driver::X11Driver()
+X11KeyboardMouseDriver::X11KeyboardMouseDriver()
 {
     display = XOpenDisplay(NULL);
 }
 
-X11Driver::~X11Driver()
+X11KeyboardMouseDriver::~X11KeyboardMouseDriver()
 {
     if(display)
     {
@@ -185,7 +185,7 @@ X11Driver::~X11Driver()
         display = nullptr;
     }
 }
-void X11Driver::syncKeyboard(const KeyEventPacket& packet)
+void X11KeyboardMouseDriver::syncKeyboard(const KeyEventPacket& packet)
 {
     if (!display) {
         std::cerr << "Failed to open X display" << std::endl;
@@ -217,7 +217,7 @@ void X11Driver::syncKeyboard(const KeyEventPacket& packet)
 
 }
 
-void X11Driver::syncMouseEvent(const MouseEventPacket& packet) {
+void X11KeyboardMouseDriver::syncMouseEvent(const MouseEventPacket& packet) {
     if (!display) return;
 
     switch (packet.type) {

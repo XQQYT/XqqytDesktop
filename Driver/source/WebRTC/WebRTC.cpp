@@ -45,6 +45,8 @@ void WebRTC::initWebRTC(bool is_offer)
 {
     std::cout << "init WebRTC"<<std::endl;
 
+    clipboard_monitor = std::make_unique<X11ClipboardDriver>(*this);
+
     network_thread = rtc::Thread::CreateWithSocketServer();
     network_thread->Start();
     worker_thread = rtc::Thread::Create();
@@ -278,7 +280,7 @@ void WebRTC::checkConnectionStatus()
   webrtc_operator.dispatch_bool("/webrtc/connection_status",connection_status);
   if(connection_status)
   {
-    clipboard_monitor.startMonitor();
+    clipboard_monitor->startMonitor();
     if(currentRole == Role::RECEIVER)
       startCaptureDesktop();
   }
@@ -365,7 +367,7 @@ void WebRTC::closeWebRTC()
   if(currentRole == WebRTCInterface::Role::RECEIVER)
     stopCaptureDesktop();
 
-  clipboard_monitor.stopMonitor();
+  clipboard_monitor->stopMonitor();
 
   if (video_render.get()) {
     video_render->closeRender();
@@ -420,4 +422,18 @@ void WebRTC::setCaptureRate(int rate)
   webrtc_capture_rate = rate;
  
   std::cout<<"set capture rate  "<<rate<<std::endl;
+}
+
+void WebRTC::sendClipboardContent(std::string content)
+{
+    if (content.empty()) return;
+
+    if (!data_channel || data_channel->state() != webrtc::DataChannelInterface::kOpen) {
+        std::cerr << "DataChannel is not open\n";
+        return;
+    }
+    content.insert(0,"[clipboard]");
+    rtc::CopyOnWriteBuffer buffer(reinterpret_cast<const uint8_t*>(content.data()), content.size());
+    webrtc::DataBuffer data_buffer(buffer, true);
+    data_channel->Send(data_buffer);
 }

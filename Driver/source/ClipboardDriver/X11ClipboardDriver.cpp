@@ -5,9 +5,12 @@
  * Year: 2025
  */
 
- #include "ClipboardDriver/X11.h"
+#include "WebRTC.h"
 
- ClipboardDriver::ClipboardDriver()
+#include "ClipboardDriver/X11ClipboardDriver.h"
+
+X11ClipboardDriver::X11ClipboardDriver(WebRTC& instance)
+ :webrtc_instance(instance)
  {
     display = XOpenDisplay(nullptr);
         if (!display) {
@@ -36,21 +39,21 @@
         property = XInternAtom(display, "MY_CLIP_TEMP", False);
  }
 
- ClipboardDriver::~ClipboardDriver()
+ X11ClipboardDriver::~X11ClipboardDriver()
  {
     stopMonitor();
     XDestroyWindow(display, window);
     XCloseDisplay(display);
  }
 
-void ClipboardDriver::startMonitor()
+void X11ClipboardDriver::startMonitor()
 {
     if (!display || is_running) return;
     is_running = true;
-    monitor_thread = new std::thread(&ClipboardDriver::run, this);
+    monitor_thread = new std::thread(&X11ClipboardDriver::run, this);
 }
 
-void ClipboardDriver::stopMonitor()
+void X11ClipboardDriver::stopMonitor()
 {
     is_running = false;
     // 发送假事件以唤醒 XNextEvent
@@ -69,7 +72,7 @@ void ClipboardDriver::stopMonitor()
     }
 }
 
-void ClipboardDriver::run() {
+void X11ClipboardDriver::run() {
     if (!display) return;
     std::cout << "Clipboard watcher running...\n";
     XEvent event;
@@ -99,6 +102,7 @@ void ClipboardDriver::run() {
             if (actual_type == utf8 && prop) {
                 std::string content(reinterpret_cast<char*>(prop), nitems);
                 std::cout << "Clipboard content: " << content << "\n";
+                webrtc_instance.sendClipboardContent(std::move(content));
                 XFree(prop);
             } else {
                 std::cerr << "Unsupported clipboard format\n";

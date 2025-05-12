@@ -5,23 +5,28 @@
  * Year: 2025
  */
 
-#ifndef _ClipboardDriver_H
-#define _ClipboardDriver_H
+#ifndef _X11ClipboardDriver_H
+#define _X11ClipboardDriver_H
 
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/extensions/Xfixes.h>
+extern "C" {
+    #include <X11/Xlib.h>
+    #include <X11/Xatom.h>
+    #include <X11/extensions/Xfixes.h>
+}
+
 #include <iostream>
 #include <string>
 #include <cstring>
 #include <thread>
 #include <atomic>
 
-class ClipboardDriver
+
+class WebRTC;
+class X11ClipboardDriver
 {
 public:
-    ClipboardDriver();
-    ~ClipboardDriver();
+    X11ClipboardDriver(WebRTC& instance);
+    ~X11ClipboardDriver();
     void startMonitor();
     void stopMonitor();
 
@@ -38,6 +43,7 @@ private:
     Atom property;
     int xfixes_event_base;
     int xfixes_error_base;
+    WebRTC& webrtc_instance;
 };
 
 #endif

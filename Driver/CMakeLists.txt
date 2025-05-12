@@ -13,8 +13,8 @@ add_library(Driver STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/VideoRender.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/AudioDriver/Capturer/PulseAudioCapture.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/AudioDriver/Player/PulseAudioPlayer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/KeyboardMouseDriver/X11.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/ClipboardDriver/X11.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/KeyboardMouseDriver/X11KeyboardMouseDriver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/ClipboardDriver/X11ClipboardDriver.cpp
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWEBRTC_LINUX=1 -DWEBRTC_POSIX=1 -frtti -DNDEBUG -DWEBRTC_USE_X11 -DWEBRTC_USE_PIPEWIRE")

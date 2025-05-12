@@ -276,9 +276,11 @@ void WebRTC::checkConnectionStatus()
   bool connection_status = peer_connection->ice_connection_state() == webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionConnected && 
     peer_connection->peer_connection_state() == webrtc::PeerConnectionInterface::PeerConnectionState::kConnected;
   webrtc_operator.dispatch_bool("/webrtc/connection_status",connection_status);
-  if(connection_status&&currentRole == Role::RECEIVER)
+  if(connection_status)
   {
-    startCaptureDesktop();
+    clipboard_monitor.startMonitor();
+    if(currentRole == Role::RECEIVER)
+      startCaptureDesktop();
   }
 }
 
@@ -362,6 +364,8 @@ void WebRTC::closeWebRTC()
     sendCloseWebRTC();
   if(currentRole == WebRTCInterface::Role::RECEIVER)
     stopCaptureDesktop();
+
+  clipboard_monitor.stopMonitor();
 
   if (video_render.get()) {
     video_render->closeRender();

@@ -57,6 +57,7 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
         std::string msg(reinterpret_cast<const char*>(data), size-1); // 直接构造
         if (msg == "close_webrtc") 
         {
+            webrtc_instance.clipboard_monitor.stopMonitor();
             webrtc_instance.display_void("/control/recv_close_control");
             std::cout << "Received close_webrtc command, closing connection..." << std::endl;
         } 

@@ -167,6 +167,11 @@ void NetworkController::dispatch_string(std::string event_name,std::string str)
     EventBus::getInstance().publish(std::move(event_name),std::move(str));
 }
 
+void NetworkController::dispatch_string_string(std::string event_name,std::string str1,std::string str2)
+{
+    EventBus::getInstance().publish(std::move(event_name),std::move(str1),std::move(str2));
+}
+
 void NetworkController::dispatch_string_string_string(std::string event_name, std::string str1, std::string str2, std::string str3)
 {
     EventBus::getInstance().publish(std::move(event_name),std::move(str1),std::move(str2),std::move(str3));

@@ -29,7 +29,7 @@ signals:
     void EnterDone(QString password);
 private slots:
     void on_btn_connect_clicked();
-
+    void on_btn_cancel_clicked();
 private:
     Ui::KeyAuthenticationDialog *ui;
 };

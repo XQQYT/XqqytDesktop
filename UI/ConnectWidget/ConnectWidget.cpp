@@ -17,10 +17,11 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     remote_widget = nullptr;
     remote_widget_alive = false;
     ui->setupUi(this);
+    UserInfoManager::getInstance().setCurrentUserKey(generateRandomString(8).toStdString());
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/ConnectWidget.qss")),this);
     info_dialog.setPargentWidget(this);
     initSubscribe();
-    
+
     connect(&key_authenticate_dialog,&KeyAuthenticationDialog::EnterDone,this,&ConnectWidget::onEnterKeyDone);
 
     EventBus::getInstance().publish("/ui/connectwidget_init_done");
@@ -36,7 +37,7 @@ void ConnectWidget::initSubscribe()
     EventBus::getInstance().subscribe("/network/target_is_offline",std::bind(&ConnectWidget::onTargetOffline,this));
     EventBus::getInstance().subscribe("/network/registration_rejected",std::bind(&ConnectWidget::onRegistrationRejected,this));
     EventBus::getInstance().subscribe("/network/failed_to_connect_server",std::bind(&ConnectWidget::onConnectServerFailed,this));
-    EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&ConnectWidget::onConnectRequest,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&ConnectWidget::onConnectRequest,this,std::placeholders::_1,std::placeholders::_2));
     EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(&ConnectWidget::onRecvConnectRequestResult,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/webrtc/connection_status",std::bind(&ConnectWidget::onConnectionStatus,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
@@ -75,8 +76,13 @@ void ConnectWidget::onConnectServerFailed()
     bubble_message.error(this,"Failed to connect Server");
 }
 
-void ConnectWidget::onConnectRequest(std::string target_id)
+void ConnectWidget::onConnectRequest(std::string target_id, std::string key)
 {
+    if(key != UserInfoManager::getInstance().getCurrentUserKey())
+    {
+        EventBus::getInstance().publish("/network/send_connect_request_result",target_id,false);
+        return;
+    }
     QMetaObject::invokeMethod(this, [this,target_id]() {
     ConfirmBeConnectDialog dialog(this);
     connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
@@ -99,7 +105,7 @@ void ConnectWidget::onRecvConnectRequestResult(bool status)
             reconnect(&info_dialog,&InfoDialog::OK,this,[](){
                 std::cout<<"test"<<std::endl;
             });
-            info_dialog <<"Info"<<"The Peer reject your connect request"<< InfoDialog::InfoType::OK << InfoDialog::end;
+            info_dialog <<"Connection Response"<<"The peer rejected your connection request. Possible reasons include:\n1,Password authentication failed.\n2,The peer explicitly denied the connection."<< InfoDialog::InfoType::OK << InfoDialog::end;
         }, Qt::QueuedConnection);
     }
 }
@@ -143,7 +149,8 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
     {
         QMetaObject::invokeMethod(this, [=]() {
             ui->retranslateUi(this);
-            ui->lineEdit_id->setText(UserInfoManager::getInstance().getCurrentUserId().data());
+            ui->label_user_id_value->setText(UserInfoManager::getInstance().getCurrentUserId().data());
+            ui->label_dynamic_key_value->setText(QString::fromStdString(UserInfoManager::getInstance().getCurrentUserKey()));
         }, Qt::QueuedConnection);
     }
 }

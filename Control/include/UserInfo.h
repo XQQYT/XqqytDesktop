@@ -40,6 +40,10 @@ public:
 
     void setCurrentTargetKey(const std::string& key) { target_key = key; }
     const std::string& getCurrentTargetKey() const { return target_key; }
+
+    void setCurrentUserKey(const std::string& key) { user_key = key; }
+    const std::string& getCurrentUserKey() const { return user_key; }
+
 private:
     UserInfoManager(){
         current_role = Role::UN_DEFINED;
@@ -50,6 +54,7 @@ private:
     std::string establishing_target_id;   //target id which try to connect to you
     Role current_role;
     std::string target_key;
+    std::string user_key;
 };
 
 #endif

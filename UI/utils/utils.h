@@ -13,5 +13,5 @@
 #include <QDebug>
 
 void applyStyleSheet(const QString filePath, QWidget* widget);
-
+QString generateRandomString(int length);
 #endif

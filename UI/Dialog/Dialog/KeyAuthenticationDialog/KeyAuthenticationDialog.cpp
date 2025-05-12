@@ -27,6 +27,12 @@ void KeyAuthenticationDialog::on_btn_connect_clicked()
     {
         emit EnterDone(ui->lineEdit->text());
         this->close();
+        ui->lineEdit->clear();
     }
+}
+
+void KeyAuthenticationDialog::on_btn_cancel_clicked()
+{
+    this->close();
 }
 

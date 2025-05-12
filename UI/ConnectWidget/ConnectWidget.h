@@ -46,7 +46,7 @@ private:
     void onTargetOffline();
     void onConnectServerFailed();
     void onRegistrationRejected();
-    void onConnectRequest(std::string target_id);
+    void onConnectRequest(std::string target_id, std::string key);
     void onRecvConnectRequestResult(bool status);
     void onConnectionStatus(bool status);
     void onSettingChanged(std::string module, std::string key, std::string value);

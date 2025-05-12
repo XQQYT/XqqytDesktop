@@ -22,6 +22,10 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     info_dialog.setPargentWidget(this);
     initSubscribe();
 
+    update_dynamic_key_timer = new QTimer(this);
+    connect(update_dynamic_key_timer,&QTimer::timeout,this,&ConnectWidget::onTimeToUpdateKey);
+    update_dynamic_key_timer->start(5000);
+    
     connect(&key_authenticate_dialog,&KeyAuthenticationDialog::EnterDone,this,&ConnectWidget::onEnterKeyDone);
 
     EventBus::getInstance().publish("/ui/connectwidget_init_done");
@@ -153,4 +157,11 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
             ui->label_dynamic_key_value->setText(QString::fromStdString(UserInfoManager::getInstance().getCurrentUserKey()));
         }, Qt::QueuedConnection);
     }
+}
+
+void ConnectWidget::onTimeToUpdateKey()
+{
+    QString new_dynamic_key = generateRandomString(8);
+    ui->label_dynamic_key_value->setText(new_dynamic_key);
+    UserInfoManager::getInstance().setCurrentUserKey(new_dynamic_key.toStdString());
 }

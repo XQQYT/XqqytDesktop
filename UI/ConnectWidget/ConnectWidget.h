@@ -12,6 +12,7 @@
 #include <QStyle>
 #include <QScreen>
 #include <QGuiApplication>
+#include <QTimer>
 #include "RemoteControlWidget.h"
 #include "EventBus.h"
 #include "BubbleMessage.h"
@@ -51,6 +52,7 @@ private:
     void onConnectionStatus(bool status);
     void onSettingChanged(std::string module, std::string key, std::string value);
     void onEnterKeyDone(QString key);
+    void onTimeToUpdateKey();
 private:
     Ui::ConnectWidget *ui;
     RemoteControlWidget* remote_widget;
@@ -58,5 +60,6 @@ private:
     InfoDialog info_dialog;
     KeyAuthenticationDialog key_authenticate_dialog;
     bool remote_widget_alive;
+    QTimer* update_dynamic_key_timer;
 };
 #endif // WIDGET_H

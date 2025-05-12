@@ -4,6 +4,7 @@
 add_library(ItemWidget STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/GeneralWidget/GeneralWidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DisplayWidget/DisplayWidget.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SecurityWidget/SecurityWidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/NetworkWidget/NetworkWidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/AboutWidget/AboutWidget.cpp
 )
@@ -12,6 +13,7 @@ add_library(ItemWidget STATIC
 target_include_directories(ItemWidget PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/GeneralWidget
     ${CMAKE_CURRENT_SOURCE_DIR}/DisplayWidget
+    ${CMAKE_CURRENT_SOURCE_DIR}/SecurityWidget
     ${CMAKE_CURRENT_SOURCE_DIR}/NetworkWidget
     ${CMAKE_CURRENT_SOURCE_DIR}/AboutWidget
 )

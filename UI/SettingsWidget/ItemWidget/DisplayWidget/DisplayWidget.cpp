@@ -52,7 +52,7 @@ void DisplayWidget::on_combobox_capture_rate_currentTextChanged(const QString &a
 void DisplayWidget::sendUpdataSignal(std::string key,std::string value)
 {
     if(init_done)
-        emit updataDisplayConfig(module_name,key,value);
+        emit updateDisplayConfig(module_name,key,value);
 }
 
 void DisplayWidget::retranslateUi()

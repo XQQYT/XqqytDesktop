@@ -13,6 +13,7 @@
 #include <QTimer>
 #include "GeneralWidget.h"
 #include "DisplayWidget.h"
+#include "SecurityWidget.h"
 #include "NetworkWidget.h"
 #include "AboutWidget.h"
 #include"EventBus.h"
@@ -32,15 +33,17 @@ public:
 private slots:
     void on_btn_general_clicked(bool checked);
     void on_btn_display_clicked(bool checked);
+    void on_btn_security_clicked(bool checked);
     void on_btn_network_clicked(bool checked);
     void on_btn_about_clicked(bool checked);
-    void updataModuleConfig(std::string module, std::string key, std::string value);
+    void updateModuleConfig(std::string module, std::string key, std::string value);
     void publishWrite();
 signals:
-    void updataGeneral(std::unordered_map<std::string, std::string> config);
-    void updataDisplay(std::unordered_map<std::string, std::string> config);
-    void updataNetwork(std::unordered_map<std::string, std::string> config);
-    void updataAbout(std::unordered_map<std::string, std::string> config);
+    void updateGeneral(std::unordered_map<std::string, std::string> config);
+    void updateDisplay(std::unordered_map<std::string, std::string> config);
+    void updateSecurity(std::unordered_map<std::string, std::string> config);
+    void updateNetwork(std::unordered_map<std::string, std::string> config);
+    void updateAbout(std::unordered_map<std::string, std::string> config);
 
 private:
     void initConfig();
@@ -50,6 +53,7 @@ private:
     QPushButton *current_btn;
     GeneralWidget *general_widget;
     DisplayWidget *display_widget;
+    SecurityWidget *security_widget;
     NetworkWidget *network_widget;
     AboutWidget *about_widget;
     QTimer* write_timer;

@@ -23,7 +23,7 @@ public:
     ~NetworkWidget();
     void retranslateUi();
 signals:
-    void updataNetworkConfig(std::string module,std::string key,std::string value);
+    void updateNetworkConfig(std::string module,std::string key,std::string value);
 
 public slots:
     void onNetworkConfig(std::unordered_map<std::string,std::string> general_config);

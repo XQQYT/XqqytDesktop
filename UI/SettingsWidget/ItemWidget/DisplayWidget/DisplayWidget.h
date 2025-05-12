@@ -23,7 +23,7 @@ public:
     ~DisplayWidget();
     void retranslateUi();
 signals:
-    void updataDisplayConfig(std::string module,std::string key,std::string value);
+    void updateDisplayConfig(std::string module,std::string key,std::string value);
 
 public slots:
     void onDisplayConfig(std::unordered_map<std::string,std::string> general_config);

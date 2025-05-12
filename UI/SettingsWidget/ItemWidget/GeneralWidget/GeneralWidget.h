@@ -24,7 +24,7 @@ public:
     ~GeneralWidget();
     void retranslateUi();
 signals:
-    void updataGeneralConfig(std::string module,std::string key,std::string value);
+    void updateGeneralConfig(std::string module,std::string key,std::string value);
 
 public slots:
     void onGeneralConfig(std::unordered_map<std::string,std::string> general_config);

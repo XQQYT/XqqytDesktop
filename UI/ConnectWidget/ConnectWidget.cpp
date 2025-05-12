@@ -6,10 +6,11 @@
  */
 
 #include "ConnectWidget.h"
+#include <QDateTime>
 #include "utils.h"
 #include "SettingInfo.h"
 #include "ui_ConnectWidget.h"
-
+#include <iostream>
 ConnectWidget::ConnectWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::ConnectWidget)
@@ -17,15 +18,14 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     remote_widget = nullptr;
     remote_widget_alive = false;
     ui->setupUi(this);
-    UserInfoManager::getInstance().setCurrentUserKey(generateRandomString(8).toStdString());
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/ConnectWidget.qss")),this);
     info_dialog.setPargentWidget(this);
     initSubscribe();
 
     update_dynamic_key_timer = new QTimer(this);
-    connect(update_dynamic_key_timer,&QTimer::timeout,this,&ConnectWidget::onTimeToUpdateKey);
-    update_dynamic_key_timer->start(5000);
-    
+    connect(update_dynamic_key_timer, &QTimer::timeout, this, &ConnectWidget::onTimeToUpdateKey);
+    setUpdateKeyTimer();
+
     connect(&key_authenticate_dialog,&KeyAuthenticationDialog::EnterDone,this,&ConnectWidget::onEnterKeyDone);
 
     EventBus::getInstance().publish("/ui/connectwidget_init_done");
@@ -51,6 +51,57 @@ void ConnectWidget::initSubscribe()
         std::placeholders::_2,
         std::placeholders::_3
     ));
+}
+
+void ConnectWidget::setUpdateKeyTimer()
+{
+    bool is_first_time = false;
+    auto security_config = SettingInfoManager::getInstance().getModuleConfig("Security");
+    std::string key_update_frequency = (*security_config)["key_update_frequency"];
+    std::string last_key = (*security_config)["last_key"];
+    int last_update_timestamp;
+    try{
+        last_update_timestamp = std::stoi((*security_config)["last_update_timestamp"]);
+    }
+    catch(...){
+        last_update_timestamp = -1;
+    }
+
+    //第一次生成
+    if(last_update_timestamp < 0 || last_key.empty())
+    {
+        std::string new_key = generateRandomString(8).toStdString();
+        UserInfoManager::getInstance().setCurrentUserKey(new_key);
+
+        ui->label_dynamic_key_value->setText(QString::fromStdString(new_key));
+        qint64 timestamp = QDateTime::currentSecsSinceEpoch();
+        last_update_timestamp = static_cast<int64_t>(timestamp);
+        EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp));
+        EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_key);
+        EventBus::getInstance().publish("/config/write_into_file");
+        is_first_time = true;
+    }
+
+    int64_t remaining_time;
+    qint64 now_timestamp = QDateTime::currentSecsSinceEpoch();
+    if(key_update_frequency == "Every hours")
+        remaining_time = (last_update_timestamp + 1 * 60 * 60) - now_timestamp;
+    else if(key_update_frequency == "Every 12hours")
+        remaining_time = (last_update_timestamp + 12 * 60 * 60) - now_timestamp;
+
+    //当前已超出时间
+    if(remaining_time < 0)
+    {
+        onTimeToUpdateKey();
+    }
+    else
+    {
+        if(!is_first_time)
+            UserInfoManager::getInstance().setCurrentUserKey(last_key);
+        if (update_dynamic_key_timer->isActive())
+            update_dynamic_key_timer->stop();
+        update_dynamic_key_timer->start(remaining_time * 1000);
+    }
 }
 
 void ConnectWidget::on_btn_connect_clicked()
@@ -161,7 +212,28 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
 
 void ConnectWidget::onTimeToUpdateKey()
 {
-    QString new_dynamic_key = generateRandomString(8);
-    ui->label_dynamic_key_value->setText(new_dynamic_key);
-    UserInfoManager::getInstance().setCurrentUserKey(new_dynamic_key.toStdString());
+    std::string new_dynamic_key = generateRandomString(8).toStdString();
+    ui->label_dynamic_key_value->setText(QString::fromStdString(new_dynamic_key));
+    UserInfoManager::getInstance().setCurrentUserKey(new_dynamic_key);
+    EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_dynamic_key);
+    qint64 timestamp = QDateTime::currentSecsSinceEpoch();
+    int64_t last_update_timestamp = static_cast<int64_t>(timestamp);
+    EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp));
+    EventBus::getInstance().publish("/config/write_into_file");
+    resetUpdateKeyTimer(last_update_timestamp);
+}
+
+void ConnectWidget::resetUpdateKeyTimer(int64_t last_update_timestamp)
+{
+    std::string key_update_frequency = SettingInfoManager::getInstance().getValue("Security","key_update_frequency");
+
+    uint64_t remaining_time;
+    if(key_update_frequency == "Every hours")
+        remaining_time = 1 * 60 * 60;
+    else if(key_update_frequency == "Every 12hours")
+        remaining_time = 12 * 60 * 60;
+
+    if (update_dynamic_key_timer->isActive())
+        update_dynamic_key_timer->stop();
+    update_dynamic_key_timer->start(remaining_time * 1000);
 }

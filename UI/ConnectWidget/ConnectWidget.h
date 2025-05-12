@@ -43,6 +43,9 @@ private:
         QObject::connect(sender, signal, receiver, slot);
     }
 
+    void setUpdateKeyTimer();
+    void resetUpdateKeyTimer(int64_t last_update_timestamp);
+
 private:
     void onTargetOffline();
     void onConnectServerFailed();

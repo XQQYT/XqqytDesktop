@@ -91,7 +91,7 @@ void MessageParser::onTargetStatusResult(std::unique_ptr<Parser> parser)
     else
     {
         network_operator.sendToServer(*json_factory->ws_connect_request(UserInfoManager::getInstance().getCurrentUserId(),
-                            UserInfoManager::getInstance().getCurrentTargetId()));
+                            UserInfoManager::getInstance().getCurrentTargetId(),UserInfoManager::getInstance().getCurrentTargetKey()));
         // network_operator.dispatch_void("/network/target_is_online");
     }
 }

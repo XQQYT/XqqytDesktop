@@ -137,13 +137,14 @@ std::shared_ptr<std::string> NlohmannJson::ws_sdp_answer(std::string user_id,std
         return std::make_shared<std::string>(result_msg.dump());
 }
 
-std::shared_ptr<std::string> NlohmannJson::ws_connect_request(std::string user_id,std::string target_id)
+std::shared_ptr<std::string> NlohmannJson::ws_connect_request(std::string user_id,std::string target_id, std::string key)
 {
     json result_msg = {
         {"type", "connect_request"},
         {"content", {
             {"user_id", std::move(user_id)},
-            {"target_id", std::move(target_id)}
+            {"target_id", std::move(target_id)},
+            {"key",std::move(key)}
         }}
     };
         return std::make_shared<std::string>(result_msg.dump());

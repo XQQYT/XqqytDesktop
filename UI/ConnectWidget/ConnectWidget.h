@@ -18,6 +18,7 @@
 #include "ConfirmBeConnectDialog.h"
 #include "InfoDialog.h"
 #include "UserInfo.h"
+#include "KeyAuthenticationDialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ConnectWidget; }
@@ -49,11 +50,13 @@ private:
     void onRecvConnectRequestResult(bool status);
     void onConnectionStatus(bool status);
     void onSettingChanged(std::string module, std::string key, std::string value);
+    void onEnterKeyDone(QString key);
 private:
     Ui::ConnectWidget *ui;
     RemoteControlWidget* remote_widget;
     BubbleMessage bubble_message;
     InfoDialog info_dialog;
+    KeyAuthenticationDialog key_authenticate_dialog;
     bool remote_widget_alive;
 };
 #endif // WIDGET_H

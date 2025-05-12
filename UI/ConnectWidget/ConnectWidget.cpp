@@ -20,6 +20,9 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/ConnectWidget.qss")),this);
     info_dialog.setPargentWidget(this);
     initSubscribe();
+    
+    connect(&key_authenticate_dialog,&KeyAuthenticationDialog::EnterDone,this,&ConnectWidget::onEnterKeyDone);
+
     EventBus::getInstance().publish("/ui/connectwidget_init_done");
 }
 
@@ -47,8 +50,13 @@ void ConnectWidget::initSubscribe()
 
 void ConnectWidget::on_btn_connect_clicked()
 {
+    key_authenticate_dialog.show();
+}
+
+void ConnectWidget::onEnterKeyDone(QString key)
+{
     EventBus::getInstance().publish("/network/connect_to_target",
-        ui->lineEdit_target_id->text().toStdString());
+        ui->lineEdit_target_id->text().toStdString(),key.toStdString());
     UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::Controller);
 }
 

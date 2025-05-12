@@ -91,7 +91,7 @@ void MessageParser::onTargetStatusResult(std::unique_ptr<Parser> parser)
     else
     {
         network_operator.sendToServer(*json_factory->ws_connect_request(UserInfoManager::getInstance().getCurrentUserId(),
-                            UserInfoManager::getInstance().getCurrentTargetId()));
+                            UserInfoManager::getInstance().getCurrentTargetId(),UserInfoManager::getInstance().getCurrentTargetKey()));
         // network_operator.dispatch_void("/network/target_is_online");
     }
 }
@@ -102,7 +102,7 @@ void MessageParser::onConnectRequest(std::unique_ptr<Parser> parser)
     if(!target_id.empty())
     {
         UserInfoManager::getInstance().setEstablishingTargetId(target_id);
-        network_operator.dispatch_string("/network/has_connect_request",target_id);
+        network_operator.dispatch_string_string("/network/has_connect_request",target_id, parser->getKey("key"));
     }
     else
     {

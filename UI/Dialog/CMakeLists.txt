@@ -3,6 +3,7 @@ add_library(Dialog STATIC
     Notify/BubbleMessage.cpp
     Dialog/ConfirmBeConnectDialog/ConfirmBeConnectDialog.cpp
     Dialog/InfoDialog/InfoDialog.cpp
+    Dialog/KeyAuthenticationDialog/KeyAuthenticationDialog.cpp
 )
 
 target_include_directories(Dialog PUBLIC
@@ -10,6 +11,7 @@ target_include_directories(Dialog PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Notify
     ${CMAKE_CURRENT_SOURCE_DIR}/Dialog/ConfirmBeConnectDialog
     ${CMAKE_CURRENT_SOURCE_DIR}/Dialog/InfoDialog
+    ${CMAKE_CURRENT_SOURCE_DIR}/Dialog/KeyAuthenticationDialog
 )
 
 target_link_libraries(Dialog

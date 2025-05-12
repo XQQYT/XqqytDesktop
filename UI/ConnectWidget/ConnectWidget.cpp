@@ -6,10 +6,11 @@
  */
 
 #include "ConnectWidget.h"
+#include <QDateTime>
 #include "utils.h"
 #include "SettingInfo.h"
 #include "ui_ConnectWidget.h"
-
+#include <iostream>
 ConnectWidget::ConnectWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::ConnectWidget)
@@ -20,6 +21,13 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/ConnectWidget.qss")),this);
     info_dialog.setPargentWidget(this);
     initSubscribe();
+
+    update_dynamic_key_timer = new QTimer(this);
+    connect(update_dynamic_key_timer, &QTimer::timeout, this, &ConnectWidget::onTimeToUpdateKey);
+    setUpdateKeyTimer();
+
+    connect(&key_authenticate_dialog,&KeyAuthenticationDialog::EnterDone,this,&ConnectWidget::onEnterKeyDone);
+
     EventBus::getInstance().publish("/ui/connectwidget_init_done");
 }
 
@@ -33,7 +41,7 @@ void ConnectWidget::initSubscribe()
     EventBus::getInstance().subscribe("/network/target_is_offline",std::bind(&ConnectWidget::onTargetOffline,this));
     EventBus::getInstance().subscribe("/network/registration_rejected",std::bind(&ConnectWidget::onRegistrationRejected,this));
     EventBus::getInstance().subscribe("/network/failed_to_connect_server",std::bind(&ConnectWidget::onConnectServerFailed,this));
-    EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&ConnectWidget::onConnectRequest,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&ConnectWidget::onConnectRequest,this,std::placeholders::_1,std::placeholders::_2));
     EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(&ConnectWidget::onRecvConnectRequestResult,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/webrtc/connection_status",std::bind(&ConnectWidget::onConnectionStatus,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
@@ -45,10 +53,68 @@ void ConnectWidget::initSubscribe()
     ));
 }
 
+void ConnectWidget::setUpdateKeyTimer()
+{
+    if (update_dynamic_key_timer->isActive())
+            update_dynamic_key_timer->stop();
+    bool is_first_time = false;
+    auto security_config = SettingInfoManager::getInstance().getModuleConfig("Security");
+    std::string key_update_frequency = (*security_config)["key_update_frequency"];
+    std::string last_key = (*security_config)["last_key"];
+    int last_update_timestamp;
+    try{
+        last_update_timestamp = std::stoi((*security_config)["last_update_timestamp"]);
+    }
+    catch(...){
+        last_update_timestamp = -1;
+    }
+
+    //第一次生成
+    if(last_update_timestamp < 0 || last_key.empty())
+    {
+        std::string new_key = generateRandomString(8).toStdString();
+        UserInfoManager::getInstance().setCurrentUserKey(new_key);
+
+        ui->label_dynamic_key_value->setText(QString::fromStdString(new_key));
+        qint64 timestamp = QDateTime::currentSecsSinceEpoch();
+        last_update_timestamp = static_cast<int64_t>(timestamp);
+        EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp));
+        EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_key);
+        EventBus::getInstance().publish("/config/write_into_file");
+        is_first_time = true;
+    }
+
+    int64_t remaining_time;
+    qint64 now_timestamp = QDateTime::currentSecsSinceEpoch();
+    if(key_update_frequency == "Every hours")
+        remaining_time = (last_update_timestamp + 1 * 60 * 60) - now_timestamp;
+    else if(key_update_frequency == "Every 12hours")
+        remaining_time = (last_update_timestamp + 12 * 60 * 60) - now_timestamp;
+
+    //当前已超出时间
+    if(remaining_time < 0)
+    {
+        onTimeToUpdateKey();
+    }
+    else
+    {
+        if(!is_first_time)
+            UserInfoManager::getInstance().setCurrentUserKey(last_key);
+        if (update_dynamic_key_timer->isActive())
+            update_dynamic_key_timer->stop();
+        update_dynamic_key_timer->start(remaining_time * 1000);
+    }
+}
+
 void ConnectWidget::on_btn_connect_clicked()
 {
+    key_authenticate_dialog.show();
+}
+
+void ConnectWidget::onEnterKeyDone(QString key)
+{
     EventBus::getInstance().publish("/network/connect_to_target",
-        ui->lineEdit_target_id->text().toStdString());
+        ui->lineEdit_target_id->text().toStdString(),key.toStdString());
     UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::Controller);
 }
 
@@ -67,8 +133,13 @@ void ConnectWidget::onConnectServerFailed()
     bubble_message.error(this,"Failed to connect Server");
 }
 
-void ConnectWidget::onConnectRequest(std::string target_id)
+void ConnectWidget::onConnectRequest(std::string target_id, std::string key)
 {
+    if(key != UserInfoManager::getInstance().getCurrentUserKey())
+    {
+        EventBus::getInstance().publish("/network/send_connect_request_result",target_id,false);
+        return;
+    }
     QMetaObject::invokeMethod(this, [this,target_id]() {
     ConfirmBeConnectDialog dialog(this);
     connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
@@ -91,7 +162,7 @@ void ConnectWidget::onRecvConnectRequestResult(bool status)
             reconnect(&info_dialog,&InfoDialog::OK,this,[](){
                 std::cout<<"test"<<std::endl;
             });
-            info_dialog <<"Info"<<"The Peer reject your connect request"<< InfoDialog::InfoType::OK << InfoDialog::end;
+            info_dialog <<"Connection Response"<<"The peer rejected your connection request. Possible reasons include:\n1,Password authentication failed.\n2,The peer explicitly denied the connection."<< InfoDialog::InfoType::OK << InfoDialog::end;
         }, Qt::QueuedConnection);
     }
 }
@@ -135,7 +206,42 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
     {
         QMetaObject::invokeMethod(this, [=]() {
             ui->retranslateUi(this);
-            ui->lineEdit_id->setText(UserInfoManager::getInstance().getCurrentUserId().data());
+            ui->label_user_id_value->setText(UserInfoManager::getInstance().getCurrentUserId().data());
+            ui->label_dynamic_key_value->setText(QString::fromStdString(UserInfoManager::getInstance().getCurrentUserKey()));
         }, Qt::QueuedConnection);
     }
+    else if(key == "key_update_frequency")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            setUpdateKeyTimer();
+        }, Qt::QueuedConnection);
+    }
+}
+
+void ConnectWidget::onTimeToUpdateKey()
+{
+    std::string new_dynamic_key = generateRandomString(8).toStdString();
+    ui->label_dynamic_key_value->setText(QString::fromStdString(new_dynamic_key));
+    UserInfoManager::getInstance().setCurrentUserKey(new_dynamic_key);
+    EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_dynamic_key);
+    qint64 timestamp = QDateTime::currentSecsSinceEpoch();
+    int64_t last_update_timestamp = static_cast<int64_t>(timestamp);
+    EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp));
+    EventBus::getInstance().publish("/config/write_into_file");
+    resetUpdateKeyTimer(last_update_timestamp);
+}
+
+void ConnectWidget::resetUpdateKeyTimer(int64_t last_update_timestamp)
+{
+    std::string key_update_frequency = SettingInfoManager::getInstance().getValue("Security","key_update_frequency");
+
+    uint64_t remaining_time;
+    if(key_update_frequency == "Every hours")
+        remaining_time = 1 * 60 * 60;
+    else if(key_update_frequency == "Every 12hours")
+        remaining_time = 12 * 60 * 60;
+
+    if (update_dynamic_key_timer->isActive())
+        update_dynamic_key_timer->stop();
+    update_dynamic_key_timer->start(remaining_time * 1000);
 }

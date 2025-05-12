@@ -38,7 +38,7 @@ public:
     std::shared_ptr<std::string> ws_ready(std::string user_id,std::string target_id) override;
     std::shared_ptr<std::string> ws_sdp_offer(std::string user_id,std::string target_id,std::string sdp) override;
     std::shared_ptr<std::string> ws_sdp_answer(std::string user_id,std::string target_id,std::string sdp) override;
-    std::shared_ptr<std::string> ws_connect_request(std::string user_id,std::string target_id) override;
+    std::shared_ptr<std::string> ws_connect_request(std::string user_id,std::string target_id, std::string key) override;
     std::shared_ptr<std::string> ws_connect_request_result(std::string user_id,std::string target_id,bool result) override;
     std::shared_ptr<std::string> ws_ice_condidate(std::string user_id,std::string target_id,std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
     std::shared_ptr<std::string> ws_ice_gather_done(std::string user_id,std::string target_id);

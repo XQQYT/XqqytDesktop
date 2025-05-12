@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>KeyAuthenticationDialog</class>
+ <widget class="QDialog" name="KeyAuthenticationDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>500</width>
+    <height>180</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Authentication</string>
+  </property>
+  <property name="styleSheet">
+ <string notr="true">
+   QWidget {
+     background-color: #f7f9fc;
+     font-family: 'Segoe UI', 'Roboto', sans-serif;
+     font-size: 14px;
+   }
+
+   QLabel {
+     color: #333;
+   }
+
+   QLineEdit {
+     border: 1px solid #ccc;
+     border-radius: 6px;
+     padding: 8px;
+     background: white;
+   }
+
+   QPushButton {
+     background-color: #5c6bc0;
+     color: white;
+     border-radius: 6px;
+     padding: 8px 16px;
+     font-weight: bold;
+   }
+
+   QPushButton:hover {
+     background-color: #3f51b5;
+   }
+
+   QPushButton:pressed {
+     background-color: #3949ab;
+     padding-left: 14px;
+     padding-top: 9px;
+   }
+
+   QPushButton#btn_cancel {
+     background-color: #e0e0e0;
+     color: #333;
+   }
+
+   QPushButton#btn_cancel:hover {
+     background-color: #c5c5c5;
+   }
+
+   QPushButton#btn_cancel:pressed {
+     background-color: #b0b0b0;
+     padding-left: 14px;
+     padding-top: 9px;
+   }
+ </string>
+</property>
+
+  <layout class="QVBoxLayout" name="mainLayout">
+   <item>
+    <layout class="QVBoxLayout" name="topLayout">
+     <item>
+      <widget class="QLabel" name="label_title">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Please enter the peer's connection password</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="btn_layout">
+     <item>
+      <widget class="QLineEdit" name="lineEdit"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_connect">
+       <property name="text">
+        <string>Connect</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_cancel">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

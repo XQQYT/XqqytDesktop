@@ -55,6 +55,8 @@ void ConnectWidget::initSubscribe()
 
 void ConnectWidget::setUpdateKeyTimer()
 {
+    if (update_dynamic_key_timer->isActive())
+            update_dynamic_key_timer->stop();
     bool is_first_time = false;
     auto security_config = SettingInfoManager::getInstance().getModuleConfig("Security");
     std::string key_update_frequency = (*security_config)["key_update_frequency"];
@@ -206,6 +208,12 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
             ui->retranslateUi(this);
             ui->label_user_id_value->setText(UserInfoManager::getInstance().getCurrentUserId().data());
             ui->label_dynamic_key_value->setText(QString::fromStdString(UserInfoManager::getInstance().getCurrentUserKey()));
+        }, Qt::QueuedConnection);
+    }
+    else if(key == "key_update_frequency")
+    {
+        QMetaObject::invokeMethod(this, [=]() {
+            setUpdateKeyTimer();
         }, Qt::QueuedConnection);
     }
 }

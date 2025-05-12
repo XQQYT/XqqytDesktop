@@ -40,6 +40,7 @@ MainWidget::~MainWidget()
 
 void MainWidget::setCurrentWidget(const WidgetManager::WidgetType type)
 {
+    static bool is_first = true;
     if(current_widget == type)
         return;
     QWidget* new_widget = WidgetManager::getInstance().getWidget(type);
@@ -49,8 +50,11 @@ void MainWidget::setCurrentWidget(const WidgetManager::WidgetType type)
     }
 
     switchLanguage(SettingInfoManager::getInstance().getValue("General","language"));
-    EventBus::getInstance().publish("/config/update_module_config_done",std::string("General"),std::string("language"),SettingInfoManager::getInstance().getValue("General","language"));
-
+    if(is_first)
+    {
+        EventBus::getInstance().publish("/config/update_module_config_done",std::string("General"),std::string("language"),SettingInfoManager::getInstance().getValue("General","language"));
+        is_first = false;
+    }
     QLayout* layout = ui->right_content_widget->layout();
 
     QLayoutItem* item;

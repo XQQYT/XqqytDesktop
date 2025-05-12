@@ -53,7 +53,7 @@ void GeneralWidget::on_combobox_language_currentTextChanged(const QString &arg1)
 void GeneralWidget::sendUpdataSignal(std::string key,std::string value)
 {
     if(init_done)
-        emit updataGeneralConfig(module_name,key,value);
+        emit updateGeneralConfig(module_name,key,value);
 }
 
 void GeneralWidget::retranslateUi()

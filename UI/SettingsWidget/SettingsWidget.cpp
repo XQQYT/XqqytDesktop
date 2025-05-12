@@ -22,24 +22,28 @@ SettingsWidget::SettingsWidget(QWidget *parent)
 
     general_widget = new GeneralWidget(this);
     display_widget = new DisplayWidget(this);
+    security_widget = new SecurityWidget(this);
     network_widget = new NetworkWidget(this);
     about_widget = new AboutWidget(this);
 
     qRegisterMetaType<std::unordered_map<std::string, std::string>>("std::unordered_map<std::string,std::string>");
 
-    connect(this,&SettingsWidget::updataGeneral,general_widget,&GeneralWidget::onGeneralConfig);
-    connect(this,&SettingsWidget::updataDisplay,display_widget,&DisplayWidget::onDisplayConfig);
-    connect(this,&SettingsWidget::updataNetwork,network_widget,&NetworkWidget::onNetworkConfig);
-    connect(this,&SettingsWidget::updataAbout,about_widget,&AboutWidget::onAboutConfig);
+    connect(this,&SettingsWidget::updateGeneral,general_widget,&GeneralWidget::onGeneralConfig);
+    connect(this,&SettingsWidget::updateDisplay,display_widget,&DisplayWidget::onDisplayConfig);
+    connect(this,&SettingsWidget::updateSecurity,security_widget,&SecurityWidget::onSecurityConfig);
+    connect(this,&SettingsWidget::updateNetwork,network_widget,&NetworkWidget::onNetworkConfig);
+    connect(this,&SettingsWidget::updateAbout,about_widget,&AboutWidget::onAboutConfig);
 
-    connect(general_widget,&GeneralWidget::updataGeneralConfig,this,&SettingsWidget::updataModuleConfig);
-    connect(display_widget,&DisplayWidget::updataDisplayConfig,this,&SettingsWidget::updataModuleConfig);
-    connect(network_widget,&NetworkWidget::updataNetworkConfig,this,&SettingsWidget::updataModuleConfig);
+    connect(general_widget,&GeneralWidget::updateGeneralConfig,this,&SettingsWidget::updateModuleConfig);
+    connect(display_widget,&DisplayWidget::updateDisplayConfig,this,&SettingsWidget::updateModuleConfig);
+    connect(security_widget,&SecurityWidget::updateSecurityConfig,this,&SettingsWidget::updateModuleConfig);
+    connect(network_widget,&NetworkWidget::updateNetworkConfig,this,&SettingsWidget::updateModuleConfig);
 
     initConfig();
 
     ui->stackedWidget->addWidget(general_widget);
     ui->stackedWidget->addWidget(display_widget);
+    ui->stackedWidget->addWidget(security_widget);
     ui->stackedWidget->addWidget(network_widget);
     ui->stackedWidget->addWidget(about_widget);
 
@@ -85,6 +89,18 @@ void SettingsWidget::on_btn_display_clicked(bool checked)
     current_btn = ui->btn_display;
 }
 
+void SettingsWidget::on_btn_security_clicked(bool checked)
+{
+    if(current_btn == ui->btn_security && !checked)
+    {
+        ui->btn_security->setChecked(true);
+        return;
+    }
+    current_btn->setChecked(false);
+    ui->stackedWidget->setCurrentWidget(security_widget);
+    current_btn = ui->btn_security;
+}
+
 void SettingsWidget::on_btn_network_clicked(bool checked)
 {
     if(current_btn == ui->btn_network && !checked)
@@ -112,13 +128,14 @@ void SettingsWidget::on_btn_about_clicked(bool checked)
 void SettingsWidget::initConfig()
 {
     auto all_config = SettingInfoManager::getInstance().getAllConfig();
-    emit updataGeneral((*all_config)["General"]);
-    emit updataDisplay((*all_config)["Display"]);
-    emit updataNetwork((*all_config)["Network"]);
-    emit updataAbout((*all_config)["Meta"]);
+    emit updateGeneral((*all_config)["General"]);
+    emit updateDisplay((*all_config)["Display"]);
+    emit updateSecurity((*all_config)["Security"]);
+    emit updateNetwork((*all_config)["Network"]);
+    emit updateAbout((*all_config)["Meta"]);
 }
 
-void SettingsWidget::updataModuleConfig(std::string module, std::string key, std::string value)
+void SettingsWidget::updateModuleConfig(std::string module, std::string key, std::string value)
 {
     if((write_timer->isActive()))
     {
@@ -141,6 +158,7 @@ void SettingsWidget::onSettingChanged(std::string module, std::string key, std::
         QMetaObject::invokeMethod(this, [=]() {
             applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/SettingsWidget.qss")),this);
             applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/GeneralWidget.qss")),general_widget);
+            applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/SecurityWidget.qss")),security_widget);
             applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/DisplayWidget.qss")),display_widget);
             applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/NetworkWidget.qss")),network_widget);
             applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/SettingsWidget/ItemWidget/AboutWidget.qss")),about_widget);

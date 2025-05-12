@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [v1.2.0] - 2025-05-12
+
+### Added
+
+- 增加发起远控连接时，发起方与接收方的密码核对，Xqqyt_SignalServer版本需>=1.1.0
+- 增加动态密码，定时更新
+- 增加在设置界面安全设置，可修改更新密码的间隔
+
 ## [v1.1.0] - 2025-05-11
 
 ### Added
@@ -17,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 修复了openGL渲染中途图像尺寸发生改变导致的崩溃问题
 - 修复了openGL在高帧率下发生的崩溃问题
 
-### updated
+### Updated
 
 - 更改客户端从settings.json中获取信令服务器的ip和port
 
@@ -33,3 +41,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [v1.0.0]: https://github.com/XQQYT/XqqytDesktop/tree/v1.0.0
+[v1.1.0]: https://github.com/XQQYT/XqqytDesktop/tree/v1.1.0
+[v1.2.0]: https://github.com/XQQYT/XqqytDesktop/tree/v1.2.0

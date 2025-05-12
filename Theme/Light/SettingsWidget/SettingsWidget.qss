@@ -6,6 +6,7 @@ QWidget#SettingsWidget {
 }
 QPushButton#btn_general,
  QPushButton#btn_display,
+ QPushButton#btn_security,
 QPushButton#btn_network,
 QPushButton#btn_about{
 	
@@ -16,12 +17,14 @@ QPushButton#btn_about{
 }
 QPushButton#btn_general:hover,
  QPushButton#btn_display:hover,
+ QPushButton#btn_security:hover,
 QPushButton#btn_network:hover,
 QPushButton#btn_about:hover {
     color: #111;
 }
 QPushButton#btn_general:checked,
  QPushButton#btn_display:checked,
+ QPushButton#btn_security:checked,
 QPushButton#btn_network:checked,
 QPushButton#btn_about:checked {
     color: #0066ff;

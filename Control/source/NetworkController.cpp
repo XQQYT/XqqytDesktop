@@ -92,7 +92,8 @@ void NetworkController::initNetworkSubscribe()
     EventBus::getInstance().subscribe("/network/connect_to_target",std::bind(
         &NetworkController::connectToTarget,
         this,
-        std::placeholders::_1
+        std::placeholders::_1,
+        std::placeholders::_2
     ));
     EventBus::getInstance().subscribe("/ui/connectwidget_init_done",std::bind(
         &NetworkController::connectToServer,
@@ -141,10 +142,11 @@ void NetworkController::onModuleConfigUpdated(std::string module,std::string key
     std::cout<<"network config receive changed"<<std::endl;
 }
 
-void NetworkController::connectToTarget(std::string target_id)
+void NetworkController::connectToTarget(std::string target_id, std::string key)
 {
     UserInfoManager::getInstance().setCurrentTargetId(target_id);
     UserInfoManager::getInstance().setEstablishingTargetId(target_id);
+    UserInfoManager::getInstance().setCurrentTargetKey(key);
     sendToServer(*json_factory->ws_get_target_status(std::move(UserInfoManager::getInstance().getCurrentUserId()),
         std::move(UserInfoManager::getInstance().getCurrentTargetId())));
 }
@@ -163,6 +165,11 @@ void NetworkController::dispatch_void(const std::string event_name)
 void NetworkController::dispatch_string(std::string event_name,std::string str)
 {
     EventBus::getInstance().publish(std::move(event_name),std::move(str));
+}
+
+void NetworkController::dispatch_string_string(std::string event_name,std::string str1,std::string str2)
+{
+    EventBus::getInstance().publish(std::move(event_name),std::move(str1),std::move(str2));
 }
 
 void NetworkController::dispatch_string_string_string(std::string event_name, std::string str1, std::string str2, std::string str3)

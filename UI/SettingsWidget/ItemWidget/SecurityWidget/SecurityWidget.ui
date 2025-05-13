@@ -54,6 +54,11 @@
          <string>Every 12hours</string>
         </property>
        </item>
+       <item>
+        <property name="text">
+         <string>Manual</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>

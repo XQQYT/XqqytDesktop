@@ -61,6 +61,22 @@ void ConnectWidget::setUpdateKeyTimer()
     auto security_config = SettingInfoManager::getInstance().getModuleConfig("Security");
     std::string key_update_frequency = (*security_config)["key_update_frequency"];
     std::string last_key = (*security_config)["last_key"];
+
+    QFont font = ui->btn_dynamic_key_value->font();
+    font.setUnderline(false);
+    if(key_update_frequency == "Manual")
+    {
+        UserInfoManager::getInstance().setCurrentUserKey(last_key);
+        font.setUnderline(true);
+        ui->btn_dynamic_key_value->setFont(font);
+        ui->btn_dynamic_key_value->setCursor(Qt::PointingHandCursor);
+        ui->btn_dynamic_key_value->setEnabled(true);
+        return;
+    }
+    ui->btn_dynamic_key_value->setCursor(Qt::ArrowCursor);
+    ui->btn_dynamic_key_value->setFont(font);
+    ui->btn_dynamic_key_value->setEnabled(false);
+
     int last_update_timestamp;
     try{
         last_update_timestamp = std::stoi((*security_config)["last_update_timestamp"]);
@@ -75,7 +91,7 @@ void ConnectWidget::setUpdateKeyTimer()
         std::string new_key = generateRandomString(8).toStdString();
         UserInfoManager::getInstance().setCurrentUserKey(new_key);
 
-        ui->label_dynamic_key_value->setText(QString::fromStdString(new_key));
+        ui->btn_dynamic_key_value->setText(QString::fromStdString(new_key));
         qint64 timestamp = QDateTime::currentSecsSinceEpoch();
         last_update_timestamp = static_cast<int64_t>(timestamp);
         EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp));
@@ -102,6 +118,7 @@ void ConnectWidget::setUpdateKeyTimer()
             UserInfoManager::getInstance().setCurrentUserKey(last_key);
         if (update_dynamic_key_timer->isActive())
             update_dynamic_key_timer->stop();
+        std::cout<<"remain "<<remaining_time<<" s"<<std::endl;
         update_dynamic_key_timer->start(remaining_time * 1000);
     }
 }
@@ -207,7 +224,7 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
         QMetaObject::invokeMethod(this, [=]() {
             ui->retranslateUi(this);
             ui->label_user_id_value->setText(UserInfoManager::getInstance().getCurrentUserId().data());
-            ui->label_dynamic_key_value->setText(QString::fromStdString(UserInfoManager::getInstance().getCurrentUserKey()));
+            ui->btn_dynamic_key_value->setText(QString::fromStdString(UserInfoManager::getInstance().getCurrentUserKey()));
         }, Qt::QueuedConnection);
     }
     else if(key == "key_update_frequency")
@@ -221,14 +238,15 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
 void ConnectWidget::onTimeToUpdateKey()
 {
     std::string new_dynamic_key = generateRandomString(8).toStdString();
-    ui->label_dynamic_key_value->setText(QString::fromStdString(new_dynamic_key));
+    ui->btn_dynamic_key_value->setText(QString::fromStdString(new_dynamic_key));
     UserInfoManager::getInstance().setCurrentUserKey(new_dynamic_key);
     EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_dynamic_key);
     qint64 timestamp = QDateTime::currentSecsSinceEpoch();
     int64_t last_update_timestamp = static_cast<int64_t>(timestamp);
     EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp));
     EventBus::getInstance().publish("/config/write_into_file");
-    resetUpdateKeyTimer(last_update_timestamp);
+    if(update_dynamic_key_timer->isActive())
+        resetUpdateKeyTimer(last_update_timestamp);
 }
 
 void ConnectWidget::resetUpdateKeyTimer(int64_t last_update_timestamp)
@@ -244,4 +262,9 @@ void ConnectWidget::resetUpdateKeyTimer(int64_t last_update_timestamp)
     if (update_dynamic_key_timer->isActive())
         update_dynamic_key_timer->stop();
     update_dynamic_key_timer->start(remaining_time * 1000);
+}
+
+void ConnectWidget::on_btn_dynamic_key_value_clicked()
+{
+    onTimeToUpdateKey();
 }

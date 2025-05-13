@@ -49,6 +49,7 @@ public:
     void closeWebRTC() override;
     bool getWebRtcReady() override;
     void setCaptureRate(int rate) override;
+    void writeIntoClipboard(std::string str) override;
 public:
     void display_string(std::string event_name,std::string str);
     void display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3);

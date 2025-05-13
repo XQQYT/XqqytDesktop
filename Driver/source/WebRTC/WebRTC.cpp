@@ -30,6 +30,7 @@ WebRTC::WebRTC(Operator& base_operator):
 {
   pco = std::make_unique<PCO>(*this);
   dco = std::make_unique<DCO>(*this);
+  clipboard_driver = std::make_unique<X11ClipboardDriver>(*this);
   sdpo = new rtc::RefCountedObject<SDPO>(*this);
   ssdo = new rtc::RefCountedObject<SSDO>(*this);
   currentRole = Role::UN_DEFINED; 
@@ -45,8 +46,6 @@ WebRTC::WebRTC(Operator& base_operator):
 void WebRTC::initWebRTC(bool is_offer)
 {
     std::cout << "init WebRTC"<<std::endl;
-
-    clipboard_driver = std::make_unique<X11ClipboardDriver>(*this);
 
     network_thread = rtc::Thread::CreateWithSocketServer();
     network_thread->Start();
@@ -437,4 +436,9 @@ void WebRTC::sendClipboardContent(std::string content)
     rtc::CopyOnWriteBuffer buffer(reinterpret_cast<const uint8_t*>(content.data()), content.size());
     webrtc::DataBuffer data_buffer(buffer, true);
     data_channel->Send(data_buffer);
+}
+
+void WebRTC::writeIntoClipboard(std::string str)
+{
+  clipboard_driver->setClipboardText(std::move(str));
 }

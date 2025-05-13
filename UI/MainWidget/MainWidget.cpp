@@ -15,6 +15,7 @@ MainWidget::MainWidget(QWidget *parent)
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/MainWidget.qss")),this);
     current_widget = WidgetManager::WidgetType::UnDefined;
     current_btn = ui->btn_connection;
+    this->setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint);
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &MainWidget::onSettingChanged,
         this,

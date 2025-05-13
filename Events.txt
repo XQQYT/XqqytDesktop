@@ -27,6 +27,7 @@
 
 /mouse_event/has_event
 /keyboard_event/has_event
+/clipboard/write_into_clipboard
 
 /control/close_control
 /control/recv_close_control

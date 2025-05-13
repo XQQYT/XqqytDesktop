@@ -101,6 +101,11 @@ void WebrtcController::initWebrtcSubscribe()
         &WebrtcController::onRecvCloseControl,
         this
     ));
+    EventBus::getInstance().subscribe("/clipboard/write_into_clipboard",std::bind(
+        &WebrtcController::onWriteIntoClipboard,
+        this,
+        std::placeholders::_1
+    ));
 }
 
 
@@ -207,4 +212,9 @@ void WebrtcController::onCloseControl()
 void WebrtcController::onRecvCloseControl()
 {
     webrtc_instance->closeWebRTC();
+}
+
+void WebrtcController::onWriteIntoClipboard(std::string str)
+{
+    webrtc_instance->writeIntoClipboard(std::move(str));
 }

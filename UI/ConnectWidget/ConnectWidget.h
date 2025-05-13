@@ -35,6 +35,7 @@ public:
 private slots:
     void on_btn_connect_clicked();
     void on_btn_dynamic_key_value_clicked();
+    void on_btn_share_clicked();
 private:
     void initSubscribe();
     template <typename Sender, typename Signal, typename Receiver, typename Slot>

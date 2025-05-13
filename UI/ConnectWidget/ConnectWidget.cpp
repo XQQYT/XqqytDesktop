@@ -11,6 +11,8 @@
 #include "SettingInfo.h"
 #include "ui_ConnectWidget.h"
 #include <iostream>
+#include <sstream>
+
 ConnectWidget::ConnectWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::ConnectWidget)
@@ -275,4 +277,17 @@ void ConnectWidget::resetUpdateKeyTimer(int64_t last_update_timestamp)
 void ConnectWidget::on_btn_dynamic_key_value_clicked()
 {
     onTimeToUpdateKey();
+}
+
+void ConnectWidget::on_btn_share_clicked()
+{
+    std::string userid = ui->label_user_id_value->text().toStdString();
+    std::string dynamic_key = ui->btn_dynamic_key_value->text().toStdString();
+    std::ostringstream ss;
+    ss << "I invite you to remote control\n"
+    << "XqqytDesktop ID: " << userid << "\n"
+    << "Dynamic Key: " << dynamic_key;
+    std::string share_content = ss.str();
+    EventBus::getInstance().publish("/clipboard/write_into_clipboard", std::move(share_content));
+    bubble_message.show(this,"The sharing information has been copied to the clipboard");
 }

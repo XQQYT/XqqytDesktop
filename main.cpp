@@ -12,11 +12,11 @@
 void initEventBusRegisterEvent()
 {
     EventBus::getInstance().registerEvent("/ui/connectwidget_init_done");
-    EventBus::getInstance().registerEvent("/network/connect_to_target");
-    EventBus::getInstance().registerEvent("/network/registration_rejected");\
+    EventBus::getInstance().registerEvent("/network/get_target_status");
+    EventBus::getInstance().registerEvent("/network/registration_rejected");
     EventBus::getInstance().registerEvent("/network/registration_successed");
-    EventBus::getInstance().registerEvent("/network/target_is_offline");
-    EventBus::getInstance().registerEvent("/network/target_is_online");
+    EventBus::getInstance().registerEvent("/network/target_status");
+    EventBus::getInstance().registerEvent("/network/connect_to_target");
     EventBus::getInstance().registerEvent("/network/failed_to_connect_server");
     EventBus::getInstance().registerEvent("/network/has_connect_request");
     EventBus::getInstance().registerEvent("/network/send_connect_request_result");

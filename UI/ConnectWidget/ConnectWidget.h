@@ -48,7 +48,7 @@ private:
     void resetUpdateKeyTimer(int64_t last_update_timestamp);
 
 private:
-    void onTargetOffline();
+    void onTargetStatus(bool target_status);
     void onConnectServerFailed();
     void onRegistrationRejected();
     void onConnectRequest(std::string target_id, std::string key);

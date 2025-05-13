@@ -1,10 +1,10 @@
 /ui/connectwidget_init_done
-/network/connect_to_target
+/network/get_target_status
 /network/failed_to_connect_server
 /network/registration_rejected
 /network/registration_successed
-/network/target_is_offline
-/network/target_is_online
+/network/target_status
+/network/connect_to_target
 /network/has_connect_request
 /network/send_connect_request_result
 /network/recv_connect_request_result

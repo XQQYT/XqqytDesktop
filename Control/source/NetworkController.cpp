@@ -89,8 +89,13 @@ void NetworkController::initNetworkSubscribe()
         std::placeholders::_2,
         std::placeholders::_3
     ));
+    EventBus::getInstance().subscribe("/network/get_target_status",std::bind(
+        &NetworkController::onGetTargetStatus,
+        this,
+        std::placeholders::_1
+    ));
     EventBus::getInstance().subscribe("/network/connect_to_target",std::bind(
-        &NetworkController::connectToTarget,
+        &NetworkController::onConnectToTarget,
         this,
         std::placeholders::_1,
         std::placeholders::_2
@@ -142,13 +147,18 @@ void NetworkController::onModuleConfigUpdated(std::string module,std::string key
     std::cout<<"network config receive changed"<<std::endl;
 }
 
-void NetworkController::connectToTarget(std::string target_id, std::string key)
+void NetworkController::onGetTargetStatus(std::string target_id)
 {
     UserInfoManager::getInstance().setCurrentTargetId(target_id);
     UserInfoManager::getInstance().setEstablishingTargetId(target_id);
-    UserInfoManager::getInstance().setCurrentTargetKey(key);
     sendToServer(*json_factory->ws_get_target_status(std::move(UserInfoManager::getInstance().getCurrentUserId()),
         std::move(UserInfoManager::getInstance().getCurrentTargetId())));
+}
+
+void NetworkController::onConnectToTarget(std::string target_id, std::string key)
+{
+    sendToServer(*json_factory->ws_connect_request(UserInfoManager::getInstance().getCurrentUserId(),
+                    UserInfoManager::getInstance().getCurrentTargetId(),key));
 }
 
 void NetworkController::sendToServer(std::string msg)

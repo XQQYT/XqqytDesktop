@@ -45,7 +45,8 @@ public:
     void onModuleConfigUpdated(std::string module,std::string key,std::string value);
     void onSendLogout();
 private:
-    void connectToTarget(std::string target_id, std::string key);
+    void onGetTargetStatus(std::string target_id);
+    void onConnectToTarget(std::string target_id, std::string key);
 private:
     std::shared_ptr<NetworkInterface> network_interface;
     std::thread *recv_thread;

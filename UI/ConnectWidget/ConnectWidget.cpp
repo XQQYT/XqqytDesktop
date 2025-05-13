@@ -38,7 +38,7 @@ ConnectWidget::~ConnectWidget()
 
 void ConnectWidget::initSubscribe()
 {
-    EventBus::getInstance().subscribe("/network/target_is_offline",std::bind(&ConnectWidget::onTargetOffline,this));
+    EventBus::getInstance().subscribe("/network/target_status",std::bind(&ConnectWidget::onTargetStatus,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/network/registration_rejected",std::bind(&ConnectWidget::onRegistrationRejected,this));
     EventBus::getInstance().subscribe("/network/failed_to_connect_server",std::bind(&ConnectWidget::onConnectServerFailed,this));
     EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&ConnectWidget::onConnectRequest,this,std::placeholders::_1,std::placeholders::_2));
@@ -125,19 +125,26 @@ void ConnectWidget::setUpdateKeyTimer()
 
 void ConnectWidget::on_btn_connect_clicked()
 {
-    key_authenticate_dialog.show();
+    EventBus::getInstance().publish("/network/get_target_status",
+        ui->lineEdit_target_id->text().toStdString());
 }
 
 void ConnectWidget::onEnterKeyDone(QString key)
 {
-    EventBus::getInstance().publish("/network/connect_to_target",
-        ui->lineEdit_target_id->text().toStdString(),key.toStdString());
     UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::Controller);
+    EventBus::getInstance().publish("/network/connect_to_target",UserInfoManager::getInstance().getEstablishingTargetId(),key.toStdString());
 }
 
-void ConnectWidget::onTargetOffline()
+void ConnectWidget::onTargetStatus(bool target_status)
 {
-    bubble_message.error(this, "Target is offline");
+    if(target_status)
+    {
+        key_authenticate_dialog.show();
+    }
+    else
+    {
+        bubble_message.error(this, "Target is offline");
+    }
 }
 
 void ConnectWidget::onRegistrationRejected()
@@ -175,6 +182,7 @@ void ConnectWidget::onRecvConnectRequestResult(bool status)
 {
     if (!status)
     {
+        UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::UN_DEFINED);
         QMetaObject::invokeMethod(this, [this]() {
             reconnect(&info_dialog,&InfoDialog::OK,this,[](){
                 std::cout<<"test"<<std::endl;

@@ -68,6 +68,15 @@ else
     echo "Theme directory not found: ../../Theme"
 fi
 
+# 拷贝 Scripts/utils 目录
+if [[ -d "Scripts/utils" ]]; then
+    echo "Copying Scripts/utils folder..."
+    mkdir -p "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/Scripts"
+    cp -r "Scripts/utils" "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/Scripts/"
+else
+    echo "Scripts/utils directory not found!"
+fi
+
 # 拷贝 Translations 文件夹
 if [[ -d "Translations" ]]; then
     echo "Copying Translations folder..."

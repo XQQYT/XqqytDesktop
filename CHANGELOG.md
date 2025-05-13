@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.3.0] - 2025-05-13
+
+### Added
+
+- 增加剪切板同步
+- 增加设置手动更新动态密码
+- 增加deb打包工具，deb包模板
+- 增加设置开机自启
+
+### Updated
+
+- 重构了连接界面的UI
+- 更新了打包文档(增加打包deb包的说明)
 
 ## [v1.2.0] - 2025-05-12
 
@@ -43,3 +56,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.0.0]: https://github.com/XQQYT/XqqytDesktop/tree/v1.0.0
 [v1.1.0]: https://github.com/XQQYT/XqqytDesktop/tree/v1.1.0
 [v1.2.0]: https://github.com/XQQYT/XqqytDesktop/tree/v1.2.0
+[v1.3.0]: https://github.com/XQQYT/XqqytDesktop/tree/v1.3.0

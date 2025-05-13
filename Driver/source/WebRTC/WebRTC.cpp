@@ -23,6 +23,7 @@
 
 #include <string.h>
 #include "PulseAudioCapture.h"
+#include "ClipboardDriver/X11ClipboardDriver.h"
 
 WebRTC::WebRTC(Operator& base_operator):
   webrtc_operator(base_operator)
@@ -45,7 +46,7 @@ void WebRTC::initWebRTC(bool is_offer)
 {
     std::cout << "init WebRTC"<<std::endl;
 
-    clipboard_monitor = std::make_unique<X11ClipboardDriver>(*this);
+    clipboard_driver = std::make_unique<X11ClipboardDriver>(*this);
 
     network_thread = rtc::Thread::CreateWithSocketServer();
     network_thread->Start();
@@ -280,7 +281,7 @@ void WebRTC::checkConnectionStatus()
   webrtc_operator.dispatch_bool("/webrtc/connection_status",connection_status);
   if(connection_status)
   {
-    clipboard_monitor->startMonitor();
+    clipboard_driver->startMonitor();
     if(currentRole == Role::RECEIVER)
       startCaptureDesktop();
   }
@@ -367,7 +368,7 @@ void WebRTC::closeWebRTC()
   if(currentRole == WebRTCInterface::Role::RECEIVER)
     stopCaptureDesktop();
 
-  clipboard_monitor->stopMonitor();
+    clipboard_driver->stopMonitor();
 
   if (video_render.get()) {
     video_render->closeRender();

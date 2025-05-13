@@ -37,6 +37,8 @@ X11ClipboardDriver::X11ClipboardDriver(WebRTC& instance)
         utf8 = XInternAtom(display, "UTF8_STRING", False);
         target = clipboard;
         property = XInternAtom(display, "MY_CLIP_TEMP", False);
+
+        ignore_next_clipboard_event = false;
  }
 
  X11ClipboardDriver::~X11ClipboardDriver()
@@ -81,6 +83,10 @@ void X11ClipboardDriver::run() {
         XNextEvent(display, &event);
 
         if (event.type == xfixes_event_base + XFixesSelectionNotify) {
+            if (ignore_next_clipboard_event) {
+                ignore_next_clipboard_event = false;
+                continue;
+            }
             std::cout << "Clipboard changed. Requesting contents...\n";
             // 请求剪贴板内容
             XConvertSelection(display, target, utf8, property, window, CurrentTime);
@@ -101,12 +107,21 @@ void X11ClipboardDriver::run() {
 
             if (actual_type == utf8 && prop) {
                 std::string content(reinterpret_cast<char*>(prop), nitems);
-                std::cout << "Clipboard content: " << content << "\n";
                 webrtc_instance.sendClipboardContent(std::move(content));
                 XFree(prop);
             } else {
                 std::cerr << "Unsupported clipboard format\n";
             }
         }
+    }
+}
+
+void X11ClipboardDriver::setClipboardText(std::string text) 
+{
+    ignore_next_clipboard_event = true;
+    std::string cmd = "echo \"" + text + "\" | xclip -selection clipboard";
+    int result = std::system(cmd.c_str());
+    if (result != 0) {
+        std::cerr << "Failed to set clipboard text\n";
     }
 }

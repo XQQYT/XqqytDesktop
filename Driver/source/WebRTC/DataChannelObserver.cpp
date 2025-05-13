@@ -15,7 +15,7 @@
 DCO::DCO(WebRTC& instance)
     :webrtc_instance(instance)
 {
-    driver = std::make_unique<X11KeyboardMouseDriver>();
+    keyboard_mouse_driver = std::make_unique<X11KeyboardMouseDriver>();
 }
 
 void DCO::OnStateChange()
@@ -32,12 +32,12 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
         // 处理 MouseEventPacket
         MouseEventPacket packet;
         std::memcpy(&packet, data, sizeof(MouseEventPacket));
-        driver->syncMouseEvent(packet);
+        keyboard_mouse_driver->syncMouseEvent(packet);
 
     } else if (size == sizeof(KeyEventPacket)) {
         KeyEventPacket packet;
         std::memcpy(&packet, data, sizeof(KeyEventPacket));
-        driver->syncKeyboard(packet);
+        keyboard_mouse_driver->syncKeyboard(packet);
 
         // 打印 KeyEventPacket 信息
         std::ostringstream oss;
@@ -52,16 +52,16 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
         std::cout << oss.str() << std::endl;
     } else {
         // 处理字符串消息
-        std::string msg(reinterpret_cast<const char*>(data), size-1); // 直接构造
+        std::string msg(reinterpret_cast<const char*>(data), size); // 直接构造
         if (msg == "close_webrtc") 
         {
-            // webrtc_instance.clipboard_monitor->stopMonitor();
+            webrtc_instance.clipboard_driver->stopMonitor();
             webrtc_instance.display_void("/control/recv_close_control");
             std::cout << "Received close_webrtc command, closing connection..." << std::endl;
         } 
-        else 
+        else if(msg.size() >= 11 && msg.substr(0,11) == "[clipboard]")
         {
-            std::cerr << "Received unknown text message: " << msg << std::endl;
+            webrtc_instance.clipboard_driver->setClipboardText(msg.substr(11));
         }
     }
 }

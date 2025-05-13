@@ -19,7 +19,7 @@
 #include "DesktopCaptureSource.h"
 #include "VideoRender.h"
 #include "PulseAudioPlayer.h"
-#include "ClipboardDriver/X11ClipboardDriver.h"
+#include "Clipboard.h"
 
 class WebRTC : public WebRTCInterface
 {
@@ -66,7 +66,7 @@ public:
     rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
     std::unique_ptr<DCO> dco;
     std::unique_ptr<PulseAudioPlayer> audio_player;
-    std::unique_ptr<X11ClipboardDriver> clipboard_monitor;
+    std::unique_ptr<ClipboardInterface> clipboard_driver;
 
 
 private:

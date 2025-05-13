@@ -36,7 +36,7 @@ class DCO : public webrtc::DataChannelObserver {
    
      ~DCO() = default;
     private:
-      std::unique_ptr<KeyboardMouseInterface> driver; 
+      std::unique_ptr<KeyboardMouseInterface> keyboard_mouse_driver; 
       WebRTC& webrtc_instance;
    };
 

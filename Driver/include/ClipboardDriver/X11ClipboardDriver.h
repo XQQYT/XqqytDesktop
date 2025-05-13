@@ -19,17 +19,17 @@ extern "C" {
 #include <cstring>
 #include <thread>
 #include <atomic>
-
+#include "Clipboard.h"
 
 class WebRTC;
-class X11ClipboardDriver
+class X11ClipboardDriver : public ClipboardInterface
 {
 public:
     X11ClipboardDriver(WebRTC& instance);
     ~X11ClipboardDriver();
-    void startMonitor();
-    void stopMonitor();
-
+    void startMonitor() override;
+    void stopMonitor() override;
+    void setClipboardText(std::string text) override;
 private:
     void run();
 
@@ -44,6 +44,7 @@ private:
     int xfixes_event_base;
     int xfixes_error_base;
     WebRTC& webrtc_instance;
+    std::atomic<bool> ignore_next_clipboard_event;
 };
 
 #endif

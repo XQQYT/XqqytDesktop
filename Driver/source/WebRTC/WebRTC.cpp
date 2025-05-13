@@ -23,6 +23,7 @@
 
 #include <string.h>
 #include "PulseAudioCapture.h"
+#include "ClipboardDriver/X11ClipboardDriver.h"
 
 WebRTC::WebRTC(Operator& base_operator):
   webrtc_operator(base_operator)
@@ -44,6 +45,8 @@ WebRTC::WebRTC(Operator& base_operator):
 void WebRTC::initWebRTC(bool is_offer)
 {
     std::cout << "init WebRTC"<<std::endl;
+
+    clipboard_driver = std::make_unique<X11ClipboardDriver>(*this);
 
     network_thread = rtc::Thread::CreateWithSocketServer();
     network_thread->Start();
@@ -276,9 +279,11 @@ void WebRTC::checkConnectionStatus()
   bool connection_status = peer_connection->ice_connection_state() == webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionConnected && 
     peer_connection->peer_connection_state() == webrtc::PeerConnectionInterface::PeerConnectionState::kConnected;
   webrtc_operator.dispatch_bool("/webrtc/connection_status",connection_status);
-  if(connection_status&&currentRole == Role::RECEIVER)
+  if(connection_status)
   {
-    startCaptureDesktop();
+    clipboard_driver->startMonitor();
+    if(currentRole == Role::RECEIVER)
+      startCaptureDesktop();
   }
 }
 
@@ -363,6 +368,8 @@ void WebRTC::closeWebRTC()
   if(currentRole == WebRTCInterface::Role::RECEIVER)
     stopCaptureDesktop();
 
+    clipboard_driver->stopMonitor();
+
   if (video_render.get()) {
     video_render->closeRender();
     video_render.reset();
@@ -416,4 +423,18 @@ void WebRTC::setCaptureRate(int rate)
   webrtc_capture_rate = rate;
  
   std::cout<<"set capture rate  "<<rate<<std::endl;
+}
+
+void WebRTC::sendClipboardContent(std::string content)
+{
+    if (content.empty()) return;
+
+    if (!data_channel || data_channel->state() != webrtc::DataChannelInterface::kOpen) {
+        std::cerr << "DataChannel is not open\n";
+        return;
+    }
+    content.insert(0,"[clipboard]");
+    rtc::CopyOnWriteBuffer buffer(reinterpret_cast<const uint8_t*>(content.data()), content.size());
+    webrtc::DataBuffer data_buffer(buffer, true);
+    data_channel->Send(data_buffer);
 }

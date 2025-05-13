@@ -19,6 +19,7 @@
 #include "DesktopCaptureSource.h"
 #include "VideoRender.h"
 #include "PulseAudioPlayer.h"
+#include "Clipboard.h"
 
 class WebRTC : public WebRTCInterface
 {
@@ -43,6 +44,7 @@ public:
     void stopCaptureDesktop() override;
     void setRenderInstance(RenderInterface* instance) override;
     void sendMouseEventPacket(const MouseEventPacket packet) override;
+    void sendClipboardContent(std::string content);
     void sendKeyboardEventPacket(const KeyEventPacket packet) override;
     void closeWebRTC() override;
     bool getWebRtcReady() override;
@@ -64,6 +66,8 @@ public:
     rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
     std::unique_ptr<DCO> dco;
     std::unique_ptr<PulseAudioPlayer> audio_player;
+    std::unique_ptr<ClipboardInterface> clipboard_driver;
+
 
 private:
     void AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index);

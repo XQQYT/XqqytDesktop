@@ -9,7 +9,7 @@
 #define _DATACHANNELOBSERVER_H
 
 #include "api/create_peerconnection_factory.h"
-#include "KeyboardMouseDriver/X11.h"
+#include "KeyboardMouseDriver/X11KeyboardMouseDriver.h"
 #include <memory>
 
 class WebRTC;
@@ -36,7 +36,7 @@ class DCO : public webrtc::DataChannelObserver {
    
      ~DCO() = default;
     private:
-      std::unique_ptr<KeyboardMouseInterface> driver; 
+      std::unique_ptr<KeyboardMouseInterface> keyboard_mouse_driver; 
       WebRTC& webrtc_instance;
    };
 

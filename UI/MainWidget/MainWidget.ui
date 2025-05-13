@@ -63,12 +63,11 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="btn_connect">
+       <widget class="QPushButton" name="btn_connection">
         <property name="font">
          <font>
           <family>Ubuntu Mono</family>
-          <pointsize>-1</pointsize>
-          <weight>9</weight>
+          <weight>50</weight>
           <italic>false</italic>
           <bold>false</bold>
          </font>

@@ -1,17 +1,94 @@
-QPushButton#btn_connect {
-               background-color: #4CAF50;
-               color: white;
-               font-size: 18px;
-               border-radius: 5px;
-               padding: 8px;
-               width: 150px;
-               margin-top: 15px;
-           }
-           #btn_connect:hover {
-               background-color: #45a049;
-           }
-         		
-			#btn_connect:pressed {
-               
-	background-color: rgb(57, 132, 60);
-           }
+/* 主窗口背景样式 */
+#ConnectWidget {
+    background-color: #f5f7fa;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* 所有标签统一颜色（仅指定名称为 label、label_user_id_title、label_dynamic_key_title） */
+#label, #label_user_id_title, #label_dynamic_key_title, #label_3 {
+    color: #2c3e50;
+}
+
+/* 大标题：This Device / Remote Device */
+#label, #label_3 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+/* 副标题：Your ID / Dynamic Key */
+#label_user_id_title, #label_dynamic_key_title {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #6b7280;
+}
+
+/* 值标签：显示 ID 和动态密钥 */
+#label_user_id_value, #label_dynamic_key_value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #3498db;
+    margin: 10px 0;
+    padding: 8px 0;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+/* 输入框：目标 ID */
+#lineEdit_target_id {
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 10px 15px;
+    font-size: 14px;
+    min-height: 40px;
+    margin: 5px 0;
+}
+
+#lineEdit_target_id:focus {
+    border: 2px solid #3498db;
+    padding: 9px 14px;
+}
+
+#lineEdit_target_id::placeholder {
+    color: #9ca3af;
+}
+
+/* 连接按钮样式 */
+#btn_connect {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 100px;
+    min-height: 40px;
+    margin: 5px 0;
+}
+
+#btn_connect:hover {
+    background-color: #2980b9;
+}
+
+#btn_connect:pressed {
+    background-color: #1a5276;
+}
+
+/* 卡片式容器样式，widget_target_id */
+#widget_target_id {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+}
+
+/* 清除 layout widget 的背景色 */
+#widget_local_info,
+#widget_user_id,
+#widget_dynamic_key,
+#widget_connect {
+    background-color: transparent;
+}
+

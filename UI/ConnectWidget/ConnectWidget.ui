@@ -6,156 +6,169 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>600</width>
+    <height>500</height>
    </rect>
   </property>
-  <property name="focusPolicy">
-   <enum>Qt::StrongFocus</enum>
+  <property name="minimumSize">
+   <size>
+    <width>500</width>
+    <height>450</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Remote Control Connection</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_id_and_key">
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_user_id">
-       <property name="spacing">
-        <number>2</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_user_id_title">
-         <property name="font">
-          <font>
-           <pointsize>14</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
+  <layout class="QVBoxLayout" name="verticalLayout_main">
+   <property name="spacing">
+    <number>20</number>
+   </property>
+   <property name="margin">
+    <number>20</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="widget_local_info" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_id_and_key">
+      <property name="spacing">
+       <number>30</number>
+      </property>
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="widget_user_id" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_user_id">
+         <property name="spacing">
+          <number>5</number>
          </property>
-         <property name="text">
-          <string>Your ID</string>
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>This Device</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_user_id_title">
+           <property name="text">
+            <string>Your ID</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_user_id_value">
+           <property name="text">
+            <string>123456</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widget_dynamic_key" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_dynamic_key">
+         <property name="spacing">
+          <number>5</number>
          </property>
-         <property name="alignment">
-          <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_user_id_value">
-         <property name="font">
-          <font>
-           <pointsize>24</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_dynamic_key">
-       <property name="spacing">
-        <number>2</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="label_dynamic_key_title">
-         <property name="font">
-          <font>
-           <pointsize>14</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Dynamic Key</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_dynamic_key_value">
-         <property name="font">
-          <font>
-           <pointsize>24</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-    </layout>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>24</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_dynamic_key_title">
+           <property name="text">
+            <string>Dynamic Key</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_dynamic_key_value">
+           <property name="text">
+            <string>ABC123</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
-   <item row="1" column="0">
+
+   <item>
     <widget class="QWidget" name="widget_target_id" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_target_id">
+     <layout class="QVBoxLayout" name="verticalLayout_target">
+      <property name="spacing">
+       <number>15</number>
+      </property>
       <item>
-       <widget class="QLabel" name="label_target_id">
-        <property name="font">
-         <font>
-          <pointsize>14</pointsize>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
+       <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Remote ID</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <string>Remote Device</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEdit_target_id">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-         </font>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::ClickFocus</enum>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-        <property name="placeholderText">
-         <string>Enter target ID</string>
-        </property>
+       <widget class="QWidget" name="widget_connect" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="spacing">
+          <number>15</number>
+         </property>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_target_id">
+           <property name="placeholderText">
+            <string>Enter target ID</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_connect">
+           <property name="text">
+            <string>Connect</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QWidget" name="widget_connect" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_connect">
-      <item>
-       <widget class="QPushButton" name="btn_connect">
-        <property name="text">
-         <string>Connect</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

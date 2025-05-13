@@ -14,7 +14,7 @@ MainWidget::MainWidget(QWidget *parent)
     translator = nullptr;
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/MainWidget.qss")),this);
     current_widget = WidgetManager::WidgetType::UnDefined;
-    current_btn = ui->btn_connect;
+    current_btn = ui->btn_connection;
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &MainWidget::onSettingChanged,
         this,
@@ -84,16 +84,16 @@ void MainWidget::on_btn_device_clicked(bool checked)
     current_btn = ui->btn_device;
 }
 
-void MainWidget::on_btn_connect_clicked(bool checked)
+void MainWidget::on_btn_connection_clicked(bool checked)
 {
-    if(current_btn == ui->btn_connect && !checked)
+    if(current_btn == ui->btn_connection && !checked)
     {
-        ui->btn_connect->setChecked(true);
+        ui->btn_connection->setChecked(true);
         return;
     }
     current_btn->setChecked(false);
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
-    current_btn = ui->btn_connect;
+    current_btn = ui->btn_connection;
 
 }
 

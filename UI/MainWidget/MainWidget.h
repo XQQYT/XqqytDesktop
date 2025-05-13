@@ -25,7 +25,7 @@ public:
     void setCurrentWidget(const WidgetManager::WidgetType type);
 private slots:
     void on_btn_device_clicked(bool checked);
-    void on_btn_connect_clicked(bool checked);
+    void on_btn_connection_clicked(bool checked);
     void on_btn_settings_clicked(bool checked);
 private:
     void onSettingChanged(std::string module, std::string key, std::string value);

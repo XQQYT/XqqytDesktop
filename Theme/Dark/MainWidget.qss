@@ -16,7 +16,7 @@ QWidget#right_content_widget {
 }
 
 /* 所有按钮通用样式 */
-QPushButton#btn_connect,
+QPushButton#btn_connection,
 QPushButton#btn_device,
 QPushButton#btn_settings {
     background-color: #2c2c2c;
@@ -28,19 +28,19 @@ QPushButton#btn_settings {
     font: 75 16px Ubuntu Mono;
 }
 
-QPushButton#btn_connect:hover,
+QPushButton#btn_connection:hover,
 QPushButton#btn_device:hover,
 QPushButton#btn_settings:hover {
     background-color: #3d3d3d;
 }
 
-QPushButton#btn_connect:pressed,
+QPushButton#btn_connection:pressed,
 QPushButton#btn_device:pressed,
 QPushButton#btn_settings:pressed {
     background-color: #505050;
 }
 
-QPushButton#btn_connect:checked,
+QPushButton#btn_connection:checked,
 QPushButton#btn_device:checked,
 QPushButton#btn_settings:checked {
     background-color: #404040;
@@ -54,7 +54,7 @@ QPushButton#btn_logo {
 }
 
 /* 文字按钮（Connect、Device、Settings）样式细节 */
-QPushButton#btn_connect,
+QPushButton#btn_connection,
 QPushButton#btn_device,
 QPushButton#btn_settings {
     text-align: center;

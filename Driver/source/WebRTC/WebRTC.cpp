@@ -352,8 +352,8 @@ void WebRTC::sendCloseWebRTC()
         return;
     }
 
-    static constexpr char kCloseMessage[] = "close_webrtc";
-    rtc::CopyOnWriteBuffer buffer(kCloseMessage, sizeof(kCloseMessage));
+    static constexpr char kCloseMessage[] = "_close_webrtc_";
+    rtc::CopyOnWriteBuffer buffer(kCloseMessage, strlen(kCloseMessage));
     webrtc::DataBuffer data_buffer(buffer, true);
     data_channel->Send(data_buffer);
 }
@@ -367,7 +367,7 @@ void WebRTC::closeWebRTC()
   if(currentRole == WebRTCInterface::Role::RECEIVER)
     stopCaptureDesktop();
 
-    clipboard_driver->stopMonitor();
+  clipboard_driver->stopMonitor();
 
   if (video_render.get()) {
     video_render->closeRender();

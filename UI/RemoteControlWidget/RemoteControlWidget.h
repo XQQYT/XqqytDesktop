@@ -11,7 +11,7 @@
 #include <QWidget>
 #include <QCloseEvent>
 #include <QElapsedTimer>
-#include "Render.h" 
+#include "RenderWidgetInterface/RenderWidgetInterface.h"
 
 class OpenGLWidget;
 QT_BEGIN_NAMESPACE
@@ -33,13 +33,12 @@ protected:
 signals:
     void remote_widget_closed();
 
-public slots:
-    void handleFrameUpdated();
 private:
     void onSettingChanged(std::string module, std::string key, std::string value);
     void setFPS(QString config_frame);
 private:
-    OpenGLWidget* opengl_widget;
+    QWidget *render_widget;
+    RenderWidgetInterface* render_widget_interface;
     Ui::RemoteControlWidget *ui;
     QElapsedTimer* elapsed_timer;
     qint64 frame_interval_ms;

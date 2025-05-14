@@ -44,6 +44,28 @@ sed -i "s/Version: .*/Version: $VERSION/" "$DEB_TEMPLATE_DIR/DEBIAN/control"
 # 拷贝依赖的 Qt 库到 lib 文件夹
 LIB_DIR="$DEB_TEMPLATE_DIR/opt/XqqytDesktop/lib"
 mkdir -p "$LIB_DIR"
+
+echo "🔍 Collecting shared library dependencies for $EXECUTABLE..."
+
+# 提取依赖库
+ldd "$EXECUTABLE" | awk '{ print $3 }' | grep "^/" | while read -r lib; do
+    if [[ -f "$lib" ]]; then
+        echo "Copying: $lib"
+        cp -u "$lib" "$LIB_DIR"
+    fi
+done
+
+function patch_rpath {
+    local target_file="$1"
+    local rpath_value="$2"
+    if [[ -f "$target_file" ]]; then
+        echo "Patching RPATH of $target_file -> $rpath_value"
+        patchelf --set-rpath "$rpath_value" "$target_file"
+    else
+        echo "Not found: $target_file"
+    fi
+}
+
 cp "$QT_GCC_PATH/lib/libQt5XcbQpa.so.5" "$LIB_DIR/"
 cp "$QT_GCC_PATH/lib/libQt5DBus.so.5" "$LIB_DIR/"
 
@@ -59,6 +81,8 @@ for plugin_dir in platforms xcbglintegrations; do
         echo "Plugin directory not found: $SRC"
     fi
 done
+
+patch_rpath "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/platforms/libqxcb.so" '$ORIGIN/../lib'
 
 # 拷贝 Theme 文件夹
 if [[ -d "Theme" ]]; then

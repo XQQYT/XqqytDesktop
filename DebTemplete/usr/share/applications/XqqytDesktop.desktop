@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=XqqytDesktop
+Exec=bash -c "cd /opt/XqqytDesktop && ./XqqytDesktop"
+Icon=/opt/XqqytDesktop/logo.png
+Type=Application
+Categories=Utility;
+StartupNotify=true
+

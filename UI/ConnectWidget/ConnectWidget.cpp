@@ -136,14 +136,18 @@ void ConnectWidget::on_btn_connect_clicked()
 void ConnectWidget::onEnterKeyDone(QString key)
 {
     UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::Controller);
-    EventBus::getInstance().publish("/network/connect_to_target",UserInfoManager::getInstance().getEstablishingTargetId(),key.toStdString());
+    std::string establishing_target_id = UserInfoManager::getInstance().getEstablishingTargetId();
+    SettingInfoManager::getInstance().updataModuleConfig("ConnectInfo",establishing_target_id,key.toStdString());
+    EventBus::getInstance().publish("/config/write_into_file");
+    EventBus::getInstance().publish("/network/connect_to_target",establishing_target_id,key.toStdString());
 }
 
 void ConnectWidget::onTargetStatus(bool target_status)
 {
     if(target_status)
     {
-        key_authenticate_dialog.show();
+        std::string establishing_target_id = UserInfoManager::getInstance().getEstablishingTargetId();
+        key_authenticate_dialog.show(SettingInfoManager::getInstance().getValue("ConnectInfo",establishing_target_id));
     }
     else
     {

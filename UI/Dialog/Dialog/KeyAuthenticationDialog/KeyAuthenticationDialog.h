@@ -25,6 +25,7 @@ class KeyAuthenticationDialog : public QDialog
 public:
     KeyAuthenticationDialog(QWidget *parent = nullptr);
     ~KeyAuthenticationDialog();
+    void show(std::string target_last_key);
 signals:
     void EnterDone(QString password);
 private slots:

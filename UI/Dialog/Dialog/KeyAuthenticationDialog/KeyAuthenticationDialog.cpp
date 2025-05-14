@@ -36,3 +36,9 @@ void KeyAuthenticationDialog::on_btn_cancel_clicked()
     this->close();
 }
 
+void KeyAuthenticationDialog::show(std::string target_last_key)
+{
+    if(!target_last_key.empty())
+        ui->lineEdit->setText(QString::fromStdString(target_last_key));
+    static_cast<QWidget*>(this)->show();
+}

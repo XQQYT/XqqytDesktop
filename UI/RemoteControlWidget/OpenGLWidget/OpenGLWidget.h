@@ -9,36 +9,49 @@
 #include <QOpenGLTexture>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLExtraFunctions>
-#include <QMouseEvent>
 #include <QTimer>
-#include "Render.h" 
-#include "EventBus.h"
-#include "MouseKeyboardType.h"
+#include "InputHandler/InputHandler.h"
+#include "RenderWidgetInterface/RenderWidgetInterface.h"
 
 class RemoteControlWidget;
-class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions
+class OpenGLWidget : public QOpenGLWidget, protected QOpenGLExtraFunctions , public RenderWidgetInterface
 {
     Q_OBJECT
 public:
     OpenGLWidget(QWidget *parent = nullptr);
     ~OpenGLWidget();
-    void setCurrent(RenderInterface::VideoFrame frame);
+    void setCurrent(RenderInterface::VideoFrame frame) override;
 
 protected:
     void initializeGL() override;
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
-    void convertPos(MouseEventPacket& packet);
-    MouseButton toMouseButton(Qt::MouseButton qtButton);
-    void mouseMoveEvent(QMouseEvent* event) override;
-    void mousePressEvent(QMouseEvent* event) override;
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void wheelEvent(QWheelEvent* event) override;
-    void sendHoldPackets();
+    void mouseMoveEvent(QMouseEvent* event) override
+    {
+        input_handler->handleMouseMoveEvent(event);
+    }
+    void mousePressEvent(QMouseEvent* event) override
+    {
+        input_handler->handleMousePressEvent(event);
+    }
+    void mouseReleaseEvent(QMouseEvent* event) override
+    {
+        input_handler->handleMouseReleaseEvent(event);
+    }
+    void wheelEvent(QWheelEvent* event) override
+    {
+        input_handler->handleWheelEvent(event);
+    }
 
-    void keyPressEvent(QKeyEvent* event) override;
-    void keyReleaseEvent(QKeyEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override
+    {
+        input_handler->handleKeyPressEvent(event);
+    }
+    void keyReleaseEvent(QKeyEvent* event) override
+    {
+        input_handler->handleKeyReleaseEvent(event);
+    }
 
 private:
 
@@ -95,11 +108,6 @@ private:
     GLuint m_vao = 0;
     GLuint m_vbo = 0;
     GLuint m_ebo = 0;
-   
-    float scale_x;
-    float scale_y;
 
-    QTimer* hold_timer = nullptr;
-    bool left_button_pressed = false;
-    bool right_button_pressed = false;
+    InputHandler *input_handler;
 };

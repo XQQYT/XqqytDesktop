@@ -7,6 +7,7 @@
 
 #include "RemoteControlWidget.h"
 #include "OpenGLWidget/OpenGLWidget.h"
+#include "QImageWidget/QImageWidget.h"
 #include "ui_RemoteControlWidget.h"
 #include "EventBus.h"
 #include "SettingInfo.h"
@@ -17,7 +18,13 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
     , ui(new Ui::RemoteControlWidget)
 {
     ui->setupUi(this);
-    opengl_widget = new OpenGLWidget(this);
+
+    std::string use_gpu = SettingInfoManager::getInstance().getValue("Display","gpu_acceleration");
+    if(use_gpu == "0")
+        render_widget = new QImageWidget(this);
+    else
+        render_widget = new OpenGLWidget(this);
+    render_widget = render_widget;
     QSurfaceFormat format;
     format.setRenderableType(QSurfaceFormat::OpenGL);
     format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
@@ -25,10 +32,8 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
 
     QSurfaceFormat::setDefaultFormat(format);
 
-    opengl_widget->setMouseTracking(true);
-    opengl_widget->setFocusPolicy(Qt::StrongFocus);
     auto layout = this->layout();
-    layout->addWidget(opengl_widget);
+    layout->addWidget(render_widget);
     EventBus::getInstance().publish("/render/set_render_instance",dynamic_cast<RenderInterface*>(this));
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &RemoteControlWidget::onSettingChanged,
@@ -54,6 +59,7 @@ RemoteControlWidget::~RemoteControlWidget()
 
 void RemoteControlWidget::closeEvent(QCloseEvent *event)
 {
+    std::cout<<"publish close control"<<std::endl;
     EventBus::getInstance().publish("/control/close_control");
     emit remote_widget_closed();
 }
@@ -63,8 +69,10 @@ void RemoteControlWidget::addRenderFrame(VideoFrame&& render_frame) {
     qint64 current_time = elapsed_timer->elapsed();
     if(frame_interval_ms == 0 || current_time - last_render_time >= frame_interval_ms)
     {
-        QMetaObject::invokeMethod(opengl_widget, [this,&render_frame]() {
-            opengl_widget->setCurrent(std::move(render_frame));
+        RenderWidgetInterface* interface = dynamic_cast<RenderWidgetInterface*>(render_widget);
+        QMetaObject::invokeMethod(render_widget, [f = std::move(render_frame), interface]() mutable {
+            if(interface)
+                interface->setCurrent(std::move(f));
         }, Qt::QueuedConnection);
         last_render_time = current_time;
         render_count++;
@@ -78,11 +86,6 @@ void RemoteControlWidget::addRenderFrame(VideoFrame&& render_frame) {
             stats_start_time = current_time;
         }
     }
-}
-
-void RemoteControlWidget::handleFrameUpdated()
-{
-    opengl_widget->update();
 }
 
 void RemoteControlWidget::setFPS(QString config_frame)

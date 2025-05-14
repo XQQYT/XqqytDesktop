@@ -127,8 +127,10 @@ void ConnectWidget::setUpdateKeyTimer()
 
 void ConnectWidget::on_btn_connect_clicked()
 {
-    EventBus::getInstance().publish("/network/get_target_status",
-        ui->lineEdit_target_id->text().toStdString());
+    std::string target_id = ui->lineEdit_target_id->text().toStdString();
+    EventBus::getInstance().publish("/network/get_target_status",target_id);
+    SettingInfoManager::getInstance().updataModuleConfig("ConnectInfo","last_connect_id",target_id);
+    EventBus::getInstance().publish("/config/write_into_file");
 }
 
 void ConnectWidget::onEnterKeyDone(QString key)
@@ -234,6 +236,7 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
         QMetaObject::invokeMethod(this, [=]() {
             ui->retranslateUi(this);
             ui->label_user_id_value->setText(UserInfoManager::getInstance().getCurrentUserId().data());
+            ui->lineEdit_target_id->setText(QString::fromStdString(SettingInfoManager::getInstance().getValue("ConnectInfo","last_connect_id")));
             ui->btn_dynamic_key_value->setText(QString::fromStdString(UserInfoManager::getInstance().getCurrentUserKey()));
         }, Qt::QueuedConnection);
     }

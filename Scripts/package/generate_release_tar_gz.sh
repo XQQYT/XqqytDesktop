@@ -78,6 +78,8 @@ fi
 # 拷贝设置文件
 cp "settings-example.json" "$PACKAGE_DIR/settings.json"
 
+cp "Resources/pic/logo.png" "$PACKAGE_DIR/logo.png"
+
 # 拷贝构建好的可执行文件
 cp "$EXECUTABLE" "$PACKAGE_DIR/XqqytDesktop"
 

@@ -91,6 +91,8 @@ cp "settings-example.json" "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/settings.json"
 # 拷贝构建好的可执行文件
 cp "build/XqqytDesktop" "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/XqqytDesktop"
 
+cp "Resources/pic/logo.png" "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/logo.png"
+
 # 打包为deb文件
 dpkg-deb --build "$DEB_TEMPLATE_DIR" "$PACKAGE_NAME"
 

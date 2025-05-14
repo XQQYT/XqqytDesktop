@@ -1,0 +1,10 @@
+#!/bin/bash
+
+user=$(logname)
+desktop_path=$(eval echo ~$user/Desktop)
+
+if [ -d "$desktop_path" ]; then
+    rm -f "$desktop_path/XqqytDesktop.desktop"
+fi
+
+exit 0

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+user=$(logname)
+desktop_path=$(eval echo ~$user/Desktop)
+
+if [ -d "$desktop_path" ]; then
+    cp /usr/share/applications/XqqytDesktop.desktop "$desktop_path/"
+    chmod +x "$desktop_path/XqqytDesktop.desktop"
+fi
+
+exit 0
+

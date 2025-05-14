@@ -1,0 +1,10 @@
+Package: xqqytdesktop
+Version: 1.1.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: libgl1-mesa-dri, xclip
+Maintainer: xqqyt <xqqyt0502@163.com>
+Description: A remote control application for Linux.
+ A remote desktop and input control tool designed for Linux desktops.
+

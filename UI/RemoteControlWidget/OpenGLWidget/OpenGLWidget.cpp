@@ -15,9 +15,9 @@
 OpenGLWidget::OpenGLWidget(QWidget* parent)
     : QOpenGLWidget(parent), m_yTexture(nullptr), m_uTexture(nullptr), m_vTexture(nullptr)
 {
-    hold_timer = new QTimer(this);
-    connect(hold_timer, &QTimer::timeout, this, &OpenGLWidget::sendHoldPackets);
-    hold_timer->start(50);
+    input_handler = new InputHandler(this);
+    setMouseTracking(true);
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 OpenGLWidget::~OpenGLWidget()
@@ -30,8 +30,7 @@ OpenGLWidget::~OpenGLWidget()
     delete m_yTexture;
     delete m_uTexture;
     delete m_vTexture;
-    hold_timer->stop();
-    delete hold_timer;
+    delete input_handler;
 }
 
 void OpenGLWidget::initializeGL()
@@ -107,9 +106,11 @@ void OpenGLWidget::ensureTextureSize(QOpenGLTexture*& tex, int width, int height
 
 void OpenGLWidget::setCurrent(RenderInterface::VideoFrame frame)
 {
-    scale_x = (float)frame.width / this->width();
-    scale_y = (float)frame.height / this->height();
-    
+    float scale_x = (float)frame.width / this->width();
+    float scale_y = (float)frame.height / this->height();
+
+    input_handler->setScale(scale_x,scale_y);
+
     if (!frame.y_plane || !frame.u_plane || !frame.v_plane) {
         qWarning() << "Invalid frame data received!";
         return;
@@ -180,139 +181,4 @@ void OpenGLWidget::paintGL()
 void OpenGLWidget::resizeGL(int w, int h)
 {
     glViewport(0, 0, w, h);
-}
-
-void OpenGLWidget::convertPos(MouseEventPacket& packet)
-{
-    packet.x = packet.x * scale_x;
-    packet.y = packet.y * scale_y;
-}
-
-MouseButton OpenGLWidget::toMouseButton(Qt::MouseButton qtButton)
-{
-    switch (qtButton)
-    {
-    case Qt::LeftButton:
-        return MouseButton::LeftButton;
-    case Qt::RightButton:
-        return MouseButton::RightButton;
-    case Qt::MiddleButton:
-        return MouseButton::MiddleButton;
-    default:
-        return MouseButton::NoButton;
-    }
-}
-
-void OpenGLWidget::mouseMoveEvent(QMouseEvent* event)
-{
-    // if (!event | left_button_pressed |right_button_pressed) return;
-
-    if (!event) return;
-    QPoint pos = event->pos();
-
-    MouseEventPacket packet;
-    packet.type = MouseEventType::Move;
-    packet.x = pos.x();
-    packet.y = pos.y();
-    packet.wheelDelta = 0;
-    convertPos(packet);
-    EventBus::getInstance().publish("/mouse_event/has_event",packet);
-}
-
-void OpenGLWidget::mousePressEvent(QMouseEvent* event)
-{
-    if (!event) return;
-
-    if (event->button() == Qt::LeftButton)
-        left_button_pressed = true;
-    if (event->button() == Qt::RightButton)
-        right_button_pressed = true;
-
-    QPoint pos = event->pos();
-
-    MouseEventPacket packet;
-    packet.type = MouseEventType::Press;
-    packet.button = toMouseButton(event->button());
-    packet.x = pos.x();
-    packet.y = pos.y();
-    packet.wheelDelta = 0;
-    convertPos(packet);
-    EventBus::getInstance().publish("/mouse_event/has_event",packet);
-}
-
-void OpenGLWidget::mouseReleaseEvent(QMouseEvent* event)
-{
-    if (!event) return;
-
-    if (event->button() == Qt::LeftButton)
-        left_button_pressed = false;
-    if (event->button() == Qt::RightButton)
-        right_button_pressed = false;
-
-    QPoint pos = event->pos();
-
-    MouseEventPacket packet;
-    packet.type = MouseEventType::Release;
-    packet.button = toMouseButton(event->button()); // 哪个键释放
-    packet.x = pos.x();
-    packet.y = pos.y();
-    packet.wheelDelta = 0; // 无滚轮
-    convertPos(packet);
-    EventBus::getInstance().publish("/mouse_event/has_event",packet);
-}
-
-void OpenGLWidget::wheelEvent(QWheelEvent* event)
-{
-    if (!event) return;
-
-    QPoint pos = event->position().toPoint(); // Qt6用position()，Qt5用pos()
-
-    MouseEventPacket packet;
-    packet.type = MouseEventType::Wheel;
-    packet.button = MouseButton::NoButton; // 滚轮事件没有按钮
-    packet.x = pos.x();
-    packet.y = pos.y();
-    packet.wheelDelta = event->angleDelta().y(); // y方向的滚动，单位通常是120或-120
-    convertPos(packet);
-    EventBus::getInstance().publish("/mouse_event/has_event",packet);
-}
-
-void OpenGLWidget::sendHoldPackets()
-{
-    QPoint pos = mapFromGlobal(QCursor::pos()); // 获取当前鼠标位置（相对于窗口）
-
-    if (rect().contains(pos)) { // 确保鼠标还在窗口内
-        if (left_button_pressed || right_button_pressed) {
-            MouseEventPacket packet;
-            packet.type = MouseEventType::Press;
-            packet.button = left_button_pressed ? MouseButton::LeftButton :
-                           right_button_pressed ? MouseButton::RightButton :
-                           MouseButton::NoButton;
-            packet.x = pos.x();
-            packet.y = pos.y();
-            packet.wheelDelta = 0;
-            convertPos(packet);
-            EventBus::getInstance().publish("/mouse_event/has_event", packet);
-        }
-    }
-}
-
-void OpenGLWidget::keyPressEvent(QKeyEvent* event)
-{
-    std::cout<<"keyPressEvent"<<std::endl;
-    KeyEventPacket packet;
-    packet.key = event->key();
-    packet.modifiers = event->modifiers();
-    packet.is_pressed = true;
-    EventBus::getInstance().publish("/keyboard_event/has_event",packet);
-}
-
-void OpenGLWidget::keyReleaseEvent(QKeyEvent* event)
-{
-    std::cout<<"keyReleaseEvent"<<std::endl;
-    KeyEventPacket packet;
-    packet.key = event->key();
-    packet.modifiers = event->modifiers();
-    packet.is_pressed = false;
-    EventBus::getInstance().publish("/keyboard_event/has_event",packet);
 }

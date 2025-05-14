@@ -53,7 +53,7 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
     } else {
         // 处理字符串消息
         std::string msg(reinterpret_cast<const char*>(data), size); // 直接构造
-        if (msg == "close_webrtc") 
+        if (msg == "_close_webrtc_") 
         {
             webrtc_instance.clipboard_driver->stopMonitor();
             webrtc_instance.display_void("/control/recv_close_control");

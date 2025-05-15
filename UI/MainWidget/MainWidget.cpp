@@ -30,6 +30,9 @@ MainWidget::MainWidget(QWidget *parent)
     int x = screenGeometry.x() + (screenGeometry.width() - this->width()) / 2;
     int y = screenGeometry.y() + (screenGeometry.height() - this->height()) / 2;
     this->move(x, y);
+
+    loadUserInfo(SettingInfoManager::getInstance().getValue("User","user_name"));
+    switchLanguage(SettingInfoManager::getInstance().getValue("General","language"));
 }
 
 MainWidget::~MainWidget()
@@ -50,7 +53,6 @@ void MainWidget::setCurrentWidget(const WidgetManager::WidgetType type)
         std::cout<<"New Widget is null"<<std::endl;
     }
 
-    switchLanguage(SettingInfoManager::getInstance().getValue("General","language"));
     if(is_first)
     {
         EventBus::getInstance().publish("/config/update_module_config_done",std::string("General"),std::string("language"),SettingInfoManager::getInstance().getValue("General","language"));
@@ -138,6 +140,68 @@ void MainWidget::onSettingChanged(std::string module, std::string key, std::stri
     {
         QMetaObject::invokeMethod(this, [=]() {
             switchLanguage((value));
+            updateUserNameBtn();
         }, Qt::QueuedConnection);
     }
+}
+
+void MainWidget::updateUserNameBtn()
+{
+    std::string user_name = UserInfoManager::getInstance().getUserName();
+    if("null" == user_name)
+    {
+        ui->btn_username->setText("Click here to login");
+        ui->btn_username->setStyleSheet(R"(
+        QPushButton {
+            background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                            stop:0 #ffa726, stop:1 #fb8c00);
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        QPushButton:hover {
+            background-color: #f57c00;
+        }
+        QPushButton:pressed {
+            background-color: #ef6c00;
+        }
+        )");
+    }
+    else
+    {
+        setButtonTextWithElide(ui->btn_username, QString::fromStdString(user_name));
+        ui->btn_username->setStyleSheet(R"(
+        QPushButton {
+            background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                            stop:0 #66bb6a, stop:1 #43a047);
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        QPushButton:hover {
+            background-color: #388e3c;
+        }
+        QPushButton:pressed {
+            background-color: #2e7d32;
+        }
+        )");
+
+    }
+}
+
+void MainWidget::loadUserInfo(std::string user_name)
+{
+    QString user_name_qstring = QString::fromStdString(user_name);
+    QLabel* label_avatar = ui->label_avatar;
+    QPixmap avatar(QString("User/Avatar/") + user_name_qstring + ".png");
+    QPixmap circular = createCircularPixmap(avatar, label_avatar->width());
+    label_avatar->setPixmap(circular);
+
+    UserInfoManager::getInstance().setUserName(std::move(user_name));
 }

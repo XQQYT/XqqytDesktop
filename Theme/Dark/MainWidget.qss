@@ -46,11 +46,9 @@ QPushButton#btn_settings:checked {
     background-color: #404040;
 }
 
-/* 圆形图标按钮（pushButton）样式 */
-QPushButton#btn_logo {
-    border-radius: 48px;
+QLabel#label_avatar {
     border: none;
-    border-image: url(:/images/pic/logo.png);
+    background-color: transparent;
 }
 
 /* 文字按钮（Connect、Device、Settings）样式细节 */

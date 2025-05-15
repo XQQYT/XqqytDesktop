@@ -30,6 +30,8 @@ private slots:
 private:
     void onSettingChanged(std::string module, std::string key, std::string value);
     void switchLanguage(const std::string language);
+    void loadUserInfo(std::string user_name);
+    void updateUserNameBtn();
 private:
     Ui::MainWidget *ui;
     WidgetManager::WidgetType current_widget;

@@ -16,6 +16,11 @@ QWidget#right_content_widget {
 	background-color: rgb(240, 240, 240);
 }
 
+QLabel#label_avatar {
+    border: none;
+    background-color: transparent;
+}
+
 /* 所有按钮通用样式 */
 QPushButton#btn_connection,
 QPushButton#btn_device,

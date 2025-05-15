@@ -10,6 +10,7 @@
 
 #include <QWidget>
 #include "WidgetManager.h"
+#include "LoginDialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWidget; }
@@ -27,13 +28,17 @@ private slots:
     void on_btn_device_clicked(bool checked);
     void on_btn_connection_clicked(bool checked);
     void on_btn_settings_clicked(bool checked);
+    void on_btn_username_clicked();
 private:
     void onSettingChanged(std::string module, std::string key, std::string value);
     void switchLanguage(const std::string language);
+    void loadUserInfo(std::string user_name);
+    void updateUserNameBtn();
 private:
     Ui::MainWidget *ui;
     WidgetManager::WidgetType current_widget;
     QPushButton* current_btn;
     QTranslator *translator;
+    LoginDialog login_dialog;
 };
 #endif // MAINWIDGET_H

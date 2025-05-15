@@ -205,3 +205,17 @@ void MainWidget::loadUserInfo(std::string user_name)
 
     UserInfoManager::getInstance().setUserName(std::move(user_name));
 }
+
+void MainWidget::on_btn_username_clicked()
+{
+    std::string current_user_name = UserInfoManager::getInstance().getUserName();
+    if(current_user_name == "null")
+    {
+        centerDialog(this,login_dialog);
+        login_dialog.exec();
+    }
+    else
+    {
+        std::cout<<"Personal center"<<std::endl;
+    }
+}

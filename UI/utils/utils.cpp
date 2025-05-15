@@ -59,3 +59,12 @@ void setButtonTextWithElide(QPushButton *btn, const QString &fullText)
     btn->setText(elidedText);
     btn->setToolTip(fullText);
 }
+
+void centerDialog(QWidget *parent, QDialog &dialog)
+{
+    if (!parent)
+        return;
+    QPoint center = parent->geometry().center();
+    QSize dlgSize = dialog.sizeHint();
+    dialog.move(center.x() - dlgSize.width() / 2, center.y() - dlgSize.height() / 2);
+}

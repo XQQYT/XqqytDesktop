@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LoginDialog</class>
+ <widget class="QDialog" name="LoginDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>500</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>400</width>
+    <height>500</height>
+   </size>
+  </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
+  <property name="windowTitle">
+   <string>Login</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QDialog {
+     background: #f5f7fa;
+     font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    QLabel {
+     color: #4a5568;
+     font-size: 14px;
+     font-weight: 500;
+    }
+
+    QLineEdit {
+     background: white;
+     border: 1px solid #e2e8f0;
+     border-radius: 4px;
+     padding: 10px;
+     font-size: 14px;
+     min-width: 250px;
+     color: #2d3748;
+    }
+
+    QLineEdit:focus {
+     border: 1px solid #4299e1;
+     background: white;
+    }
+
+    QPushButton {
+     background: #4299e1;
+     color: white;
+     border: none;
+     border-radius: 4px;
+     padding: 12px 24px;
+     font-size: 14px;
+     font-weight: 600;
+     min-width: 250px;
+    }
+
+    QPushButton:hover {
+     background: #3182ce;
+    }
+
+    QPushButton:pressed {
+     background: #2b6cb0;
+    }
+
+    #headerLabel {
+     font-size: 24px;
+     font-weight: 600;
+     margin-bottom: 30px;
+     color: #2d3748;
+    }
+
+    /* 注册按钮的特殊样式 - 看起来像文本链接 */
+    #btn_register {
+     background: transparent;
+     color: #718096;
+     font-size: 12px;
+     font-weight: normal;
+     text-decoration: none;
+     min-width: auto;
+     padding: 0;
+     border: none;
+    }
+
+    #btn_register:hover {
+     color: #4299e1;
+     text-decoration: underline;
+     background: transparent;
+    }
+
+    #btn_register:pressed {
+     color: #2b6cb0;
+     background: transparent;
+    }
+
+    QCheckBox {
+     color: #4a5568;
+     spacing: 5px;
+    }
+
+    QCheckBox::indicator {
+     width: 16px;
+     height: 16px;
+    }
+
+    QCheckBox::indicator:checked {
+     background-color: #4299e1;
+     border: 1px solid #4299e1;
+    }
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>20</number>
+   </property>
+   <property name="leftMargin">
+    <number>30</number>
+   </property>
+   <property name="topMargin">
+    <number>40</number>
+   </property>
+   <property name="rightMargin">
+    <number>30</number>
+   </property>
+   <property name="bottomMargin">
+    <number>30</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="headerLabel">
+     <property name="text">
+      <string>Welcome Back</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="formLayout">
+     <property name="spacing">
+      <number>15</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="label_username">
+       <property name="text">
+        <string>Username</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEdit_username">
+       <property name="placeholderText">
+        <string>Enter username</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_password">
+       <property name="text">
+        <string>Password</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEdit_password">
+       <property name="echoMode">
+        <enum>QLineEdit::Password</enum>
+       </property>
+       <property name="placeholderText">
+        <string>Enter password</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_login">
+       <property name="text">
+        <string>Login</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btn_register">
+     <property name="cursor">
+      <cursorShape>PointingHandCursor</cursorShape>
+     </property>
+     <property name="text">
+      <string>Don't have an account? Register now</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../../../../Resources/res.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -12,6 +12,8 @@
 #include <thread>
 #include "EventBus.h"
 #include "NlohmannJson.h"
+#include "TcpDriver.h"
+#include "OpensslDriver.h"
 #include "MessageParser.h"
 #include "UserInfo.h"
 #include "Operator.h"
@@ -48,7 +50,9 @@ private:
     void onGetTargetStatus(std::string target_id);
     void onConnectToTarget(std::string target_id, std::string key);
 private:
-    std::shared_ptr<NetworkInterface> network_interface;
+    std::shared_ptr<NetworkInterface> websocket_interface;
+    std::unique_ptr<NetworkInterface> tcp_interface;
+    std::shared_ptr<SecurityInterface> openssl_interface;
     std::thread *recv_thread;
     bool is_recv_thread_running;
     std::unique_ptr<JsonFactory> json_factory;

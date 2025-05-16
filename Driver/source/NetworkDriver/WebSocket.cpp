@@ -38,12 +38,17 @@ void WebSocket::connectToServer(std::function<void(bool)> callback)
 {
     try {
         auto self = shared_from_this(); // 确保 `this` 对象在异步操作完成前不会被销毁
+        
         resolver->async_resolve(address, port,
             [this, self, callback](beast::error_code ec, tcp::resolver::results_type results) {
                 if (!ec) {
                     asio::async_connect(ws_socket->next_layer(), results.begin(), results.end(),
                         [this, self, callback](beast::error_code ec, const boost::asio::ip::basic_resolver_iterator<boost::asio::ip::tcp>
                         ) {
+                            if (ec) {
+                                callback(false);
+                                return;
+                            }
                             ws_socket->async_handshake(address, "/",
                                 [this, self, callback](beast::error_code ec) {
                                     if (!ec) {

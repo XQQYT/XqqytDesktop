@@ -2,47 +2,12 @@
 #include <memory.h>
 #include <arpa/inet.h>
 #include <iostream>
-#include <iomanip>
 #include <fstream>
 
 UserServerMsgBuilder::UserServerMsgBuilder(std::shared_ptr<SecurityInterface> instance)
     :version(0x01)
 {
     security_instance = instance;
-}
-
-
-void printHexAndAscii(const std::vector<uint8_t>& data) {
-    const size_t bytes_per_line = 16;
-    for (size_t i = 0; i < data.size(); i += bytes_per_line) {
-        // 地址偏移
-        std::cout << std::setw(4) << std::setfill('0') << std::hex << i << ": ";
-
-        // 十六进制部分
-        for (size_t j = 0; j < bytes_per_line; ++j) {
-            if (i + j < data.size()) {
-                std::cout << std::setw(2) << std::setfill('0') << std::hex
-                          << static_cast<int>(data[i + j]) << " ";
-            } else {
-                std::cout << "   ";
-            }
-        }
-
-        std::cout << " | ";
-
-        // ASCII部分
-        for (size_t j = 0; j < bytes_per_line; ++j) {
-            if (i + j < data.size()) {
-                char c = static_cast<char>(data[i + j]);
-                std::cout << (std::isprint(static_cast<unsigned char>(c)) ? c : '.');
-            }
-        }
-
-        std::cout << std::endl;
-    }
-
-    // 恢复标准格式（可选）
-    std::cout << std::dec << std::setfill(' ') << std::endl;
 }
 
 std::unique_ptr<MsgBuilderInterface::UserMsg> UserServerMsgBuilder::buildMsg(std::string real_msg, const uint8_t* key)
@@ -90,7 +55,6 @@ std::unique_ptr<MsgBuilderInterface::UserMsg> UserServerMsgBuilder::buildMsg(std
     user_msg->sha256 = sha256;
     user_msg->msg = std::make_unique<std::vector<uint8_t>>(std::move(msg));
 
-    printHexAndAscii(*user_msg->msg);
     return user_msg;
 }
 
@@ -180,6 +144,5 @@ std::unique_ptr<MsgBuilderInterface::UserMsg> UserServerMsgBuilder::buildFile(Ms
     user_msg->sha256 = sha256;
     user_msg->msg = std::make_unique<std::vector<uint8_t>>(std::move(msg));
 
-    printHexAndAscii(*user_msg->msg);
     return user_msg;
 }

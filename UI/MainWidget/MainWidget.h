@@ -30,6 +30,7 @@ private slots:
     void on_btn_settings_clicked(bool checked);
     void on_btn_username_clicked();
     void onEnterLoginDone(QString username, QString password);
+    void onEnterRegisterDone(QString username, QString password, QString avatar_path);
 
 private:
     void onSettingChanged(std::string module, std::string key, std::string value);

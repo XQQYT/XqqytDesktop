@@ -7,13 +7,23 @@
 
 #include "LoginDialog.h"
 #include "ui_LoginDialog.h"
+#include "utils.h"
 #include <iostream>
 
 LoginDialog::LoginDialog(QWidget *parent)
     : QDialog(parent)
+    , parent(parent)
     , ui(new Ui::LoginDialog)
 {
     ui->setupUi(this);
+    connect(&register_dialog,&RegisterDialog::RegisterDialogClosed,this,[=](){
+        this->show();
+        centerDialog(parent, *this);
+    });
+    connect(&register_dialog,&RegisterDialog::EnterDone,this,[=](QString username, QString password, QString avatar_path){
+        std::cout<<"emit RegisterEnterDone(username, password, avatar_path);"<<std::endl;
+        emit RegisterEnterDone(username, password, avatar_path);
+    });
 }
 
 LoginDialog::~LoginDialog()
@@ -32,7 +42,10 @@ void LoginDialog::on_btn_login_clicked()
     emit EnterDone(username,password);
 }
 
-void onEnterLoginDone(QString username, QString password)
+void LoginDialog::on_btn_register_clicked()
 {
-    
+    this->hide();
+    register_dialog.open();
+    centerDialog(parent, register_dialog);
 }
+

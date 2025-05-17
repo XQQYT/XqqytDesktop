@@ -3,15 +3,18 @@
 #include <memory.h>
 
 TcpDriver::TcpDriver():
-    msg_builder(std::make_unique<UserServerMsgBuilder>(security_instance))
+    msg_builder(std::make_unique<UserServerMsgBuilder>(security_instance)),
+    tls_info({nullptr,nullptr})
 {
     addr = {};
 }
 
 TcpDriver::~TcpDriver()
 {
-    delete[] tls_info.key;
-    delete[] tls_info.session_id;
+    if(tls_info.key)
+        delete[] tls_info.key;
+    if(tls_info.session_id)
+        delete[] tls_info.session_id;
 }
 
 void TcpDriver::initSocket(const std::string& address,const std::string& port)
@@ -70,6 +73,27 @@ void TcpDriver::connectToServer(std::function<void(bool)> callback)
 void TcpDriver::sendMsg(std::string msg)
 {
     std::unique_ptr<MsgBuilderInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildMsg(msg, tls_info.key));
+
+    size_t final_msg_length = ready_to_send_msg->msg->size();
+    size_t sended_length = 0;
+
+    while(sended_length < final_msg_length)
+    {
+        ssize_t ret = write(tcp_socket, ready_to_send_msg->msg->data() + sended_length, final_msg_length - sended_length);
+        if (ret <= 0) {
+            if (errno == EINTR) continue;
+            perror("write failed");
+            break;
+        }
+        sended_length += ret;
+        std::cout<<sended_length<<" / "<<final_msg_length<<std::endl;
+    }
+}
+
+void TcpDriver::sendFile(MsgBuilderInterface::MessageType type,std::string username, std::string path)
+{
+    std::unique_ptr<MsgBuilderInterface::UserMsg> ready_to_send_msg = std::move(msg_builder->buildFile(type,
+             std::move(username), std::move(path),tls_info.key));
 
     size_t final_msg_length = ready_to_send_msg->msg->size();
     size_t sended_length = 0;

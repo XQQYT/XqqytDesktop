@@ -12,6 +12,7 @@
 #include <functional>
 #include <string>
 #include "SecurityInterface.h"
+#include "MsgBuilderInterface.h"
 
 class NetworkInterface{
 public:
@@ -24,6 +25,7 @@ public:
     virtual void initSocket(const std::string& address,const std::string& port) = 0;
     virtual void connectToServer(std::function<void(bool)> callback = nullptr) = 0;
     virtual void sendMsg(std::string msg) = 0;
+    virtual void sendFile(MsgBuilderInterface::MessageType type,std::string username, std::string path) {};
     virtual void recvMsg(std::function<void(std::string&&)> callback) = 0;
     virtual void closeSocket() = 0;
     virtual void setSecurityInstance(std::shared_ptr<SecurityInterface> instance){security_instance = instance;}

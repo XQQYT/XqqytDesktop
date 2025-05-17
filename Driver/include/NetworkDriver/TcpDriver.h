@@ -17,6 +17,7 @@ public:
     void recvMsg(std::function<void(std::string&&)> callback) override;
     void closeSocket() override;
     void setSecurityInstance(std::shared_ptr<SecurityInterface> instance) override;
+    void sendFile(MsgBuilderInterface::MessageType type,std::string username, std::string path) override;
 private:
     int tcp_socket;
     std::unique_ptr<MsgBuilderInterface> msg_builder;

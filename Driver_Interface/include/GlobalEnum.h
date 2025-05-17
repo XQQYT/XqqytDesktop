@@ -3,7 +3,8 @@
 
 enum class UserMsgType
 {
-    LOGIN
+    LOGIN,
+    REGISTER
 };
 
 #endif //_GLOBALENUM_H

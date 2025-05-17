@@ -214,6 +214,18 @@ std::shared_ptr<std::string> NlohmannJson::user_login(std::string user_name, std
         return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::user_register(std::string user_name, std::string password)
+{
+    json result_msg = {
+        {"type", "register"},
+        {"content", {
+            {"user_name", std::move(user_name)},
+            {"password", std::move(password)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
 std::unique_ptr<Parser> NlohmannJson::getParser()
 {
     return std::make_unique<NlohmannJsonParser>();

@@ -268,6 +268,10 @@ void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std
         case UserMsgType::LOGIN:
             tcp_interface->sendMsg(*json_factory->user_login(std::move(args[0]),std::move(args[1])));
             break;
+        case UserMsgType::REGISTER:
+            tcp_interface->sendMsg(*json_factory->user_register(args[0],std::move(args[1])));
+            tcp_interface->sendFile(MsgBuilderInterface::MessageType::USER_AVATAR,std::move(args[0]), std::move(args[2]));
+            break;
         default:
             std::cout<<"unknow msg type"<<std::endl;
     }

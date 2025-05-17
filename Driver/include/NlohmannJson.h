@@ -43,6 +43,9 @@ public:
     std::shared_ptr<std::string> ws_ice_condidate(std::string user_id,std::string target_id,std::string ice_str,std::string sdp_mid,std::string sdp_mline_index);
     std::shared_ptr<std::string> ws_ice_gather_done(std::string user_id,std::string target_id);
     std::shared_ptr<std::string> ws_logout(std::string user_id);
+
+    std::shared_ptr<std::string> user_login(std::string user_name, std::string password);
+
 };
 
 #endif

@@ -190,7 +190,6 @@ private:
 				break;
 			}
 			else {
-				std::cout<<"Current tasks "<<task_queue->getSize()<<std::endl;;
 				auto task = task_queue->getTask();
 				auto func = task.first;
                 auto args = task.second;
@@ -198,7 +197,6 @@ private:
 				mtx.lock();
 				thread_busy_num++;
 				mtx.unlock();
-                std::cout<<std::this_thread::get_id()<<" is running"<<std::endl;
 				std::apply(func, args);
 
 				mtx.lock();

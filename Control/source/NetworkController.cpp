@@ -10,12 +10,16 @@
 
 static const std::string module_name = "Network";
 
-NetworkController::NetworkController()
+NetworkController::NetworkController():
+    websocket_interface(WebSocket::create()),
+    tcp_interface(std::make_unique<TcpDriver>()),
+    openssl_interface(std::make_shared<OpensslDriver>())
 {
-    //使用websocket驱动
-    network_interface = WebSocket::create();
+    //启用加密
+    tcp_interface->setSecurityInstance(openssl_interface);
     auto meta_config = SettingInfoManager::getInstance().getModuleConfig("Meta");
-    network_interface->initSocket((*meta_config)["signal_server_ip"],(*meta_config)["signal_server_port"]);
+    websocket_interface->initSocket((*meta_config)["signal_server_ip"],(*meta_config)["signal_server_port"]);
+    tcp_interface->initSocket("127.0.0.1","8889");
     json_factory = std::make_unique<NlohmannJson>();
     msg_parser = std::make_unique<MessageParser>(*this);
     recv_thread = nullptr;
@@ -39,20 +43,30 @@ void NetworkController::connectToServer()
 {
     if(is_first_connect)
     {
-        network_interface->connectToServer([this,user_id = std::move(UserInfoManager::getInstance().getCurrentUserId())](bool ret){
-        if(ret){
-            startRecvMsg();
-            //发送注册消息
-            sendMsg(*json_factory->ws_register(std::move(user_id)));
-            std::cout<<"success to connect server"<<std::endl;
-            is_first_connect = false;
-        }
-        else{
-            EventBus::getInstance().publish("/network/failed_to_connect_server");
-            std::cout<<"failed to connect server"<<std::endl;
-        }
+        websocket_interface->connectToServer([this,user_id = std::move(UserInfoManager::getInstance().getCurrentUserId())](bool ret){
+            if(ret){
+                startRecvMsg();
+                //发送注册消息
+                sendMsg(*json_factory->ws_register(std::move(user_id)));
+                std::cout<<"success to connect server"<<std::endl;
+            }
+            else{
+                EventBus::getInstance().publish("/network/failed_to_connect_server");
+                std::cout<<"failed to connect server"<<std::endl;
+            }
         });
-        
+
+        tcp_interface->connectToServer([this](bool ret){
+            if(ret)
+            {
+                std::cout<<"success to connect user server"<<std::endl;
+            }
+            else
+            {
+                std::cout<<"failed to connect server"<<std::endl;
+            }
+        });
+        is_first_connect = false;
     }
 }
 
@@ -61,7 +75,7 @@ void NetworkController::startRecvMsg()
     std::function<void(std::string&&)> recv_callback = [this](std::string&& recv_msg){
         msg_parser->parserMsg(std::move(recv_msg));
     };
-    network_interface->recvMsg(recv_callback);
+    websocket_interface->recvMsg(recv_callback);
 }
 
 void NetworkController::stopRecvMsg()
@@ -77,7 +91,7 @@ void NetworkController::stopRecvMsg()
 
 void NetworkController::sendMsg(std::string msg)
 {
-    network_interface->sendMsg(std::move(msg));
+    websocket_interface->sendMsg(std::move(msg));
 }
 
 void NetworkController::initNetworkSubscribe()
@@ -138,6 +152,12 @@ void NetworkController::initNetworkSubscribe()
     EventBus::getInstance().subscribe("/network/send_logout",std::bind(
         &NetworkController::onSendLogout,
         this
+    ));
+    EventBus::getInstance().subscribe("/network/send_to_user_server",std::bind(
+        &NetworkController::onSendToUserServer,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
     ));
 }
 
@@ -239,4 +259,16 @@ void NetworkController::onWebRTCInitDone()
 void NetworkController::onSendLogout()
 {
     sendToServer(*json_factory->ws_logout(std::move(UserInfoManager::getInstance().getCurrentUserId())));
+}
+
+void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std::string> args)
+{
+    switch(msg_type)
+    {
+        case UserMsgType::LOGIN:
+            tcp_interface->sendMsg(*json_factory->user_login(std::move(args[0]),std::move(args[1])));
+            break;
+        default:
+            std::cout<<"unknow msg type"<<std::endl;
+    }
 }

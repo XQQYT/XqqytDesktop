@@ -22,6 +22,7 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/network/send_connect_request_result");
     EventBus::getInstance().registerEvent("/network/recv_connect_request_result");
     EventBus::getInstance().registerEvent("/network/send_logout");
+    EventBus::getInstance().registerEvent("/network/send_to_user_server");
 
     EventBus::getInstance().registerEvent("/webrtc/init_webrtc_done");
     EventBus::getInstance().registerEvent("/webrtc/remote_ready");

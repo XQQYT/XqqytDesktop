@@ -11,6 +11,7 @@
 #include <memory>
 #include <functional>
 #include <string>
+#include "SecurityInterface.h"
 
 class NetworkInterface{
 public:
@@ -25,9 +26,11 @@ public:
     virtual void sendMsg(std::string msg) = 0;
     virtual void recvMsg(std::function<void(std::string&&)> callback) = 0;
     virtual void closeSocket() = 0;
+    virtual void setSecurityInstance(std::shared_ptr<SecurityInterface> instance){security_instance = instance;}
 protected:
     std::string address;
     std::string port;
+    std::shared_ptr<SecurityInterface> security_instance;
 };
 
 #endif

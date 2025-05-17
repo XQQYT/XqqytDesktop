@@ -16,6 +16,13 @@
 
 class NetworkInterface{
 public:
+    struct ParsedPayload {
+        std::vector<uint8_t> iv;
+        std::vector<uint8_t> encrypted_data;
+        std::vector<uint8_t> sha256;
+        uint8_t is_binary;
+    };
+public:
     NetworkInterface(){};
     NetworkInterface(const NetworkInterface& obj) = delete;
     NetworkInterface(NetworkInterface&& obj) = delete;
@@ -26,7 +33,7 @@ public:
     virtual void connectToServer(std::function<void(bool)> callback = nullptr) = 0;
     virtual void sendMsg(std::string msg) = 0;
     virtual void sendFile(MsgBuilderInterface::MessageType type,std::string username, std::string path) {};
-    virtual void recvMsg(std::function<void(std::string&&)> callback) = 0;
+    virtual void recvMsg(std::function<void(std::string&&)> callback){};
     virtual void closeSocket() = 0;
     virtual void setSecurityInstance(std::shared_ptr<SecurityInterface> instance){security_instance = instance;}
 protected:

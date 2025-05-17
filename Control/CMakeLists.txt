@@ -3,7 +3,7 @@
 
 add_library(Control STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/source/SettingInfo.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/MessageParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/SignalMessageParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/NetworkController.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebrtcController.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/ConfigController.cpp

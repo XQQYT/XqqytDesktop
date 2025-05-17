@@ -26,9 +26,9 @@ public:
     LoginDialog(QWidget *parent = nullptr);
     ~LoginDialog();
 signals:
-    // void EnterDone(QString password);
+    void EnterDone(QString username, QString password);
 private slots:
-    // void on_btn_connect_clicked();
+    void on_btn_login_clicked();
     // void on_btn_cancel_clicked();
 private:
     Ui::LoginDialog *ui;

@@ -29,6 +29,8 @@ private slots:
     void on_btn_connection_clicked(bool checked);
     void on_btn_settings_clicked(bool checked);
     void on_btn_username_clicked();
+    void onEnterLoginDone(QString username, QString password);
+
 private:
     void onSettingChanged(std::string module, std::string key, std::string value);
     void switchLanguage(const std::string language);

@@ -28,7 +28,9 @@ std::unique_ptr<MsgBuilderInterface::UserMsg> UserServerMsgBuilder::buildMsg(std
 
     if (security_instance) {
         iv = security_instance->aesEncrypt(vec, key);
-        sha256 = security_instance->sha256(reinterpret_cast<uint8_t*>(real_msg.data()), real_msg.size());
+        std::vector<uint8_t> vi_encrypt(iv,iv+16);
+        vi_encrypt.insert(vi_encrypt.end(),vec.begin(),vec.end());
+        sha256 = security_instance->sha256(vi_encrypt.data(), vi_encrypt.size());
     } else {
         iv = new uint8_t[16]();
         sha256 = new uint8_t[32]();

@@ -5,6 +5,7 @@
 #include "utils.h"
 #include <QDebug>
 #include <QTranslator>
+#include <GlobalEnum.h>
 
 MainWidget::MainWidget(QWidget *parent)
     : QWidget(parent)
@@ -16,6 +17,9 @@ MainWidget::MainWidget(QWidget *parent)
     current_widget = WidgetManager::WidgetType::UnDefined;
     current_btn = ui->btn_connection;
     this->setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint);
+    
+    connect(&login_dialog,&LoginDialog::EnterDone,this,&MainWidget::onEnterLoginDone);
+    
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &MainWidget::onSettingChanged,
         this,
@@ -218,4 +222,11 @@ void MainWidget::on_btn_username_clicked()
     {
         std::cout<<"Personal center"<<std::endl;
     }
+}
+
+void MainWidget::onEnterLoginDone(QString username, QString password)
+{
+    std::vector<std::string> args = {username.toStdString(), password.toStdString()};
+    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::LOGIN, std::move(args));
+    std::cout<<"enter login info done"<<std::endl;
 }

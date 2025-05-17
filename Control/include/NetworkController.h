@@ -17,6 +17,7 @@
 #include "MessageParser.h"
 #include "UserInfo.h"
 #include "Operator.h"
+#include "GlobalEnum.h"
 
 class NetworkController : public Operator{
 //NetworkOperator
@@ -46,6 +47,7 @@ public:
     void onWebRTCInitDone();
     void onModuleConfigUpdated(std::string module,std::string key,std::string value);
     void onSendLogout();
+    void onSendToUserServer(UserMsgType msg_type, std::vector<std::string> args);
 private:
     void onGetTargetStatus(std::string target_id);
     void onConnectToTarget(std::string target_id, std::string key);

@@ -1,11 +1,9 @@
 #include "OpensslDriver.h"
-#include <arpa/inet.h>
 #include <openssl/aes.h>
 #include <openssl/sha.h>
 #include <openssl/rand.h>
 #include <zlib.h>
 #include <string>
-#include <cstring>
 #include <iostream>
 
 OpensslDriver::OpensslDriver()
@@ -19,40 +17,46 @@ OpensslDriver::OpensslDriver()
     SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, nullptr);
 }
 
-uint8_t* OpensslDriver::getAesKey(int socket)
+SecurityInterface::TlsInfo OpensslDriver::getAesKey(int socket)
 {
+    constexpr const uint32_t KEYLENGTH = 32;
+    constexpr const uint32_t SESSIONIDLENGTH = 32;
+
     SSL* ssl = SSL_new(ctx);
     SSL_set_fd(ssl, socket);
     try {
         if (SSL_connect(ssl) <= 0) throw std::runtime_error("SSL_connect failed");
     
-        uint8_t* buffer = new uint8_t[32];
+        uint8_t* key = new uint8_t[KEYLENGTH];
+        memset(key,0,KEYLENGTH);
+        uint8_t* session_id = new uint8_t[KEYLENGTH];
+        memset(session_id,0,KEYLENGTH);
+
         int total_read = 0;
-        while (total_read < 32) {
-            int n = SSL_read(ssl, buffer + total_read, 32 - total_read);
+        while (total_read < KEYLENGTH) {
+            int n = SSL_read(ssl, key + total_read, KEYLENGTH - total_read);
+            if (n <= 0) throw std::runtime_error("SSL_read failed");
+            total_read += n;
+        }
+
+        total_read = 0;
+        while (total_read < SESSIONIDLENGTH) {
+            int n = SSL_read(ssl, session_id + total_read, SESSIONIDLENGTH - total_read);
             if (n <= 0) throw std::runtime_error("SSL_read failed");
             total_read += n;
         }
     
         SSL_shutdown(ssl);
         SSL_free(ssl);
-        return buffer;
+        close(socket);
+        std::cout<<"tls closed"<<std::endl;
+        return SecurityInterface::TlsInfo{key, session_id};
     
     } catch (...) {
         SSL_free(ssl);
         throw;
     }
 }
-
-
-void resizeData(std::vector<uint8_t>& data) {
-    size_t remainder = data.size() % 16;
-    if (remainder != 0) {
-        data.resize(data.size() + (16 - remainder));
-    }
-}
-
-
 
 uint8_t* OpensslDriver::aesEncrypt(std::vector<uint8_t>& data, const uint8_t* key)
 {
@@ -87,7 +91,7 @@ uint8_t* OpensslDriver::aesEncrypt(std::vector<uint8_t>& data, const uint8_t* ke
 
     std::vector<uint8_t> encrypted(paddedLen);
     uint8_t iv_copy[AES_BLOCK_SIZE];
-    std::memcpy(iv_copy, iv, AES_BLOCK_SIZE);
+    memcpy(iv_copy, iv, AES_BLOCK_SIZE);
 
     AES_cbc_encrypt(data.data(), encrypted.data(), paddedLen, &aesKey, iv_copy, AES_ENCRYPT);
 

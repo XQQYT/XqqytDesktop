@@ -60,7 +60,6 @@ void NetworkController::connectToServer()
             if(ret)
             {
                 std::cout<<"success to connect user server"<<std::endl;
-                tcp_interface->sendMsg("hello this is my first message to server");
             }
             else
             {
@@ -153,6 +152,12 @@ void NetworkController::initNetworkSubscribe()
     EventBus::getInstance().subscribe("/network/send_logout",std::bind(
         &NetworkController::onSendLogout,
         this
+    ));
+    EventBus::getInstance().subscribe("/network/send_to_user_server",std::bind(
+        &NetworkController::onSendToUserServer,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
     ));
 }
 
@@ -254,4 +259,16 @@ void NetworkController::onWebRTCInitDone()
 void NetworkController::onSendLogout()
 {
     sendToServer(*json_factory->ws_logout(std::move(UserInfoManager::getInstance().getCurrentUserId())));
+}
+
+void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std::string> args)
+{
+    switch(msg_type)
+    {
+        case UserMsgType::LOGIN:
+            tcp_interface->sendMsg(*json_factory->user_login(std::move(args[0]),std::move(args[1])));
+            break;
+        default:
+            std::cout<<"unknow msg type"<<std::endl;
+    }
 }

@@ -10,7 +10,7 @@ class TcpDriver : public NetworkInterface
 {
 public:
     TcpDriver();
-    ~TcpDriver(){};
+    ~TcpDriver();
     void initSocket(const std::string& address,const std::string& port) override;
     void connectToServer(std::function<void(bool)> callback = nullptr) override;
     void sendMsg(std::string msg) override;
@@ -21,7 +21,7 @@ private:
     int tcp_socket;
     std::unique_ptr<MsgBuilderInterface> msg_builder;
     sockaddr_in addr;
-    uint8_t* aes_key;
+    SecurityInterface::TlsInfo tls_info;
 };
 
 #endif //_TCPDRIVER_H

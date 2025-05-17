@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RegisterDialog</class>
+ <widget class="QDialog" name="RegisterDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>700</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>700</width>
+    <height>500</height>
+   </size>
+  </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
+  <property name="windowTitle">
+   <string>Create Account</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    /* Base styles */
+    QDialog {
+     background: #f8fafc;
+     font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    /* Text styles */
+    QLabel {
+     color: #475569;
+     font-size: 14px;
+     font-weight: 500;
+     margin-bottom: 4px;
+    }
+    
+    #headerLabel {
+     font-size: 28px;
+     font-weight: 700;
+     margin-bottom: 10px;
+     color: #1e293b;
+    }
+    
+    #subtitleLabel {
+     font-size: 14px;
+     color: #64748b;
+     margin-bottom: 30px;
+    }
+    
+    /* Input fields */
+    QLineEdit {
+     background: white;
+     border: 1px solid #e2e8f0;
+     border-radius: 8px;
+     padding: 12px 16px;
+     font-size: 14px;
+     color: #1e293b;
+     min-width: 250px;
+    }
+    
+    QLineEdit:focus {
+     border: 1px solid #7c3aed;
+     outline: none;
+    }
+    
+    QLineEdit[error=&quot;true&quot;] {
+     border: 1px solid #ef4444;
+    }
+    
+    /* Buttons */
+    QPushButton {
+     border: none;
+     border-radius: 8px;
+     padding: 12px 24px;
+     font-size: 14px;
+     font-weight: 600;
+    }
+    
+    #btn_register {
+     background: #7c3aed;
+     color: white;
+     min-width: 250px;
+    }
+    
+    #btn_register:hover {
+     background: #6d28d9;
+    }
+    
+    #btn_register:pressed {
+     background: #5b21b6;
+    }
+    
+    #btn_login {
+     background: transparent;
+     color: #64748b;
+     font-weight: normal;
+     text-decoration: none;
+     min-width: auto;
+     padding: 0;
+    }
+    
+    #btn_login:hover {
+     color: #7c3aed;
+     text-decoration: underline;
+    }
+    
+    #btn_selectAvatar {
+     background: white;
+     color: #7c3aed;
+     border: 1px solid #7c3aed;
+     margin-top: 10px;
+    }
+    
+    #btn_selectAvatar:hover {
+     background: #f5f3ff;
+    }
+    
+    /* Avatar preview */
+    #avatarPreview {
+     border: 3px solid #e2e8f0;
+     border-radius: 8px;
+     background: white;
+    }
+    
+    /* Error message */
+    #errorLabel {
+     color: #ef4444;
+     font-size: 13px;
+     margin-top: 4px;
+    }
+    
+    /* Horizontal divider */
+    #divider {
+     background: #e2e8f0;
+     min-height: 1px;
+     max-height: 1px;
+    }
+    
+    /* Form container */
+    #formContainer {
+     background: white;
+     border-radius: 12px;
+     padding: 30px;
+     border: 1px solid #e2e8f0;
+    }
+    
+    /* Right panel */
+    #rightPanel {
+     background: #f5f3ff;
+     border-radius: 12px;
+     padding: 30px;
+    }
+   </string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <property name="spacing">
+    <number>30</number>
+   </property>
+   <property name="leftMargin">
+    <number>30</number>
+   </property>
+   <property name="topMargin">
+    <number>30</number>
+   </property>
+   <property name="rightMargin">
+    <number>30</number>
+   </property>
+   <property name="bottomMargin">
+    <number>30</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="formContainer" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QLabel" name="label_header">
+        <property name="text">
+         <string>Create Account</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_subtitle">
+        <property name="text">
+         <string>Welcome</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_username">
+        <property name="text">
+         <string>Username</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineedit_username">
+        <property name="placeholderText">
+         <string>Enter your username</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_password">
+        <property name="text">
+         <string>Password</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineedit_password">
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+        <property name="placeholderText">
+         <string>Create a password</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_confirm_password">
+        <property name="text">
+         <string>Confirm Password</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineedit_confirm_password">
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+        <property name="placeholderText">
+         <string>Re-enter your password</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_register">
+        <property name="minimumSize">
+         <size>
+          <width>298</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Register</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_login_prompt">
+        <property name="text">
+         <string>Already have an account?</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_login">
+        <property name="text">
+         <string>Sign in instead</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+     <widget class="QLabel" name="errorLabel">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>16</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="visible">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="rightPanel" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QLabel" name="label_avatar">
+        <property name="styleSheet">
+         <string notr="true">font-size: 18px; font-weight: 600; color: #1e293b;</string>
+        </property>
+        <property name="text">
+         <string>Profile Picture</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="avatarPreview">
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>200</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>200</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">qproperty-pixmap: url(:/icons/default-avatar.svg);</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_select_avatar">
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="text">
+         <string>Select Avatar</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_avatar_hint">
+        <property name="styleSheet">
+         <string notr="true">color: #64748b; font-size: 12px;</string>
+        </property>
+        <property name="text">
+         <string>JPG or PNG, max 2MB</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../../../../Resources/res.qrc"/>
+ </resources>
+ <connections/>
+</ui>

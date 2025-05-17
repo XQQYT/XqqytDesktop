@@ -40,6 +40,7 @@ public:
     virtual std::shared_ptr<std::string> ws_logout(std::string user_id) = 0;
 
     virtual std::shared_ptr<std::string> user_login(std::string user_name, std::string password) = 0;
+    virtual std::shared_ptr<std::string> user_register(std::string user_name, std::string password) = 0;
 };
 
 #endif

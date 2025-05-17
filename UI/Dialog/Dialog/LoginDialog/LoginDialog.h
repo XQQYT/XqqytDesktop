@@ -9,10 +9,7 @@
 #define LOGIN_H
 
 #include <QDialog>
-#include <QPushButton>
-#include <any>
-#include <functional>
-#include <QVector>
+#include "RegisterDialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class LoginDialog; }
@@ -27,10 +24,13 @@ public:
     ~LoginDialog();
 signals:
     void EnterDone(QString username, QString password);
+    void RegisterEnterDone(QString username, QString password, QString avatar_path);
 private slots:
     void on_btn_login_clicked();
-    // void on_btn_cancel_clicked();
+    void on_btn_register_clicked();
 private:
     Ui::LoginDialog *ui;
+    QWidget* parent;
+    RegisterDialog register_dialog;
 };
 #endif // LOGIN_H

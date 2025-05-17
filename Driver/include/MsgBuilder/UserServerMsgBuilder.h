@@ -23,6 +23,7 @@ public:
     UserServerMsgBuilder(std::shared_ptr<SecurityInterface> instance = nullptr);
     ~UserServerMsgBuilder(){}
     std::unique_ptr<MsgBuilderInterface::UserMsg> buildMsg(std::string payload, const uint8_t* key) override;
+    std::unique_ptr<MsgBuilderInterface::UserMsg> buildFile(MsgBuilderInterface::MessageType type,std::string username, std::string path, uint8_t* key) override;
 
 private:
     uint8_t version;

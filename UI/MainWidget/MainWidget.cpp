@@ -19,6 +19,7 @@ MainWidget::MainWidget(QWidget *parent)
     this->setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint);
     
     connect(&login_dialog,&LoginDialog::EnterDone,this,&MainWidget::onEnterLoginDone);
+    connect(&login_dialog,&LoginDialog::RegisterEnterDone,this,&MainWidget::onEnterRegisterDone);
     
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &MainWidget::onSettingChanged,
@@ -228,5 +229,10 @@ void MainWidget::onEnterLoginDone(QString username, QString password)
 {
     std::vector<std::string> args = {username.toStdString(), password.toStdString()};
     EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::LOGIN, std::move(args));
-    std::cout<<"enter login info done"<<std::endl;
+}
+
+void MainWidget::onEnterRegisterDone(QString username, QString password, QString avatar_path)
+{  
+    std::vector<std::string> args = {username.toStdString(), password.toStdString(), avatar_path.toStdString()};
+    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::REGISTER, std::move(args));
 }

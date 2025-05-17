@@ -13,10 +13,10 @@
 #include <functional>
 #include "Operator.h"
 #include "UserInfo.h"
-class MessageParser{
+class SignalMessageParser{
 public:
-    MessageParser(Operator& base_operator);
-    ~MessageParser();
+    SignalMessageParser(Operator& base_operator);
+    ~SignalMessageParser();
     void parserMsg(std::string&& msg);
 private:
     void initTypeFuncMap();

@@ -14,7 +14,7 @@
 #include "NlohmannJson.h"
 #include "TcpDriver.h"
 #include "OpensslDriver.h"
-#include "MessageParser.h"
+#include "SignalMessageParser.h"
 #include "UserInfo.h"
 #include "Operator.h"
 #include "GlobalEnum.h"
@@ -51,6 +51,7 @@ public:
 private:
     void onGetTargetStatus(std::string target_id);
     void onConnectToTarget(std::string target_id, std::string key);
+    // void onHaveUserServerMsg()
 private:
     std::shared_ptr<NetworkInterface> websocket_interface;
     std::unique_ptr<NetworkInterface> tcp_interface;
@@ -58,7 +59,7 @@ private:
     std::thread *recv_thread;
     bool is_recv_thread_running;
     std::unique_ptr<JsonFactory> json_factory;
-    std::unique_ptr<MessageParser> msg_parser;
+    std::unique_ptr<SignalMessageParser> msg_parser;
     bool is_first_connect;
 };
 

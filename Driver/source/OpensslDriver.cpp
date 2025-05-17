@@ -3,6 +3,7 @@
 #include <openssl/sha.h>
 #include <openssl/rand.h>
 #include <zlib.h>
+#include <cstring> 
 #include <string>
 #include <iostream>
 
@@ -111,4 +112,90 @@ uint8_t* OpensslDriver::sha256(uint8_t* str, size_t length)
     }
 
     return digest;
+}
+
+bool verify_sha256(const std::vector<uint8_t>& data, const std::vector<uint8_t>& expected_hash) {
+    if (expected_hash.size() != SHA256_DIGEST_LENGTH) {
+        std::cerr << "Invalid hash length." << std::endl;
+        return false;
+    }
+
+    // 计算实际的 SHA-256 哈希
+    uint8_t hash[SHA256_DIGEST_LENGTH];
+    SHA256(data.data(), data.size(), hash);
+
+    // 比较实际哈希和期望哈希
+    return std::memcmp(hash, expected_hash.data(), SHA256_DIGEST_LENGTH) == 0;
+}
+
+bool OpensslDriver::verifyAndDecrypt(const std::vector<uint8_t>& encrypted_data,
+    const uint8_t* key,
+    const std::vector<uint8_t>& iv,
+    std::vector<uint8_t>& out_plaintext,
+    std::vector<uint8_t>& sha256) {
+    if (iv.size() != AES_BLOCK_SIZE) {
+        std::cerr << "IV size incorrect" << std::endl;
+        return false;
+    }
+
+    std::vector<uint8_t> iv_encrypted(iv.begin(),iv.end());
+    iv_encrypted.insert(iv_encrypted.end(), encrypted_data.begin(), encrypted_data.end());
+
+    if(!verify_sha256(iv_encrypted, sha256))
+    {
+        std::cout<<"sha256校验失败"<<std::endl;
+        return false;
+    }
+
+    AES_KEY aesKey;
+    if (AES_set_decrypt_key(key, 256, &aesKey) < 0) {
+        std::cerr << "Failed to set AES decryption key" << std::endl;
+        return false;
+    }
+
+    out_plaintext.resize(encrypted_data.size());
+    uint8_t iv_copy[AES_BLOCK_SIZE];
+    std::memcpy(iv_copy, iv.data(), AES_BLOCK_SIZE);
+
+    AES_cbc_encrypt(encrypted_data.data(),
+            out_plaintext.data(),
+            encrypted_data.size(),
+            &aesKey,
+            iv_copy,
+            AES_DECRYPT);
+
+    // 1. 移除 PKCS#7 填充
+    if (!out_plaintext.empty()) {
+        uint8_t padding_size = out_plaintext.back();
+
+        if (padding_size == 0 || padding_size > AES_BLOCK_SIZE) {
+        std::cerr << "Invalid padding size" << std::endl;
+        return false;
+    }
+
+    bool padding_valid = true;
+    size_t start = out_plaintext.size() - padding_size;
+    for (size_t i = start; i < out_plaintext.size(); ++i) {
+        if (out_plaintext[i] != padding_size) {
+            padding_valid = false;
+            break;
+        }
+    }
+
+    if (!padding_valid) {
+        std::cerr << "Invalid padding content" << std::endl;
+        return false;
+    }
+
+        out_plaintext.resize(start);
+    }
+
+    // 2. 移除 CRC32（4字节）
+    if (out_plaintext.size() < sizeof(uint32_t)) {
+        std::cerr << "Data too short to contain CRC32" << std::endl;
+        return false;
+    }
+    out_plaintext.resize(out_plaintext.size() - sizeof(uint32_t));
+
+    return true;
 }

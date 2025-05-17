@@ -21,7 +21,7 @@ NetworkController::NetworkController():
     websocket_interface->initSocket((*meta_config)["signal_server_ip"],(*meta_config)["signal_server_port"]);
     tcp_interface->initSocket("127.0.0.1","8889");
     json_factory = std::make_unique<NlohmannJson>();
-    msg_parser = std::make_unique<MessageParser>(*this);
+    msg_parser = std::make_unique<SignalMessageParser>(*this);
     recv_thread = nullptr;
     is_recv_thread_running = false;
     is_first_connect = true;
@@ -59,6 +59,9 @@ void NetworkController::connectToServer()
         tcp_interface->connectToServer([this](bool ret){
             if(ret)
             {
+                dynamic_cast<TcpDriver*>(tcp_interface.get())->recvMsg([this](std::vector<uint8_t> vec, bool is_binary){
+                    // msg_parser->parserBinary(std::move(vec), is_binary);
+                });
                 std::cout<<"success to connect user server"<<std::endl;
             }
             else

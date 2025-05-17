@@ -5,23 +5,23 @@
  * Year: 2025
  */
 
-#include "MessageParser.h"
+#include "SignalMessageParser.h"
 #include <iostream>
 
 //使用nlohamnnJson的驱动
-MessageParser::MessageParser(Operator& base_operator):
+SignalMessageParser::SignalMessageParser(Operator& base_operator):
 json_factory(std::make_unique<NlohmannJson>()),
 network_operator(base_operator)
 {
     initTypeFuncMap();
 }
 
-MessageParser::~MessageParser()
+SignalMessageParser::~SignalMessageParser()
 {
 
 }
 
-void MessageParser::initTypeFuncMap()
+void SignalMessageParser::initTypeFuncMap()
 {
     type_func_map["register_result"] = [this](std::unique_ptr<Parser> parser) {
         this->onRegisterResult(std::move(parser));
@@ -53,7 +53,7 @@ void MessageParser::initTypeFuncMap()
 }
 
 
-void MessageParser::parserMsg(std::string&& msg)
+void SignalMessageParser::parserMsg(std::string&& msg)
 {
     auto parser = json_factory->getParser();
     parser->loadJson(msg);
@@ -68,7 +68,7 @@ void MessageParser::parserMsg(std::string&& msg)
 
 }
 
-void MessageParser::onRegisterResult(std::unique_ptr<Parser> parser)
+void SignalMessageParser::onRegisterResult(std::unique_ptr<Parser> parser)
 {
     if(parser->getKey("status") == "success")
     {
@@ -80,7 +80,7 @@ void MessageParser::onRegisterResult(std::unique_ptr<Parser> parser)
     }
 }
 
-void MessageParser::onTargetStatusResult(std::unique_ptr<Parser> parser)
+void SignalMessageParser::onTargetStatusResult(std::unique_ptr<Parser> parser)
 {
     //目标不在线
     if(parser->getKey("status") == "False")
@@ -94,7 +94,7 @@ void MessageParser::onTargetStatusResult(std::unique_ptr<Parser> parser)
     }
 }
 
-void MessageParser::onConnectRequest(std::unique_ptr<Parser> parser)
+void SignalMessageParser::onConnectRequest(std::unique_ptr<Parser> parser)
 {
     std::string target_id = parser->getKey("target_id");
     if(!target_id.empty())
@@ -109,7 +109,7 @@ void MessageParser::onConnectRequest(std::unique_ptr<Parser> parser)
 }
 
 //receive peer connect request result
-void MessageParser::onConnectRequestResult(std::unique_ptr<Parser> parser)
+void SignalMessageParser::onConnectRequestResult(std::unique_ptr<Parser> parser)
 {
     std::string result = parser->getKey("result");
     //对方同意连接
@@ -124,32 +124,32 @@ void MessageParser::onConnectRequestResult(std::unique_ptr<Parser> parser)
 }
 
 //receive peer sdp offer
-void MessageParser::onSdpOffer(std::unique_ptr<Parser> parser)
+void SignalMessageParser::onSdpOffer(std::unique_ptr<Parser> parser)
 {
     UserInfoManager::getInstance().setEstablishingTargetId(parser->getKey("target_id"));
     auto sdp_offer = parser->getKey("sdp");
     network_operator.dispatch_string("/webrtc/recv_sdp_offer",std::move(sdp_offer));
 }
 
-void MessageParser::onSdpAnswer(std::unique_ptr<Parser> parser)
+void SignalMessageParser::onSdpAnswer(std::unique_ptr<Parser> parser)
 {
     auto sdp_answer = parser->getKey("sdp");
     network_operator.dispatch_string("/webrtc/recv_sdp_answer",std::move(sdp_answer));
 }
 
-void MessageParser::onIceCondidate(std::unique_ptr<Parser> parser)
+void SignalMessageParser::onIceCondidate(std::unique_ptr<Parser> parser)
 {
     auto ice_content = parser->getObj("ice_content");
     network_operator.dispatch_string_string_string("/webrtc/recv_ice_candidate",std::move(ice_content->getKey("ice")),
                                                     std::move(ice_content->getKey("sdp_mid")),std::move(ice_content->getKey("sdp_mline_index")));
 }
 
-void MessageParser::onIceGatherDone(std::unique_ptr<Parser> parser)
+void SignalMessageParser::onIceGatherDone(std::unique_ptr<Parser> parser)
 {
     network_operator.dispatch_void("/webrtc/recv_ice_gather_done");
 }
 
-void MessageParser::onReady(std::unique_ptr<Parser> parser)
+void SignalMessageParser::onReady(std::unique_ptr<Parser> parser)
 {
     network_operator.dispatch_void("/webrtc/remote_ready");
 }

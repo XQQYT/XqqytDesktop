@@ -3,5 +3,6 @@
         <file>pic/logo.png</file>
         <file>pic/share.png</file>
         <file>pic/share_hover.png</file>
+        <file>pic/loading.gif</file>
     </qresource>
 </RCC>

@@ -12,6 +12,7 @@
 #include "ui_ConnectWidget.h"
 #include <iostream>
 #include <sstream>
+#include "GlobalEnum.h"
 
 ConnectWidget::ConnectWidget(QWidget *parent)
     : QWidget(parent)
@@ -41,7 +42,7 @@ ConnectWidget::~ConnectWidget()
 void ConnectWidget::initSubscribe()
 {
     EventBus::getInstance().subscribe("/network/target_status",std::bind(&ConnectWidget::onTargetStatus,this,std::placeholders::_1));
-    EventBus::getInstance().subscribe("/network/registration_rejected",std::bind(&ConnectWidget::onRegistrationRejected,this));
+    EventBus::getInstance().subscribe("/network/registration_result",std::bind(&ConnectWidget::onRegistrationResult,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/network/failed_to_connect_server",std::bind(&ConnectWidget::onConnectServerFailed,this));
     EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&ConnectWidget::onConnectRequest,this,std::placeholders::_1,std::placeholders::_2));
     EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(&ConnectWidget::onRecvConnectRequestResult,this,std::placeholders::_1));
@@ -53,6 +54,8 @@ void ConnectWidget::initSubscribe()
         std::placeholders::_2,
         std::placeholders::_3
     ));
+    EventBus::getInstance().subscribe("/network/connect_to_user_server_result",std::bind(&ConnectWidget::onConnectUserServerResult,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe("/network/receive_device_code",std::bind(&ConnectWidget::onReceiveDeviceCode,this,std::placeholders::_1));
 }
 
 void ConnectWidget::setUpdateKeyTimer()
@@ -155,9 +158,23 @@ void ConnectWidget::onTargetStatus(bool target_status)
     }
 }
 
-void ConnectWidget::onRegistrationRejected()
+void ConnectWidget::onRegistrationResult(bool result)
 {
-    bubble_message.error(this,"RegistrationRejected");
+    if(!result)
+        bubble_message.error(this,"RegistrationRejected");
+}
+
+void ConnectWidget::onConnectUserServerResult(bool result)
+{
+    if(result)
+    {
+        std::cout<<"连接用户服务器成功"<<std::endl;
+        if(UserInfoManager::getInstance().getCurrentUserId().empty())
+        {
+            std::vector<std::string> args = {getDeviceName()};
+            EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::RegisterDeviceCode,std::move(args)); 
+        }
+    }
 }
 
 void ConnectWidget::onConnectServerFailed()
@@ -239,7 +256,9 @@ void ConnectWidget::onSettingChanged(std::string module, std::string key, std::s
     {
         QMetaObject::invokeMethod(this, [=]() {
             ui->retranslateUi(this);
-            ui->label_user_id_value->setText(UserInfoManager::getInstance().getCurrentUserId().data());
+            QString new_code = QString::fromStdString(UserInfoManager::getInstance().getCurrentUserId());
+            turnToRegularNum(new_code);
+            ui->label_user_id_value->setText(new_code);
             ui->lineEdit_target_id->setText(QString::fromStdString(SettingInfoManager::getInstance().getValue("ConnectInfo","last_connect_id")));
             ui->btn_dynamic_key_value->setText(QString::fromStdString(UserInfoManager::getInstance().getCurrentUserKey()));
         }, Qt::QueuedConnection);
@@ -297,4 +316,13 @@ void ConnectWidget::on_btn_share_clicked()
     std::string share_content = ss.str();
     EventBus::getInstance().publish("/clipboard/write_into_clipboard", std::move(share_content));
     bubble_message.show(this,"The sharing information has been copied to the clipboard");
+}
+
+void ConnectWidget::onReceiveDeviceCode(std::string code)
+{
+    QMetaObject::invokeMethod(this, [this, code = std::move(code)]() {
+        QString new_code = QString::fromStdString(code);
+        turnToRegularNum(new_code);
+        ui->label_user_id_value->setText(new_code);
+    }, Qt::QueuedConnection);
 }

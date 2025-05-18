@@ -31,6 +31,12 @@ void ConfigController::initConfigSubscribe()
         &ConfigController::onWrite,
         this
     ));
+    EventBus::getInstance().subscribe("/network/receive_device_code",std::bind(
+        &ConfigController::onRecvDeviceCode,
+        this,
+        std::placeholders::_1
+    ));
+
 }
 
 
@@ -57,4 +63,11 @@ void ConfigController::onWrite()
         }
     }
     updated_config.clear();
+}
+
+void ConfigController::onRecvDeviceCode(std::string code)
+{
+    UserInfoManager::getInstance().setCurrentUserId(code);
+    onUpdateModule("User","user_id", std::move(code));
+    onWrite();
 }

@@ -13,8 +13,7 @@ void initEventBusRegisterEvent()
 {
     EventBus::getInstance().registerEvent("/ui/connectwidget_init_done");
     EventBus::getInstance().registerEvent("/network/get_target_status");
-    EventBus::getInstance().registerEvent("/network/registration_rejected");
-    EventBus::getInstance().registerEvent("/network/registration_successed");
+    EventBus::getInstance().registerEvent("/network/registration_result");
     EventBus::getInstance().registerEvent("/network/target_status");
     EventBus::getInstance().registerEvent("/network/connect_to_target");
     EventBus::getInstance().registerEvent("/network/failed_to_connect_server");
@@ -23,6 +22,9 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/network/recv_connect_request_result");
     EventBus::getInstance().registerEvent("/network/send_logout");
     EventBus::getInstance().registerEvent("/network/send_to_user_server");
+    EventBus::getInstance().registerEvent("/network/connect_to_user_server_result");
+    EventBus::getInstance().registerEvent("/network/receive_device_code");
+    EventBus::getInstance().registerEvent("/network/re_connect_to_signal_server");
 
     EventBus::getInstance().registerEvent("/webrtc/init_webrtc_done");
     EventBus::getInstance().registerEvent("/webrtc/remote_ready");

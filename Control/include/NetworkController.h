@@ -49,6 +49,7 @@ public:
     void onModuleConfigUpdated(std::string module,std::string key,std::string value);
     void onSendLogout();
     void onSendToUserServer(UserMsgType msg_type, std::vector<std::string> args);
+    void onReConnectToSignalServer(std::string code);
 private:
     void onGetTargetStatus(std::string target_id);
     void onConnectToTarget(std::string target_id, std::string key);

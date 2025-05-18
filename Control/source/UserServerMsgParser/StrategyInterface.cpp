@@ -13,6 +13,10 @@ std::unique_ptr<Strategy> Strategy::createStrategy(std::string type)
     {
         return std::make_unique<ResponseStrategy>();
     }
+    else if(type == "device_code")
+    {
+        return std::make_unique<DeviceCodeStrategy>();
+    }
     else
     {
         return nullptr;

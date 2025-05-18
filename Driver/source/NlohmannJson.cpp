@@ -202,6 +202,18 @@ std::shared_ptr<std::string> NlohmannJson::ws_logout(std::string user_id)
         return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::user_register_device_code(std::string device_name)
+{
+    json result_msg = {
+        {"type", "register_device"},
+        {"content", {
+            {"device_name", std::move(device_name)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
+
 std::shared_ptr<std::string> NlohmannJson::user_login(std::string user_name, std::string password)
 {
     json result_msg = {

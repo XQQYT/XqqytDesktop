@@ -13,7 +13,6 @@ static const std::string module_name = "Network";
 NetworkController::NetworkController():
     websocket_interface(WebSocket::create()),
     tcp_interface(std::make_unique<TcpDriver>()),
-    user_server_msg_parser(std::make_unique<UserServerMsgParser>()),
     openssl_interface(std::make_shared<OpensslDriver>())
 {
     //启用加密
@@ -23,6 +22,7 @@ NetworkController::NetworkController():
     tcp_interface->initSocket("127.0.0.1","8889");
     json_factory = std::make_unique<NlohmannJson>();
     msg_parser = std::make_unique<SignalMessageParser>(*this);
+    user_server_msg_parser = std::make_unique<UserServerMsgParser>(*this),
     recv_thread = nullptr;
     is_recv_thread_running = false;
     is_first_connect = true;
@@ -45,30 +45,54 @@ void NetworkController::connectToServer()
 {
     if(is_first_connect)
     {
-        websocket_interface->connectToServer([this,user_id = std::move(UserInfoManager::getInstance().getCurrentUserId())](bool ret){
-            if(ret){
-                startRecvMsg();
-                //发送注册消息
-                sendMsg(*json_factory->ws_register(std::move(user_id)));
-                std::cout<<"success to connect server"<<std::endl;
-            }
-            else{
-                EventBus::getInstance().publish("/network/failed_to_connect_server");
-                std::cout<<"failed to connect server"<<std::endl;
-            }
-        });
-
+        std::string user_id = UserInfoManager::getInstance().getCurrentUserId();
+        if(!user_id.empty())
+        {
+            websocket_interface->connectToServer([this,code = std::move(user_id)](bool ret){
+                if(ret){
+                    startRecvMsg();
+                    //发送注册消息
+                    sendMsg(*json_factory->ws_register(std::move(code)));
+                    std::cout<<"success to connect signal server"<<std::endl;
+                }
+                else{
+                    EventBus::getInstance().publish("/network/failed_to_connect_server");
+                    std::cout<<"failed to connect signal server"<<std::endl;
+                }
+            });
+        }
         tcp_interface->connectToServer([this](bool ret){
             if (ret) {
+                EventBus::getInstance().publish("/network/connect_to_user_server_result", true);
                 dynamic_cast<TcpDriver*>(tcp_interface.get())->recvMsg([this](std::vector<uint8_t> vec, bool is_binary){
                     if (user_server_msg_parser) {
                         user_server_msg_parser->ParseMsg(std::move(vec), is_binary);
                     }
                 });
             }
+            else
+            {
+                EventBus::getInstance().publish("/network/connect_to_user_server_result", false);
+            }
         });
         is_first_connect = false;
     }
+}
+
+void NetworkController::onReConnectToSignalServer(std::string code)
+{
+    websocket_interface->connectToServer([this,user_id = std::move(code)](bool ret){
+        if(ret){
+            startRecvMsg();
+            //发送注册消息
+            sendMsg(*json_factory->ws_register(std::move(user_id)));
+            std::cout<<"success to re-connect signal server"<<std::endl;
+        }
+        else{
+            EventBus::getInstance().publish("/network/failed_to_connect_server");
+            std::cout<<"failed to re-connect server"<<std::endl;
+        }
+    });
 }
 
 void NetworkController::startRecvMsg()
@@ -159,6 +183,11 @@ void NetworkController::initNetworkSubscribe()
         this,
         std::placeholders::_1,
         std::placeholders::_2
+    ));
+    EventBus::getInstance().subscribe("/network/receive_device_code",std::bind(
+        &NetworkController::onReConnectToSignalServer,
+        this,
+        std::placeholders::_1
     ));
 }
 
@@ -266,6 +295,9 @@ void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std
 {
     switch(msg_type)
     {
+        case UserMsgType::RegisterDeviceCode:
+            tcp_interface->sendMsg(*json_factory->user_register_device_code(std::move(args[0])));
+            break;
         case UserMsgType::LOGIN:
             tcp_interface->sendMsg(*json_factory->user_login(std::move(args[0]),std::move(args[1])));
             break;

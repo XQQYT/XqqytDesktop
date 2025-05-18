@@ -44,6 +44,7 @@ public:
     std::shared_ptr<std::string> ws_ice_gather_done(std::string user_id,std::string target_id);
     std::shared_ptr<std::string> ws_logout(std::string user_id);
 
+    std::shared_ptr<std::string> user_register_device_code(std::string device_name);
     std::shared_ptr<std::string> user_login(std::string user_name, std::string password);
     std::shared_ptr<std::string> user_register(std::string user_name, std::string password);
 

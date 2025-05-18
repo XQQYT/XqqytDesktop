@@ -33,7 +33,6 @@ void UserServerMsgParser::ParseMsg(std::vector<uint8_t> msg, bool is_binary)
         parser->loadJson(msg_string);
         if(parser->contain("type"))
         {
-            std::cout<<"Type -> "<<parser->getKey("type")<<std::endl;
             auto strategy = Strategy::createStrategy(std::move(parser->getKey("type")));
             if(strategy)
             {

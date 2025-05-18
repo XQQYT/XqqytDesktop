@@ -20,6 +20,7 @@ MainWidget::MainWidget(QWidget *parent)
     
     connect(&login_dialog,&LoginDialog::EnterDone,this,&MainWidget::onEnterLoginDone);
     connect(&login_dialog,&LoginDialog::RegisterEnterDone,this,&MainWidget::onEnterRegisterDone);
+    connect(this, &MainWidget::LoginResult, &login_dialog, &LoginDialog::onLoginResult);
     
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &MainWidget::onSettingChanged,
@@ -28,6 +29,13 @@ MainWidget::MainWidget(QWidget *parent)
         std::placeholders::_2,
         std::placeholders::_3
     ));
+
+    EventBus::getInstance().subscribe("/network/login_result",std::bind(
+        &MainWidget::onLoginResult,
+        this,
+        std::placeholders::_1
+    ));
+    
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
     // 居中窗口
     QScreen *screen = QGuiApplication::primaryScreen();
@@ -198,6 +206,7 @@ void MainWidget::updateUserNameBtn()
         )");
 
     }
+    update();
 }
 
 void MainWidget::loadUserInfo(std::string user_name)
@@ -227,7 +236,7 @@ void MainWidget::on_btn_username_clicked()
 
 void MainWidget::onEnterLoginDone(QString username, QString password)
 {
-    std::vector<std::string> args = {username.toStdString(), password.toStdString()};
+    std::vector<std::string> args = {username.toStdString(), password.toStdString(),UserInfoManager::getInstance().getCurrentUserId()};
     EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::LOGIN, std::move(args));
 }
 
@@ -235,4 +244,14 @@ void MainWidget::onEnterRegisterDone(QString username, QString password, QString
 {  
     std::vector<std::string> args = {username.toStdString(), password.toStdString(), avatar_path.toStdString()};
     EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::REGISTER, std::move(args));
+}
+
+void MainWidget::onLoginResult(bool status)
+{
+    emit LoginResult(status);
+    if(status)
+    {
+        updateUserNameBtn();
+        bubble_message.show(this,"Success");
+    }
 }

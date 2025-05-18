@@ -9,6 +9,7 @@
 #include "ui_LoginDialog.h"
 #include "utils.h"
 #include <iostream>
+#include "UserInfo.h"
 
 LoginDialog::LoginDialog(QWidget *parent)
     : QDialog(parent)
@@ -40,6 +41,9 @@ void LoginDialog::on_btn_login_clicked()
         return;
     }
     emit EnterDone(username,password);
+    centerDialog(this,loading_dialog);
+    UserInfoManager::getInstance().setUserName(username.toStdString());
+    loading_dialog.exec();
 }
 
 void LoginDialog::on_btn_register_clicked()
@@ -49,3 +53,15 @@ void LoginDialog::on_btn_register_clicked()
     centerDialog(parent, register_dialog);
 }
 
+void LoginDialog::onLoginResult(bool status)
+{
+    if(status)
+    {
+        loading_dialog.close();
+        reject();
+    }
+    else
+    {
+        UserInfoManager::getInstance().setUserName("");
+    }
+}

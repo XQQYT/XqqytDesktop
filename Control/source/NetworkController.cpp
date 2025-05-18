@@ -299,7 +299,7 @@ void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std
             tcp_interface->sendMsg(*json_factory->user_register_device_code(std::move(args[0])));
             break;
         case UserMsgType::LOGIN:
-            tcp_interface->sendMsg(*json_factory->user_login(std::move(args[0]),std::move(args[1])));
+            tcp_interface->sendMsg(*json_factory->user_login(std::move(args[0]),std::move(args[1]), std::move(args[2])));
             break;
         case UserMsgType::REGISTER:
             tcp_interface->sendMsg(*json_factory->user_register(args[0],std::move(args[1])));

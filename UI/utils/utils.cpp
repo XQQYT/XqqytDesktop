@@ -9,6 +9,7 @@
 #include <QRandomGenerator>
 #include <QPainter>
 #include <unistd.h>
+#include <QStyle>
 
 
 void turnToRegularNum(QString& str)
@@ -83,7 +84,13 @@ void centerDialog(QWidget *parent, QDialog &dialog)
 {
     if (!parent)
         return;
-    QPoint center = parent->geometry().center();
-    QSize dlgSize = dialog.sizeHint();
-    dialog.move(center.x() - dlgSize.width() / 2, center.y() - dlgSize.height() / 2);
+        
+    dialog.setGeometry(
+        QStyle::alignedRect(
+            Qt::LeftToRight,
+            Qt::AlignCenter,
+            dialog.size(),
+            parent->frameGeometry()
+        )
+    );
 }

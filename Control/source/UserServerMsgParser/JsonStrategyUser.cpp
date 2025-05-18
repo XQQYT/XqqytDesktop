@@ -1,12 +1,34 @@
 #include "JsonStrategyUser.h"
 #include <iostream>
 
+bool statusToBool(std::string& status)
+{
+    if(status == "success")
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 void ResponseStrategy::execute(std::unique_ptr<Parser> parser, Operator& controll_instance)
 {
-    std::cout<<"subtype "<<parser->getKey("subtype")<<" , response status  "<<parser->getKey("status");
+    if(parser->contain("status") && parser->contain("subtype"))
+    {
+        std::string subtype = parser->getKey("subtype");
+        std::string status = parser->getKey("status");
+        if(subtype == "login")
+        {
+            controll_instance.dispatch_bool("/network/login_result", statusToBool(status));
+        }
+    }
+    
 }
 
 void DeviceCodeStrategy::execute(std::unique_ptr<Parser> parser, Operator& controll_instance)
 {
-    controll_instance.dispatch_string("/network/receive_device_code", std::move(parser->getKey("device_code")));
+    if(parser->contain("device_code"))
+        controll_instance.dispatch_string("/network/receive_device_code", std::move(parser->getKey("device_code")));
 }

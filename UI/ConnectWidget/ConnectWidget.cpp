@@ -13,6 +13,7 @@
 #include <iostream>
 #include <sstream>
 #include "GlobalEnum.h"
+#include "BubbleMessage.h"
 
 ConnectWidget::ConnectWidget(QWidget *parent)
     : QWidget(parent)
@@ -154,14 +155,14 @@ void ConnectWidget::onTargetStatus(bool target_status)
     }
     else
     {
-        bubble_message.error(this, "Target is offline");
+        BubbleMessage::getInstance().error("Target is offline");
     }
 }
 
 void ConnectWidget::onRegistrationResult(bool result)
 {
     if(!result)
-        bubble_message.error(this,"RegistrationRejected");
+    BubbleMessage::getInstance().error("RegistrationRejected");
 }
 
 void ConnectWidget::onConnectUserServerResult(bool result)
@@ -179,7 +180,7 @@ void ConnectWidget::onConnectUserServerResult(bool result)
 
 void ConnectWidget::onConnectServerFailed()
 {
-    bubble_message.error(this,"Failed to connect Server");
+    BubbleMessage::getInstance().error("Failed to connect Server");
 }
 
 void ConnectWidget::onConnectRequest(std::string target_id, std::string key)
@@ -315,7 +316,7 @@ void ConnectWidget::on_btn_share_clicked()
     << "Dynamic Key: " << dynamic_key;
     std::string share_content = ss.str();
     EventBus::getInstance().publish("/clipboard/write_into_clipboard", std::move(share_content));
-    bubble_message.show(this,"The sharing information has been copied to the clipboard");
+    BubbleMessage::getInstance().show("The sharing information has been copied to the clipboard");
 }
 
 void ConnectWidget::onReceiveDeviceCode(std::string code)

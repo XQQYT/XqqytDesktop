@@ -23,6 +23,10 @@ void ResponseStrategy::execute(std::unique_ptr<Parser> parser, Operator& control
         {
             controll_instance.dispatch_bool("/network/login_result", statusToBool(status));
         }
+        if(subtype == "register")
+        {
+            controll_instance.dispatch_bool("/network/register_result", statusToBool(status));
+        }
     }
     
 }

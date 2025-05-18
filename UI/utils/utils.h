@@ -20,6 +20,16 @@ void applyStyleSheet(const QString filePath, QWidget* widget);
 QString generateRandomString(int length);
 QPixmap createCircularPixmap(const QPixmap& src, int size);
 void setButtonTextWithElide(QPushButton *btn, const QString &fullText);
-void centerDialog(QWidget *parent, QDialog &dialog);
+
+class DialogOperator{
+public:
+    static void centerDialog(QDialog &dialog, QWidget *parent = nullptr);
+    static void setDefaultWidget(QWidget *parent)
+    {
+        default_parent = parent;
+    }
+private:
+    static QWidget* default_parent;
+};
 
 #endif

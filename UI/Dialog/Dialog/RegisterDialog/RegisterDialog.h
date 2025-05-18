@@ -24,6 +24,8 @@ public:
 signals:
     void EnterDone(QString username, QString password , QString avatar_path);
     void RegisterDialogClosed();
+public slots:
+    void onRegisterResult(bool status);
 private slots:
     void on_btn_login_clicked();
     void on_btn_register_clicked();

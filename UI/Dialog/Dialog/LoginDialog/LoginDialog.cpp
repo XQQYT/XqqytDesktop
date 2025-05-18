@@ -19,7 +19,7 @@ LoginDialog::LoginDialog(QWidget *parent)
     ui->setupUi(this);
     connect(&register_dialog,&RegisterDialog::RegisterDialogClosed,this,[=](){
         this->show();
-        centerDialog(parent, *this);
+        DialogOperator::centerDialog(*this);
     });
     connect(&register_dialog,&RegisterDialog::EnterDone,this,[=](QString username, QString password, QString avatar_path){
         std::cout<<"emit RegisterEnterDone(username, password, avatar_path);"<<std::endl;
@@ -41,7 +41,7 @@ void LoginDialog::on_btn_login_clicked()
         return;
     }
     emit EnterDone(username,password);
-    centerDialog(this,loading_dialog);
+    DialogOperator::centerDialog(loading_dialog);
     UserInfoManager::getInstance().setUserName(username.toStdString());
     loading_dialog.exec();
 }
@@ -50,7 +50,7 @@ void LoginDialog::on_btn_register_clicked()
 {
     this->hide();
     register_dialog.open();
-    centerDialog(parent, register_dialog);
+    DialogOperator::centerDialog(register_dialog);
 }
 
 void LoginDialog::onLoginResult(bool status)

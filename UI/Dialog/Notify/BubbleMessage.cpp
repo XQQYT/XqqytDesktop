@@ -67,16 +67,26 @@ void BubbleMessage::setupAnimation()
     });
 }
 
-void BubbleMessage::show(QWidget *parent, const QString &message, int displayTime)
+void BubbleMessage::show(const QString &message,QWidget *parent , int displayTime)
 {
-    showInternal(parent, message, 
+    QWidget* real_widget = nullptr;
+    if(!parent)
+        real_widget = m_parentWidget;
+    else
+        real_widget = parent;
+    showInternal(real_widget, message, 
                 "background-color: rgba(0, 150, 0, 200);",
                 displayTime);
 }
 
-void BubbleMessage::error(QWidget *parent, const QString &message, int displayTime)
+void BubbleMessage::error(const QString &message, QWidget *parent, int displayTime)
 {
-    showInternal(parent, message, 
+    QWidget* real_widget = nullptr;
+    if(!parent)
+        real_widget = m_parentWidget;
+    else
+        real_widget = parent;
+    showInternal(real_widget, message, 
                 "background-color: rgba(200, 0, 0, 200);",
                 displayTime);
 }
@@ -88,8 +98,6 @@ void BubbleMessage::showInternal(QWidget *parent, const QString &message,
         qWarning() << "Parent widget is null, cannot show bubble message";
         return;
     }
-
-    m_parentWidget = parent;
     
     QMetaObject::invokeMethod(this, [=]() {
         m_animation->stop();

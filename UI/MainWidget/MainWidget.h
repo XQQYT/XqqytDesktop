@@ -34,13 +34,14 @@ private slots:
     void onEnterRegisterDone(QString username, QString password, QString avatar_path);
 signals:
     void LoginResult(bool status);
-
+    void RegisterResult(bool status);
 private:
     void onSettingChanged(std::string module, std::string key, std::string value);
     void switchLanguage(const std::string language);
     void loadUserInfo(std::string user_name);
     void updateUserNameBtn();
     void onLoginResult(bool status);
+    void onRegisterResult(bool status);
     void onUpdateUserAvatar();
 private:
     Ui::MainWidget *ui;
@@ -48,6 +49,5 @@ private:
     QPushButton* current_btn;
     QTranslator *translator;
     LoginDialog login_dialog;
-    BubbleMessage bubble_message;
 };
 #endif // MAINWIDGET_H

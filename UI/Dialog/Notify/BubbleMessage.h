@@ -22,17 +22,25 @@ class BubbleMessage : public QWidget
     Q_OBJECT
 
 public:
-    explicit BubbleMessage(QWidget *parent = nullptr);
-    ~BubbleMessage();
 
-    void show(QWidget *parent, const QString &message, int displayTime = 3000);
-    void error(QWidget *parent, const QString &message, int displayTime = 3000);
-
+    static BubbleMessage& getInstance()
+    {
+        static BubbleMessage instance;
+        return instance;
+    }
+    void show(const QString &message, QWidget *parent = nullptr, int displayTime = 3000);
+    void error(const QString &message, QWidget *parent = nullptr,int displayTime = 3000);
+    void setDefaultWidget(QWidget* widget)
+    {
+        m_parentWidget = widget;
+    };
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
     void hideEvent(QHideEvent *event) override;
 
 private:
+    explicit BubbleMessage(QWidget *parent = nullptr);
+    ~BubbleMessage();
     void initUI();
     void setupAnimation();
     void showInternal(QWidget *parent, const QString &message, const QString &styleSheet, int displayTime);

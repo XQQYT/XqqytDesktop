@@ -26,6 +26,7 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/network/receive_device_code");
     EventBus::getInstance().registerEvent("/network/re_connect_to_signal_server");
     EventBus::getInstance().registerEvent("/network/login_result");
+    EventBus::getInstance().registerEvent("/network/register_result");
     EventBus::getInstance().registerEvent("/network/user_avatar_update");
 
     EventBus::getInstance().registerEvent("/webrtc/init_webrtc_done");

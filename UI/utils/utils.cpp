@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <QStyle>
 
+QWidget* DialogOperator::default_parent = nullptr;
 
 void turnToRegularNum(QString& str)
 {
@@ -80,17 +81,20 @@ void setButtonTextWithElide(QPushButton *btn, const QString &fullText)
     btn->setToolTip(fullText);
 }
 
-void centerDialog(QWidget *parent, QDialog &dialog)
+void DialogOperator::centerDialog(QDialog &dialog, QWidget *parent)
 {
+    QWidget* real_widget = nullptr;
     if (!parent)
-        return;
+        real_widget = default_parent;
+    else
+        real_widget = parent;
         
     dialog.setGeometry(
         QStyle::alignedRect(
             Qt::LeftToRight,
             Qt::AlignCenter,
             dialog.size(),
-            parent->frameGeometry()
+            real_widget->frameGeometry()
         )
     );
 }

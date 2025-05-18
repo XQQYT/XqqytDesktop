@@ -23,6 +23,7 @@ class LoginDialog : public QDialog
 public:
     LoginDialog(QWidget *parent = nullptr);
     ~LoginDialog();
+    RegisterDialog register_dialog;
 signals:
     void EnterDone(QString username, QString password);
     void RegisterEnterDone(QString username, QString password, QString avatar_path);
@@ -35,7 +36,6 @@ private slots:
 private:
     Ui::LoginDialog *ui;
     QWidget* parent;
-    RegisterDialog register_dialog;
     LoadingDialog loading_dialog;
 };
 #endif // LOGIN_H

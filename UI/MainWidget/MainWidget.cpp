@@ -12,6 +12,8 @@ MainWidget::MainWidget(QWidget *parent)
     , ui(new Ui::MainWidget)
 {
     ui->setupUi(this);
+    BubbleMessage::getInstance().setDefaultWidget(this);
+    DialogOperator::setDefaultWidget(this);
     translator = nullptr;
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/MainWidget.qss")),this);
     current_widget = WidgetManager::WidgetType::UnDefined;
@@ -21,6 +23,7 @@ MainWidget::MainWidget(QWidget *parent)
     connect(&login_dialog,&LoginDialog::EnterDone,this,&MainWidget::onEnterLoginDone);
     connect(&login_dialog,&LoginDialog::RegisterEnterDone,this,&MainWidget::onEnterRegisterDone);
     connect(this, &MainWidget::LoginResult, &login_dialog, &LoginDialog::onLoginResult);
+    connect(this, &MainWidget::RegisterResult, &login_dialog.register_dialog, &RegisterDialog::onRegisterResult);
     
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &MainWidget::onSettingChanged,
@@ -32,6 +35,11 @@ MainWidget::MainWidget(QWidget *parent)
 
     EventBus::getInstance().subscribe("/network/login_result",std::bind(
         &MainWidget::onLoginResult,
+        this,
+        std::placeholders::_1
+    ));
+    EventBus::getInstance().subscribe("/network/register_result",std::bind(
+        &MainWidget::onRegisterResult,
         this,
         std::placeholders::_1
     ));
@@ -229,7 +237,7 @@ void MainWidget::on_btn_username_clicked()
     std::string current_user_name = UserInfoManager::getInstance().getUserName();
     if(current_user_name == "null")
     {
-        centerDialog(this,login_dialog);
+        DialogOperator::centerDialog(login_dialog);
         login_dialog.exec();
     }
     else
@@ -256,8 +264,13 @@ void MainWidget::onLoginResult(bool status)
     if(status)
     {
         updateUserNameBtn();
-        bubble_message.show(this,"Success");
+        BubbleMessage::getInstance().show("Success");
     }
+}
+
+void MainWidget::onRegisterResult(bool status)
+{
+    emit RegisterResult(status);
 }
 
 void MainWidget::onUpdateUserAvatar()

@@ -10,6 +10,7 @@
 #include <iostream>
 #include <QFileDialog>
 #include <QFileInfo>
+#include "BubbleMessage.h"
 
 RegisterDialog::RegisterDialog(QWidget *parent)
     : QDialog(parent)
@@ -40,7 +41,7 @@ void RegisterDialog::on_btn_register_clicked()
     QString password = ui->lineedit_password->text();
     QString confirm_password = ui->lineedit_confirm_password->text();
     if(username.isEmpty() || password.isEmpty() || confirm_password.isEmpty() 
-        || confirm_password.compare(password))
+        || confirm_password.compare(password) || selected_avatar_path.isEmpty())
     {
         std::cout<<"user info has errors"<<username.isEmpty()<<password.isEmpty()<<confirm_password.isEmpty()<<std::endl;
         return;
@@ -61,4 +62,17 @@ void RegisterDialog::on_btn_select_avatar_clicked()
         selected_avatar_path = filePath;
     }
     ui->avatarPreview->setPixmap(QPixmap(selected_avatar_path).scaled(ui->avatarPreview->width(),ui->avatarPreview->height()));
+}
+
+void RegisterDialog::onRegisterResult(bool status)
+{
+    if(!status)
+    {
+        BubbleMessage::getInstance().error("Failed to register");
+    }
+    else
+    {
+        BubbleMessage::getInstance().show("Register successed");
+        on_btn_login_clicked();
+    }
 }

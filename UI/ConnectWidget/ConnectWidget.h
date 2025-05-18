@@ -15,7 +15,6 @@
 #include <QTimer>
 #include "RemoteControlWidget.h"
 #include "EventBus.h"
-#include "BubbleMessage.h"
 #include "ConfirmBeConnectDialog.h"
 #include "InfoDialog.h"
 #include "UserInfo.h"
@@ -63,7 +62,6 @@ private:
 private:
     Ui::ConnectWidget *ui;
     RemoteControlWidget* remote_widget;
-    BubbleMessage bubble_message;
     InfoDialog info_dialog;
     KeyAuthenticationDialog key_authenticate_dialog;
     bool remote_widget_alive;

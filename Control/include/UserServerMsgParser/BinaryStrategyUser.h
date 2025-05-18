@@ -11,5 +11,12 @@ public:
     ~BinaryStrategy(){}
 };
 
+class AvatarStrategy : public BinaryStrategy
+{
+public:
+    void execute(std::vector<uint8_t> content, Operator& controll_instance) override;
+    ~AvatarStrategy(){}
+};
+
 
 #endif  //_BINARYSTRATEGY_H

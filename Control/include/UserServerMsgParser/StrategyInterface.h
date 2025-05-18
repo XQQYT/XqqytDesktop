@@ -8,8 +8,8 @@
 #include "NlohmannJson.h"
 #include "Operator.h"
 
-enum class UserServerMsgType : uint32_t{
-
+enum class UserServerMsgType : uint16_t {
+    USER_AVATAR = 0xAEAE            
 };
 
 class Strategy {

@@ -13,6 +13,7 @@
 /network/connect_to_user_server_result
 /network/receive_device_code
 /network/re_connect_to_signal_server
+/network/login_result
 
 /webrtc/init_webrtc_done
 /webrtc/remote_ready

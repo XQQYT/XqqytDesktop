@@ -10,6 +10,7 @@
 
 #include <QDialog>
 #include "RegisterDialog.h"
+#include "LoadingDialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class LoginDialog; }
@@ -25,6 +26,9 @@ public:
 signals:
     void EnterDone(QString username, QString password);
     void RegisterEnterDone(QString username, QString password, QString avatar_path);
+public slots:
+    void onLoginResult(bool status);
+
 private slots:
     void on_btn_login_clicked();
     void on_btn_register_clicked();
@@ -32,5 +36,6 @@ private:
     Ui::LoginDialog *ui;
     QWidget* parent;
     RegisterDialog register_dialog;
+    LoadingDialog loading_dialog;
 };
 #endif // LOGIN_H

@@ -214,13 +214,14 @@ std::shared_ptr<std::string> NlohmannJson::user_register_device_code(std::string
 }
 
 
-std::shared_ptr<std::string> NlohmannJson::user_login(std::string user_name, std::string password)
+std::shared_ptr<std::string> NlohmannJson::user_login(std::string user_name, std::string password, std::string code)
 {
     json result_msg = {
         {"type", "login"},
         {"content", {
             {"user_name", std::move(user_name)},
-            {"password", std::move(password)}
+            {"password", std::move(password)},
+            {"device_code", std::move(code)}
         }}
     };
         return std::make_shared<std::string>(result_msg.dump());

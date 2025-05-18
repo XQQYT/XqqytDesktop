@@ -187,9 +187,7 @@ void TcpDriver::recvMsg(std::function<void(std::vector<uint8_t>,bool)> callback)
                     if(security_instance->verifyAndDecrypt(parsed.encrypted_data,tls_info.key,parsed.iv,result_vec, parsed.sha256))
                     {
                         result_vec.resize(result_vec.size() - 4);
-                        std::cout<<"callback"<<std::endl;
                         callback(std::move(result_vec),parsed.is_binary);
-                        std::cout<<"callback done"<<std::endl;
 
                     }
                 }

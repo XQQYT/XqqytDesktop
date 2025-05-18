@@ -23,6 +23,7 @@ private:
     void onUpdateModule(std::string module, std::string key, std::string value);
     void onWrite(); 
     void onRecvDeviceCode(std::string code);
+    void onLoginResult(bool status);
 private:
     std::unique_ptr<ConfigInterface> config_driver;
     std::unordered_map<std::string, std::unordered_map<std::string, std::string>> updated_config;

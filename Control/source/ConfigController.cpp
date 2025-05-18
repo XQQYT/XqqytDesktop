@@ -36,6 +36,11 @@ void ConfigController::initConfigSubscribe()
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/network/login_result",std::bind(
+        &ConfigController::onLoginResult,
+        this,
+        std::placeholders::_1
+    ));
 
 }
 
@@ -70,4 +75,15 @@ void ConfigController::onRecvDeviceCode(std::string code)
     UserInfoManager::getInstance().setCurrentUserId(code);
     onUpdateModule("User","user_id", std::move(code));
     onWrite();
+}
+
+
+void ConfigController::onLoginResult(bool status)
+{
+    if(status)
+    {
+        onUpdateModule("User","user_name", std::move(UserInfoManager::getInstance().getUserName()));
+        onWrite();
+    }
+
 }

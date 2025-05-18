@@ -15,6 +15,7 @@
 #include "TcpDriver.h"
 #include "OpensslDriver.h"
 #include "SignalMessageParser.h"
+#include "UserServerMsgParser.h"
 #include "UserInfo.h"
 #include "Operator.h"
 #include "GlobalEnum.h"
@@ -60,6 +61,7 @@ private:
     bool is_recv_thread_running;
     std::unique_ptr<JsonFactory> json_factory;
     std::unique_ptr<SignalMessageParser> msg_parser;
+    std::unique_ptr<UserServerMsgParser> user_server_msg_parser;
     bool is_first_connect;
 };
 

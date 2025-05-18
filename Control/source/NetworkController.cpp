@@ -13,6 +13,7 @@ static const std::string module_name = "Network";
 NetworkController::NetworkController():
     websocket_interface(WebSocket::create()),
     tcp_interface(std::make_unique<TcpDriver>()),
+    user_server_msg_parser(std::make_unique<UserServerMsgParser>()),
     openssl_interface(std::make_shared<OpensslDriver>())
 {
     //启用加密
@@ -31,6 +32,7 @@ NetworkController::NetworkController():
 NetworkController::~NetworkController()
 {
     stopRecvMsg();
+    tcp_interface->closeSocket();
 }
 
 void NetworkController::loadSetting()
@@ -57,16 +59,12 @@ void NetworkController::connectToServer()
         });
 
         tcp_interface->connectToServer([this](bool ret){
-            if(ret)
-            {
+            if (ret) {
                 dynamic_cast<TcpDriver*>(tcp_interface.get())->recvMsg([this](std::vector<uint8_t> vec, bool is_binary){
-                    // msg_parser->parserBinary(std::move(vec), is_binary);
+                    if (user_server_msg_parser) {
+                        user_server_msg_parser->ParseMsg(std::move(vec), is_binary);
+                    }
                 });
-                std::cout<<"success to connect user server"<<std::endl;
-            }
-            else
-            {
-                std::cout<<"failed to connect server"<<std::endl;
             }
         });
         is_first_connect = false;

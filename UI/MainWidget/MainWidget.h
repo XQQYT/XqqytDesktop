@@ -41,6 +41,7 @@ private:
     void loadUserInfo(std::string user_name);
     void updateUserNameBtn();
     void onLoginResult(bool status);
+    void onUpdateUserAvatar();
 private:
     Ui::MainWidget *ui;
     WidgetManager::WidgetType current_widget;

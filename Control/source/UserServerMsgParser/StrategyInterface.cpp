@@ -4,7 +4,15 @@
 #include <iostream>
 std::unique_ptr<Strategy> Strategy::createStrategy(UserServerMsgType type)
 {
-
+    switch (type)
+    {
+    case UserServerMsgType::USER_AVATAR:
+        return std::make_unique<AvatarStrategy>();
+        break;
+    
+    default:
+        break;
+    }
 }
 
 std::unique_ptr<Strategy> Strategy::createStrategy(std::string type)

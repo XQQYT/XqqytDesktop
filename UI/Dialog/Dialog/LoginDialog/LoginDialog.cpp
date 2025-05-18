@@ -57,11 +57,14 @@ void LoginDialog::onLoginResult(bool status)
 {
     if(status)
     {
-        loading_dialog.close();
         reject();
+        ui->label_hint->clear();
     }
     else
     {
-        UserInfoManager::getInstance().setUserName("");
+        UserInfoManager::getInstance().setUserName("null");
+        ui->label_hint->setText("Authentication failed. Please check if the username and password are correct.");
+        ui->lineEdit_password->clear();
     }
+    loading_dialog.close();
 }

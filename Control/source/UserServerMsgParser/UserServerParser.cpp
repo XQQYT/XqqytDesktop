@@ -18,7 +18,7 @@ void UserServerMsgParser::ParseMsg(std::vector<uint8_t> msg, bool is_binary)
 {
     if(is_binary)
     {
-        uint32_t type;
+        uint16_t type;
         memcpy(&type, msg.data(), 2);
         auto strategy = Strategy::createStrategy(static_cast<UserServerMsgType>(type));
         if(strategy)

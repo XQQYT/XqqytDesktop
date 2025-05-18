@@ -35,6 +35,10 @@ MainWidget::MainWidget(QWidget *parent)
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/network/user_avatar_update",std::bind(
+        &MainWidget::onUpdateUserAvatar,
+        this
+    ));
     
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
     // 居中窗口
@@ -213,7 +217,7 @@ void MainWidget::loadUserInfo(std::string user_name)
 {
     QString user_name_qstring = QString::fromStdString(user_name);
     QLabel* label_avatar = ui->label_avatar;
-    QPixmap avatar(QString("User/Avatar/") + user_name_qstring + ".png");
+    QPixmap avatar(QString("User/Avatar/") + user_name_qstring);
     QPixmap circular = createCircularPixmap(avatar, label_avatar->width());
     label_avatar->setPixmap(circular);
 
@@ -254,4 +258,12 @@ void MainWidget::onLoginResult(bool status)
         updateUserNameBtn();
         bubble_message.show(this,"Success");
     }
+}
+
+void MainWidget::onUpdateUserAvatar()
+{
+    QString user_name_qstring = QString::fromStdString(UserInfoManager::getInstance().getUserName());
+    QPixmap avatar(QString("User/Avatar/") + user_name_qstring);
+    QPixmap circular = createCircularPixmap(avatar, ui->label_avatar->width());
+    ui->label_avatar->setPixmap(circular);
 }

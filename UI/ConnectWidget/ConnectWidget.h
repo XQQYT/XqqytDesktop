@@ -51,13 +51,15 @@ private:
 private:
     void onTargetStatus(bool target_status);
     void onConnectServerFailed();
-    void onRegistrationRejected();
+    void onRegistrationResult(bool result);
     void onConnectRequest(std::string target_id, std::string key);
     void onRecvConnectRequestResult(bool status);
     void onConnectionStatus(bool status);
     void onSettingChanged(std::string module, std::string key, std::string value);
     void onEnterKeyDone(QString key);
     void onTimeToUpdateKey();
+    void onConnectUserServerResult(bool result);
+    void onReceiveDeviceCode(std::string code);
 private:
     Ui::ConnectWidget *ui;
     RemoteControlWidget* remote_widget;

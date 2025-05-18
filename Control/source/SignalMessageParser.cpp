@@ -72,11 +72,11 @@ void SignalMessageParser::onRegisterResult(std::unique_ptr<Parser> parser)
 {
     if(parser->getKey("status") == "success")
     {
-        network_operator.dispatch_void("/network/registration_successed");
+        network_operator.dispatch_bool("/network/registration_result", true);
     }
     else
     {
-        network_operator.dispatch_void("/network/registration_rejected");
+        network_operator.dispatch_bool("/network/registration_rejected", false);
     }
 }
 

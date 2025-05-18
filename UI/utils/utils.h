@@ -14,6 +14,8 @@
 #include <QPushButton>
 #include <QDebug>
 
+std::string getDeviceName();
+void turnToRegularNum(QString& str);
 void applyStyleSheet(const QString filePath, QWidget* widget);
 QString generateRandomString(int length);
 QPixmap createCircularPixmap(const QPixmap& src, int size);

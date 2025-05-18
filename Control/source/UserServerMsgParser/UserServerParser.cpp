@@ -2,7 +2,8 @@
 #include "StrategyInterface.h"
 #include <iostream>
 
-UserServerMsgParser::UserServerMsgParser():
+UserServerMsgParser::UserServerMsgParser(Operator& instance):
+    controll_instance(instance),
     json_interface(std::make_unique<NlohmannJson>())
 {
 
@@ -22,7 +23,7 @@ void UserServerMsgParser::ParseMsg(std::vector<uint8_t> msg, bool is_binary)
         auto strategy = Strategy::createStrategy(static_cast<UserServerMsgType>(type));
         if(strategy)
         {
-            strategy->execute(std::move(msg));
+            strategy->execute(std::move(msg), controll_instance);
         }
     }
     else
@@ -32,10 +33,11 @@ void UserServerMsgParser::ParseMsg(std::vector<uint8_t> msg, bool is_binary)
         parser->loadJson(msg_string);
         if(parser->contain("type"))
         {
+            std::cout<<"Type -> "<<parser->getKey("type")<<std::endl;
             auto strategy = Strategy::createStrategy(std::move(parser->getKey("type")));
             if(strategy)
             {
-                strategy->execute(parser->getObj("content"));
+                strategy->execute(parser->getObj("content"), controll_instance);
             }
         }
         else

@@ -8,6 +8,25 @@
 #include "utils.h"
 #include <QRandomGenerator>
 #include <QPainter>
+#include <unistd.h>
+
+
+void turnToRegularNum(QString& str)
+{
+    for (int i = 3; i < str.length(); i += 4) {
+        str.insert(i, ' ');
+    }
+}
+
+std::string getDeviceName() {
+    char hostname[256];
+    if (gethostname(hostname, sizeof(hostname)) == 0) {
+        return std::string(hostname);
+    } else {
+        perror("gethostname");
+        return "unknown";
+    }
+}
 
 void applyStyleSheet(const QString filePath, QWidget* widget)
 {

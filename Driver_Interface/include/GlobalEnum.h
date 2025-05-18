@@ -3,6 +3,7 @@
 
 enum class UserMsgType
 {
+    RegisterDeviceCode,
     LOGIN,
     REGISTER
 };

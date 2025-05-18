@@ -6,16 +6,23 @@
 class JsonStrategy : public Strategy
 {
 public:
-    void execute(std::vector<uint8_t> content) override{};
-    virtual void execute(std::unique_ptr<Parser> parser) = 0;
+    void execute(std::vector<uint8_t> content, Operator& controll_instance) override{};
+    virtual void execute(std::unique_ptr<Parser> parser, Operator& controll_instance) = 0;
     ~JsonStrategy(){}
 };
 
 class ResponseStrategy : public JsonStrategy
 {
 public:
-    void execute(std::unique_ptr<Parser> parser) override;
+    void execute(std::unique_ptr<Parser> parser, Operator& controll_instance) override;
     ~ResponseStrategy(){}
+};
+
+class DeviceCodeStrategy : public JsonStrategy
+{
+public:
+    void execute(std::unique_ptr<Parser> parser, Operator& controll_instance) override;
+    ~DeviceCodeStrategy(){}
 };
 
 #endif  //_JSONSTRATEGY_H

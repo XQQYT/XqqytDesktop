@@ -50,6 +50,7 @@ public:
     void onSendLogout();
     void onSendToUserServer(UserMsgType msg_type, std::vector<std::string> args);
     void onReConnectToSignalServer(std::string code);
+    void onLoginResult(bool status);
 private:
     void onGetTargetStatus(std::string target_id);
     void onConnectToTarget(std::string target_id, std::string key);

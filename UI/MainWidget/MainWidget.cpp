@@ -2,10 +2,11 @@
 #include "ui_MainWidget.h"
 #include "RemoteControlWidget.h"
 #include "SettingInfo.h"
+#include "DevicelistManager.h"
 #include "utils.h"
 #include <QDebug>
 #include <QTranslator>
-#include <GlobalEnum.h>
+#include "GlobalEnum.h"
 
 MainWidget::MainWidget(QWidget *parent)
     : QWidget(parent)
@@ -44,7 +45,11 @@ MainWidget::MainWidget(QWidget *parent)
         std::placeholders::_1
     ));
     EventBus::getInstance().subscribe("/network/user_avatar_update",std::bind(
-        &MainWidget::onUpdateUserAvatar,
+        &MainWidget::onUserAvatarUpdated,
+        this
+    ));
+    EventBus::getInstance().subscribe("/network/update_device_list",std::bind(
+        &MainWidget::onDeviceListUpdated,
         this
     ));
     
@@ -260,12 +265,15 @@ void MainWidget::onEnterRegisterDone(QString username, QString password, QString
 
 void MainWidget::onLoginResult(bool status)
 {
-    emit LoginResult(status);
-    if(status)
-    {
-        updateUserNameBtn();
-        BubbleMessage::getInstance().show("Success");
-    }
+    QMetaObject::invokeMethod(this, [=]() {
+        emit LoginResult(status);
+        if(status)
+        {
+            updateUserNameBtn();
+            BubbleMessage::getInstance().show("Success");
+        }
+    }, Qt::QueuedConnection);
+
 }
 
 void MainWidget::onRegisterResult(bool status)
@@ -273,10 +281,20 @@ void MainWidget::onRegisterResult(bool status)
     emit RegisterResult(status);
 }
 
-void MainWidget::onUpdateUserAvatar()
+void MainWidget::onUserAvatarUpdated()
 {
     QString user_name_qstring = QString::fromStdString(UserInfoManager::getInstance().getUserName());
     QPixmap avatar(QString("User/Avatar/") + user_name_qstring);
     QPixmap circular = createCircularPixmap(avatar, ui->label_avatar->width());
     ui->label_avatar->setPixmap(circular);
+}
+
+void MainWidget::onDeviceListUpdated()
+{
+    auto device_list = DevicelistManager::getInstance().getDeviceInfo();
+    auto device_list_widget = WidgetManager::getInstance().getWidget(WidgetManager::WidgetType::DeviceWidget);
+    for(auto& i : device_list)
+    {
+        
+    }
 }

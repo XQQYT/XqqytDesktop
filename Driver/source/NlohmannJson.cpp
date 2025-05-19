@@ -48,6 +48,25 @@ bool NlohmannJsonParser::contain(std::string&& key)
     return msg_json.contains(key);
 }
 
+std::vector<std::unique_ptr<Parser>> NlohmannJsonParser::getArray(std::string&& key)
+{
+    std::vector<std::unique_ptr<Parser>> result;
+
+    if (msg_json.contains(key) && msg_json[key].is_array())
+    {
+        for (const auto& item : msg_json[key])
+        {
+            if (item.is_object())
+            {
+                result.push_back(std::make_unique<NlohmannJsonParser>(item));
+            }
+        }
+    }
+
+    return result;
+}
+
+
 std::string NlohmannJsonParser::toString()
 {
     return msg_json.dump();
@@ -234,6 +253,17 @@ std::shared_ptr<std::string> NlohmannJson::user_register(std::string user_name, 
         {"content", {
             {"user_name", std::move(user_name)},
             {"password", std::move(password)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
+std::shared_ptr<std::string> NlohmannJson::user_get_device_list(std::string user_name)
+{
+    json result_msg = {
+        {"type", "get_user_device_list"},
+        {"content", {
+            {"user_name", std::move(user_name)}
         }}
     };
         return std::make_shared<std::string>(result_msg.dump());

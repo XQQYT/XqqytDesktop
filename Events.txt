@@ -14,6 +14,9 @@
 /network/receive_device_code
 /network/re_connect_to_signal_server
 /network/login_result
+/network/register_result
+/network/user_avatar_update
+/network/update_device_list
 
 /webrtc/init_webrtc_done
 /webrtc/remote_ready

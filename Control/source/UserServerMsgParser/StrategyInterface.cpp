@@ -25,6 +25,10 @@ std::unique_ptr<Strategy> Strategy::createStrategy(std::string type)
     {
         return std::make_unique<DeviceCodeStrategy>();
     }
+    else if(type == "device_list")
+    {
+        return std::make_unique<DeviceListStrategy>();
+    }
     else
     {
         return nullptr;

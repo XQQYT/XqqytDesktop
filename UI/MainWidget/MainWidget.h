@@ -42,7 +42,8 @@ private:
     void updateUserNameBtn();
     void onLoginResult(bool status);
     void onRegisterResult(bool status);
-    void onUpdateUserAvatar();
+    void onUserAvatarUpdated();
+    void onDeviceListUpdated();
 private:
     Ui::MainWidget *ui;
     WidgetManager::WidgetType current_widget;

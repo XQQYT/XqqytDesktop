@@ -70,6 +70,7 @@ void DeviceWidget::onSettingChanged(std::string module, std::string key, std::st
     {
         QMetaObject::invokeMethod(this, [=]() {
             ui->retranslateUi(this);
+            onDeviceListUpdated();
             for (int i = 0; i < ui->listWidget->count(); ++i) {
                 QListWidgetItem* item = ui->listWidget->item(i);
                 if (item) {

@@ -2,7 +2,6 @@
 #include "ui_MainWidget.h"
 #include "RemoteControlWidget.h"
 #include "SettingInfo.h"
-#include "DevicelistManager.h"
 #include "utils.h"
 #include <QDebug>
 #include <QTranslator>
@@ -46,10 +45,6 @@ MainWidget::MainWidget(QWidget *parent)
     ));
     EventBus::getInstance().subscribe("/network/user_avatar_update",std::bind(
         &MainWidget::onUserAvatarUpdated,
-        this
-    ));
-    EventBus::getInstance().subscribe("/network/update_device_list",std::bind(
-        &MainWidget::onDeviceListUpdated,
         this
     ));
     
@@ -289,12 +284,3 @@ void MainWidget::onUserAvatarUpdated()
     ui->label_avatar->setPixmap(circular);
 }
 
-void MainWidget::onDeviceListUpdated()
-{
-    auto device_list = DevicelistManager::getInstance().getDeviceInfo();
-    auto device_list_widget = WidgetManager::getInstance().getWidget(WidgetManager::WidgetType::DeviceWidget);
-    for(auto& i : device_list)
-    {
-        
-    }
-}

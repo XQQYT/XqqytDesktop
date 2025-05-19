@@ -77,6 +77,8 @@ fi
 
 # 拷贝设置文件
 cp "settings-example.json" "$PACKAGE_DIR/settings.json"
+cp "devices-example.json" "$PACKAGE_DIR/devices.json"
+
 
 cp "Resources/pic/logo.png" "$PACKAGE_DIR/logo.png"
 

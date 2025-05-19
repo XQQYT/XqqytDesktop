@@ -111,6 +111,7 @@ fi
 
 # 拷贝设置文件
 cp "settings-example.json" "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/settings.json"
+cp "devices-example.json" "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/devices.json"
 
 # 拷贝构建好的可执行文件
 cp "build/XqqytDesktop" "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/XqqytDesktop"

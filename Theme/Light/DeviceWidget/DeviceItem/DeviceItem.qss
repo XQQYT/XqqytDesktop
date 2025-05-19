@@ -1,8 +1,6 @@
 QWidget#DeviceItem {
 	border-radius: 12px;
     border: 1px solid #dddddd;
-    padding: 12px;
-    margin: 6px 0;
 }
 /* 左侧 ID 标签 */
 QLabel#label_id {

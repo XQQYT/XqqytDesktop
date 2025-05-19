@@ -5,8 +5,6 @@ QWidget#DeviceWidget {
 QListWidget {
     border: none;
     background-color: transparent;
-    padding: 12px;
-    spacing: 10px;
 }
 
 QListWidget::item {

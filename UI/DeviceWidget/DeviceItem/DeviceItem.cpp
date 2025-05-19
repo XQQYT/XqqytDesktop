@@ -9,6 +9,7 @@
 #include "ui_DeviceItem.h"
 #include "utils.h"
 #include "SettingInfo.h"
+#include "MoreDialog/MoreDialog.h"
 #include <iostream>
 
 DeviceItem::DeviceItem(QWidget *parent)
@@ -68,4 +69,21 @@ void DeviceItem::loadDeviceInfo(DevicelistManager::DeviceInfo& info)
 void DeviceItem::on_btn_connect_to_device_clicked()
 {
     emit onConnect(code);
+}
+
+void DeviceItem::on_btn_more_clicked()
+{
+    MoreDialog* dialog = new MoreDialog(code,this);
+    connect(dialog,&MoreDialog::copyDeviceInfo,this,[this](){
+        emit copyDeviceInfo(ui->label_device_name->text(), code, ui->label_ip->text().remove("   IP: "));
+    });
+    connect(dialog,&MoreDialog::editComment,this,[this](QString new_comment){
+        emit editDeviceComment(code ,new_comment);
+    });
+    connect(dialog,&MoreDialog::deleteDevice,this,[this](){
+        emit deleteDevice(code);
+    });
+    QPoint pos = ui->btn_more->mapToGlobal(QPoint(0, ui->btn_more->height()));
+    dialog->move(pos);
+    dialog->exec();
 }

@@ -12,6 +12,8 @@
 #include "WidgetManager.h"
 #include "EventBus.h"
 #include <QGraphicsDropShadowEffect>
+#include <sstream>
+#include "BubbleMessage.h"
 
 DeviceWidget::DeviceWidget(QWidget *parent)
     : QWidget(parent)
@@ -89,7 +91,12 @@ void DeviceWidget::addDeviceUI(DevicelistManager::DeviceInfo& info)
 {
     auto device_item = createDeviceItem();
     device_item->loadDeviceInfo(info);
+
     connect(device_item,&DeviceItem::onConnect,this,&DeviceWidget::onConnectFromItem);
+    connect(device_item,&DeviceItem::copyDeviceInfo,this,&DeviceWidget::onCopyDeviceInfo);
+    connect(device_item,&DeviceItem::editDeviceComment,this,&DeviceWidget::onEditDeviceComment);
+    connect(device_item,&DeviceItem::deleteDevice,this,&DeviceWidget::onDeleteDevice);
+
     QListWidgetItem *item = new QListWidgetItem("");
     item->setSizeHint(device_item->sizeHint());
     ui->listWidget->addItem(item);
@@ -101,6 +108,7 @@ void DeviceWidget::onDeviceListUpdated()
 {
     connect(this,&DeviceWidget::ConnectFromDevice,&WidgetManager::getInstance(),&WidgetManager::ConnectFromDevice, Qt::UniqueConnection);
     QMetaObject::invokeMethod(this, [=]() {
+        ui->listWidget->clear();
         auto device_list =  DevicelistManager::getInstance().getDeviceInfo();
         for(auto& device : device_list)
         {
@@ -114,4 +122,31 @@ void DeviceWidget::onDeviceListUpdated()
 void DeviceWidget::onConnectFromItem(QString code)
 {
     emit ConnectFromDevice(code);
+}
+
+void DeviceWidget::onCopyDeviceInfo(QString device_name, QString device_code, QString device_ip)
+{
+    std::string username = UserInfoManager::getInstance().getUserName();
+    std::string devicename = device_name.toStdString();
+    std::string devicecode = device_code.toStdString();
+    std::string deviceip = device_ip.toStdString();
+    std::ostringstream ss;
+    ss << "Device information:\n"
+    << "User name: " << username << "\n"
+    << "Device name: "<< devicename<<"\n"
+    << "Device code: " << devicecode<<"\n"
+    << "Device ip: "<<deviceip;
+    std::string share_content = ss.str();
+    EventBus::getInstance().publish("/clipboard/write_into_clipboard", std::move(share_content));
+    BubbleMessage::getInstance().show("The sharing information has been copied to the clipboard");
+}
+
+void DeviceWidget::onEditDeviceComment(QString code, QString new_comment)
+{
+    std::cout<<"edit "<<code.toStdString() <<" "<<new_comment.toStdString()<<std::endl;
+}
+
+void DeviceWidget::onDeleteDevice(QString code)
+{
+    std::cout<<"delete "<<code.toStdString()<<std::endl;
 }

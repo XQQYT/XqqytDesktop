@@ -28,10 +28,15 @@ public:
     void setDeviceIP(std::string& ip);
     void setDeviceCode(std::string& code);
     void loadDeviceInfo(DevicelistManager::DeviceInfo& info);
+signals:
+    void onConnect(QString code);
+private slots:
+    void on_btn_connect_to_device_clicked();
 protected:
     void enterEvent(QEvent *event) override;
     void leaveEvent(QEvent *event) override;
 private:
     Ui::DeviceItem *ui;
+    QString code;
 };
 #endif // DEVICEITEM_H

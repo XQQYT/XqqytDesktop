@@ -9,6 +9,7 @@
 #include "ui_DeviceWidget.h"
 #include "utils.h"
 #include "SettingInfo.h"
+#include "WidgetManager.h"
 #include "EventBus.h"
 #include <QGraphicsDropShadowEffect>
 
@@ -88,6 +89,7 @@ void DeviceWidget::addDeviceUI(DevicelistManager::DeviceInfo& info)
 {
     auto device_item = createDeviceItem();
     device_item->loadDeviceInfo(info);
+    connect(device_item,&DeviceItem::onConnect,this,&DeviceWidget::onConnectFromItem);
     QListWidgetItem *item = new QListWidgetItem("");
     item->setSizeHint(device_item->sizeHint());
     ui->listWidget->addItem(item);
@@ -97,6 +99,7 @@ void DeviceWidget::addDeviceUI(DevicelistManager::DeviceInfo& info)
 
 void DeviceWidget::onDeviceListUpdated()
 {
+    connect(this,&DeviceWidget::ConnectFromDevice,&WidgetManager::getInstance(),&WidgetManager::ConnectFromDevice, Qt::UniqueConnection);
     QMetaObject::invokeMethod(this, [=]() {
         auto device_list =  DevicelistManager::getInstance().getDeviceInfo();
         for(auto& device : device_list)
@@ -106,4 +109,9 @@ void DeviceWidget::onDeviceListUpdated()
         update();
     }, Qt::QueuedConnection);
 
+}
+
+void DeviceWidget::onConnectFromItem(QString code)
+{
+    emit ConnectFromDevice(code);
 }

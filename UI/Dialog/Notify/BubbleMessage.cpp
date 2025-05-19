@@ -126,7 +126,6 @@ void BubbleMessage::showInternal(QWidget *parent, const QString &message,
         m_animation->setEndValue(1.0);
         m_animation->start();
         raise();
-        
         m_timer->start(displayTime);
     }, Qt::QueuedConnection);
 }

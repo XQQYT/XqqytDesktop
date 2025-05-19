@@ -23,9 +23,12 @@ class DeviceWidget : public QWidget
 public:
     DeviceWidget(QWidget *parent = nullptr);
     ~DeviceWidget();
+signals:
+    void ConnectFromDevice(QString code);
 private:
     void onDeviceListUpdated();
     void onSettingChanged(std::string module, std::string key, std::string value);
+    void onConnectFromItem(QString code);
     void addDeviceUI(DevicelistManager::DeviceInfo& info);
     DeviceItem * createDeviceItem();
 private:

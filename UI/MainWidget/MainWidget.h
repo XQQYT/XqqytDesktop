@@ -25,6 +25,8 @@ public:
     MainWidget(QWidget *parent = nullptr);
     ~MainWidget();
     void setCurrentWidget(const WidgetManager::WidgetType type);
+public slots:
+    void onConnectFromDevice(QString code);
 private slots:
     void on_btn_device_clicked(bool checked);
     void on_btn_connection_clicked(bool checked);
@@ -43,7 +45,6 @@ private:
     void onLoginResult(bool status);
     void onRegisterResult(bool status);
     void onUserAvatarUpdated();
-    void onDeviceListUpdated();
 private:
     Ui::MainWidget *ui;
     WidgetManager::WidgetType current_widget;

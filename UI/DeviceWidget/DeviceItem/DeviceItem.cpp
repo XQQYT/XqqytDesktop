@@ -55,6 +55,7 @@ void DeviceItem::setDeviceCode(std::string& code)
     QString code_qstring = QString::fromStdString(code);
     turnToRegularNum(code_qstring);
     ui->label_code->setText("Device Code: " + code_qstring);
+    this->code = QString::fromStdString(code);
 }
 
 void DeviceItem::loadDeviceInfo(DevicelistManager::DeviceInfo& info)
@@ -62,4 +63,9 @@ void DeviceItem::loadDeviceInfo(DevicelistManager::DeviceInfo& info)
     setDeviceName(info.device_name, info.comment);
     setDeviceCode(info.code);
     setDeviceIP(info.ip);
+}
+
+void DeviceItem::on_btn_connect_to_device_clicked()
+{
+    emit onConnect(code);
 }

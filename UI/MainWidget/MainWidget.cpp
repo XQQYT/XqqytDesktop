@@ -25,6 +25,8 @@ MainWidget::MainWidget(QWidget *parent)
     connect(this, &MainWidget::LoginResult, &login_dialog, &LoginDialog::onLoginResult);
     connect(this, &MainWidget::RegisterResult, &login_dialog.register_dialog, &RegisterDialog::onRegisterResult);
     
+    connect(&WidgetManager::getInstance(),&WidgetManager::transConnectFromDevice,this,&MainWidget::onConnectFromDevice);
+
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &MainWidget::onSettingChanged,
         this,
@@ -284,3 +286,9 @@ void MainWidget::onUserAvatarUpdated()
     ui->label_avatar->setPixmap(circular);
 }
 
+void MainWidget::onConnectFromDevice(QString code)
+{
+    dynamic_cast<ConnectWidget*>(WidgetManager::getInstance().getWidget(WidgetManager::WidgetType::ConnectWidget))->doConnect(code);
+    ui->btn_connection->setChecked(true);
+    on_btn_connection_clicked(true);
+}

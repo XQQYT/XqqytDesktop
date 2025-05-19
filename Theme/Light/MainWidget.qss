@@ -13,7 +13,7 @@ QWidget#left_btn_widget {
 
 QWidget#right_content_widget {
     
-	background-color: rgb(240, 240, 240);
+	background-color: rgb(255, 255, 255);
 }
 
 QLabel#label_avatar {
@@ -55,7 +55,7 @@ QPushButton#btn_settings:checked {
 }
 
 /* 圆形图标按钮（pushButton）样式 */
-QPushButton#btn_logo {
+QPushButton#btn_avatar {
     border-radius: 48px;
 	border: none;
 	border-image: url(:/images/pic/logo.png);

@@ -20,6 +20,8 @@ public:
     ConfigDriver(const std::string path);
     std::unique_ptr<std::unordered_map<std::string, std::unordered_map<std::string,std::string>>> getAllConfig() override;
     void updataConfig(std::unordered_map<std::string, std::unordered_map<std::string,std::string>>& config) override;
+    std::vector<std::map<std::string, std::string>> getDeviceList();
+    void updateDeviceList(const std::vector<std::map<std::string, std::string>>& list);
 private:
     void loadConfigFromFile();
 private:

@@ -24,8 +24,10 @@ private:
     void onWrite(); 
     void onRecvDeviceCode(std::string code);
     void onLoginResult(bool status);
+    void onDeviceListUpdated();
 private:
-    std::unique_ptr<ConfigInterface> config_driver;
+    std::unique_ptr<ConfigInterface> settings_config_driver;
+    std::unique_ptr<ConfigInterface> devices_config_driver;
     std::unordered_map<std::string, std::unordered_map<std::string, std::string>> updated_config;
     std::shared_mutex mtx;
 };

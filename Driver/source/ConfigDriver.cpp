@@ -33,7 +33,6 @@ void ConfigDriver::loadConfigFromFile()
         }
         infile.close();
         config_json = json::parse(config_str);
-        std::cout << "Loaded config string: " << config_str << std::endl;
     }
     else
     {
@@ -89,6 +88,54 @@ void ConfigDriver::updataConfig(std::unordered_map<std::string, std::unordered_m
         out_file << new_json.dump();
         out_file.close();
         config_json = new_json;
+    }
+    else
+    {
+        std::cout << "Failed to open config file for writing" << std::endl;
+    }
+}
+
+std::vector<std::map<std::string, std::string>> ConfigDriver::getDeviceList()
+{
+    std::vector<std::map<std::string, std::string>> result;
+    if (!config_json.contains("Devices") || !config_json["Devices"].is_array())
+        return result;
+
+    for (const auto& item : config_json["Devices"])
+    {
+        std::map<std::string, std::string> device;
+        for (auto it = item.begin(); it != item.end(); ++it)
+        {
+            if (it.value().is_string())
+                device[it.key()] = it.value();
+            else
+                device[it.key()] = it.value().dump();
+        }
+        result.push_back(std::move(device));
+    }
+    return result;
+}
+
+void ConfigDriver::updateDeviceList(const std::vector<std::map<std::string, std::string>>& list)
+{
+    json devices_json = json::array();
+    for (const auto& device_map : list)
+    {
+        json device_json;
+        for (const auto& [key, value] : device_map)
+        {
+            device_json[key] = value;
+        }
+        devices_json.push_back(std::move(device_json));
+    }
+
+    config_json["Devices"] = std::move(devices_json);
+
+    std::ofstream out_file(config_path);
+    if (out_file.is_open())
+    {
+        out_file << config_json.dump();
+        out_file.close();
     }
     else
     {

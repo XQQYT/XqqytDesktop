@@ -21,6 +21,7 @@ public:
     std::unique_ptr<Parser> getObj(std::string&& key) override;
     bool contain(std::string&& key) override;
     std::string toString() override;
+    std::vector<std::unique_ptr<Parser>> getArray(std::string&& key) override;
 private:
     json msg_json;
     bool has_loaded;
@@ -47,6 +48,7 @@ public:
     std::shared_ptr<std::string> user_register_device_code(std::string device_name) override;
     std::shared_ptr<std::string> user_login(std::string user_name, std::string password, std::string code) override;
     std::shared_ptr<std::string> user_register(std::string user_name, std::string password) override;
+    std::shared_ptr<std::string> user_get_device_list(std::string user_name) override;
 
 };
 

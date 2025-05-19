@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 class Parser
 {
@@ -19,6 +20,8 @@ public:
     virtual std::unique_ptr<Parser> getObj(std::string&& key) = 0;
     virtual bool contain(std::string&& ksssey) = 0;
     virtual std::string toString() = 0;
+    virtual std::vector<std::unique_ptr<Parser>> getArray(std::string&& key) = 0;
+
 };
 class JsonFactory
 {
@@ -42,6 +45,7 @@ public:
     virtual std::shared_ptr<std::string> user_register_device_code(std::string device_name) = 0;
     virtual std::shared_ptr<std::string> user_login(std::string user_name, std::string password, std::string code) = 0;
     virtual std::shared_ptr<std::string> user_register(std::string user_name, std::string password) = 0;
+    virtual std::shared_ptr<std::string> user_get_device_list(std::string user_name) = 0;
 };
 
 #endif

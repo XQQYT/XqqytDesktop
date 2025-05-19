@@ -189,6 +189,11 @@ void NetworkController::initNetworkSubscribe()
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/network/login_result",std::bind(
+        &NetworkController::onLoginResult,
+        this,
+        std::placeholders::_1
+    ));
 }
 
 
@@ -289,6 +294,18 @@ void NetworkController::onWebRTCInitDone()
 void NetworkController::onSendLogout()
 {
     sendToServer(*json_factory->ws_logout(std::move(UserInfoManager::getInstance().getCurrentUserId())));
+}
+
+void NetworkController::onLoginResult(bool status)
+{
+    std::cout<<"NetworkController::onLoginResult"<<std::endl;
+
+    if(status)
+    {
+        tcp_interface->sendMsg(*json_factory->user_get_device_list(UserInfoManager::getInstance().getUserName()));
+    }
+    std::cout<<"NetworkController::onLoginResult"<<std::endl;
+
 }
 
 void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std::string> args)

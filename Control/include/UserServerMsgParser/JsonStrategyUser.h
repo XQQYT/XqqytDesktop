@@ -25,4 +25,11 @@ public:
     ~DeviceCodeStrategy(){}
 };
 
+class DeviceListStrategy : public JsonStrategy
+{
+public:
+    void execute(std::unique_ptr<Parser> parser, Operator& controll_instance) override;
+    ~DeviceListStrategy(){}
+};
+
 #endif  //_JSONSTRATEGY_H

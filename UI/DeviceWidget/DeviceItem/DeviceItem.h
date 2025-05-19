@@ -10,6 +10,7 @@
 
 #include <QWidget>
 #include <QStyle>
+#include "DevicelistManager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class DeviceItem; }
@@ -23,6 +24,10 @@ public:
     DeviceItem(QWidget *parent = nullptr);
     ~DeviceItem();
     void retranslateUi();
+    void setDeviceName(std::string& name, std::string& comment);
+    void setDeviceIP(std::string& ip);
+    void setDeviceCode(std::string& code);
+    void loadDeviceInfo(DevicelistManager::DeviceInfo& info);
 protected:
     void enterEvent(QEvent *event) override;
     void leaveEvent(QEvent *event) override;

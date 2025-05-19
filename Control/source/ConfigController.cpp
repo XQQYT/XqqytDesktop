@@ -8,12 +8,23 @@
 #include "ConfigController.h"
 #include "ConfigDriver.h"
 #include "UserInfo.h"
+#include "DevicelistManager.h"
 #include <iostream>
 
 ConfigController::ConfigController()
 {
-    config_driver = std::make_unique<ConfigDriver>("settings.json");
-    SettingInfoManager::getInstance().initSettingInfo(std::move(config_driver->getAllConfig()));
+    settings_config_driver = std::make_unique<ConfigDriver>("settings.json");
+    devices_config_driver = std::make_unique<ConfigDriver>("devices.json");
+    SettingInfoManager::getInstance().initSettingInfo(std::move(settings_config_driver->getAllConfig()));
+
+    auto raw_device_list = devices_config_driver->getDeviceList();
+    std::vector<DevicelistManager::DeviceInfo> device_list;
+    for (const auto& m : raw_device_list)
+    {
+        device_list.push_back(DevicelistManager::DeviceInfo::fromMap(m));
+    }
+    DevicelistManager::getInstance().loadDeviceList(std::move(device_list));
+
     UserInfoManager::getInstance().setCurrentUserId((SettingInfoManager::getInstance().getValue("User","user_id")));
     std::cout<<"config init done"<<std::endl;
 }
@@ -41,7 +52,10 @@ void ConfigController::initConfigSubscribe()
         this,
         std::placeholders::_1
     ));
-
+    EventBus::getInstance().subscribe("/network/update_device_list",std::bind(
+        &ConfigController::onDeviceListUpdated,
+        this
+    ));
 }
 
 
@@ -60,7 +74,7 @@ void ConfigController::onUpdateModule(std::string module, std::string key, std::
 void ConfigController::onWrite()
 {
     std::shared_lock<std::shared_mutex> lock(mtx);
-    config_driver->updataConfig(*(SettingInfoManager::getInstance().getAllConfig()));
+    settings_config_driver->updataConfig(*(SettingInfoManager::getInstance().getAllConfig()));
 
     for (const auto& [module, key_value_map] : updated_config) {
         for (const auto& [key, value] : key_value_map) {
@@ -86,4 +100,16 @@ void ConfigController::onLoginResult(bool status)
         onWrite();
     }
 
+}
+
+void ConfigController::onDeviceListUpdated()
+{
+    auto devices = DevicelistManager::getInstance().getDeviceInfo();
+    std::vector<std::map<std::string, std::string>> list;
+
+    for(const auto& i : devices)
+    {
+        list.push_back(DevicelistManager::DeviceInfo::toMap(i));
+    }
+    devices_config_driver->updateDeviceList(list);
 }

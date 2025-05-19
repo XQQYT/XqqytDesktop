@@ -38,3 +38,8 @@ void WidgetManager::closeAllWidget()
         widget_ptr = nullptr;
     }
 }
+
+void WidgetManager::ConnectFromDevice(QString code)
+{
+    emit transConnectFromDevice(code);
+}

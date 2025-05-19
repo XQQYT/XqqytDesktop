@@ -15,6 +15,7 @@ target_include_directories(DeviceWidget PUBLIC
 # 链接 DeviceWidget 库
 target_link_libraries(DeviceWidget 
 Qt5::Widgets 
+WidgetManager
 DeviceItem
 utils
 Control

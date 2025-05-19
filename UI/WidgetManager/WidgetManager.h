@@ -36,6 +36,11 @@ public:
     QWidget* getWidget(const WidgetType type);
     ~WidgetManager();
     void closeAllWidget();
+
+signals:
+    void transConnectFromDevice(QString code);
+public slots:
+    void ConnectFromDevice(QString code);
 private:
     WidgetManager();
     void initWidget();

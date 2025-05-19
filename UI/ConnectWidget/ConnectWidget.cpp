@@ -32,6 +32,8 @@ ConnectWidget::ConnectWidget(QWidget *parent)
 
     connect(&key_authenticate_dialog,&KeyAuthenticationDialog::EnterDone,this,&ConnectWidget::onEnterKeyDone);
 
+    connect(ui->lineEdit_target_id, &QLineEdit::textChanged, this, &ConnectWidget::on_textChanged);
+    
     EventBus::getInstance().publish("/ui/connectwidget_init_done");
 }
 
@@ -129,9 +131,15 @@ void ConnectWidget::setUpdateKeyTimer()
     }
 }
 
+void ConnectWidget::doConnect(QString code)
+{
+    ui->lineEdit_target_id->setText(code);
+    on_btn_connect_clicked();
+}
+
 void ConnectWidget::on_btn_connect_clicked()
 {
-    std::string target_id = ui->lineEdit_target_id->text().toStdString();
+    std::string target_id = ui->lineEdit_target_id->text().remove(' ').toStdString();
     EventBus::getInstance().publish("/network/get_target_status",target_id);
     SettingInfoManager::getInstance().updataModuleConfig("ConnectInfo","last_connect_id",target_id);
     EventBus::getInstance().publish("/config/write_into_file");
@@ -148,15 +156,18 @@ void ConnectWidget::onEnterKeyDone(QString key)
 
 void ConnectWidget::onTargetStatus(bool target_status)
 {
-    if(target_status)
-    {
-        std::string establishing_target_id = UserInfoManager::getInstance().getEstablishingTargetId();
-        key_authenticate_dialog.show(SettingInfoManager::getInstance().getValue("ConnectInfo",establishing_target_id));
-    }
-    else
-    {
-        BubbleMessage::getInstance().error("Target is offline");
-    }
+    QMetaObject::invokeMethod(this, [target_status,this]() {
+        if(target_status)
+        {
+            std::string establishing_target_id = UserInfoManager::getInstance().getEstablishingTargetId();
+            key_authenticate_dialog.show(SettingInfoManager::getInstance().getValue("ConnectInfo",establishing_target_id));
+        }
+        else
+        {
+            BubbleMessage::getInstance().error("Target is offline");
+        }
+    });
+
 }
 
 void ConnectWidget::onRegistrationResult(bool result)
@@ -326,4 +337,26 @@ void ConnectWidget::onReceiveDeviceCode(std::string code)
         turnToRegularNum(new_code);
         ui->label_user_id_value->setText(new_code);
     }, Qt::QueuedConnection);
+}
+
+void ConnectWidget::on_textChanged(const QString &text)
+{
+    QString cleaned = text;
+    cleaned.remove(" ");
+
+    QString formatted;
+    for (int i = 0; i < cleaned.length(); ++i) {
+        if (i > 0 && i % 3 == 0) {
+            formatted += " ";
+        }
+        formatted += cleaned[i];
+    }
+
+    if (formatted != text) {
+        int cursorPos = ui->lineEdit_target_id->cursorPosition();
+        ui->lineEdit_target_id->blockSignals(true); 
+        ui->lineEdit_target_id->setText(formatted);
+        ui->lineEdit_target_id->setCursorPosition(cursorPos + (formatted.length() - text.length()));
+        ui->lineEdit_target_id->blockSignals(false);
+    }
 }

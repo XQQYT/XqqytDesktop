@@ -31,10 +31,12 @@ class ConnectWidget : public QWidget
 public:
     ConnectWidget(QWidget *parent = nullptr);
     ~ConnectWidget();
+    void doConnect(QString code);
 private slots:
     void on_btn_connect_clicked();
     void on_btn_dynamic_key_value_clicked();
     void on_btn_share_clicked();
+    void on_textChanged(const QString &text);
 private:
     void initSubscribe();
     template <typename Sender, typename Signal, typename Receiver, typename Slot>
@@ -46,7 +48,6 @@ private:
 
     void setUpdateKeyTimer();
     void resetUpdateKeyTimer(int64_t last_update_timestamp);
-
 private:
     void onTargetStatus(bool target_status);
     void onConnectServerFailed();

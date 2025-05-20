@@ -7,7 +7,8 @@ enum class UserMsgType
 {
     RegisterDeviceCode,
     LOGIN,
-    REGISTER
+    REGISTER,
+    UPDATEAVATAR
 };
 
 #endif //_GLOBALENUM_H

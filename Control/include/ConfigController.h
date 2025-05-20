@@ -27,6 +27,7 @@ private:
     void onDeviceListUpdated();
     void onUpdateDeviceComment(std::string code, std::string new_comment);
     void onDeleteDevice(std::string code);
+    void onCopyFile(std::string source_path, std::string des_path, std::function<void()> callback);
 private:
     std::unique_ptr<ConfigInterface> settings_config_driver;
     std::unique_ptr<ConfigInterface> devices_config_driver;

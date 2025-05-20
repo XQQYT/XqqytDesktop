@@ -22,7 +22,11 @@ public:
     UserProfileWidget(QWidget *parent = nullptr);
     ~UserProfileWidget();
     void loadUserInfo();
-private:
+private slots:
+    void on_btn_upload_avatar_clicked();
+    void on_btn_change_password_clicked();
+    void on_btn_change_username_clicked();
+    void on_btn_logout_clicked();
 private:
     Ui::UserProfileWidget *ui;
 };

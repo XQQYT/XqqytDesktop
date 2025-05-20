@@ -22,6 +22,7 @@
 /network/delete_device
 /network/delete_device_in_config
 /network/delete_device_result
+/network/upload_avatar_result
 
 /webrtc/init_webrtc_done
 /webrtc/remote_ready
@@ -49,3 +50,4 @@
 /config/update_module_config_done
 /config/write_into_file
 /config/module_config_updated
+/config/copy_file

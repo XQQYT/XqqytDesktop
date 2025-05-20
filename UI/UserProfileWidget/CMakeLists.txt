@@ -12,6 +12,7 @@ target_include_directories(UserProfileWidget PUBLIC
 
 target_link_libraries(UserProfileWidget 
 Qt5::Widgets 
+Dialog
 Control
 utils
 )

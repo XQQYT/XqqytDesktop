@@ -49,6 +49,28 @@ MainWidget::MainWidget(QWidget *parent)
         &MainWidget::onUserAvatarUpdated,
         this
     ));
+    EventBus::getInstance().subscribe("/network/upload_avatar_result",[this](bool status){
+        QMetaObject::invokeMethod(this, [=]() {
+            std::string user_name = UserInfoManager::getInstance().getUserName();
+            if(status)
+            {
+                loadUserInfo(user_name);
+                BubbleMessage::getInstance().show("Upload avatar success!");
+            }
+            else
+            {
+                std::string avatar_path("User/Avatar/" + user_name);
+                std::string tmp_path("User/tmp/"+ user_name);
+
+                QPixmap avatar(QString::fromStdString(tmp_path));
+                QPixmap circular = createCircularPixmap(avatar, ui->label_avatar->width());
+                ui->label_avatar->setPixmap(circular);
+
+                EventBus::getInstance().publish("/config/copy_file", tmp_path, avatar_path, std::function<void()>());
+                BubbleMessage::getInstance().show("Failed to upload avatar");
+            }
+        }, Qt::QueuedConnection);
+    });
     
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
     // 居中窗口

@@ -10,6 +10,7 @@
 #include "UserInfo.h"
 #include "DevicelistManager.h"
 #include <iostream>
+#include <filesystem>
 
 ConfigController::ConfigController()
 {
@@ -66,6 +67,13 @@ void ConfigController::initConfigSubscribe()
         &ConfigController::onDeleteDevice,
         this,
         std::placeholders::_1
+    ));
+    EventBus::getInstance().subscribe("/config/copy_file",std::bind(
+        &ConfigController::onCopyFile,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3
     ));
     
 }
@@ -136,4 +144,15 @@ void ConfigController::onDeleteDevice(std::string code)
     std::cout<<"delete "<<code<<std::endl;
     DevicelistManager::getInstance().deleteDevice(code);
     onDeviceListUpdated();
+}
+
+void ConfigController::onCopyFile(std::string source_path, std::string des_path, std::function<void()> callback)
+{
+    std::cout<<"copy "<<source_path<<" -> "<<des_path<<std::endl;
+    std::filesystem::copy_file(
+        source_path, des_path,
+        std::filesystem::copy_options::overwrite_existing
+    );
+    if(callback)
+        callback();
 }

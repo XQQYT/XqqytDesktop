@@ -34,6 +34,7 @@ private:
     void onCopyDeviceInfo(QString device_name, QString device_code, QString device_ip);
     void onEditDeviceComment(QString code, QString new_comment);
     void onDeleteDevice(QString code);
+    void onUpdateDeviceCommentResult(bool result);
 private:
     Ui::DeviceWidget *ui;
 };

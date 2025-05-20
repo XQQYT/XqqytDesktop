@@ -42,5 +42,6 @@ protected:
 private:
     Ui::DeviceItem *ui;
     QString code;
+    QString name;
 };
 #endif // DEVICEITEM_H

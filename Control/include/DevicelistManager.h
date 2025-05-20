@@ -57,6 +57,17 @@ public:
     {
         return device_list;
     }
+    void updateCommentByCode(const std::string& code, const std::string& new_comment)
+    {
+        for (auto& device : device_list)
+        {
+            if (device.code == code)
+            {
+                device.comment = new_comment;
+                return;
+            }
+        }
+    }
 private:
     std::vector<DeviceInfo> device_list;
 };

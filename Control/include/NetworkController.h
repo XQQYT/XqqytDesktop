@@ -51,10 +51,10 @@ public:
     void onSendToUserServer(UserMsgType msg_type, std::vector<std::string> args);
     void onReConnectToSignalServer(std::string code);
     void onLoginResult(bool status);
+    void onDeviceCommentUpdated(std::string device_code, std::string new_comment);
 private:
     void onGetTargetStatus(std::string target_id);
     void onConnectToTarget(std::string target_id, std::string key);
-    // void onHaveUserServerMsg()
 private:
     std::shared_ptr<NetworkInterface> websocket_interface;
     std::unique_ptr<NetworkInterface> tcp_interface;

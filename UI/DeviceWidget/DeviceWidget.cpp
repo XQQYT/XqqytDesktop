@@ -34,6 +34,11 @@ DeviceWidget::DeviceWidget(QWidget *parent)
         &DeviceWidget::onDeviceListUpdated,
         this
     ));
+    EventBus::getInstance().subscribe("/network/update_device_comment_result",std::bind(
+        &DeviceWidget::onUpdateDeviceCommentResult,
+        this,
+        std::placeholders::_1
+    ));
 }
 
 DeviceWidget::~DeviceWidget()
@@ -143,10 +148,21 @@ void DeviceWidget::onCopyDeviceInfo(QString device_name, QString device_code, QS
 
 void DeviceWidget::onEditDeviceComment(QString code, QString new_comment)
 {
-    std::cout<<"edit "<<code.toStdString() <<" "<<new_comment.toStdString()<<std::endl;
+    EventBus::getInstance().publish("/network/update_device_comment", code.toStdString(), new_comment.toStdString());
 }
 
 void DeviceWidget::onDeleteDevice(QString code)
 {
     std::cout<<"delete "<<code.toStdString()<<std::endl;
+}
+
+void DeviceWidget::onUpdateDeviceCommentResult(bool result)
+{
+    QMetaObject::invokeMethod(this, [=]() {
+        if(result)
+            BubbleMessage::getInstance().show("Update device comment success");
+        else
+            BubbleMessage::getInstance().show("Failed to Update device comment");
+    }, Qt::QueuedConnection);
+
 }

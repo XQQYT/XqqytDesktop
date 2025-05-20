@@ -19,7 +19,7 @@ class MoreDialog : public QDialog
     Q_OBJECT
 
 public:
-    MoreDialog(QString code, QWidget *parent = nullptr);
+    MoreDialog(QString code,QString name, QWidget *parent = nullptr);
     ~MoreDialog();
 signals:
     void copyDeviceInfo();
@@ -32,5 +32,6 @@ private slots:
 private:
     Ui::MoreDialog *ui;
     QString device_code;
+    QString device_name;
 };
 #endif // MOREDIALOG_H

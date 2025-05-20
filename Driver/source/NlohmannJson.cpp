@@ -269,6 +269,19 @@ std::shared_ptr<std::string> NlohmannJson::user_get_device_list(std::string user
         return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::user_update_device_comment(std::string user_name, std::string device_code, std::string new_comment)
+{
+    json result_msg = {
+        {"type", "update_device_comment"},
+        {"content", {
+            {"user_name", std::move(user_name)},
+            {"device_code", std::move(device_code)},
+            {"new_comment", std::move(new_comment)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
 std::unique_ptr<Parser> NlohmannJson::getParser()
 {
     return std::make_unique<NlohmannJsonParser>();

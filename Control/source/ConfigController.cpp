@@ -56,6 +56,13 @@ void ConfigController::initConfigSubscribe()
         &ConfigController::onDeviceListUpdated,
         this
     ));
+    EventBus::getInstance().subscribe("/network/update_device_comment",std::bind(
+        &ConfigController::onUpdateDeviceComment,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
+    ));
+    
 }
 
 
@@ -68,7 +75,6 @@ void ConfigController::onUpdateModule(std::string module, std::string key, std::
         updated_config[module][key] = value;
     }
     EventBus::getInstance().publish("/config/update_module_config_done", module, key, value);
-    std::cout << "publish done" << std::endl;
 }
 
 void ConfigController::onWrite()
@@ -112,4 +118,10 @@ void ConfigController::onDeviceListUpdated()
         list.push_back(DevicelistManager::DeviceInfo::toMap(i));
     }
     devices_config_driver->updateDeviceList(list);
+}
+
+void ConfigController::onUpdateDeviceComment(std::string code, std::string new_comment)
+{
+    DevicelistManager::getInstance().updateCommentByCode(code, new_comment);
+    onDeviceListUpdated();
 }

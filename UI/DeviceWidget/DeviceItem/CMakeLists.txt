@@ -4,6 +4,7 @@
 add_library(DeviceItem STATIC
 DeviceItem.cpp
 MoreDialog/MoreDialog.cpp
+EditDeviceCommentDialog/EditDeviceCommentDialog.cpp
 )
 
 # 添加 DeviceItem 的头文件目录

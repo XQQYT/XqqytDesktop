@@ -46,6 +46,7 @@ public:
     virtual std::shared_ptr<std::string> user_login(std::string user_name, std::string password, std::string code) = 0;
     virtual std::shared_ptr<std::string> user_register(std::string user_name, std::string password) = 0;
     virtual std::shared_ptr<std::string> user_get_device_list(std::string user_name) = 0;
+    virtual std::shared_ptr<std::string> user_update_device_comment(std::string user_name, std::string device_code, std::string new_comment) = 0;
 };
 
 #endif

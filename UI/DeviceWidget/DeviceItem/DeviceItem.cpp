@@ -43,6 +43,7 @@ void DeviceItem::retranslateUi()
 
 void DeviceItem::setDeviceName(std::string& name, std::string& comment)
 {
+    this->name = QString::fromStdString(name);
     ui->label_device_name->setText(comment.empty() ? QString::fromStdString(name) : QString::fromStdString(comment));
 }
 
@@ -73,11 +74,14 @@ void DeviceItem::on_btn_connect_to_device_clicked()
 
 void DeviceItem::on_btn_more_clicked()
 {
-    MoreDialog* dialog = new MoreDialog(code,this);
+    MoreDialog* dialog = new MoreDialog(code,name,this);
     connect(dialog,&MoreDialog::copyDeviceInfo,this,[this](){
         emit copyDeviceInfo(ui->label_device_name->text(), code, ui->label_ip->text().remove("   IP: "));
     });
     connect(dialog,&MoreDialog::editComment,this,[this](QString new_comment){
+        std::string device_name = name.toStdString();
+        std::string comment = new_comment.toStdString();
+        setDeviceName(device_name, comment);
         emit editDeviceComment(code ,new_comment);
     });
     connect(dialog,&MoreDialog::deleteDevice,this,[this](){

@@ -7,10 +7,12 @@
 
 #include "MoreDialog.h"
 #include "ui_MoreDialog.h"
+#include "../EditDeviceCommentDialog/EditDeviceCommentDialog.h"
 #include <iostream>
 
-MoreDialog::MoreDialog(QString code, QWidget *parent)
+MoreDialog::MoreDialog(QString code,QString name, QWidget *parent)
     : QDialog(parent),
+    device_name(name),
     device_code(code)
     , ui(new Ui::MoreDialog)
 {
@@ -30,7 +32,11 @@ void MoreDialog::on_btn_copy_info_clicked()
 
 void MoreDialog::on_btn_edit_comment_clicked()
 {
-    emit editComment("qyt");
+    EditDeviceCommentDialog* edit_dailog = new EditDeviceCommentDialog(device_name);
+    connect(edit_dailog,&EditDeviceCommentDialog::editComment,this,[this](QString new_comment){
+        emit editComment(new_comment);
+    });
+    edit_dailog->exec();
     reject();
 }
 

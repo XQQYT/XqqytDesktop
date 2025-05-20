@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UserProfileWidget</class>
+ <widget class="QWidget" name="UserProfileWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>480</width>
+    <height>360</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>User Profile</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+/* Dark Theme Base */
+QWidget {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* GroupBox Container */
+QGroupBox {
+    background: #2c2c2c;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 8px;
+    padding: 0 4px;
+    color: #aaa;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Avatar Label */
+#label_avatar {
+    border: 1px dashed #555;
+    background-color: #333;
+    color: #aaa;
+    font-size: 12px;
+}
+
+/* General Buttons */
+QPushButton {
+    padding: 4px 10px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #3a3a3a;
+    font-size: 14px;
+    min-height: 24px;
+}
+
+QPushButton:hover {
+    background-color: #505050;
+}
+
+QPushButton:pressed {
+    background-color: #2c2c2c;
+    border-color: #666;
+}
+
+/* Primary Buttons */
+#btn_change_username, #btn_change_password, #btn_upload_avatar {
+    border-color: #4a8cff;
+    background-color: #4a8cff;
+    color: white;
+}
+
+#btn_change_username:hover, #btn_change_password:hover, #btn_upload_avatar:hover {
+    background-color: #3a7cdf;
+    border-color: #3a7cdf;
+}
+
+#btn_change_username:pressed, #btn_change_password:pressed, #btn_upload_avatar:pressed {
+    background-color: #2a6ccd;
+    border-color: #2a6ccd;
+}
+
+/* Logout Button */
+#btn_logout {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+    margin: 12px;
+}
+
+#btn_logout:hover {
+    background-color: #3a1e1e;
+}
+
+#btn_logout:pressed {
+    background-color: #2a1212;
+    border-color: #ff4b4b;
+}
+
+/* Layout Spacing */
+QVBoxLayout {
+    spacing: 8px;
+}
+
+QHBoxLayout {
+    spacing: 10px;
+}
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <item>
+    <layout class="QHBoxLayout" name="topRow">
+     <item>
+      <widget class="QGroupBox" name="avatarGroup">
+       <property name="title">
+        <string>Profile Image</string>
+       </property>
+       <layout class="QVBoxLayout" name="avatarLayout">
+        <item>
+         <widget class="QLabel" name="label_avatar">
+          <property name="minimumSize">
+           <size>
+            <width>120</width>
+            <height>120</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border-radius: 60px;</string>
+          </property>
+          <property name="text">
+           <string>No image</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_upload_avatar">
+          <property name="text">
+           <string>Upload Image</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="userInfoGroup">
+       <property name="title">
+        <string>Account</string>
+       </property>
+       <layout class="QVBoxLayout" name="userInfoLayout">
+        <item>
+         <widget class="QLabel" name="label_username">
+          <property name="styleSheet">
+           <string notr="true">font-size: 18px; font-weight: 500;</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_change_username">
+          <property name="text">
+           <string>Change Username</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_change_password">
+          <property name="text">
+           <string>Change Password</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btn_logout">
+     <property name="text">
+      <string>Log Out</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

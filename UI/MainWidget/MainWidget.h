@@ -12,6 +12,7 @@
 #include "WidgetManager.h"
 #include "LoginDialog.h"
 #include "BubbleMessage.h"
+#include "UserProfileWidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWidget; }

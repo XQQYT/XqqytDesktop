@@ -244,7 +244,9 @@ void MainWidget::on_btn_username_clicked()
     }
     else
     {
-        std::cout<<"Personal center"<<std::endl;
+        UserProfileWidget* personal_center = new UserProfileWidget(this);
+        personal_center->exec();
+        DialogOperator::centerDialog(*personal_center);
     }
 }
 

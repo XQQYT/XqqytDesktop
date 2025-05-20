@@ -23,7 +23,8 @@ class GeneralLineEditDialog : public QDialog
 public:
     GeneralLineEditDialog(QString title, QWidget *parent = nullptr);
     ~GeneralLineEditDialog();
-    void addLineEdit(QString text);
+    void addLineEdit(QString text, bool is_password);
+    void setTip(QString tip);
 signals:
     void enterDone(QVector<QString> input_content);
 private slots:

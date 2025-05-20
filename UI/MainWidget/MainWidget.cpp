@@ -59,6 +59,12 @@ MainWidget::MainWidget(QWidget *parent)
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/network/update_user_password_result",[this](bool result){
+        if(result)
+            BubbleMessage::getInstance().show("Update password success!");
+        else
+            BubbleMessage::getInstance().error("Failed to update password");
+    });
     
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
     // 居中窗口
@@ -325,7 +331,7 @@ void MainWidget::onUploadUserAvatarResult(bool status)
             ui->label_avatar->setPixmap(circular);
 
             EventBus::getInstance().publish("/config/copy_file", tmp_path, avatar_path, std::function<void()>());
-            BubbleMessage::getInstance().show("Failed to upload avatar");
+            BubbleMessage::getInstance().error("Failed to upload avatar");
         }
     }, Qt::QueuedConnection);
 }
@@ -339,20 +345,18 @@ void MainWidget::onUserNameUpdateResult(bool status)
             std::string new_avatar_dir("User/Avatar/" + UserInfoManager::getInstance().getChangingUserName());
 
             EventBus::getInstance().publish("/config/rename_file",avatar_dir, new_avatar_dir,std::function<void()>([this](){
-                std::cout<<"start"<<std::endl;
                 UserInfoManager::getInstance().setUserName(UserInfoManager::getInstance().getChangingUserName());
                 UserInfoManager::getInstance().setChangingUserName("");
                 EventBus::getInstance().publish("/config/update_module_config",std::string("User"),std::string("user_name"),UserInfoManager::getInstance().getUserName(), true);
                 QMetaObject::invokeMethod(this, [=]() {
                     loadUserInfo(UserInfoManager::getInstance().getUserName());
                 }, Qt::QueuedConnection);
-                std::cout<<"end"<<std::endl;
             }));
             BubbleMessage::getInstance().show("Update user name success!");
         }
         else
         {
-            BubbleMessage::getInstance().show("Failed to update user name");
+            BubbleMessage::getInstance().error("Failed to update user name");
         }
     }, Qt::QueuedConnection);
 }

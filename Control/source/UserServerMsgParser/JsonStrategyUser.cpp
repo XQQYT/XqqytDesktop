@@ -42,8 +42,11 @@ void ResponseStrategy::execute(std::unique_ptr<Parser> parser, Operator& control
         }
         else if(subtype == "update_user_name")
         {
-            std::cout<<"update user name status -> "<<status<<std::endl;
             controll_instance.dispatch_bool("/network/update_username_result", statusToBool(status));
+        }
+        else if(subtype == "update_user_password")
+        {
+            controll_instance.dispatch_bool("/network/update_user_password_result", statusToBool(status));
         }
     }
     

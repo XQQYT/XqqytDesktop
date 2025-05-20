@@ -168,7 +168,7 @@ void DeviceWidget::onUpdateDeviceCommentResult(bool result)
         if(result)
             BubbleMessage::getInstance().show("Update device comment success");
         else
-            BubbleMessage::getInstance().show("Failed to Update device comment");
+            BubbleMessage::getInstance().error("Failed to Update device comment");
     }, Qt::QueuedConnection);
 
 }

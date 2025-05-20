@@ -9,7 +9,8 @@ enum class UserMsgType
     LOGIN,
     REGISTER,
     UPDATEAVATAR,
-    UPDATEUSERNAME
+    UPDATEUSERNAME,
+    UPDATEPASSWORD
 };
 
 #endif //_GLOBALENUM_H

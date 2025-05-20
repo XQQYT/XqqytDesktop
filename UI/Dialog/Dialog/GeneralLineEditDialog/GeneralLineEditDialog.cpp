@@ -34,7 +34,6 @@ void GeneralLineEditDialog::on_btn_done_clicked()
         content.append(i->text());
     }
     emit enterDone(content);
-    reject();
 }
 
 void GeneralLineEditDialog::on_btn_cancel_clicked()
@@ -42,11 +41,18 @@ void GeneralLineEditDialog::on_btn_cancel_clicked()
     reject();
 }
 
-void GeneralLineEditDialog::addLineEdit(QString text)
+void GeneralLineEditDialog::addLineEdit(QString text, bool is_password)
 {
     QLineEdit* line_edit = new QLineEdit(this);
     line_edit->setPlaceholderText(text);
     ui->verticalLayout->addWidget(line_edit);
     line_edit_list.append(line_edit);
     line_edit_list[0]->setFocus();
+    if(is_password)
+        line_edit->setEchoMode(QLineEdit::Password);
+}
+
+void GeneralLineEditDialog::setTip(QString tip)
+{
+    ui->label_tip->setText(tip);
 }

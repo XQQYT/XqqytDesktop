@@ -74,6 +74,16 @@ QPushButton#btn_done:hover {
     <layout class="QVBoxLayout" name="verticalLayout"/>
    </item>
    <item>
+    <widget class="QLabel" name="label_tip">
+     <property name="styleSheet">
+      <string notr="true">color:red;</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="buttonLayout">
      <item>
       <spacer name="horizontalSpacer">

@@ -11,6 +11,7 @@
 #include "UserInfo.h"
 #include "EventBus.h"
 #include "GlobalEnum.h"
+#include "InfoDialog.h"
 #include "BubbleMessage.h"
 #include "GeneralLineEditDialog.h"
 #include <QLabel>
@@ -84,19 +85,40 @@ void UserProfileWidget::on_btn_upload_avatar_clicked()
 
 void UserProfileWidget::on_btn_change_password_clicked()
 {
-    std::cout<<"change password"<<std::endl;
+    GeneralLineEditDialog *dialog = new GeneralLineEditDialog("Update Password", this);
+    
+    connect(dialog, &GeneralLineEditDialog::enterDone, this, [this,&dialog](QVector<QString> content) {
+        if (content.size() < 3) {
+            dialog->setTip("Incomplete input");
+        }
+        else if (content[0].isEmpty()) {
+            dialog->setTip("Current password is empty");
+        }
+        else if (content[1] != content[2]) {
+            dialog->setTip("Passwords do not match");
+        }
+        dialog->close();
+        std::vector<std::string> args = {content[0].toStdString(), content[1].toStdString()};
+        EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEPASSWORD, std::move(args));
+    });
+
+    dialog->addLineEdit("Current Password", true);
+    dialog->addLineEdit("New Password", true);
+    dialog->addLineEdit("Confirm New Password", true);
+    
+    dialog->exec(); 
 }
 
 void UserProfileWidget::on_btn_change_username_clicked()
 {
-    GeneralLineEditDialog dialog("Update user name", this);
+    GeneralLineEditDialog dialog("Update User Name", this);
     connect(&dialog,&GeneralLineEditDialog::enterDone,this,[=](QVector<QString> content){
         std::vector<std::string> args = {content[0].toStdString()};
         EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEUSERNAME, std::move(args));
         UserInfoManager::getInstance().setChangingUserName(content[0].toStdString());
         ui->label_username->setText(content[0]);
     });
-    dialog.addLineEdit("New user name");
+    dialog.addLineEdit("New User Name", false);
     dialog.exec(); 
 }
 

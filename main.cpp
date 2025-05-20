@@ -35,6 +35,8 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/network/upload_avatar_result");
     EventBus::getInstance().registerEvent("/network/update_username_result");
     EventBus::getInstance().registerEvent("/network/update_user_password_result");
+    EventBus::getInstance().registerEvent("/network/register_device_result");
+    EventBus::getInstance().registerEvent("/network/get_device_list_result");
 
     EventBus::getInstance().registerEvent("/webrtc/init_webrtc_done");
     EventBus::getInstance().registerEvent("/webrtc/remote_ready");

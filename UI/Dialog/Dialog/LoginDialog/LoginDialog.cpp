@@ -17,12 +17,20 @@ LoginDialog::LoginDialog(QWidget *parent)
     , ui(new Ui::LoginDialog)
 {
     ui->setupUi(this);
+
+    loading_dialog = new LoadingDialog(this);
+    timeout_timer = new QTimer(this);
+
+    connect(timeout_timer,&QTimer::timeout,this,[=](){
+        loading_dialog->close();
+        ui->label_hint->setText("Request timeout");
+    });
+
     connect(&register_dialog,&RegisterDialog::RegisterDialogClosed,this,[=](){
         this->show();
         DialogOperator::centerDialog(*this);
     });
     connect(&register_dialog,&RegisterDialog::EnterDone,this,[=](QString username, QString password, QString avatar_path){
-        std::cout<<"emit RegisterEnterDone(username, password, avatar_path);"<<std::endl;
         emit RegisterEnterDone(username, password, avatar_path);
     });
 }
@@ -41,9 +49,10 @@ void LoginDialog::on_btn_login_clicked()
         return;
     }
     emit EnterDone(username,password);
-    DialogOperator::centerDialog(loading_dialog);
+    DialogOperator::centerDialog(*loading_dialog);
     UserInfoManager::getInstance().setUserName(username.toStdString());
-    loading_dialog.exec();
+    timeout_timer->start(10000);
+    loading_dialog->exec();
 }
 
 void LoginDialog::on_btn_register_clicked()
@@ -57,14 +66,15 @@ void LoginDialog::onLoginResult(bool status)
 {
     if(status)
     {
-        reject();
         ui->label_hint->clear();
+        ui->lineEdit_username->clear();
+        close();
     }
     else
     {
         UserInfoManager::getInstance().setUserName("null");
         ui->label_hint->setText("Authentication failed. Please check if the username and password are correct.");
-        ui->lineEdit_password->clear();
     }
-    loading_dialog.close();
+    ui->lineEdit_password->clear();
+    loading_dialog->close();
 }

@@ -83,7 +83,8 @@ void DeviceWidget::onSettingChanged(std::string module, std::string key, std::st
     {
         QMetaObject::invokeMethod(this, [=]() {
             ui->retranslateUi(this);
-            onDeviceListUpdated();
+            if(UserInfoManager::getInstance().getUserName() != "null")
+                onDeviceListUpdated();
             for (int i = 0; i < ui->listWidget->count(); ++i) {
                 QListWidgetItem* item = ui->listWidget->item(i);
                 if (item) {
@@ -196,4 +197,9 @@ void DeviceWidget::onDeleteDeviceResult(bool result)
         }
         code_need_to_delete.clear();
     }, Qt::QueuedConnection);
+}
+
+void DeviceWidget::clearDevices()
+{
+    ui->listWidget->clear();
 }

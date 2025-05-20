@@ -20,13 +20,31 @@ MainWidget::MainWidget(QWidget *parent)
     current_btn = ui->btn_connection;
     this->setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint);
     
-    connect(&login_dialog,&LoginDialog::EnterDone,this,&MainWidget::onEnterLoginDone);
-    connect(&login_dialog,&LoginDialog::RegisterEnterDone,this,&MainWidget::onEnterRegisterDone);
-    connect(this, &MainWidget::LoginResult, &login_dialog, &LoginDialog::onLoginResult);
-    connect(this, &MainWidget::RegisterResult, &login_dialog.register_dialog, &RegisterDialog::onRegisterResult);
+    login_dialog = new LoginDialog(this);
+
+    connect(login_dialog,&LoginDialog::EnterDone,this,&MainWidget::onEnterLoginDone);
+    connect(login_dialog,&LoginDialog::RegisterEnterDone,this,&MainWidget::onEnterRegisterDone);
+    connect(this, &MainWidget::LoginResult, login_dialog, &LoginDialog::onLoginResult);
+    connect(this, &MainWidget::RegisterResult, &login_dialog->register_dialog, &RegisterDialog::onRegisterResult);
     
     connect(&WidgetManager::getInstance(),&WidgetManager::transConnectFromDevice,this,&MainWidget::onConnectFromDevice);
 
+    initSubscribe();
+
+    setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
+    // 居中窗口
+    QScreen *screen = QGuiApplication::primaryScreen();
+    QRect screenGeometry = screen->geometry();
+    int x = screenGeometry.x() + (screenGeometry.width() - this->width()) / 2;
+    int y = screenGeometry.y() + (screenGeometry.height() - this->height()) / 2;
+    this->move(x, y);
+
+    loadUserInfo(SettingInfoManager::getInstance().getValue("User","user_name"));
+    switchLanguage(SettingInfoManager::getInstance().getValue("General","language"));
+}
+
+void MainWidget::initSubscribe()
+{
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &MainWidget::onSettingChanged,
         this,
@@ -65,17 +83,14 @@ MainWidget::MainWidget(QWidget *parent)
         else
             BubbleMessage::getInstance().error("Failed to update password");
     });
-    
-    setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
-    // 居中窗口
-    QScreen *screen = QGuiApplication::primaryScreen();
-    QRect screenGeometry = screen->geometry();
-    int x = screenGeometry.x() + (screenGeometry.width() - this->width()) / 2;
-    int y = screenGeometry.y() + (screenGeometry.height() - this->height()) / 2;
-    this->move(x, y);
-
-    loadUserInfo(SettingInfoManager::getInstance().getValue("User","user_name"));
-    switchLanguage(SettingInfoManager::getInstance().getValue("General","language"));
+    EventBus::getInstance().subscribe("/network/register_device_result",[this](bool result){
+        if(!result)
+            BubbleMessage::getInstance().error("Failed to register device");
+    });
+    EventBus::getInstance().subscribe("/network/get_device_list_result",[this](bool result){
+        if(!result)
+            BubbleMessage::getInstance().error("Failed to get device list");
+    });
 }
 
 MainWidget::~MainWidget()
@@ -256,12 +271,18 @@ void MainWidget::on_btn_username_clicked()
     std::string current_user_name = UserInfoManager::getInstance().getUserName();
     if(current_user_name == "null")
     {
-        DialogOperator::centerDialog(login_dialog);
-        login_dialog.exec();
+        DialogOperator::centerDialog(*login_dialog);
+        login_dialog->exec();
     }
     else
     {
         UserProfileWidget* personal_center = new UserProfileWidget(this);
+        connect(personal_center,&UserProfileWidget::logout,this,[=](){
+            EventBus::getInstance().publish("/config/update_module_config",std::string("User"),std::string("user_name"),std::string("null"), true);
+            loadUserInfo("null");
+            updateUserNameBtn();
+            dynamic_cast<DeviceWidget*>(WidgetManager::getInstance().getWidget(WidgetManager::WidgetType::DeviceWidget))->clearDevices();
+        });
         personal_center->exec();
         DialogOperator::centerDialog(*personal_center);
     }

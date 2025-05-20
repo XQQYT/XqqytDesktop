@@ -111,18 +111,20 @@ void UserProfileWidget::on_btn_change_password_clicked()
 
 void UserProfileWidget::on_btn_change_username_clicked()
 {
-    GeneralLineEditDialog dialog("Update User Name", this);
-    connect(&dialog,&GeneralLineEditDialog::enterDone,this,[=](QVector<QString> content){
+    GeneralLineEditDialog *dialog = new GeneralLineEditDialog("Update User Name", this);
+    connect(dialog,&GeneralLineEditDialog::enterDone,this,[=](QVector<QString> content){
         std::vector<std::string> args = {content[0].toStdString()};
         EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEUSERNAME, std::move(args));
         UserInfoManager::getInstance().setChangingUserName(content[0].toStdString());
         ui->label_username->setText(content[0]);
+        dialog->close();
     });
-    dialog.addLineEdit("New User Name", false);
-    dialog.exec(); 
+    dialog->addLineEdit("New User Name", false);
+    dialog->exec(); 
 }
 
 void UserProfileWidget::on_btn_logout_clicked()
 {
-    std::cout<<"log out"<<std::endl;
+    emit logout();
+    close();
 }

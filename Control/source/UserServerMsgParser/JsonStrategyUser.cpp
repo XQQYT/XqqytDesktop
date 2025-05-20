@@ -48,6 +48,14 @@ void ResponseStrategy::execute(std::unique_ptr<Parser> parser, Operator& control
         {
             controll_instance.dispatch_bool("/network/update_user_password_result", statusToBool(status));
         }
+        else if(subtype == "register_device")
+        {
+            controll_instance.dispatch_bool("/network/register_device_result", statusToBool(status));
+        }
+        else if(subtype == "get_device_list")
+        {
+            controll_instance.dispatch_bool("/network/get_device_list_result", statusToBool(status));
+        }
     }
     
 }

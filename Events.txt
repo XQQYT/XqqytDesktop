@@ -25,6 +25,8 @@
 /network/upload_avatar_result
 /network/update_username_result
 /network/update_user_password_result
+/network/register_device_result
+/network/get_device_list_result
 
 /webrtc/init_webrtc_done
 /webrtc/remote_ready

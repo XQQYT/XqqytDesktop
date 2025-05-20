@@ -22,6 +22,8 @@ public:
     UserProfileWidget(QWidget *parent = nullptr);
     ~UserProfileWidget();
     void loadUserInfo();
+signals:
+    void logout();
 private slots:
     void on_btn_upload_avatar_clicked();
     void on_btn_change_password_clicked();

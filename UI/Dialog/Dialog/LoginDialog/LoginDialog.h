@@ -11,6 +11,7 @@
 #include <QDialog>
 #include "RegisterDialog.h"
 #include "LoadingDialog.h"
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class LoginDialog; }
@@ -36,6 +37,7 @@ private slots:
 private:
     Ui::LoginDialog *ui;
     QWidget* parent;
-    LoadingDialog loading_dialog;
+    LoadingDialog* loading_dialog;
+    QTimer* timeout_timer;
 };
 #endif // LOGIN_H

@@ -39,6 +39,7 @@ signals:
     void LoginResult(bool status);
     void RegisterResult(bool status);
 private:
+    void initSubscribe();
     void onSettingChanged(std::string module, std::string key, std::string value);
     void switchLanguage(const std::string language);
     void loadUserInfo(std::string user_name);
@@ -53,6 +54,6 @@ private:
     WidgetManager::WidgetType current_widget;
     QPushButton* current_btn;
     QTranslator *translator;
-    LoginDialog login_dialog;
+    LoginDialog* login_dialog;
 };
 #endif // MAINWIDGET_H

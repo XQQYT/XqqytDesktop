@@ -35,7 +35,9 @@ private:
     void onEditDeviceComment(QString code, QString new_comment);
     void onDeleteDevice(QString code);
     void onUpdateDeviceCommentResult(bool result);
+    void onDeleteDeviceResult(bool result);
 private:
     Ui::DeviceWidget *ui;
+    QString code_need_to_delete;
 };
 #endif // DEVICEWIDGET_H

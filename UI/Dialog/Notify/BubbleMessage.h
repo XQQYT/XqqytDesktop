@@ -16,7 +16,6 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QEvent>
-#include <iostream>
 
 class BubbleMessage : public QWidget
 {

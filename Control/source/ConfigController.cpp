@@ -62,6 +62,11 @@ void ConfigController::initConfigSubscribe()
         std::placeholders::_1,
         std::placeholders::_2
     ));
+    EventBus::getInstance().subscribe("/network/delete_device_in_config",std::bind(
+        &ConfigController::onDeleteDevice,
+        this,
+        std::placeholders::_1
+    ));
     
 }
 
@@ -123,5 +128,12 @@ void ConfigController::onDeviceListUpdated()
 void ConfigController::onUpdateDeviceComment(std::string code, std::string new_comment)
 {
     DevicelistManager::getInstance().updateCommentByCode(code, new_comment);
+    onDeviceListUpdated();
+}
+
+void ConfigController::onDeleteDevice(std::string code)
+{
+    std::cout<<"delete "<<code<<std::endl;
+    DevicelistManager::getInstance().deleteDevice(code);
     onDeviceListUpdated();
 }

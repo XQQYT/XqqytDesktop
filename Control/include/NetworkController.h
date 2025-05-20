@@ -52,6 +52,7 @@ public:
     void onReConnectToSignalServer(std::string code);
     void onLoginResult(bool status);
     void onDeviceCommentUpdated(std::string device_code, std::string new_comment);
+    void onDeleteDevice(std::string device_code);
 private:
     void onGetTargetStatus(std::string target_id);
     void onConnectToTarget(std::string target_id, std::string key);

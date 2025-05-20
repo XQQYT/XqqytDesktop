@@ -28,6 +28,9 @@ public:
     void setDeviceIP(std::string& ip);
     void setDeviceCode(std::string& code);
     void loadDeviceInfo(DevicelistManager::DeviceInfo& info);
+    QString& getCode(){
+        return code;
+    }
 signals:
     void onConnect(QString code);
     void copyDeviceInfo(QString device_name, QString device_code, QString device_ip);

@@ -39,6 +39,11 @@ DeviceWidget::DeviceWidget(QWidget *parent)
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/network/delete_device_result",std::bind(
+        &DeviceWidget::onDeleteDeviceResult,
+        this,
+        std::placeholders::_1
+    ));
 }
 
 DeviceWidget::~DeviceWidget()
@@ -153,7 +158,8 @@ void DeviceWidget::onEditDeviceComment(QString code, QString new_comment)
 
 void DeviceWidget::onDeleteDevice(QString code)
 {
-    std::cout<<"delete "<<code.toStdString()<<std::endl;
+    code_need_to_delete = code;
+    EventBus::getInstance().publish("/network/delete_device", code.toStdString());
 }
 
 void DeviceWidget::onUpdateDeviceCommentResult(bool result)
@@ -165,4 +171,29 @@ void DeviceWidget::onUpdateDeviceCommentResult(bool result)
             BubbleMessage::getInstance().show("Failed to Update device comment");
     }, Qt::QueuedConnection);
 
+}
+
+void DeviceWidget::onDeleteDeviceResult(bool result)
+{
+    QMetaObject::invokeMethod(this, [=]() {
+        if (result) {
+            for (int i = 0; i < ui->listWidget->count(); ++i) {
+                QListWidgetItem* item = ui->listWidget->item(i);
+                if (item) {
+                    DeviceItem* device_item = dynamic_cast<DeviceItem*>(ui->listWidget->itemWidget(item));
+                    if (device_item && device_item->getCode() == code_need_to_delete) {
+                        ui->listWidget->takeItem(i);
+                        delete item;
+                        delete device_item;
+                        break;
+                    }
+                }
+            }
+            EventBus::getInstance().publish("/network/delete_device_in_config", code_need_to_delete.toStdString());
+            BubbleMessage::getInstance().show("Device deleted successfully");
+        } else {
+            BubbleMessage::getInstance().error("Failed to delete device");
+        }
+        code_need_to_delete.clear();
+    }, Qt::QueuedConnection);
 }

@@ -68,6 +68,16 @@ public:
             }
         }
     }
+    void deleteDevice(const std::string& code)
+    {
+        auto it = std::find_if(device_list.begin(), device_list.end(), [&](const DeviceInfo& d) {
+            return d.code == code;
+        });
+        if (it != device_list.end())
+        {
+            device_list.erase(it);
+        }
+    }
 private:
     std::vector<DeviceInfo> device_list;
 };

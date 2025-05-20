@@ -26,6 +26,7 @@ private:
     void onLoginResult(bool status);
     void onDeviceListUpdated();
     void onUpdateDeviceComment(std::string code, std::string new_comment);
+    void onDeleteDevice(std::string code);
 private:
     std::unique_ptr<ConfigInterface> settings_config_driver;
     std::unique_ptr<ConfigInterface> devices_config_driver;

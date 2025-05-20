@@ -200,7 +200,11 @@ void NetworkController::initNetworkSubscribe()
         std::placeholders::_1,
         std::placeholders::_2
     ));
-    
+    EventBus::getInstance().subscribe("/network/delete_device",std::bind(
+        &NetworkController::onDeleteDevice,
+        this,
+        std::placeholders::_1
+    ));
     
 }
 
@@ -339,4 +343,9 @@ void NetworkController::onDeviceCommentUpdated(std::string device_code, std::str
 {
     tcp_interface->sendMsg(*json_factory->user_update_device_comment(UserInfoManager::getInstance().getUserName(),std::move(device_code),
                             std::move(new_comment)));
+}
+
+void NetworkController::onDeleteDevice(std::string device_code)
+{
+    tcp_interface->sendMsg(*json_factory->user_delete_device(UserInfoManager::getInstance().getUserName(),std::move(device_code)));
 }

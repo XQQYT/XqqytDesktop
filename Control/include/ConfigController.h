@@ -20,7 +20,7 @@ public:
     ConfigController();
     void initConfigSubscribe();
 private:
-    void onUpdateModule(std::string module, std::string key, std::string value);
+    void onUpdateModule(std::string module, std::string key, std::string value, bool write_now);
     void onWrite(); 
     void onRecvDeviceCode(std::string code);
     void onLoginResult(bool status);
@@ -28,6 +28,7 @@ private:
     void onUpdateDeviceComment(std::string code, std::string new_comment);
     void onDeleteDevice(std::string code);
     void onCopyFile(std::string source_path, std::string des_path, std::function<void()> callback);
+    void onRenameFile(std::string source_path, std::string des_path, std::function<void()> callback);
 private:
     std::unique_ptr<ConfigInterface> settings_config_driver;
     std::unique_ptr<ConfigInterface> devices_config_driver;

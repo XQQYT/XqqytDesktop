@@ -102,9 +102,8 @@ void ConnectWidget::setUpdateKeyTimer()
         ui->btn_dynamic_key_value->setText(QString::fromStdString(new_key));
         qint64 timestamp = QDateTime::currentSecsSinceEpoch();
         last_update_timestamp = static_cast<int64_t>(timestamp);
-        EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp));
-        EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_key);
-        EventBus::getInstance().publish("/config/write_into_file");
+        EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp), false);
+        EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_key, true);
         is_first_time = true;
     }
 
@@ -287,10 +286,10 @@ void ConnectWidget::onTimeToUpdateKey()
     std::string new_dynamic_key = generateRandomString(8).toStdString();
     ui->btn_dynamic_key_value->setText(QString::fromStdString(new_dynamic_key));
     UserInfoManager::getInstance().setCurrentUserKey(new_dynamic_key);
-    EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_dynamic_key);
+    EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_dynamic_key, false);
     qint64 timestamp = QDateTime::currentSecsSinceEpoch();
     int64_t last_update_timestamp = static_cast<int64_t>(timestamp);
-    EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp));
+    EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp), true);
     EventBus::getInstance().publish("/config/write_into_file");
     if(update_dynamic_key_timer->isActive())
         resetUpdateKeyTimer(last_update_timestamp);

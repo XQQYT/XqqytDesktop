@@ -12,6 +12,7 @@
 #include "EventBus.h"
 #include "GlobalEnum.h"
 #include "BubbleMessage.h"
+#include "GeneralLineEditDialog.h"
 #include <QLabel>
 #include <iostream>
 #include <QFileDialog>
@@ -59,7 +60,7 @@ void UserProfileWidget::on_btn_upload_avatar_clicked()
     std::string avatar_dir("User/Avatar/" + UserInfoManager::getInstance().getUserName());
     std::string tmp_dir("User/tmp/"+ UserInfoManager::getInstance().getUserName());
 
-    //备份原头像
+    //备份原头像 -> 拷贝选择的头像到程序目录 -> 发送给服务器
     EventBus::getInstance().publish<std::string, std::string, std::function<void()>>(
         "/config/copy_file",
         avatar_dir,
@@ -88,7 +89,15 @@ void UserProfileWidget::on_btn_change_password_clicked()
 
 void UserProfileWidget::on_btn_change_username_clicked()
 {
-    std::cout<<"change user name"<<std::endl;
+    GeneralLineEditDialog dialog("Update user name", this);
+    connect(&dialog,&GeneralLineEditDialog::enterDone,this,[=](QVector<QString> content){
+        std::vector<std::string> args = {content[0].toStdString()};
+        EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEUSERNAME, std::move(args));
+        UserInfoManager::getInstance().setChangingUserName(content[0].toStdString());
+        ui->label_username->setText(content[0]);
+    });
+    dialog.addLineEdit("New user name");
+    dialog.exec(); 
 }
 
 void UserProfileWidget::on_btn_logout_clicked()

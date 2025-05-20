@@ -337,6 +337,9 @@ void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std
         case UserMsgType::UPDATEAVATAR:
             tcp_interface->sendFile(MsgBuilderInterface::MessageType::USER_AVATAR,std::move(args[0]), std::move(args[1]));
             break;
+        case UserMsgType::UPDATEUSERNAME:
+            tcp_interface->sendMsg(*json_factory->user_update_user_name(UserInfoManager::getInstance().getUserName(),std::move(args[0])));
+            break;
         default:
             std::cout<<"unknow msg type "<<static_cast<int>(msg_type)<<std::endl;
     }

@@ -40,6 +40,11 @@ void ResponseStrategy::execute(std::unique_ptr<Parser> parser, Operator& control
         {
             controll_instance.dispatch_bool("/network/upload_avatar_result", statusToBool(status));
         }
+        else if(subtype == "update_user_name")
+        {
+            std::cout<<"update user name status -> "<<status<<std::endl;
+            controll_instance.dispatch_bool("/network/update_username_result", statusToBool(status));
+        }
     }
     
 }

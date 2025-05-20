@@ -44,6 +44,8 @@ public:
     void setUserName(const std::string& name) { user_name = name; }
     const std::string& getUserName() const { return user_name; }
 
+    void setChangingUserName(const std::string& name) { changing_user_name = name; }
+    const std::string& getChangingUserName() const { return changing_user_name; }
 private:
     UserInfoManager(){
         current_role = Role::UN_DEFINED;
@@ -56,6 +58,7 @@ private:
     std::string user_key;
 
     std::string user_name;
+    std::string changing_user_name;
 };
 
 #endif

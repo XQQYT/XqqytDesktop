@@ -49,28 +49,16 @@ MainWidget::MainWidget(QWidget *parent)
         &MainWidget::onUserAvatarUpdated,
         this
     ));
-    EventBus::getInstance().subscribe("/network/upload_avatar_result",[this](bool status){
-        QMetaObject::invokeMethod(this, [=]() {
-            std::string user_name = UserInfoManager::getInstance().getUserName();
-            if(status)
-            {
-                loadUserInfo(user_name);
-                BubbleMessage::getInstance().show("Upload avatar success!");
-            }
-            else
-            {
-                std::string avatar_path("User/Avatar/" + user_name);
-                std::string tmp_path("User/tmp/"+ user_name);
-
-                QPixmap avatar(QString::fromStdString(tmp_path));
-                QPixmap circular = createCircularPixmap(avatar, ui->label_avatar->width());
-                ui->label_avatar->setPixmap(circular);
-
-                EventBus::getInstance().publish("/config/copy_file", tmp_path, avatar_path, std::function<void()>());
-                BubbleMessage::getInstance().show("Failed to upload avatar");
-            }
-        }, Qt::QueuedConnection);
-    });
+    EventBus::getInstance().subscribe("/network/upload_avatar_result",std::bind(
+        &MainWidget::onUploadUserAvatarResult,
+        this,
+        std::placeholders::_1
+    ));
+    EventBus::getInstance().subscribe("/network/update_username_result",std::bind(
+        &MainWidget::onUserNameUpdateResult,
+        this,
+        std::placeholders::_1
+    ));
     
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
     // 居中窗口
@@ -248,6 +236,7 @@ void MainWidget::updateUserNameBtn()
 void MainWidget::loadUserInfo(std::string user_name)
 {
     QString user_name_qstring = QString::fromStdString(user_name);
+    ui->btn_username->setText(user_name_qstring);
     QLabel* label_avatar = ui->label_avatar;
     QPixmap avatar(QString("User/Avatar/") + user_name_qstring);
     QPixmap circular = createCircularPixmap(avatar, label_avatar->width());
@@ -315,4 +304,55 @@ void MainWidget::onConnectFromDevice(QString code)
     dynamic_cast<ConnectWidget*>(WidgetManager::getInstance().getWidget(WidgetManager::WidgetType::ConnectWidget))->doConnect(code);
     ui->btn_connection->setChecked(true);
     on_btn_connection_clicked(true);
+}
+
+void MainWidget::onUploadUserAvatarResult(bool status)
+{
+    QMetaObject::invokeMethod(this, [=]() {
+        std::string user_name = UserInfoManager::getInstance().getUserName();
+        if(status)
+        {
+            loadUserInfo(user_name);
+            BubbleMessage::getInstance().show("Upload avatar success!");
+        }
+        else
+        {
+            std::string avatar_path("User/Avatar/" + user_name);
+            std::string tmp_path("User/tmp/"+ user_name);
+
+            QPixmap avatar(QString::fromStdString(tmp_path));
+            QPixmap circular = createCircularPixmap(avatar, ui->label_avatar->width());
+            ui->label_avatar->setPixmap(circular);
+
+            EventBus::getInstance().publish("/config/copy_file", tmp_path, avatar_path, std::function<void()>());
+            BubbleMessage::getInstance().show("Failed to upload avatar");
+        }
+    }, Qt::QueuedConnection);
+}
+
+void MainWidget::onUserNameUpdateResult(bool status)
+{
+    QMetaObject::invokeMethod(this, [=]() {
+        if(status)
+        {
+            std::string avatar_dir("User/Avatar/" + UserInfoManager::getInstance().getUserName());
+            std::string new_avatar_dir("User/Avatar/" + UserInfoManager::getInstance().getChangingUserName());
+
+            EventBus::getInstance().publish("/config/rename_file",avatar_dir, new_avatar_dir,std::function<void()>([this](){
+                std::cout<<"start"<<std::endl;
+                UserInfoManager::getInstance().setUserName(UserInfoManager::getInstance().getChangingUserName());
+                UserInfoManager::getInstance().setChangingUserName("");
+                EventBus::getInstance().publish("/config/update_module_config",std::string("User"),std::string("user_name"),UserInfoManager::getInstance().getUserName(), true);
+                QMetaObject::invokeMethod(this, [=]() {
+                    loadUserInfo(UserInfoManager::getInstance().getUserName());
+                }, Qt::QueuedConnection);
+                std::cout<<"end"<<std::endl;
+            }));
+            BubbleMessage::getInstance().show("Update user name success!");
+        }
+        else
+        {
+            BubbleMessage::getInstance().show("Failed to update user name");
+        }
+    }, Qt::QueuedConnection);
 }

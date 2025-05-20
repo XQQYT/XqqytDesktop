@@ -37,7 +37,8 @@ void ConfigController::initConfigSubscribe()
         this,
         std::placeholders::_1,
         std::placeholders::_2,
-        std::placeholders::_3
+        std::placeholders::_3,
+        std::placeholders::_4
     ));
     EventBus::getInstance().subscribe("/config/write_into_file",std::bind(
         &ConfigController::onWrite,
@@ -75,11 +76,18 @@ void ConfigController::initConfigSubscribe()
         std::placeholders::_2,
         std::placeholders::_3
     ));
+    EventBus::getInstance().subscribe("/config/rename_file",std::bind(
+        &ConfigController::onRenameFile,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3
+    ));
     
 }
 
 
-void ConfigController::onUpdateModule(std::string module, std::string key, std::string value)
+void ConfigController::onUpdateModule(std::string module, std::string key, std::string value, bool write_now)
 {
     std::cout << "update " << module << " " << key << " " << value << std::endl;
     SettingInfoManager::getInstance().updataModuleConfig(module, key, value);
@@ -87,6 +95,8 @@ void ConfigController::onUpdateModule(std::string module, std::string key, std::
         std::unique_lock<std::shared_mutex> lock(mtx);
         updated_config[module][key] = value;
     }
+    if(write_now)
+        onWrite();
     EventBus::getInstance().publish("/config/update_module_config_done", module, key, value);
 }
 
@@ -106,8 +116,7 @@ void ConfigController::onWrite()
 void ConfigController::onRecvDeviceCode(std::string code)
 {
     UserInfoManager::getInstance().setCurrentUserId(code);
-    onUpdateModule("User","user_id", std::move(code));
-    onWrite();
+    onUpdateModule("User","user_id", std::move(code), true);
 }
 
 
@@ -115,8 +124,7 @@ void ConfigController::onLoginResult(bool status)
 {
     if(status)
     {
-        onUpdateModule("User","user_name", std::move(UserInfoManager::getInstance().getUserName()));
-        onWrite();
+        onUpdateModule("User","user_name", std::move(UserInfoManager::getInstance().getUserName()), true);
     }
 
 }
@@ -148,11 +156,20 @@ void ConfigController::onDeleteDevice(std::string code)
 
 void ConfigController::onCopyFile(std::string source_path, std::string des_path, std::function<void()> callback)
 {
-    std::cout<<"copy "<<source_path<<" -> "<<des_path<<std::endl;
     std::filesystem::copy_file(
         source_path, des_path,
         std::filesystem::copy_options::overwrite_existing
     );
     if(callback)
         callback();
+}
+
+void ConfigController::onRenameFile(std::string source_path, std::string des_path, std::function<void()> callback)
+{
+    try {
+        std::filesystem::rename(source_path, des_path);
+        callback();
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Error renaming file: " << e.what() << '\n';
+    }
 }

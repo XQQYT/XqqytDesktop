@@ -46,6 +46,8 @@ private:
     void onLoginResult(bool status);
     void onRegisterResult(bool status);
     void onUserAvatarUpdated();
+    void onUploadUserAvatarResult(bool status);
+    void onUserNameUpdateResult(bool status);
 private:
     Ui::MainWidget *ui;
     WidgetManager::WidgetType current_widget;

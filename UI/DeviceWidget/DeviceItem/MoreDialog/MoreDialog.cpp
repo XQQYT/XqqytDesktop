@@ -8,6 +8,9 @@
 #include "MoreDialog.h"
 #include "ui_MoreDialog.h"
 #include "../EditDeviceCommentDialog/EditDeviceCommentDialog.h"
+#include "ConfirmDialog.h"
+#include "utils.h"
+#include "UserInfo.h"
 #include <iostream>
 
 MoreDialog::MoreDialog(QString code,QString name, QWidget *parent)
@@ -17,6 +20,10 @@ MoreDialog::MoreDialog(QString code,QString name, QWidget *parent)
     , ui(new Ui::MoreDialog)
 {
     ui->setupUi(this);
+    if(UserInfoManager::getInstance().getCurrentUserId() == device_code.toStdString())
+    {
+        ui->btn_delete->hide();
+    }
 }
 
 MoreDialog::~MoreDialog()
@@ -42,6 +49,12 @@ void MoreDialog::on_btn_edit_comment_clicked()
 
 void MoreDialog::on_btn_delete_clicked()
 {
-    emit deleteDevice();
+    ConfirmDialog dialog;
+    connect(&dialog,&ConfirmDialog::ChooseResult,this,[this](bool result){
+        if(result)
+        emit deleteDevice();
+    });
+    DialogOperator::centerDialog(dialog);
+    dialog.exec("Are you sure to delete " + device_name);
     reject();
 }

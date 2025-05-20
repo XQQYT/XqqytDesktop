@@ -9,6 +9,7 @@
 #include "ui_DeviceItem.h"
 #include "utils.h"
 #include "SettingInfo.h"
+#include "UserInfo.h"
 #include "MoreDialog/MoreDialog.h"
 #include <iostream>
 
@@ -44,7 +45,12 @@ void DeviceItem::retranslateUi()
 void DeviceItem::setDeviceName(std::string& name, std::string& comment)
 {
     this->name = QString::fromStdString(name);
-    ui->label_device_name->setText(comment.empty() ? QString::fromStdString(name) : QString::fromStdString(comment));
+    QString device_name= comment.empty() ? QString::fromStdString(name) : QString::fromStdString(comment);
+    if(UserInfoManager::getInstance().getCurrentUserId() == code.toStdString())
+    {
+        device_name = device_name.append("  (LocalHost)");
+    }
+    ui->label_device_name->setText(device_name);
 }
 
 void DeviceItem::setDeviceIP(std::string& ip)
@@ -62,9 +68,13 @@ void DeviceItem::setDeviceCode(std::string& code)
 
 void DeviceItem::loadDeviceInfo(DevicelistManager::DeviceInfo& info)
 {
-    setDeviceName(info.device_name, info.comment);
     setDeviceCode(info.code);
+    setDeviceName(info.device_name, info.comment);
     setDeviceIP(info.ip);
+    if(UserInfoManager::getInstance().getCurrentUserId() == code.toStdString())
+    {
+        ui->btn_connect_to_device->hide();
+    }
 }
 
 void DeviceItem::on_btn_connect_to_device_clicked()
@@ -76,7 +86,7 @@ void DeviceItem::on_btn_more_clicked()
 {
     MoreDialog* dialog = new MoreDialog(code,name,this);
     connect(dialog,&MoreDialog::copyDeviceInfo,this,[this](){
-        emit copyDeviceInfo(ui->label_device_name->text(), code, ui->label_ip->text().remove("   IP: "));
+        emit copyDeviceInfo(ui->label_device_name->text().chopped(13), code, ui->label_ip->text().remove("   IP: "));
     });
     connect(dialog,&MoreDialog::editComment,this,[this](QString new_comment){
         std::string device_name = name.toStdString();

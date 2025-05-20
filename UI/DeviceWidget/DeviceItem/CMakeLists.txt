@@ -16,5 +16,6 @@ target_include_directories(DeviceItem PUBLIC
 # 链接 DeviceItem 库
 target_link_libraries(DeviceItem 
 Qt5::Widgets 
+Dialog
 utils
 )

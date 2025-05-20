@@ -256,7 +256,6 @@ void ConnectWidget::onConnectionStatus(bool status)
 
 void ConnectWidget::onSettingChanged(std::string module, std::string key, std::string value)
 {
-    std::cout<<"on changed 5"<<module<<" "<<key<<" "<<value<<std::endl;
     if(key == "theme")
     {
         std::cout<<"change theme "<<std::endl;

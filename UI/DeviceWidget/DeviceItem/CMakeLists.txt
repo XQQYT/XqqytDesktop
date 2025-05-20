@@ -3,11 +3,14 @@
 
 add_library(DeviceItem STATIC
 DeviceItem.cpp
+MoreDialog/MoreDialog.cpp
+EditDeviceCommentDialog/EditDeviceCommentDialog.cpp
 )
 
 # 添加 DeviceItem 的头文件目录
 target_include_directories(DeviceItem PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/MoreDialog
 )
 
 # 链接 DeviceItem 库

@@ -57,6 +57,27 @@ public:
     {
         return device_list;
     }
+    void updateCommentByCode(const std::string& code, const std::string& new_comment)
+    {
+        for (auto& device : device_list)
+        {
+            if (device.code == code)
+            {
+                device.comment = new_comment;
+                return;
+            }
+        }
+    }
+    void deleteDevice(const std::string& code)
+    {
+        auto it = std::find_if(device_list.begin(), device_list.end(), [&](const DeviceInfo& d) {
+            return d.code == code;
+        });
+        if (it != device_list.end())
+        {
+            device_list.erase(it);
+        }
+    }
 private:
     std::vector<DeviceInfo> device_list;
 };

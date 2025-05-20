@@ -31,7 +31,13 @@ private:
     void onConnectFromItem(QString code);
     void addDeviceUI(DevicelistManager::DeviceInfo& info);
     DeviceItem * createDeviceItem();
+    void onCopyDeviceInfo(QString device_name, QString device_code, QString device_ip);
+    void onEditDeviceComment(QString code, QString new_comment);
+    void onDeleteDevice(QString code);
+    void onUpdateDeviceCommentResult(bool result);
+    void onDeleteDeviceResult(bool result);
 private:
     Ui::DeviceWidget *ui;
+    QString code_need_to_delete;
 };
 #endif // DEVICEWIDGET_H

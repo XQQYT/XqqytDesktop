@@ -118,7 +118,9 @@ void BubbleMessage::showInternal(QWidget *parent, const QString &message,
         adjustSize();
         updatePosition();
         
-        parent->installEventFilter(this);
+        if (!parent->isAncestorOf(this)) {
+            parent->installEventFilter(this);
+        }
         
         m_opacityEffect->setOpacity(0.0);
         static_cast<QWidget*>(this)->show();
@@ -164,7 +166,6 @@ void BubbleMessage::hideEvent(QHideEvent *event)
 {
     if (m_parentWidget) {
         m_parentWidget->removeEventFilter(this);
-        m_parentWidget = nullptr;
     }
     QWidget::hideEvent(event);
 }

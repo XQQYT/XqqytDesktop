@@ -12,6 +12,8 @@
 #include "WidgetManager.h"
 #include "EventBus.h"
 #include <QGraphicsDropShadowEffect>
+#include <sstream>
+#include "BubbleMessage.h"
 
 DeviceWidget::DeviceWidget(QWidget *parent)
     : QWidget(parent)
@@ -31,6 +33,16 @@ DeviceWidget::DeviceWidget(QWidget *parent)
     EventBus::getInstance().subscribe("/network/update_device_list",std::bind(
         &DeviceWidget::onDeviceListUpdated,
         this
+    ));
+    EventBus::getInstance().subscribe("/network/update_device_comment_result",std::bind(
+        &DeviceWidget::onUpdateDeviceCommentResult,
+        this,
+        std::placeholders::_1
+    ));
+    EventBus::getInstance().subscribe("/network/delete_device_result",std::bind(
+        &DeviceWidget::onDeleteDeviceResult,
+        this,
+        std::placeholders::_1
     ));
 }
 
@@ -89,7 +101,12 @@ void DeviceWidget::addDeviceUI(DevicelistManager::DeviceInfo& info)
 {
     auto device_item = createDeviceItem();
     device_item->loadDeviceInfo(info);
+
     connect(device_item,&DeviceItem::onConnect,this,&DeviceWidget::onConnectFromItem);
+    connect(device_item,&DeviceItem::copyDeviceInfo,this,&DeviceWidget::onCopyDeviceInfo);
+    connect(device_item,&DeviceItem::editDeviceComment,this,&DeviceWidget::onEditDeviceComment);
+    connect(device_item,&DeviceItem::deleteDevice,this,&DeviceWidget::onDeleteDevice);
+
     QListWidgetItem *item = new QListWidgetItem("");
     item->setSizeHint(device_item->sizeHint());
     ui->listWidget->addItem(item);
@@ -101,6 +118,7 @@ void DeviceWidget::onDeviceListUpdated()
 {
     connect(this,&DeviceWidget::ConnectFromDevice,&WidgetManager::getInstance(),&WidgetManager::ConnectFromDevice, Qt::UniqueConnection);
     QMetaObject::invokeMethod(this, [=]() {
+        ui->listWidget->clear();
         auto device_list =  DevicelistManager::getInstance().getDeviceInfo();
         for(auto& device : device_list)
         {
@@ -114,4 +132,68 @@ void DeviceWidget::onDeviceListUpdated()
 void DeviceWidget::onConnectFromItem(QString code)
 {
     emit ConnectFromDevice(code);
+}
+
+void DeviceWidget::onCopyDeviceInfo(QString device_name, QString device_code, QString device_ip)
+{
+    std::string username = UserInfoManager::getInstance().getUserName();
+    std::string devicename = device_name.toStdString();
+    std::string devicecode = device_code.toStdString();
+    std::string deviceip = device_ip.toStdString();
+    std::ostringstream ss;
+    ss << "Device information:\n"
+    << "User name: " << username << "\n"
+    << "Device name: "<< devicename<<"\n"
+    << "Device code: " << devicecode<<"\n"
+    << "Device ip: "<<deviceip;
+    std::string share_content = ss.str();
+    EventBus::getInstance().publish("/clipboard/write_into_clipboard", std::move(share_content));
+    BubbleMessage::getInstance().show("The sharing information has been copied to the clipboard");
+}
+
+void DeviceWidget::onEditDeviceComment(QString code, QString new_comment)
+{
+    EventBus::getInstance().publish("/network/update_device_comment", code.toStdString(), new_comment.toStdString());
+}
+
+void DeviceWidget::onDeleteDevice(QString code)
+{
+    code_need_to_delete = code;
+    EventBus::getInstance().publish("/network/delete_device", code.toStdString());
+}
+
+void DeviceWidget::onUpdateDeviceCommentResult(bool result)
+{
+    QMetaObject::invokeMethod(this, [=]() {
+        if(result)
+            BubbleMessage::getInstance().show("Update device comment success");
+        else
+            BubbleMessage::getInstance().show("Failed to Update device comment");
+    }, Qt::QueuedConnection);
+
+}
+
+void DeviceWidget::onDeleteDeviceResult(bool result)
+{
+    QMetaObject::invokeMethod(this, [=]() {
+        if (result) {
+            for (int i = 0; i < ui->listWidget->count(); ++i) {
+                QListWidgetItem* item = ui->listWidget->item(i);
+                if (item) {
+                    DeviceItem* device_item = dynamic_cast<DeviceItem*>(ui->listWidget->itemWidget(item));
+                    if (device_item && device_item->getCode() == code_need_to_delete) {
+                        ui->listWidget->takeItem(i);
+                        delete item;
+                        delete device_item;
+                        break;
+                    }
+                }
+            }
+            EventBus::getInstance().publish("/network/delete_device_in_config", code_need_to_delete.toStdString());
+            BubbleMessage::getInstance().show("Device deleted successfully");
+        } else {
+            BubbleMessage::getInstance().error("Failed to delete device");
+        }
+        code_need_to_delete.clear();
+    }, Qt::QueuedConnection);
 }

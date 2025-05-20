@@ -29,6 +29,9 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/network/register_result");
     EventBus::getInstance().registerEvent("/network/user_avatar_update");
     EventBus::getInstance().registerEvent("/network/update_device_list");
+    EventBus::getInstance().registerEvent("/network/delete_device");
+    EventBus::getInstance().registerEvent("/network/delete_device_result");
+    EventBus::getInstance().registerEvent("/network/delete_device_in_config");
 
     EventBus::getInstance().registerEvent("/webrtc/init_webrtc_done");
     EventBus::getInstance().registerEvent("/webrtc/remote_ready");
@@ -57,6 +60,8 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/config/update_module_config_done");
     EventBus::getInstance().registerEvent("/config/write_into_file");
     EventBus::getInstance().registerEvent("/config/module_config_updated");
+    EventBus::getInstance().registerEvent("/network/update_device_comment");
+    EventBus::getInstance().registerEvent("/network/update_device_comment_result");
 }
 //使模块订阅好事件
 void initModuleSubscribe()

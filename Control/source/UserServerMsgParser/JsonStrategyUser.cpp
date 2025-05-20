@@ -24,9 +24,17 @@ void ResponseStrategy::execute(std::unique_ptr<Parser> parser, Operator& control
         {
             controll_instance.dispatch_bool("/network/login_result", statusToBool(status));
         }
-        if(subtype == "register")
+        else if(subtype == "register")
         {
             controll_instance.dispatch_bool("/network/register_result", statusToBool(status));
+        }
+        else if(subtype == "update_device_comment_result")
+        {
+            controll_instance.dispatch_bool("/network/update_device_comment_result",statusToBool(status));
+        }
+        else if(subtype == "delete_device_result")
+        {
+            controll_instance.dispatch_bool("/network/delete_device_result",statusToBool(status));
         }
     }
     

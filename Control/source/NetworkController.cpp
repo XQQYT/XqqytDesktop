@@ -194,6 +194,18 @@ void NetworkController::initNetworkSubscribe()
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe("/network/update_device_comment",std::bind(
+        &NetworkController::onDeviceCommentUpdated,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
+    ));
+    EventBus::getInstance().subscribe("/network/delete_device",std::bind(
+        &NetworkController::onDeleteDevice,
+        this,
+        std::placeholders::_1
+    ));
+    
 }
 
 
@@ -325,4 +337,15 @@ void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std
         default:
             std::cout<<"unknow msg type"<<std::endl;
     }
+}
+
+void NetworkController::onDeviceCommentUpdated(std::string device_code, std::string new_comment)
+{
+    tcp_interface->sendMsg(*json_factory->user_update_device_comment(UserInfoManager::getInstance().getUserName(),std::move(device_code),
+                            std::move(new_comment)));
+}
+
+void NetworkController::onDeleteDevice(std::string device_code)
+{
+    tcp_interface->sendMsg(*json_factory->user_delete_device(UserInfoManager::getInstance().getUserName(),std::move(device_code)));
 }

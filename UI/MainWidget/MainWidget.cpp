@@ -95,7 +95,8 @@ void MainWidget::initSubscribe()
 
 MainWidget::~MainWidget()
 {
-    EventBus::getInstance().publish("/network/send_logout");
+    if(UserInfoManager::getInstance().getSignalConnectStatus())
+        EventBus::getInstance().publish("/network/send_logout");
     WidgetManager::getInstance().closeAllWidget();
     delete ui;
 }

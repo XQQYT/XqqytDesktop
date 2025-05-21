@@ -27,6 +27,7 @@ private:
     SecurityInterface::TlsInfo tls_info;
     std::thread* receive_thread;
     std::atomic<bool> runing{false};
+    bool connect_status;
 };
 
 #endif //_TCPDRIVER_H

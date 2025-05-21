@@ -46,7 +46,7 @@ void ConnectWidget::initSubscribe()
 {
     EventBus::getInstance().subscribe("/network/target_status",std::bind(&ConnectWidget::onTargetStatus,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/network/registration_result",std::bind(&ConnectWidget::onRegistrationResult,this,std::placeholders::_1));
-    EventBus::getInstance().subscribe("/network/failed_to_connect_server",std::bind(&ConnectWidget::onConnectServerFailed,this));
+    EventBus::getInstance().subscribe("/network/connect_to_signal_server_result",std::bind(&ConnectWidget::onConnectSignalServerResult,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&ConnectWidget::onConnectRequest,this,std::placeholders::_1,std::placeholders::_2));
     EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(&ConnectWidget::onRecvConnectRequestResult,this,std::placeholders::_1));
     EventBus::getInstance().subscribe("/webrtc/connection_status",std::bind(&ConnectWidget::onConnectionStatus,this,std::placeholders::_1));
@@ -138,10 +138,17 @@ void ConnectWidget::doConnect(QString code)
 
 void ConnectWidget::on_btn_connect_clicked()
 {
-    std::string target_id = ui->lineEdit_target_id->text().remove(' ').toStdString();
-    EventBus::getInstance().publish("/network/get_target_status",target_id);
-    SettingInfoManager::getInstance().updataModuleConfig("ConnectInfo","last_connect_id",target_id);
-    EventBus::getInstance().publish("/config/write_into_file");
+    if(UserInfoManager::getInstance().getSignalConnectStatus())
+    {
+        std::string target_id = ui->lineEdit_target_id->text().remove(' ').toStdString();
+        EventBus::getInstance().publish("/network/get_target_status",target_id);
+        SettingInfoManager::getInstance().updataModuleConfig("ConnectInfo","last_connect_id",target_id);
+        EventBus::getInstance().publish("/config/write_into_file");
+    }
+    else
+    {
+        BubbleMessage::getInstance().error("Failed to connect Signal Server");
+    }
 }
 
 void ConnectWidget::onEnterKeyDone(QString key)
@@ -191,9 +198,11 @@ void ConnectWidget::onConnectUserServerResult(bool result)
     }
 }
 
-void ConnectWidget::onConnectServerFailed()
+void ConnectWidget::onConnectSignalServerResult(bool result)
 {
-    BubbleMessage::getInstance().error("Failed to connect Server");
+    UserInfoManager::getInstance().setSignalConnectStatus(result);
+    if(!result)
+        BubbleMessage::getInstance().error("Failed to connect Signal Server");
 }
 
 void ConnectWidget::onConnectRequest(std::string target_id, std::string key)

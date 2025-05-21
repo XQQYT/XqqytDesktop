@@ -65,12 +65,12 @@ void UserProfileWidget::on_btn_upload_avatar_clicked()
         std::string tmp_dir("User/tmp/"+ UserInfoManager::getInstance().getUserName());
 
         EventBus::getInstance().publish<std::string, std::string, std::function<void()>>(
-            "/config/copy_file",
+            EventBus::EventType::Config_CopyFile,
             avatar_dir,
             tmp_dir,
             [selected_avatar_path,avatar_dir]() {
                 EventBus::getInstance().publish<std::string, std::string, std::function<void()>>(
-                    "/config/copy_file",
+                    EventBus::EventType::Config_CopyFile,
                     selected_avatar_path.toStdString(),
                     avatar_dir,
                     [selected_avatar_path]() {
@@ -78,7 +78,7 @@ void UserProfileWidget::on_btn_upload_avatar_clicked()
                             UserInfoManager::getInstance().getUserName(),
                             selected_avatar_path.toStdString()
                         };
-                        EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEAVATAR, std::move(args));
+                        EventBus::getInstance().publish(EventBus::EventType::Network_SendToUserServer, UserMsgType::UPDATEAVATAR, std::move(args));
                     }
                 );
             }
@@ -110,7 +110,7 @@ void UserProfileWidget::on_btn_change_password_clicked()
         if(UserInfoManager::getInstance().getUserConnectStatus())
         {
             std::vector<std::string> args = {content[0].toStdString(), content[1].toStdString()};
-            EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEPASSWORD, std::move(args));
+            EventBus::getInstance().publish(EventBus::EventType::Network_SendToUserServer, UserMsgType::UPDATEPASSWORD, std::move(args));
         }
         else
         {
@@ -133,7 +133,7 @@ void UserProfileWidget::on_btn_change_username_clicked()
         if(UserInfoManager::getInstance().getUserConnectStatus())
         {
             std::vector<std::string> args = {content[0].toStdString()};
-            EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEUSERNAME, std::move(args));
+            EventBus::getInstance().publish(EventBus::EventType::Network_SendToUserServer, UserMsgType::UPDATEUSERNAME, std::move(args));
             UserInfoManager::getInstance().setChangingUserName(content[0].toStdString());
             ui->label_username->setText(content[0]);
         }

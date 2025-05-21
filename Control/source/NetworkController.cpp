@@ -54,12 +54,12 @@ void NetworkController::connectToServer()
                     startRecvMsg();
                     //发送注册消息
                     sendMsg(*json_factory->ws_register(std::move(code)));
-                    EventBus::getInstance().publish("/network/connect_to_signal_server_result", true);
+                    EventBus::getInstance().publish(EventBus::EventType::Network_ConnectToSignalServerResult, true);
                     std::cout<<"success to connect signal server"<<std::endl;
                 }
                 else{
                     UserInfoManager::getInstance().setSignalConnectStatus(false);
-                    EventBus::getInstance().publish("/network/connect_to_signal_server_result", false);
+                    EventBus::getInstance().publish(EventBus::EventType::Network_ConnectToSignalServerResult, false);
                     std::cout<<"failed to connect signal server"<<std::endl;
                 }
             });
@@ -67,7 +67,7 @@ void NetworkController::connectToServer()
         tcp_interface->connectToServer([this](bool ret){
             if (ret) {
                 UserInfoManager::getInstance().setUserConnectStatus(true);
-                EventBus::getInstance().publish("/network/connect_to_user_server_result", true);
+                EventBus::getInstance().publish(EventBus::EventType::Network_ConnectToUserServerResult, true);
                 dynamic_cast<TcpDriver*>(tcp_interface.get())->recvMsg([this](std::vector<uint8_t> vec, bool is_binary){
                     if (user_server_msg_parser) {
                         user_server_msg_parser->ParseMsg(std::move(vec), is_binary);
@@ -77,7 +77,7 @@ void NetworkController::connectToServer()
             else
             {   
                 UserInfoManager::getInstance().setUserConnectStatus(false);
-                EventBus::getInstance().publish("/network/connect_to_user_server_result", false);
+                EventBus::getInstance().publish(EventBus::EventType::Network_ConnectToUserServerResult, false);
             }
         });
         is_first_connect = false;
@@ -91,11 +91,11 @@ void NetworkController::onReConnectToSignalServer(std::string code)
             startRecvMsg();
             //发送注册消息
             sendMsg(*json_factory->ws_register(std::move(user_id)));
-            EventBus::getInstance().publish("/network/connect_to_signal_server_result", true);
+            EventBus::getInstance().publish(EventBus::EventType::Network_ConnectToSignalServerResult, true);
             std::cout<<"success to re-connect signal server"<<std::endl;
         }
         else{
-            EventBus::getInstance().publish("/network/connect_to_signal_server_result", false);
+            EventBus::getInstance().publish(EventBus::EventType::Network_ConnectToSignalServerResult, false);
             std::cout<<"failed to re-connect server"<<std::endl;
         }
     });
@@ -127,75 +127,75 @@ void NetworkController::sendMsg(std::string msg)
 
 void NetworkController::initNetworkSubscribe()
 {
-    EventBus::getInstance().subscribe("/config/module_config_updated",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_ModuleConfigUpdated,std::bind(
         &NetworkController::onModuleConfigUpdated,
         this,
         std::placeholders::_1,
         std::placeholders::_2,
         std::placeholders::_3
     ));
-    EventBus::getInstance().subscribe("/network/get_target_status",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_GetTargetStatus,std::bind(
         &NetworkController::onGetTargetStatus,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/connect_to_target",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_ConnectToTarget,std::bind(
         &NetworkController::onConnectToTarget,
         this,
         std::placeholders::_1,
         std::placeholders::_2
     ));
-    EventBus::getInstance().subscribe("/ui/connectwidget_init_done",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::UI_ConnectWidgetInitDone,std::bind(
         &NetworkController::connectToServer,
         this
     ));
-    EventBus::getInstance().subscribe("/network/send_connect_request_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_SendConnectRequestResult,std::bind(
         &NetworkController::onConnectRequestResult,
         this,
         std::placeholders::_1,
         std::placeholders::_2
     ));
-    EventBus::getInstance().subscribe("/webrtc/init_webrtc_done",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_InitWebrtcDone,std::bind(
         &NetworkController::onWebRTCInitDone,
         this
     ));
-    EventBus::getInstance().subscribe("/webrtc/create_sdp_offer",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_CreateSdpOffer,std::bind(
         &NetworkController::onCreateSDPOffer,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/webrtc/create_sdp_answer",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_CreateSdpAnswer,std::bind(
         &NetworkController::onCreateSDPAnswer,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/webrtc/send_ice_candidate",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_SendIceCandidate,std::bind(
         &NetworkController::onHaveICECondidate,
         this,
         std::placeholders::_1,
         std::placeholders::_2,
         std::placeholders::_3
     ));
-    EventBus::getInstance().subscribe("/webrtc/send_ice_gather_done",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_SendIceGatherDone,std::bind(
         &NetworkController::onGatherICEDone,
         this
     ));
-    EventBus::getInstance().subscribe("/network/send_logout",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_SendLogout,std::bind(
         &NetworkController::onSendLogout,
         this
     ));
-    EventBus::getInstance().subscribe("/network/send_to_user_server",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_SendToUserServer,std::bind(
         &NetworkController::onSendToUserServer,
         this,
         std::placeholders::_1,
         std::placeholders::_2
     ));
-    EventBus::getInstance().subscribe("/network/receive_device_code",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_ReceiveDeviceCode,std::bind(
         &NetworkController::onReConnectToSignalServer,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/login_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_LoginResult,std::bind(
         &NetworkController::onLoginResult,
         this,
         std::placeholders::_1
@@ -227,30 +227,29 @@ void NetworkController::sendToServer(std::string msg)
     sendMsg(std::move(msg));
 }
 
-void NetworkController::dispatch_void(const std::string event_name)
+void NetworkController::dispatch_void(const EventBus::EventType event_name)
 {
-    EventBus::getInstance().publish(std::move(event_name));
-    std::cout<<"send "<<event_name<<std::endl;
+    EventBus::getInstance().publish(event_name);
 }
 
-void NetworkController::dispatch_string(std::string event_name,std::string str)
+void NetworkController::dispatch_string(EventBus::EventType event_name,std::string str)
 {
-    EventBus::getInstance().publish(std::move(event_name),std::move(str));
+    EventBus::getInstance().publish(event_name,std::move(str));
 }
 
-void NetworkController::dispatch_string_string(std::string event_name,std::string str1,std::string str2)
+void NetworkController::dispatch_string_string(EventBus::EventType event_name,std::string str1,std::string str2)
 {
-    EventBus::getInstance().publish(std::move(event_name),std::move(str1),std::move(str2));
+    EventBus::getInstance().publish(event_name,std::move(str1),std::move(str2));
 }
 
-void NetworkController::dispatch_string_string_string(std::string event_name, std::string str1, std::string str2, std::string str3)
+void NetworkController::dispatch_string_string_string(EventBus::EventType event_name, std::string str1, std::string str2, std::string str3)
 {
-    EventBus::getInstance().publish(std::move(event_name),std::move(str1),std::move(str2),std::move(str3));
+    EventBus::getInstance().publish(event_name,std::move(str1),std::move(str2),std::move(str3));
 }
 
-void NetworkController::dispatch_bool(std::string event_name,bool status)
+void NetworkController::dispatch_bool(EventBus::EventType event_name,bool status)
 {
-    EventBus::getInstance().publish(std::move(event_name),status);
+    EventBus::getInstance().publish(event_name,status);
 }
 
 void NetworkController::onCreateSDPOffer(std::string sdp_str)

@@ -62,7 +62,7 @@ void InputHandler::handleMouseMoveEvent(QMouseEvent* event)
     std::cout<<"locale "<<packet.x<<","<<packet.y<<std::endl;
     convertPos(packet);
     std::cout<<"remote "<<packet.x<<","<<packet.y<<std::endl;
-    EventBus::getInstance().publish("/mouse_event/has_event",packet);
+    EventBus::getInstance().publish(EventBus::EventType::MouseEvent_HasEvent,packet);
 }
 
 void InputHandler::handleMousePressEvent(QMouseEvent* event)
@@ -83,7 +83,7 @@ void InputHandler::handleMousePressEvent(QMouseEvent* event)
     packet.y = pos.y();
     packet.wheelDelta = 0;
     convertPos(packet);
-    EventBus::getInstance().publish("/mouse_event/has_event",packet);
+    EventBus::getInstance().publish(EventBus::EventType::MouseEvent_HasEvent,packet);
 }
 
 void InputHandler::handleMouseReleaseEvent(QMouseEvent* event)
@@ -104,7 +104,7 @@ void InputHandler::handleMouseReleaseEvent(QMouseEvent* event)
     packet.y = pos.y();
     packet.wheelDelta = 0; // 无滚轮
     convertPos(packet);
-    EventBus::getInstance().publish("/mouse_event/has_event",packet);
+    EventBus::getInstance().publish(EventBus::EventType::MouseEvent_HasEvent,packet);
 }
 
 void InputHandler::handleWheelEvent(QWheelEvent* event)
@@ -120,7 +120,7 @@ void InputHandler::handleWheelEvent(QWheelEvent* event)
     packet.y = pos.y();
     packet.wheelDelta = event->angleDelta().y(); // y方向的滚动，单位通常是120或-120
     convertPos(packet);
-    EventBus::getInstance().publish("/mouse_event/has_event",packet);
+    EventBus::getInstance().publish(EventBus::EventType::MouseEvent_HasEvent,packet);
 }
 
 void InputHandler::sendHoldPackets()
@@ -138,7 +138,7 @@ void InputHandler::sendHoldPackets()
             packet.y = pos.y();
             packet.wheelDelta = 0;
             convertPos(packet);
-            EventBus::getInstance().publish("/mouse_event/has_event", packet);
+            EventBus::getInstance().publish(EventBus::EventType::MouseEvent_HasEvent, packet);
         }
     }
 }
@@ -150,7 +150,7 @@ void InputHandler::handleKeyPressEvent(QKeyEvent* event)
     packet.key = event->key();
     packet.modifiers = event->modifiers();
     packet.is_pressed = true;
-    EventBus::getInstance().publish("/keyboard_event/has_event",packet);
+    EventBus::getInstance().publish(EventBus::EventType::KeyboardEvent_HasEvent,packet);
 }
 
 void InputHandler::handleKeyReleaseEvent(QKeyEvent* event)
@@ -160,5 +160,5 @@ void InputHandler::handleKeyReleaseEvent(QKeyEvent* event)
     packet.key = event->key();
     packet.modifiers = event->modifiers();
     packet.is_pressed = false;
-    EventBus::getInstance().publish("/keyboard_event/has_event",packet);
+    EventBus::getInstance().publish(EventBus::EventType::KeyboardEvent_HasEvent,packet);
 }

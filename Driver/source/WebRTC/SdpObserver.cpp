@@ -16,10 +16,10 @@ void SDPO::OnSuccess(webrtc::SessionDescriptionInterface* desc)
     webrtc_instance.setLocalSDP(desc);
     switch(webrtc_instance.currentRole){
         case WebRTC::Role::SENDER:
-            webrtc_instance.display_string("/webrtc/create_sdp_offer",std::move(desc_str)); 
+            webrtc_instance.display_string(EventBus::EventType::WebRTC_CreateSdpOffer,std::move(desc_str)); 
             break;
         case WebRTC::Role::RECEIVER:
-            webrtc_instance.display_string("/webrtc/create_sdp_answer",std::move(desc_str)); 
+            webrtc_instance.display_string(EventBus::EventType::WebRTC_CreateSdpAnswer,std::move(desc_str)); 
             break;
         case WebRTC::Role::UN_DEFINED:
             break;
@@ -48,7 +48,7 @@ void SSDO::OnSuccess()
             //当前设置的是远程SDP，需要发送事件
             if(webrtc_instance.set_sdp_type == WebRTC::SetSDPType::REMOTE)
             {
-                webrtc_instance.display_void("/webrtc/set_remote_sdp_offer_done");
+                webrtc_instance.display_void(EventBus::EventType::WebRTC_SetRemoteSdpOfferDone);
             }
             break;
         case WebRTC::Role::SENDER:

@@ -19,7 +19,7 @@
 #include <type_traits>
 #include <thread>
 
-#include "ThreadPool.hpp"
+#include "ThreadPool/ThreadPool.hpp"
 
 // function_traits 定义
 template<typename T>
@@ -67,25 +67,25 @@ public:
     EventBus(EventBus&&) = delete;
     EventBus& operator=(const EventBus&) = delete;
     EventBus& operator=(EventBus&&) = delete;
-
+    enum class EventType;
+    
     static EventBus& getInstance() {
         static EventBus instance;
         return instance;
     }
 
-    void registerEvent(std::string eventName) {
+    void registerEvent(EventType eventName) {
         auto [it, inserted] = registered_events.emplace(std::move(eventName));
         if (inserted) {
             callbacks_map.try_emplace(*it).first->second.reserve(3);
-            std::cout << "register " << *it << std::endl;
         }
     }
 
     // 显式模板参数的 subscribe
     template<typename... Args>
-    callback_id subscribe(const std::string& eventName, std::function<void(Args...)> callback) {
+    callback_id subscribe(const EventType eventName, std::function<void(Args...)> callback) {
         if (!isEventRegistered(eventName)) {
-            throw std::runtime_error("Event not registered: " + eventName);
+            throw std::runtime_error("Event not registered: " + std::to_string(static_cast<int>(eventName)));
         }
         callback_id id = ++next_id;
         callbacks_map[eventName].emplace_back(CallbackWrapper{id, callback});
@@ -94,14 +94,14 @@ public:
 
     // 自动推导 Callback 类型的 subscribe
     template<typename Callback>
-    callback_id subscribe(std::string eventName, Callback&& callback) {
+    callback_id subscribe(EventType eventName, Callback&& callback) {
         using signature = typename function_traits<std::decay_t<Callback>>::signature;
         return subscribe(eventName, std::function<signature>(std::forward<Callback>(callback)));
     }
 
     // 安全订阅版本（自动注册事件）
     template<typename... Args>
-    callback_id subscribeSafe(const std::string& eventName, std::function<void(Args...)> callback) {
+    callback_id subscribeSafe(const EventType eventName, std::function<void(Args...)> callback) {
         if (!isEventRegistered(eventName)) {
             registerEvent(eventName);
         }
@@ -110,15 +110,15 @@ public:
     
     // 自动推导的安全订阅版本
     template<typename Callback>
-    callback_id subscribeSafe(std::string eventName, Callback&& callback) {
+    callback_id subscribeSafe(EventType eventName, Callback&& callback) {
         using signature = typename function_traits<std::decay_t<Callback>>::signature;
         return subscribeSafe(eventName, std::function<signature>(std::forward<Callback>(callback)));
     }
 
     template<typename... Args>
-    void publish(std::string eventName, Args... args) {
+    void publish(EventType eventName, Args... args) {
         if (!isEventRegistered(eventName)) {
-            throw std::runtime_error("Event not registered: " + eventName);
+            throw std::runtime_error("Event not registered: " + std::to_string(static_cast<int>(eventName)));
         }
         
         auto args_tuple = std::make_shared<std::tuple<std::decay_t<Args>...>>(std::forward<Args>(args)...);
@@ -139,11 +139,11 @@ public:
         }
     }
 
-    bool isEventRegistered(const std::string& eventName) const {
+    bool isEventRegistered(const EventType eventName) const {
         return registered_events.find(eventName) != registered_events.end();
     }
 
-    bool unsubscribe(const std::string& eventName, callback_id id) {
+    bool unsubscribe(const EventType eventName, callback_id id) {
         if (!isEventRegistered(eventName)) return false;
         auto& callbacks = callbacks_map[eventName];
         for (auto it = callbacks.begin(); it != callbacks.end(); ) {
@@ -157,6 +157,7 @@ public:
         return false;
     }
     void initModuleSubscribe();
+    void registerAllEvents();
 private:
     EventBus();
     ~EventBus();
@@ -164,8 +165,8 @@ private:
         callback_id id;
         std::any callback;
     };
-    std::unordered_map<std::string, std::vector<CallbackWrapper>> callbacks_map;
-    std::unordered_set<std::string> registered_events;
+    std::unordered_map<EventType, std::vector<CallbackWrapper>> callbacks_map;
+    std::unordered_set<EventType> registered_events;
     std::atomic<callback_id> next_id{0};
     std::unique_ptr<ThreadPool<>> thread_pool;
 
@@ -173,5 +174,73 @@ private:
     std::unique_ptr<WebrtcController> webrtc_controller;
     std::unique_ptr<ConfigController> config_controller;
 };
+
+enum class EventBus::EventType {
+    // UI
+    UI_ConnectWidgetInitDone,
+
+    // Network
+    Network_GetTargetStatus,
+    Network_ConnectToSignalServerResult,
+    Network_SignalRegisterResult,
+    Network_TargetStatus,
+    Network_ConnectToTarget,
+    Network_HasConnectRequest,
+    Network_SendConnectRequestResult,
+    Network_RecvConnectRequestResult,
+    Network_SendLogout,
+    Network_SendToUserServer,
+    Network_ConnectToUserServerResult,
+    Network_ReceiveDeviceCode,
+    Network_ReConnectToSignalServer,
+    Network_LoginResult,
+    Network_UserRegisterResult,
+    Network_UserAvatarUpdate,
+    Network_UpdateDeviceList,
+    Network_UpdateDeviceCommentResult,
+    Network_DeleteDeviceInConfig,
+    Network_DeleteDeviceResult,
+    Network_UploadAvatarResult,
+    Network_UpdateUsernameResult,
+    Network_UpdateUserPasswordResult,
+    Network_RegisterDeviceResult,
+    Network_GetDeviceListResult,
+
+    // WebRTC
+    WebRTC_InitWebrtcDone,
+    WebRTC_RemoteReady,
+    WebRTC_CreateSdpOffer,
+    WebRTC_SetRemoteSdpOfferDone,
+    WebRTC_CreateSdpAnswer,
+    WebRTC_RecvSdpOffer,
+    WebRTC_RecvSdpAnswer,
+    WebRTC_SendIceCandidate,
+    WebRTC_RecvIceCandidate,
+    WebRTC_SendIceGatherDone,
+    WebRTC_RecvIceGatherDone,
+    WebRTC_ConnectionStatus,
+
+    // Render
+    Render_SetRenderInstance,
+
+    // Input
+    MouseEvent_HasEvent,
+    KeyboardEvent_HasEvent,
+    Clipboard_WriteIntoClipboard,
+
+    // Control
+    Control_CloseControl,
+    Control_RecvCloseControl,
+
+    // Config
+    Config_UpdateModuleConfig,
+    Config_UpdateModuleConfigDone,
+    Config_WriteIntoFile,
+    Config_ModuleConfigUpdated,
+    Config_CopyFile,
+    Config_RenameFile,
+    Config_UpdateDeviceComment
+};
+
 
 #endif

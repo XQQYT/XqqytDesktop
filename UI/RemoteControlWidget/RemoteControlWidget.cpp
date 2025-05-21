@@ -34,8 +34,8 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
 
     auto layout = this->layout();
     layout->addWidget(render_widget);
-    EventBus::getInstance().publish("/render/set_render_instance",dynamic_cast<RenderInterface*>(this));
-    EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
+    EventBus::getInstance().publish(EventBus::EventType::Render_SetRenderInstance,dynamic_cast<RenderInterface*>(this));
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_UpdateModuleConfigDone,std::bind(
         &RemoteControlWidget::onSettingChanged,
         this,
         std::placeholders::_1,
@@ -60,7 +60,7 @@ RemoteControlWidget::~RemoteControlWidget()
 void RemoteControlWidget::closeEvent(QCloseEvent *event)
 {
     std::cout<<"publish close control"<<std::endl;
-    EventBus::getInstance().publish("/control/close_control");
+    EventBus::getInstance().publish(EventBus::EventType::Control_CloseControl);
     emit remote_widget_closed();
 }
 

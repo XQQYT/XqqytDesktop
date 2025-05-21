@@ -51,7 +51,7 @@ private:
 private:
     void onTargetStatus(bool target_status);
     void onConnectSignalServerResult(bool result);
-    void onRegistrationResult(bool result);
+    void onSignalRegistrationResult(bool result);
     void onConnectRequest(std::string target_id, std::string key);
     void onRecvConnectRequestResult(bool status);
     void onConnectionStatus(bool status);

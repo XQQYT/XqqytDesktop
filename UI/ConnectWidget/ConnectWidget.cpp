@@ -34,7 +34,7 @@ ConnectWidget::ConnectWidget(QWidget *parent)
 
     connect(ui->lineEdit_target_id, &QLineEdit::textChanged, this, &ConnectWidget::on_textChanged);
     
-    EventBus::getInstance().publish("/ui/connectwidget_init_done");
+    EventBus::getInstance().publish(EventBus::EventType::UI_ConnectWidgetInitDone);
 }
 
 ConnectWidget::~ConnectWidget()
@@ -44,21 +44,21 @@ ConnectWidget::~ConnectWidget()
 
 void ConnectWidget::initSubscribe()
 {
-    EventBus::getInstance().subscribe("/network/target_status",std::bind(&ConnectWidget::onTargetStatus,this,std::placeholders::_1));
-    EventBus::getInstance().subscribe("/network/registration_result",std::bind(&ConnectWidget::onRegistrationResult,this,std::placeholders::_1));
-    EventBus::getInstance().subscribe("/network/connect_to_signal_server_result",std::bind(&ConnectWidget::onConnectSignalServerResult,this,std::placeholders::_1));
-    EventBus::getInstance().subscribe("/network/has_connect_request",std::bind(&ConnectWidget::onConnectRequest,this,std::placeholders::_1,std::placeholders::_2));
-    EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(&ConnectWidget::onRecvConnectRequestResult,this,std::placeholders::_1));
-    EventBus::getInstance().subscribe("/webrtc/connection_status",std::bind(&ConnectWidget::onConnectionStatus,this,std::placeholders::_1));
-    EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_TargetStatus,std::bind(&ConnectWidget::onTargetStatus,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_SignalRegisterResult,std::bind(&ConnectWidget::onSignalRegistrationResult,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_ConnectToSignalServerResult,std::bind(&ConnectWidget::onConnectSignalServerResult,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_HasConnectRequest,std::bind(&ConnectWidget::onConnectRequest,this,std::placeholders::_1,std::placeholders::_2));
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_RecvConnectRequestResult,std::bind(&ConnectWidget::onRecvConnectRequestResult,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_ConnectionStatus,std::bind(&ConnectWidget::onConnectionStatus,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_UpdateModuleConfigDone,std::bind(
         &ConnectWidget::onSettingChanged,
         this,
         std::placeholders::_1,
         std::placeholders::_2,
         std::placeholders::_3
     ));
-    EventBus::getInstance().subscribe("/network/connect_to_user_server_result",std::bind(&ConnectWidget::onConnectUserServerResult,this,std::placeholders::_1));
-    EventBus::getInstance().subscribe("/network/receive_device_code",std::bind(&ConnectWidget::onReceiveDeviceCode,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_ConnectToUserServerResult,std::bind(&ConnectWidget::onConnectUserServerResult,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_ReceiveDeviceCode,std::bind(&ConnectWidget::onReceiveDeviceCode,this,std::placeholders::_1));
 }
 
 void ConnectWidget::setUpdateKeyTimer()
@@ -102,8 +102,8 @@ void ConnectWidget::setUpdateKeyTimer()
         ui->btn_dynamic_key_value->setText(QString::fromStdString(new_key));
         qint64 timestamp = QDateTime::currentSecsSinceEpoch();
         last_update_timestamp = static_cast<int64_t>(timestamp);
-        EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp), false);
-        EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_key, true);
+        EventBus::getInstance().publish(EventBus::EventType::Config_UpdateModuleConfig,std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp), false);
+        EventBus::getInstance().publish(EventBus::EventType::Config_UpdateModuleConfig,std::string("Security"),std::string("last_key"),new_key, true);
         is_first_time = true;
     }
 
@@ -141,9 +141,9 @@ void ConnectWidget::on_btn_connect_clicked()
     if(UserInfoManager::getInstance().getSignalConnectStatus())
     {
         std::string target_id = ui->lineEdit_target_id->text().remove(' ').toStdString();
-        EventBus::getInstance().publish("/network/get_target_status",target_id);
+        EventBus::getInstance().publish(EventBus::EventType::Network_GetTargetStatus,target_id);
         SettingInfoManager::getInstance().updataModuleConfig("ConnectInfo","last_connect_id",target_id);
-        EventBus::getInstance().publish("/config/write_into_file");
+        EventBus::getInstance().publish(EventBus::EventType::Config_WriteIntoFile);
     }
     else
     {
@@ -156,8 +156,8 @@ void ConnectWidget::onEnterKeyDone(QString key)
     UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::Controller);
     std::string establishing_target_id = UserInfoManager::getInstance().getEstablishingTargetId();
     SettingInfoManager::getInstance().updataModuleConfig("ConnectInfo",establishing_target_id,key.toStdString());
-    EventBus::getInstance().publish("/config/write_into_file");
-    EventBus::getInstance().publish("/network/connect_to_target",establishing_target_id,key.toStdString());
+    EventBus::getInstance().publish(EventBus::EventType::Config_WriteIntoFile);
+    EventBus::getInstance().publish(EventBus::EventType::Network_ConnectToTarget,establishing_target_id,key.toStdString());
 }
 
 void ConnectWidget::onTargetStatus(bool target_status)
@@ -176,10 +176,10 @@ void ConnectWidget::onTargetStatus(bool target_status)
 
 }
 
-void ConnectWidget::onRegistrationResult(bool result)
+void ConnectWidget::onSignalRegistrationResult(bool result)
 {
     if(!result)
-    BubbleMessage::getInstance().error("RegistrationRejected");
+        BubbleMessage::getInstance().error("RegistrationRejected");
 }
 
 void ConnectWidget::onConnectUserServerResult(bool result)
@@ -189,7 +189,7 @@ void ConnectWidget::onConnectUserServerResult(bool result)
         if(UserInfoManager::getInstance().getCurrentUserId().empty())
         {
             std::vector<std::string> args = {getDeviceName()};
-            EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::RegisterDeviceCode,std::move(args)); 
+            EventBus::getInstance().publish(EventBus::EventType::Network_SendToUserServer,UserMsgType::RegisterDeviceCode,std::move(args)); 
         }
     }
     else
@@ -209,18 +209,18 @@ void ConnectWidget::onConnectRequest(std::string target_id, std::string key)
 {
     if(key != UserInfoManager::getInstance().getCurrentUserKey())
     {
-        EventBus::getInstance().publish("/network/send_connect_request_result",target_id,false);
+        EventBus::getInstance().publish(EventBus::EventType::Network_SendConnectRequestResult,target_id,false);
         return;
     }
     QMetaObject::invokeMethod(this, [this,target_id]() {
     ConfirmBeConnectDialog dialog(this);
     connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
-        EventBus::getInstance().publish("/network/send_connect_request_result",target_id,true);
+        EventBus::getInstance().publish(EventBus::EventType::Network_SendConnectRequestResult,target_id,true);
         UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::BeControlled);
 
     });
     connect(&dialog,&ConfirmBeConnectDialog::rejectConnection,this,[=](){
-        EventBus::getInstance().publish("/network/send_connect_request_result",target_id,false);
+        EventBus::getInstance().publish(EventBus::EventType::Network_SendConnectRequestResult,target_id,false);
     });
     dialog.exec();
     }, Qt::QueuedConnection);
@@ -298,11 +298,10 @@ void ConnectWidget::onTimeToUpdateKey()
     std::string new_dynamic_key = generateRandomString(8).toStdString();
     ui->btn_dynamic_key_value->setText(QString::fromStdString(new_dynamic_key));
     UserInfoManager::getInstance().setCurrentUserKey(new_dynamic_key);
-    EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_key"),new_dynamic_key, false);
+    EventBus::getInstance().publish(EventBus::EventType::Config_UpdateModuleConfig,std::string("Security"),std::string("last_key"),new_dynamic_key, false);
     qint64 timestamp = QDateTime::currentSecsSinceEpoch();
     int64_t last_update_timestamp = static_cast<int64_t>(timestamp);
-    EventBus::getInstance().publish("/config/update_module_config",std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp), true);
-    EventBus::getInstance().publish("/config/write_into_file");
+    EventBus::getInstance().publish(EventBus::EventType::Config_UpdateModuleConfig,std::string("Security"),std::string("last_update_timestamp"),std::to_string(last_update_timestamp), true);
     if(update_dynamic_key_timer->isActive())
         resetUpdateKeyTimer(last_update_timestamp);
 }
@@ -336,7 +335,7 @@ void ConnectWidget::on_btn_share_clicked()
     << "XqqytDesktop ID: " << userid << "\n"
     << "Dynamic Key: " << dynamic_key;
     std::string share_content = ss.str();
-    EventBus::getInstance().publish("/clipboard/write_into_clipboard", std::move(share_content));
+    EventBus::getInstance().publish(EventBus::EventType::Clipboard_WriteIntoClipboard, std::move(share_content));
     BubbleMessage::getInstance().show("The sharing information has been copied to the clipboard");
 }
 

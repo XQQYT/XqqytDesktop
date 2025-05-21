@@ -23,23 +23,23 @@ DeviceWidget::DeviceWidget(QWidget *parent)
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/DeviceWidget/DeviceWidget.qss")),this);
     ui->listWidget->setSpacing(5);
 
-    EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_UpdateModuleConfigDone,std::bind(
         &DeviceWidget::onSettingChanged,
         this,
         std::placeholders::_1,
         std::placeholders::_2,
         std::placeholders::_3
     ));
-    EventBus::getInstance().subscribe("/network/update_device_list",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_UpdateDeviceList,std::bind(
         &DeviceWidget::onDeviceListUpdated,
         this
     ));
-    EventBus::getInstance().subscribe("/network/update_device_comment_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_UpdateDeviceCommentResult,std::bind(
         &DeviceWidget::onUpdateDeviceCommentResult,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/delete_device_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_DeleteDeviceResult,std::bind(
         &DeviceWidget::onDeleteDeviceResult,
         this,
         std::placeholders::_1
@@ -120,10 +120,10 @@ void DeviceWidget::onDeviceListUpdated()
     connect(this,&DeviceWidget::ConnectFromDevice,&WidgetManager::getInstance(),&WidgetManager::ConnectFromDevice, Qt::UniqueConnection);
     QMetaObject::invokeMethod(this, [=]() {
         ui->listWidget->clear();
-        auto device_list =  DevicelistManager::getInstance().getDeviceInfo();
-        for(auto& device : device_list)
+        auto device_list = DevicelistManager::getInstance().getDeviceInfo();
+        for (auto it = device_list.rbegin(); it != device_list.rend(); ++it)
         {
-            addDeviceUI(device);
+            addDeviceUI(*it);
         }
         update();
     }, Qt::QueuedConnection);
@@ -148,15 +148,15 @@ void DeviceWidget::onCopyDeviceInfo(QString device_name, QString device_code, QS
     << "Device code: " << devicecode<<"\n"
     << "Device ip: "<<deviceip;
     std::string share_content = ss.str();
-    EventBus::getInstance().publish("/clipboard/write_into_clipboard", std::move(share_content));
+    EventBus::getInstance().publish(EventBus::EventType::Clipboard_WriteIntoClipboard, std::move(share_content));
     BubbleMessage::getInstance().show("The sharing information has been copied to the clipboard");
 }
 
 void DeviceWidget::onEditDeviceComment(QString code, QString new_comment)
 {
     std::vector<std::string> args = {code.toStdString(), new_comment.toStdString()};
-    EventBus::getInstance().publish("/config/update_device_comment", args[0], args[1]);
-    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::UPDATEDEVICECOMMENT, std::move(args));
+    EventBus::getInstance().publish(EventBus::EventType::Config_UpdateDeviceComment, args[0], args[1]);
+    EventBus::getInstance().publish(EventBus::EventType::Network_SendToUserServer,UserMsgType::UPDATEDEVICECOMMENT, std::move(args));
     BubbleMessage::getInstance().error("Failed to connect User Server");
 }
 
@@ -164,7 +164,7 @@ void DeviceWidget::onDeleteDevice(QString code)
 {
     code_need_to_delete = code;
     std::vector<std::string> args = {code.toStdString()};
-    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::DELETEDEVICE, std::move(args));
+    EventBus::getInstance().publish(EventBus::EventType::Network_SendToUserServer,UserMsgType::DELETEDEVICE, std::move(args));
 }
 
 void DeviceWidget::onUpdateDeviceCommentResult(bool result)
@@ -194,7 +194,7 @@ void DeviceWidget::onDeleteDeviceResult(bool result)
                     }
                 }
             }
-            EventBus::getInstance().publish("/network/delete_device_in_config", code_need_to_delete.toStdString());
+            EventBus::getInstance().publish(EventBus::EventType::Network_DeleteDeviceInConfig, code_need_to_delete.toStdString());
             BubbleMessage::getInstance().show("Device deleted successfully");
         } else {
             BubbleMessage::getInstance().error("Failed to delete device");

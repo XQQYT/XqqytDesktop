@@ -51,10 +51,10 @@ public:
     void setCaptureRate(int rate) override;
     void writeIntoClipboard(std::string str) override;
 public:
-    void display_string(std::string event_name,std::string str);
-    void display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3);
-    void display_void(std::string event_name);
-    void dispatch_bool(std::string event_name,bool status);
+    void display_string(EventBus::EventType event_name,std::string str);
+    void display_string_string_string(EventBus::EventType event_name,std::string str1,std::string str2,std::string str3);
+    void display_void(EventBus::EventType event_name);
+    void dispatch_bool(EventBus::EventType event_name,bool status);
     Role currentRole;
     SetSDPType set_sdp_type;
     bool hasSetRemoteSdp;

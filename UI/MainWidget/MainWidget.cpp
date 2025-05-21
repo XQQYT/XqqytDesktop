@@ -290,14 +290,28 @@ void MainWidget::on_btn_username_clicked()
 
 void MainWidget::onEnterLoginDone(QString username, QString password)
 {
-    std::vector<std::string> args = {username.toStdString(), password.toStdString(),UserInfoManager::getInstance().getCurrentUserId()};
-    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::LOGIN, std::move(args));
+    if(UserInfoManager::getInstance().getUserConnectStatus())
+    {
+        std::vector<std::string> args = {username.toStdString(), password.toStdString(),UserInfoManager::getInstance().getCurrentUserId()};
+        EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::LOGIN, std::move(args));
+    }
+    else
+    {
+        BubbleMessage::getInstance().error("Failed to connect User Server");
+    }
 }
 
 void MainWidget::onEnterRegisterDone(QString username, QString password, QString avatar_path)
 {  
-    std::vector<std::string> args = {username.toStdString(), password.toStdString(), avatar_path.toStdString()};
-    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::REGISTER, std::move(args));
+    if(UserInfoManager::getInstance().getUserConnectStatus())
+    {
+        std::vector<std::string> args = {username.toStdString(), password.toStdString(), avatar_path.toStdString()};
+        EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::REGISTER, std::move(args));
+    }
+    else
+    {
+        BubbleMessage::getInstance().error("Failed to connect User Server");
+    }
 }
 
 void MainWidget::onLoginResult(bool status)

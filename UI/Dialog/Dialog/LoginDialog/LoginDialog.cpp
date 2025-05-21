@@ -64,6 +64,7 @@ void LoginDialog::on_btn_register_clicked()
 
 void LoginDialog::onLoginResult(bool status)
 {
+    loading_dialog->close();
     if(status)
     {
         ui->label_hint->clear();
@@ -76,5 +77,4 @@ void LoginDialog::onLoginResult(bool status)
         ui->label_hint->setText("Authentication failed. Please check if the username and password are correct.");
     }
     ui->lineEdit_password->clear();
-    loading_dialog->close();
 }

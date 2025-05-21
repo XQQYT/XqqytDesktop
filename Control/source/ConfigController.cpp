@@ -58,7 +58,7 @@ void ConfigController::initConfigSubscribe()
         &ConfigController::onDeviceListUpdated,
         this
     ));
-    EventBus::getInstance().subscribe("/network/update_device_comment",std::bind(
+    EventBus::getInstance().subscribe("/config/update_device_comment",std::bind(
         &ConfigController::onUpdateDeviceComment,
         this,
         std::placeholders::_1,

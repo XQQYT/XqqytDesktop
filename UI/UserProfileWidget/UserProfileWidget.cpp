@@ -54,33 +54,41 @@ void UserProfileWidget::on_btn_upload_avatar_clicked()
     if (selected_avatar_path.isEmpty()) {
         return;
     }
-    QPixmap avatar(selected_avatar_path);
-    QPixmap circular = createCircularPixmap(avatar, ui->label_avatar->width());
-    ui->label_avatar->setPixmap(circular);
+        //备份原头像 -> 拷贝选择的头像到程序目录 -> 发送给服务器
+    if(UserInfoManager::getInstance().getUserConnectStatus())
+    {
+        QPixmap avatar(selected_avatar_path);
+        QPixmap circular = createCircularPixmap(avatar, ui->label_avatar->width());
+        ui->label_avatar->setPixmap(circular);
 
-    std::string avatar_dir("User/Avatar/" + UserInfoManager::getInstance().getUserName());
-    std::string tmp_dir("User/tmp/"+ UserInfoManager::getInstance().getUserName());
+        std::string avatar_dir("User/Avatar/" + UserInfoManager::getInstance().getUserName());
+        std::string tmp_dir("User/tmp/"+ UserInfoManager::getInstance().getUserName());
 
-    //备份原头像 -> 拷贝选择的头像到程序目录 -> 发送给服务器
-    EventBus::getInstance().publish<std::string, std::string, std::function<void()>>(
-        "/config/copy_file",
-        avatar_dir,
-        tmp_dir,
-        [selected_avatar_path,avatar_dir]() {
-            EventBus::getInstance().publish<std::string, std::string, std::function<void()>>(
-                "/config/copy_file",
-                selected_avatar_path.toStdString(),
-                avatar_dir,
-                [selected_avatar_path]() {
-                    std::vector<std::string> args = {
-                        UserInfoManager::getInstance().getUserName(),
-                        selected_avatar_path.toStdString()
-                    };
-                    EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEAVATAR, std::move(args));
-                }
-            );
-        }
-    );
+        EventBus::getInstance().publish<std::string, std::string, std::function<void()>>(
+            "/config/copy_file",
+            avatar_dir,
+            tmp_dir,
+            [selected_avatar_path,avatar_dir]() {
+                EventBus::getInstance().publish<std::string, std::string, std::function<void()>>(
+                    "/config/copy_file",
+                    selected_avatar_path.toStdString(),
+                    avatar_dir,
+                    [selected_avatar_path]() {
+                        std::vector<std::string> args = {
+                            UserInfoManager::getInstance().getUserName(),
+                            selected_avatar_path.toStdString()
+                        };
+                        EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEAVATAR, std::move(args));
+                    }
+                );
+            }
+        );
+    }
+    else
+    {
+        BubbleMessage::getInstance().error("Failed to connect User Server");
+    }
+
 }
 
 void UserProfileWidget::on_btn_change_password_clicked()
@@ -98,8 +106,17 @@ void UserProfileWidget::on_btn_change_password_clicked()
             dialog->setTip("Passwords do not match");
         }
         dialog->close();
-        std::vector<std::string> args = {content[0].toStdString(), content[1].toStdString()};
-        EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEPASSWORD, std::move(args));
+        
+        if(UserInfoManager::getInstance().getUserConnectStatus())
+        {
+            std::vector<std::string> args = {content[0].toStdString(), content[1].toStdString()};
+            EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEPASSWORD, std::move(args));
+        }
+        else
+        {
+            BubbleMessage::getInstance().error("Failed to connect User Server");
+        }
+        
     });
 
     dialog->addLineEdit("Current Password", true);
@@ -113,10 +130,17 @@ void UserProfileWidget::on_btn_change_username_clicked()
 {
     GeneralLineEditDialog *dialog = new GeneralLineEditDialog("Update User Name", this);
     connect(dialog,&GeneralLineEditDialog::enterDone,this,[=](QVector<QString> content){
-        std::vector<std::string> args = {content[0].toStdString()};
-        EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEUSERNAME, std::move(args));
-        UserInfoManager::getInstance().setChangingUserName(content[0].toStdString());
-        ui->label_username->setText(content[0]);
+        if(UserInfoManager::getInstance().getUserConnectStatus())
+        {
+            std::vector<std::string> args = {content[0].toStdString()};
+            EventBus::getInstance().publish("/network/send_to_user_server", UserMsgType::UPDATEUSERNAME, std::move(args));
+            UserInfoManager::getInstance().setChangingUserName(content[0].toStdString());
+            ui->label_username->setText(content[0]);
+        }
+        else
+        {
+            BubbleMessage::getInstance().error("Failed to connect User Server");
+        }
         dialog->close();
     });
     dialog->addLineEdit("New User Name", false);

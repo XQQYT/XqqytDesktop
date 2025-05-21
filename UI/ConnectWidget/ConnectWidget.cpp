@@ -179,12 +179,15 @@ void ConnectWidget::onConnectUserServerResult(bool result)
 {
     if(result)
     {
-        std::cout<<"连接用户服务器成功"<<std::endl;
         if(UserInfoManager::getInstance().getCurrentUserId().empty())
         {
             std::vector<std::string> args = {getDeviceName()};
             EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::RegisterDeviceCode,std::move(args)); 
         }
+    }
+    else
+    {
+        BubbleMessage::getInstance().error("Failed to connect User Server");
     }
 }
 

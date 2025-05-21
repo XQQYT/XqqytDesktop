@@ -154,13 +154,17 @@ void DeviceWidget::onCopyDeviceInfo(QString device_name, QString device_code, QS
 
 void DeviceWidget::onEditDeviceComment(QString code, QString new_comment)
 {
-    EventBus::getInstance().publish("/network/update_device_comment", code.toStdString(), new_comment.toStdString());
+    std::vector<std::string> args = {code.toStdString(), new_comment.toStdString()};
+    EventBus::getInstance().publish("/config/update_device_comment", args[0], args[1]);
+    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::UPDATEDEVICECOMMENT, std::move(args));
+    BubbleMessage::getInstance().error("Failed to connect User Server");
 }
 
 void DeviceWidget::onDeleteDevice(QString code)
 {
     code_need_to_delete = code;
-    EventBus::getInstance().publish("/network/delete_device", code.toStdString());
+    std::vector<std::string> args = {code.toStdString()};
+    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::DELETEDEVICE, std::move(args));
 }
 
 void DeviceWidget::onUpdateDeviceCommentResult(bool result)

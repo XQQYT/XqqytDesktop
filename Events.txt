@@ -17,9 +17,7 @@
 /network/register_result
 /network/user_avatar_update
 /network/update_device_list
-/network/update_device_comment
 /network/update_device_comment_result
-/network/delete_device
 /network/delete_device_in_config
 /network/delete_device_result
 /network/upload_avatar_result
@@ -56,3 +54,4 @@
 /config/module_config_updated
 /config/copy_file
 /config/rename_file
+/config/update_device_comment

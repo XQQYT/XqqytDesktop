@@ -46,6 +46,13 @@ public:
 
     void setChangingUserName(const std::string& name) { changing_user_name = name; }
     const std::string& getChangingUserName() const { return changing_user_name; }
+
+    void setUserConnectStatus(const bool status) { user_connect_status = status; }
+    const bool& getUserConnectStatus() const { return user_connect_status; }
+
+    void setSignalConnectStatus(const bool status) { signal_connect_status = status; }
+    const bool getSignalConnectStatus() const { return signal_connect_status; }
+
 private:
     UserInfoManager(){
         current_role = Role::UN_DEFINED;
@@ -59,6 +66,9 @@ private:
 
     std::string user_name;
     std::string changing_user_name;
+
+    bool user_connect_status;
+    bool signal_connect_status;
 };
 
 #endif

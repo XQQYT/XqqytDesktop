@@ -1,0 +1,94 @@
+/* Light Theme Base */
+QWidget {
+    background-color: #f9fafb;
+    color: #1e293b;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* GroupBox Container */
+QGroupBox {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 8px;
+    padding: 0 4px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Avatar Label */
+#label_avatar {
+    border: 1px dashed #94a3b8;
+    background-color: #f1f5f9;
+    color: #64748b;
+    font-size: 12px;
+}
+
+/* General Buttons */
+QPushButton {
+    padding: 4px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background-color: #e2e8f0;
+    font-size: 14px;
+    min-height: 24px;
+}
+
+QPushButton:hover {
+    background-color: #cbd5e1;
+}
+
+QPushButton:pressed {
+    background-color: #94a3b8;
+    border-color: #94a3b8;
+}
+
+/* Primary Buttons */
+#btn_change_username, #btn_change_password, #btn_upload_avatar {
+    border-color: #3b82f6;
+    background-color: #3b82f6;
+    color: white;
+}
+
+#btn_change_username:hover, #btn_change_password:hover, #btn_upload_avatar:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+#btn_change_username:pressed, #btn_change_password:pressed, #btn_upload_avatar:pressed {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+/* Logout Button */
+#btn_logout {
+    border-color: #ef4444;
+    color: #ef4444;
+    margin: 12px;
+}
+
+#btn_logout:hover {
+    background-color: #fee2e2;
+}
+
+#btn_logout:pressed {
+    background-color: #fecaca;
+    border-color: #dc2626;
+}
+
+/* Layout Spacing */
+QVBoxLayout {
+    spacing: 8px;
+}
+
+QHBoxLayout {
+    spacing: 10px;
+}
+

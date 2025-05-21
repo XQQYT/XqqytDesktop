@@ -1,0 +1,45 @@
+QDialog {
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+}
+
+/* 按钮通用样式 */
+QPushButton {
+    background-color: transparent;
+    border: none;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #374151;
+    border-radius: 6px;
+    margin: 0 6px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* 按钮悬停效果 */
+QPushButton:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+/* 按钮按下效果 */
+QPushButton:pressed {
+    background-color: #e5e7eb;
+}
+
+/* 删除按钮特殊样式 */
+#btn_delete {
+    color: #dc2626;
+}
+
+#btn_delete:hover {
+    background-color: #fef2f2;
+    color: #b91c1c;
+}
+
+/* 移除最后一个按钮的底部边框 */
+QPushButton:last-child {
+    border-bottom: none;
+}
+

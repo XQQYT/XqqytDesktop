@@ -13,7 +13,6 @@ QLabel#label_id {
     font-weight: bold;
     color:rgb(255, 255, 255);
 }
-
 /* 下方 IP 地址 */
 QLabel#label_ip {
     font-size: 14px;

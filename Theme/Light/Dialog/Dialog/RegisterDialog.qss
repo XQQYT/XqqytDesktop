@@ -1,0 +1,130 @@
+QDialog {
+     background: #f8fafc;
+     font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    /* Text styles */
+    QLabel {
+     color: #475569;
+     font-size: 14px;
+     font-weight: 500;
+     margin-bottom: 4px;
+    }
+    
+    #headerLabel {
+     font-size: 28px;
+     font-weight: 700;
+     margin-bottom: 10px;
+     color: #1e293b;
+    }
+    
+    #subtitleLabel {
+     font-size: 14px;
+     color: #64748b;
+     margin-bottom: 30px;
+    }
+    
+    /* Input fields */
+    QLineEdit {
+     background: white;
+     border: 1px solid #e2e8f0;
+     border-radius: 8px;
+     padding: 12px 16px;
+     font-size: 14px;
+     color: #1e293b;
+     min-width: 250px;
+    }
+    
+    QLineEdit:focus {
+     border: 1px solid #7c3aed;
+     outline: none;
+    }
+    
+    QLineEdit[error='true'] {
+     border: 1px solid #ef4444;
+    }
+    
+    /* Buttons */
+    QPushButton {
+     border: none;
+     border-radius: 8px;
+     padding: 12px 24px;
+     font-size: 14px;
+     font-weight: 600;
+    }
+    
+    #btn_register {
+     background: #7c3aed;
+     color: white;
+     min-width: 250px;
+    }
+    
+    #btn_register:hover {
+     background: #6d28d9;
+    }
+    
+    #btn_register:pressed {
+     background: #5b21b6;
+    }
+    
+    #btn_login {
+     background: transparent;
+     color: #64748b;
+     font-weight: normal;
+     text-decoration: none;
+     min-width: auto;
+     padding: 0;
+    }
+    
+    #btn_login:hover {
+     color: #7c3aed;
+     text-decoration: underline;
+    }
+    
+    #btn_selectAvatar {
+     background: white;
+     color: #7c3aed;
+     border: 1px solid #7c3aed;
+     margin-top: 10px;
+    }
+    
+    #btn_selectAvatar:hover {
+     background: #f5f3ff;
+    }
+    
+    /* Avatar preview */
+    #avatarPreview {
+     border: 3px solid #e2e8f0;
+     border-radius: 8px;
+     background: white;
+    }
+    
+    /* Error message */
+    #errorLabel {
+     color: #ef4444;
+     font-size: 13px;
+     margin-top: 4px;
+    }
+    
+    /* Horizontal divider */
+    #divider {
+     background: #e2e8f0;
+     min-height: 1px;
+     max-height: 1px;
+    }
+    
+    /* Form container */
+    #formContainer {
+     background: white;
+     border-radius: 12px;
+     padding: 30px;
+     border: 1px solid #e2e8f0;
+    }
+    
+    /* Right panel */
+    #rightPanel {
+     background: #f5f3ff;
+     border-radius: 12px;
+     padding: 30px;
+    }
+

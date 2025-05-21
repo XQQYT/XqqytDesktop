@@ -81,3 +81,9 @@ void LoginDialog::onLoginResult(bool status)
     }
     ui->lineEdit_password->clear();
 }
+
+void LoginDialog::showEvent(QShowEvent* event)
+{
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/Dialog/Dialog/LoginDialog.qss")),this);
+    QDialog::showEvent(event);
+}

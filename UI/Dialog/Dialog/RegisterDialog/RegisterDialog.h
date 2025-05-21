@@ -32,7 +32,7 @@ private slots:
     void on_btn_select_avatar_clicked();
 protected:
     void closeEvent(QCloseEvent *event) override;
-
+    void showEvent(QShowEvent* event) override;
 private:
     Ui::RegisterDialog *ui;
     QString selected_avatar_path;

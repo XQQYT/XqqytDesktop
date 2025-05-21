@@ -30,7 +30,8 @@ signals:
     void RegisterEnterDone(QString username, QString password, QString avatar_path);
 public slots:
     void onLoginResult(bool status);
-
+protected:
+    void showEvent(QShowEvent* event);
 private slots:
     void on_btn_login_clicked();
     void on_btn_register_clicked();

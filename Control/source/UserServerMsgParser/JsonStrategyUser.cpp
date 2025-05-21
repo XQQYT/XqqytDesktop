@@ -22,39 +22,39 @@ void ResponseStrategy::execute(std::unique_ptr<Parser> parser, Operator& control
         std::string status = parser->getKey("status");
         if(subtype == "login")
         {
-            controll_instance.dispatch_bool("/network/login_result", statusToBool(status));
+            controll_instance.dispatch_bool(EventBus::EventType::Network_LoginResult, statusToBool(status));
         }
         else if(subtype == "register")
         {
-            controll_instance.dispatch_bool("/network/register_result", statusToBool(status));
+            controll_instance.dispatch_bool(EventBus::EventType::Network_UserRegisterResult, statusToBool(status));
         }
         else if(subtype == "update_device_comment_result")
         {
-            controll_instance.dispatch_bool("/network/update_device_comment_result",statusToBool(status));
+            controll_instance.dispatch_bool(EventBus::EventType::Network_UpdateDeviceCommentResult,statusToBool(status));
         }
         else if(subtype == "delete_device_result")
         {
-            controll_instance.dispatch_bool("/network/delete_device_result",statusToBool(status));
+            controll_instance.dispatch_bool(EventBus::EventType::Network_DeleteDeviceResult,statusToBool(status));
         }
         else if(subtype == "upload_avatar")
         {
-            controll_instance.dispatch_bool("/network/upload_avatar_result", statusToBool(status));
+            controll_instance.dispatch_bool(EventBus::EventType::Network_UploadAvatarResult, statusToBool(status));
         }
         else if(subtype == "update_user_name")
         {
-            controll_instance.dispatch_bool("/network/update_username_result", statusToBool(status));
+            controll_instance.dispatch_bool(EventBus::EventType::Network_UpdateUsernameResult, statusToBool(status));
         }
         else if(subtype == "update_user_password")
         {
-            controll_instance.dispatch_bool("/network/update_user_password_result", statusToBool(status));
+            controll_instance.dispatch_bool(EventBus::EventType::Network_UpdateUserPasswordResult, statusToBool(status));
         }
         else if(subtype == "register_device")
         {
-            controll_instance.dispatch_bool("/network/register_device_result", statusToBool(status));
+            controll_instance.dispatch_bool(EventBus::EventType::Network_RegisterDeviceResult, statusToBool(status));
         }
         else if(subtype == "get_device_list")
         {
-            controll_instance.dispatch_bool("/network/get_device_list_result", statusToBool(status));
+            controll_instance.dispatch_bool(EventBus::EventType::Network_GetDeviceListResult, statusToBool(status));
         }
     }
     
@@ -63,7 +63,7 @@ void ResponseStrategy::execute(std::unique_ptr<Parser> parser, Operator& control
 void DeviceCodeStrategy::execute(std::unique_ptr<Parser> parser, Operator& controll_instance)
 {
     if(parser->contain("device_code"))
-        controll_instance.dispatch_string("/network/receive_device_code", std::move(parser->getKey("device_code")));
+        controll_instance.dispatch_string(EventBus::EventType::Network_ReceiveDeviceCode, std::move(parser->getKey("device_code")));
 }
 
 void DeviceListStrategy::execute(std::unique_ptr<Parser> parser, Operator& controll_instance)
@@ -80,7 +80,7 @@ void DeviceListStrategy::execute(std::unique_ptr<Parser> parser, Operator& contr
             devices_vec.emplace_back(name,code,ip,comment);
         }
         DevicelistManager::getInstance().loadDeviceList(std::move(devices_vec));
-        controll_instance.dispatch_void("/network/update_device_list");
+        controll_instance.dispatch_void(EventBus::EventType::Network_UpdateDeviceList);
     }
 
 }

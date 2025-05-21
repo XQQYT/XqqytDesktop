@@ -24,11 +24,11 @@ class NetworkController : public Operator{
 //NetworkOperator
 public:
     void sendToServer(std::string msg) override;
-    void dispatch_void(std::string event_name) override;
-    void dispatch_string(std::string event_name,std::string str) override;
-    void dispatch_string_string(std::string event_name,std::string str1,std::string str2) override;
-    void dispatch_string_string_string(std::string event_name, std::string str1, std::string str2, std::string str3) override;
-    void dispatch_bool(std::string event_name,bool status) override;
+    void dispatch_void(EventBus::EventType event_name) override;
+    void dispatch_string(EventBus::EventType event_name,std::string str) override;
+    void dispatch_string_string(EventBus::EventType event_name,std::string str1,std::string str2) override;
+    void dispatch_string_string_string(EventBus::EventType event_name, std::string str1, std::string str2, std::string str3) override;
+    void dispatch_bool(EventBus::EventType event_name,bool status) override;
 //NetworkController
 public:
     NetworkController();

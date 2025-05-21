@@ -72,11 +72,11 @@ void SignalMessageParser::onRegisterResult(std::unique_ptr<Parser> parser)
 {
     if(parser->getKey("status") == "success")
     {
-        network_operator.dispatch_bool("/network/registration_result", true);
+        network_operator.dispatch_bool(EventBus::EventType::Network_SignalRegisterResult, true);
     }
     else
     {
-        network_operator.dispatch_bool("/network/registration_rejected", false);
+        network_operator.dispatch_bool(EventBus::EventType::Network_SignalRegisterResult, false);
     }
 }
 
@@ -85,12 +85,12 @@ void SignalMessageParser::onTargetStatusResult(std::unique_ptr<Parser> parser)
     //目标不在线
     if(parser->getKey("status") == "False")
     {
-        network_operator.dispatch_bool("/network/target_status",false);//会被ui层接收
+        network_operator.dispatch_bool(EventBus::EventType::Network_TargetStatus,false);//会被ui层接收
     }
     //目标在线
     else
     {
-        network_operator.dispatch_bool("/network/target_status",true);
+        network_operator.dispatch_bool(EventBus::EventType::Network_TargetStatus,true);
     }
 }
 
@@ -100,7 +100,7 @@ void SignalMessageParser::onConnectRequest(std::unique_ptr<Parser> parser)
     if(!target_id.empty())
     {
         UserInfoManager::getInstance().setEstablishingTargetId(target_id);
-        network_operator.dispatch_string_string("/network/has_connect_request",target_id, parser->getKey("key"));
+        network_operator.dispatch_string_string(EventBus::EventType::Network_HasConnectRequest,target_id, parser->getKey("key"));
     }
     else
     {
@@ -115,11 +115,11 @@ void SignalMessageParser::onConnectRequestResult(std::unique_ptr<Parser> parser)
     //对方同意连接
     if(result == "True")
     {
-        network_operator.dispatch_bool("/network/recv_connect_request_result",true);
+        network_operator.dispatch_bool(EventBus::EventType::Network_RecvConnectRequestResult,true);
     }
     else
     {
-        network_operator.dispatch_bool("/network/recv_connect_request_result",false);
+        network_operator.dispatch_bool(EventBus::EventType::Network_RecvConnectRequestResult,false);
     }
 }
 
@@ -128,28 +128,28 @@ void SignalMessageParser::onSdpOffer(std::unique_ptr<Parser> parser)
 {
     UserInfoManager::getInstance().setEstablishingTargetId(parser->getKey("target_id"));
     auto sdp_offer = parser->getKey("sdp");
-    network_operator.dispatch_string("/webrtc/recv_sdp_offer",std::move(sdp_offer));
+    network_operator.dispatch_string(EventBus::EventType::WebRTC_RecvSdpOffer,std::move(sdp_offer));
 }
 
 void SignalMessageParser::onSdpAnswer(std::unique_ptr<Parser> parser)
 {
     auto sdp_answer = parser->getKey("sdp");
-    network_operator.dispatch_string("/webrtc/recv_sdp_answer",std::move(sdp_answer));
+    network_operator.dispatch_string(EventBus::EventType::WebRTC_RecvSdpAnswer,std::move(sdp_answer));
 }
 
 void SignalMessageParser::onIceCondidate(std::unique_ptr<Parser> parser)
 {
     auto ice_content = parser->getObj("ice_content");
-    network_operator.dispatch_string_string_string("/webrtc/recv_ice_candidate",std::move(ice_content->getKey("ice")),
+    network_operator.dispatch_string_string_string(EventBus::EventType::WebRTC_RecvIceCandidate,std::move(ice_content->getKey("ice")),
                                                     std::move(ice_content->getKey("sdp_mid")),std::move(ice_content->getKey("sdp_mline_index")));
 }
 
 void SignalMessageParser::onIceGatherDone(std::unique_ptr<Parser> parser)
 {
-    network_operator.dispatch_void("/webrtc/recv_ice_gather_done");
+    network_operator.dispatch_void(EventBus::EventType::WebRTC_RecvIceGatherDone);
 }
 
 void SignalMessageParser::onReady(std::unique_ptr<Parser> parser)
 {
-    network_operator.dispatch_void("/webrtc/remote_ready");
+    network_operator.dispatch_void(EventBus::EventType::WebRTC_RemoteReady);
 }

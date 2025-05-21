@@ -45,7 +45,7 @@ MainWidget::MainWidget(QWidget *parent)
 
 void MainWidget::initSubscribe()
 {
-    EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_UpdateModuleConfigDone,std::bind(
         &MainWidget::onSettingChanged,
         this,
         std::placeholders::_1,
@@ -53,41 +53,41 @@ void MainWidget::initSubscribe()
         std::placeholders::_3
     ));
 
-    EventBus::getInstance().subscribe("/network/login_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_LoginResult,std::bind(
         &MainWidget::onLoginResult,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/register_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_UserRegisterResult,std::bind(
         &MainWidget::onRegisterResult,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/user_avatar_update",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_UserAvatarUpdate,std::bind(
         &MainWidget::onUserAvatarUpdated,
         this
     ));
-    EventBus::getInstance().subscribe("/network/upload_avatar_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_UploadAvatarResult,std::bind(
         &MainWidget::onUploadUserAvatarResult,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/update_username_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_UpdateUsernameResult,std::bind(
         &MainWidget::onUserNameUpdateResult,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/update_user_password_result",[this](bool result){
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_UpdateUserPasswordResult,[this](bool result){
         if(result)
             BubbleMessage::getInstance().show("Update password success!");
         else
             BubbleMessage::getInstance().error("Failed to update password");
     });
-    EventBus::getInstance().subscribe("/network/register_device_result",[this](bool result){
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_RegisterDeviceResult,[this](bool result){
         if(!result)
             BubbleMessage::getInstance().error("Failed to register device");
     });
-    EventBus::getInstance().subscribe("/network/get_device_list_result",[this](bool result){
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_GetDeviceListResult,[this](bool result){
         if(!result)
             BubbleMessage::getInstance().error("Failed to get device list");
     });
@@ -95,8 +95,9 @@ void MainWidget::initSubscribe()
 
 MainWidget::~MainWidget()
 {
+    EventBus::getInstance().publish(EventBus::EventType::Config_WriteIntoFile);
     if(UserInfoManager::getInstance().getSignalConnectStatus())
-        EventBus::getInstance().publish("/network/send_logout");
+        EventBus::getInstance().publish(EventBus::EventType::Network_SendLogout);
     WidgetManager::getInstance().closeAllWidget();
     delete ui;
 }
@@ -114,7 +115,7 @@ void MainWidget::setCurrentWidget(const WidgetManager::WidgetType type)
 
     if(is_first)
     {
-        EventBus::getInstance().publish("/config/update_module_config_done",std::string("General"),std::string("language"),SettingInfoManager::getInstance().getValue("General","language"));
+        EventBus::getInstance().publish(EventBus::EventType::Config_UpdateModuleConfigDone,std::string("General"),std::string("language"),SettingInfoManager::getInstance().getValue("General","language"));
         is_first = false;
     }
     QLayout* layout = ui->right_content_widget->layout();
@@ -279,7 +280,7 @@ void MainWidget::on_btn_username_clicked()
     {
         UserProfileWidget* personal_center = new UserProfileWidget(this);
         connect(personal_center,&UserProfileWidget::logout,this,[=](){
-            EventBus::getInstance().publish("/config/update_module_config",std::string("User"),std::string("user_name"),std::string("null"), true);
+            EventBus::getInstance().publish(EventBus::EventType::Config_UpdateModuleConfig,std::string("User"),std::string("user_name"),std::string("null"), true);
             loadUserInfo("null");
             updateUserNameBtn();
             dynamic_cast<DeviceWidget*>(WidgetManager::getInstance().getWidget(WidgetManager::WidgetType::DeviceWidget))->clearDevices();
@@ -294,7 +295,7 @@ void MainWidget::onEnterLoginDone(QString username, QString password)
     if(UserInfoManager::getInstance().getUserConnectStatus())
     {
         std::vector<std::string> args = {username.toStdString(), password.toStdString(),UserInfoManager::getInstance().getCurrentUserId()};
-        EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::LOGIN, std::move(args));
+        EventBus::getInstance().publish(EventBus::EventType::Network_SendToUserServer,UserMsgType::LOGIN, std::move(args));
     }
     else
     {
@@ -307,7 +308,7 @@ void MainWidget::onEnterRegisterDone(QString username, QString password, QString
     if(UserInfoManager::getInstance().getUserConnectStatus())
     {
         std::vector<std::string> args = {username.toStdString(), password.toStdString(), avatar_path.toStdString()};
-        EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::REGISTER, std::move(args));
+        EventBus::getInstance().publish(EventBus::EventType::Network_SendToUserServer,UserMsgType::REGISTER, std::move(args));
     }
     else
     {
@@ -366,7 +367,7 @@ void MainWidget::onUploadUserAvatarResult(bool status)
             QPixmap circular = createCircularPixmap(avatar, ui->label_avatar->width());
             ui->label_avatar->setPixmap(circular);
 
-            EventBus::getInstance().publish("/config/copy_file", tmp_path, avatar_path, std::function<void()>());
+            EventBus::getInstance().publish(EventBus::EventType::Config_CopyFile, tmp_path, avatar_path, std::function<void()>());
             BubbleMessage::getInstance().error("Failed to upload avatar");
         }
     }, Qt::QueuedConnection);
@@ -380,10 +381,10 @@ void MainWidget::onUserNameUpdateResult(bool status)
             std::string avatar_dir("User/Avatar/" + UserInfoManager::getInstance().getUserName());
             std::string new_avatar_dir("User/Avatar/" + UserInfoManager::getInstance().getChangingUserName());
 
-            EventBus::getInstance().publish("/config/rename_file",avatar_dir, new_avatar_dir,std::function<void()>([this](){
+            EventBus::getInstance().publish(EventBus::EventType::Config_RenameFile,avatar_dir, new_avatar_dir,std::function<void()>([this](){
                 UserInfoManager::getInstance().setUserName(UserInfoManager::getInstance().getChangingUserName());
                 UserInfoManager::getInstance().setChangingUserName("");
-                EventBus::getInstance().publish("/config/update_module_config",std::string("User"),std::string("user_name"),UserInfoManager::getInstance().getUserName(), true);
+                EventBus::getInstance().publish(EventBus::EventType::Config_UpdateModuleConfig,std::string("User"),std::string("user_name"),UserInfoManager::getInstance().getUserName(), true);
                 QMetaObject::invokeMethod(this, [=]() {
                     loadUserInfo(UserInfoManager::getInstance().getUserName());
                 }, Qt::QueuedConnection);

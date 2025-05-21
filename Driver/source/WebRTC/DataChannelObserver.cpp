@@ -56,7 +56,7 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
         if (msg == "_close_webrtc_") 
         {
             webrtc_instance.clipboard_driver->stopMonitor();
-            webrtc_instance.display_void("/control/recv_close_control");
+            webrtc_instance.display_void(EventBus::EventType::Control_RecvCloseControl);
             std::cout << "Received close_webrtc command, closing connection..." << std::endl;
         } 
         else if(msg.size() >= 11 && msg.substr(0,11) == "[clipboard]")

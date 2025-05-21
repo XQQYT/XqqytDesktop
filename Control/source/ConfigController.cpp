@@ -32,7 +32,7 @@ ConfigController::ConfigController()
 
 void ConfigController::initConfigSubscribe()
 {
-    EventBus::getInstance().subscribe("/config/update_module_config",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_UpdateModuleConfig,std::bind(
         &ConfigController::onUpdateModule,
         this,
         std::placeholders::_1,
@@ -40,43 +40,43 @@ void ConfigController::initConfigSubscribe()
         std::placeholders::_3,
         std::placeholders::_4
     ));
-    EventBus::getInstance().subscribe("/config/write_into_file",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_WriteIntoFile,std::bind(
         &ConfigController::onWrite,
         this
     ));
-    EventBus::getInstance().subscribe("/network/receive_device_code",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_ReceiveDeviceCode,std::bind(
         &ConfigController::onRecvDeviceCode,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/login_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_LoginResult,std::bind(
         &ConfigController::onLoginResult,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/update_device_list",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_UpdateDeviceList,std::bind(
         &ConfigController::onDeviceListUpdated,
         this
     ));
-    EventBus::getInstance().subscribe("/config/update_device_comment",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_UpdateDeviceComment,std::bind(
         &ConfigController::onUpdateDeviceComment,
         this,
         std::placeholders::_1,
         std::placeholders::_2
     ));
-    EventBus::getInstance().subscribe("/network/delete_device_in_config",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_DeleteDeviceInConfig,std::bind(
         &ConfigController::onDeleteDevice,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/config/copy_file",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_CopyFile,std::bind(
         &ConfigController::onCopyFile,
         this,
         std::placeholders::_1,
         std::placeholders::_2,
         std::placeholders::_3
     ));
-    EventBus::getInstance().subscribe("/config/rename_file",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_RenameFile,std::bind(
         &ConfigController::onRenameFile,
         this,
         std::placeholders::_1,
@@ -97,7 +97,7 @@ void ConfigController::onUpdateModule(std::string module, std::string key, std::
     }
     if(write_now)
         onWrite();
-    EventBus::getInstance().publish("/config/update_module_config_done", module, key, value);
+    EventBus::getInstance().publish(EventBus::EventType::Config_UpdateModuleConfigDone, module, key, value);
 }
 
 void ConfigController::onWrite()
@@ -107,7 +107,7 @@ void ConfigController::onWrite()
 
     for (const auto& [module, key_value_map] : updated_config) {
         for (const auto& [key, value] : key_value_map) {
-            EventBus::getInstance().publish("/config/module_config_updated", std::move(module), std::move(key), std::move(value));
+            EventBus::getInstance().publish(EventBus::EventType::Config_ModuleConfigUpdated, std::move(module), std::move(key), std::move(value));
         }
     }
     updated_config.clear();

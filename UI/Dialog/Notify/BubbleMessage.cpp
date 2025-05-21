@@ -26,7 +26,11 @@ BubbleMessage::~BubbleMessage()
         m_timer->stop();
         delete m_timer;
     }
-    delete m_animation;
+    if (m_animation) {
+        m_animation->stop();
+        m_animation->deleteLater();
+        m_animation = nullptr;
+    }
     delete m_opacityEffect;
 }
 

@@ -17,6 +17,6 @@ void AvatarStrategy::execute(std::vector<uint8_t> content, Operator& controll_in
         } else {
             std::cerr << "无法写入" << std::endl;
         }
-        controll_instance.dispatch_void("/network/user_avatar_update");
+        controll_instance.dispatch_void(EventBus::EventType::Network_UserAvatarUpdate);
     }
 }

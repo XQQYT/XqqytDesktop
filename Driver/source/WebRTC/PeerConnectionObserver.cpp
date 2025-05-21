@@ -130,7 +130,7 @@ void PCO::OnConnectionChange(webrtc::PeerConnectionInterface::PeerConnectionStat
 void PCO::OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state)
 {
     if (new_state == webrtc::PeerConnectionInterface::kIceGatheringComplete) {
-        webrtc_instance.display_void("/webrtc/send_ice_gather_done");
+        webrtc_instance.display_void(EventBus::EventType::WebRTC_SendIceGatherDone);
     }
 }
 
@@ -140,7 +140,7 @@ void PCO::OnIceCandidate(const webrtc::IceCandidateInterface* candidate)
     candidate->ToString(&candidate_str);
     std::string sdp_mid = candidate->sdp_mid();
     int sdp_mline_index = candidate->sdp_mline_index();
-    webrtc_instance.display_string_string_string("/webrtc/send_ice_candidate", std::move(candidate_str),
+    webrtc_instance.display_string_string_string(EventBus::EventType::WebRTC_SendIceCandidate, std::move(candidate_str),
                                                 std::move(sdp_mid), std::move(std::to_string(sdp_mline_index)));
 }
 

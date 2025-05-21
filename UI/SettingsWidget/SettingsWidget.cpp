@@ -51,7 +51,7 @@ SettingsWidget::SettingsWidget(QWidget *parent)
     current_btn = ui->btn_general;
     ui->btn_general->setChecked(true);
 
-    EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_UpdateModuleConfigDone,std::bind(
         &SettingsWidget::onSettingChanged,
         this,
         std::placeholders::_1,
@@ -142,12 +142,12 @@ void SettingsWidget::updateModuleConfig(std::string module, std::string key, std
         write_timer->stop();
     }
     write_timer->start(2000);
-    EventBus::getInstance().publish("/config/update_module_config",std::move(module),std::move(key),std::move(value), false);
+    EventBus::getInstance().publish(EventBus::EventType::Config_UpdateModuleConfig,std::move(module),std::move(key),std::move(value), false);
 }
 
 void SettingsWidget::publishWrite()
 {
-    EventBus::getInstance().publish("/config/write_into_file");
+    EventBus::getInstance().publish(EventBus::EventType::Config_WriteIntoFile);
     write_timer->stop();
 }
 

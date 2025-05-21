@@ -108,7 +108,7 @@ void WebRTC::initWebRTC(bool is_offer)
   std::cout << "init WebRTC done"<<std::endl;
 
   if(!is_offer)
-    webrtc_operator.dispatch_void("/webrtc/init_webrtc_done");
+    webrtc_operator.dispatch_void(EventBus::EventType::WebRTC_InitWebrtcDone);
   webrtc_ready = true;
 }
 
@@ -209,25 +209,25 @@ void WebRTC::setRemoteSDP(std::string remote_sdp, SDPType type)
 
 }
 
-void WebRTC::display_string(std::string event_name,std::string str)
+void WebRTC::display_string(EventBus::EventType event_name,std::string str)
 {
-  webrtc_operator.dispatch_string(std::move(event_name),std::move(str));
+  webrtc_operator.dispatch_string(event_name,std::move(str));
 }
 
-void WebRTC::display_string_string_string(std::string event_name,std::string str1,std::string str2,std::string str3)
+void WebRTC::display_string_string_string(EventBus::EventType event_name,std::string str1,std::string str2,std::string str3)
 {
-  webrtc_operator.dispatch_string_string_string(std::move(event_name),std::move(str1),std::move(str2),std::move(str3));
+  webrtc_operator.dispatch_string_string_string(event_name,std::move(str1),std::move(str2),std::move(str3));
 }
 
 
-void WebRTC::display_void(std::string event_name)
+void WebRTC::display_void(EventBus::EventType event_name)
 {
-  webrtc_operator.dispatch_void(std::move(event_name));
+  webrtc_operator.dispatch_void(event_name);
 }
 
-void WebRTC::dispatch_bool(std::string event_name,bool status)
+void WebRTC::dispatch_bool(EventBus::EventType event_name,bool status)
 {
-  webrtc_operator.dispatch_bool(std::move(event_name),status);
+  webrtc_operator.dispatch_bool(event_name,status);
 }
 
 void WebRTC::AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index)
@@ -272,12 +272,12 @@ void WebRTC::checkConnectionStatus()
 {
   if (!peer_connection) {
     std::cerr << "checkConnectionStatus called before PeerConnection is created." << std::endl;
-    webrtc_operator.dispatch_bool("/webrtc/connection_status", false);
+    webrtc_operator.dispatch_bool(EventBus::EventType::WebRTC_ConnectionStatus, false);
     return;
   }
   bool connection_status = peer_connection->ice_connection_state() == webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionConnected && 
     peer_connection->peer_connection_state() == webrtc::PeerConnectionInterface::PeerConnectionState::kConnected;
-  webrtc_operator.dispatch_bool("/webrtc/connection_status",connection_status);
+  webrtc_operator.dispatch_bool(EventBus::EventType::WebRTC_ConnectionStatus,connection_status);
   if(connection_status)
   {
     clipboard_driver->startMonitor();

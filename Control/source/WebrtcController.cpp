@@ -28,7 +28,7 @@ void WebrtcController::loadSetting()
 void WebrtcController::initWebrtcSubscribe()
 {
 
-    EventBus::getInstance().subscribe("/config/module_config_updated",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Config_ModuleConfigUpdated,std::bind(
         &WebrtcController::onModuleConfigUpdated,
         this,
         std::placeholders::_1,
@@ -36,72 +36,72 @@ void WebrtcController::initWebrtcSubscribe()
         std::placeholders::_3
     ));
 
-    EventBus::getInstance().subscribe("/network/send_connect_request_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_SendConnectRequestResult,std::bind(
         &WebrtcController::onInitWebrtc,
         this,
         std::placeholders::_1,
         std::placeholders::_2
     ));
     
-    EventBus::getInstance().subscribe("/webrtc/remote_ready",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_RemoteReady,std::bind(
         &WebrtcController::onReady,
         this
     ));
-    EventBus::getInstance().subscribe("/network/recv_connect_request_result",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_RecvConnectRequestResult,std::bind(
         &WebrtcController::onRecvConnectRequestResult,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/webrtc/recv_sdp_offer",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_RecvSdpOffer,std::bind(
         &WebrtcController::recvSDPOffer,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/webrtc/recv_sdp_answer",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_RecvSdpAnswer,std::bind(
         &WebrtcController::recvSDPAnswer,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/webrtc/set_remote_sdp_offer_done",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_SetRemoteSdpOfferDone,std::bind(
         &WebrtcController::onSetRemoteSDPOfferDone,
         this
     ));
-    EventBus::getInstance().subscribe("/webrtc/recv_ice_candidate",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_RecvIceCandidate,std::bind(
         &WebrtcController::onRecvIceCandidate,
         this,
         std::placeholders::_1,
         std::placeholders::_2,
         std::placeholders::_3
     ));
-    EventBus::getInstance().subscribe("/webrtc/recv_ice_gather_done",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_RecvIceGatherDone,std::bind(
         &WebrtcController::onRecvIceCandidateDone,
         this
     ));
 
-    EventBus::getInstance().subscribe("/render/set_render_instance",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Render_SetRenderInstance,std::bind(
         &WebrtcController::onSetRenderInstance,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/mouse_event/has_event",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::MouseEvent_HasEvent,std::bind(
         &WebrtcController::onSendMouseData,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/keyboard_event/has_event",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::KeyboardEvent_HasEvent,std::bind(
         &WebrtcController::onSendKeyboardData,
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/control/close_control",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Control_CloseControl,std::bind(
         &WebrtcController::onCloseControl,
         this
     ));
-    EventBus::getInstance().subscribe("/control/recv_close_control",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Control_RecvCloseControl,std::bind(
         &WebrtcController::onRecvCloseControl,
         this
     ));
-    EventBus::getInstance().subscribe("/clipboard/write_into_clipboard",std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::Clipboard_WriteIntoClipboard,std::bind(
         &WebrtcController::onWriteIntoClipboard,
         this,
         std::placeholders::_1
@@ -145,27 +145,24 @@ void WebrtcController::onSetRemoteSDPOfferDone()
 }
 
 
-void WebrtcController::dispatch_string(std::string event_name,std::string str)
+void WebrtcController::dispatch_string(EventBus::EventType event_name,std::string str)
 {
-    std::cout<<"publish "<<event_name<<std::endl;
-    EventBus::getInstance().publish(std::move(event_name),std::move(str));
+    EventBus::getInstance().publish(event_name,std::move(str));
 }
 
-void WebrtcController::dispatch_string_string_string(std::string event_name, std::string str1, std::string str2, std::string str3)
+void WebrtcController::dispatch_string_string_string(EventBus::EventType event_name, std::string str1, std::string str2, std::string str3)
 {
-    std::cout<<"publish "<<event_name<<std::endl;
-    EventBus::getInstance().publish(std::move(event_name),std::move(str1),std::move(str2),std::move(str3));
+    EventBus::getInstance().publish(event_name,std::move(str1),std::move(str2),std::move(str3));
 }
 
-void WebrtcController::dispatch_void(std::string event_name)
+void WebrtcController::dispatch_void(EventBus::EventType event_name)
 {
-    std::cout<<"publish "<<event_name<<std::endl;
-    EventBus::getInstance().publish(std::move(event_name));
+    EventBus::getInstance().publish(event_name);
 }
 
-void WebrtcController::dispatch_bool(std::string event_name,bool status)
+void WebrtcController::dispatch_bool(EventBus::EventType event_name,bool status)
 {
-    EventBus::getInstance().publish(std::move(event_name),status);
+    EventBus::getInstance().publish(event_name,status);
 }
 
 void WebrtcController::recvSDPOffer(std::string sdp)

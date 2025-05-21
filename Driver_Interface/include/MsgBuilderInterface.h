@@ -24,7 +24,7 @@ public:
         uint8_t* sha256;
     };
     enum class MessageType : uint16_t {
-        USER_AVATAR = 0xAEAE            
+        USER_AVATAR = 0xAEAE         
     };
 
 public:

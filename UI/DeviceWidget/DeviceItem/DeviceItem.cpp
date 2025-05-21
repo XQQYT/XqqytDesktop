@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "SettingInfo.h"
 #include "UserInfo.h"
+#include "BubbleMessage.h"
 #include "MoreDialog/MoreDialog.h"
 #include <iostream>
 
@@ -89,13 +90,28 @@ void DeviceItem::on_btn_more_clicked()
         emit copyDeviceInfo(ui->label_device_name->text().chopped(13), code, ui->label_ip->text().remove("   IP: "));
     });
     connect(dialog,&MoreDialog::editComment,this,[this](QString new_comment){
-        std::string device_name = name.toStdString();
-        std::string comment = new_comment.toStdString();
-        setDeviceName(device_name, comment);
-        emit editDeviceComment(code ,new_comment);
+        if(UserInfoManager::getInstance().getUserConnectStatus())
+        {
+            std::string device_name = name.toStdString();
+            std::string comment = new_comment.toStdString();
+            setDeviceName(device_name, comment);
+            emit editDeviceComment(code ,new_comment);
+        }
+        else
+        {
+            BubbleMessage::getInstance().error("Failed to connect User Server");
+        }
+
     });
     connect(dialog,&MoreDialog::deleteDevice,this,[this](){
-        emit deleteDevice(code);
+        if(UserInfoManager::getInstance().getUserConnectStatus())
+        {
+            emit deleteDevice(code);
+        }
+        else
+        {
+            BubbleMessage::getInstance().error("Failed to connect User Server");
+        }
     });
     QPoint pos = ui->btn_more->mapToGlobal(QPoint(0, ui->btn_more->height()));
     dialog->move(pos);

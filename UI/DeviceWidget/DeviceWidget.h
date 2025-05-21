@@ -23,6 +23,7 @@ class DeviceWidget : public QWidget
 public:
     DeviceWidget(QWidget *parent = nullptr);
     ~DeviceWidget();
+    void clearDevices();
 signals:
     void ConnectFromDevice(QString code);
 private:

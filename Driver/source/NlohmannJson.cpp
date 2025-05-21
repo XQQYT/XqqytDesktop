@@ -293,6 +293,32 @@ std::shared_ptr<std::string> NlohmannJson::user_delete_device(std::string user_n
     };
         return std::make_shared<std::string>(result_msg.dump());
 }
+
+std::shared_ptr<std::string> NlohmannJson::user_update_user_name(std::string user_name, std::string new_username)
+{
+    json result_msg = {
+        {"type", "update_username"},
+        {"content", {
+            {"user_name", std::move(user_name)},
+            {"new_user_name", std::move(new_username)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
+std::shared_ptr<std::string> NlohmannJson::user_update_user_password(std::string user_name, std::string old_password, std::string new_password)
+{
+    json result_msg = {
+        {"type", "update_user_password"},
+        {"content", {
+            {"user_name", std::move(user_name)},
+            {"old_password", std::move(old_password)},
+            {"new_password", std::move(new_password)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
 std::unique_ptr<Parser> NlohmannJson::getParser()
 {
     return std::make_unique<NlohmannJsonParser>();

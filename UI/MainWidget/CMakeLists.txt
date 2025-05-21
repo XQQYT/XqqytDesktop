@@ -14,6 +14,7 @@ target_include_directories(MainWidget PUBLIC
 target_link_libraries(MainWidget 
 WidgetManager
 Dialog
+UserProfileWidget
 Qt5::Widgets 
 Control
 utils

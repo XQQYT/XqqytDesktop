@@ -83,7 +83,8 @@ void DeviceWidget::onSettingChanged(std::string module, std::string key, std::st
     {
         QMetaObject::invokeMethod(this, [=]() {
             ui->retranslateUi(this);
-            onDeviceListUpdated();
+            if(UserInfoManager::getInstance().getUserName() != "null")
+                onDeviceListUpdated();
             for (int i = 0; i < ui->listWidget->count(); ++i) {
                 QListWidgetItem* item = ui->listWidget->item(i);
                 if (item) {
@@ -153,13 +154,17 @@ void DeviceWidget::onCopyDeviceInfo(QString device_name, QString device_code, QS
 
 void DeviceWidget::onEditDeviceComment(QString code, QString new_comment)
 {
-    EventBus::getInstance().publish("/network/update_device_comment", code.toStdString(), new_comment.toStdString());
+    std::vector<std::string> args = {code.toStdString(), new_comment.toStdString()};
+    EventBus::getInstance().publish("/config/update_device_comment", args[0], args[1]);
+    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::UPDATEDEVICECOMMENT, std::move(args));
+    BubbleMessage::getInstance().error("Failed to connect User Server");
 }
 
 void DeviceWidget::onDeleteDevice(QString code)
 {
     code_need_to_delete = code;
-    EventBus::getInstance().publish("/network/delete_device", code.toStdString());
+    std::vector<std::string> args = {code.toStdString()};
+    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::DELETEDEVICE, std::move(args));
 }
 
 void DeviceWidget::onUpdateDeviceCommentResult(bool result)
@@ -168,7 +173,7 @@ void DeviceWidget::onUpdateDeviceCommentResult(bool result)
         if(result)
             BubbleMessage::getInstance().show("Update device comment success");
         else
-            BubbleMessage::getInstance().show("Failed to Update device comment");
+            BubbleMessage::getInstance().error("Failed to Update device comment");
     }, Qt::QueuedConnection);
 
 }
@@ -196,4 +201,9 @@ void DeviceWidget::onDeleteDeviceResult(bool result)
         }
         code_need_to_delete.clear();
     }, Qt::QueuedConnection);
+}
+
+void DeviceWidget::clearDevices()
+{
+    ui->listWidget->clear();
 }

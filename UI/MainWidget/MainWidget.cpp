@@ -20,13 +20,31 @@ MainWidget::MainWidget(QWidget *parent)
     current_btn = ui->btn_connection;
     this->setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint);
     
-    connect(&login_dialog,&LoginDialog::EnterDone,this,&MainWidget::onEnterLoginDone);
-    connect(&login_dialog,&LoginDialog::RegisterEnterDone,this,&MainWidget::onEnterRegisterDone);
-    connect(this, &MainWidget::LoginResult, &login_dialog, &LoginDialog::onLoginResult);
-    connect(this, &MainWidget::RegisterResult, &login_dialog.register_dialog, &RegisterDialog::onRegisterResult);
+    login_dialog = new LoginDialog(this);
+
+    connect(login_dialog,&LoginDialog::EnterDone,this,&MainWidget::onEnterLoginDone);
+    connect(login_dialog,&LoginDialog::RegisterEnterDone,this,&MainWidget::onEnterRegisterDone);
+    connect(this, &MainWidget::LoginResult, login_dialog, &LoginDialog::onLoginResult);
+    connect(this, &MainWidget::RegisterResult, &login_dialog->register_dialog, &RegisterDialog::onRegisterResult);
     
     connect(&WidgetManager::getInstance(),&WidgetManager::transConnectFromDevice,this,&MainWidget::onConnectFromDevice);
 
+    initSubscribe();
+
+    setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
+    // 居中窗口
+    QScreen *screen = QGuiApplication::primaryScreen();
+    QRect screenGeometry = screen->geometry();
+    int x = screenGeometry.x() + (screenGeometry.width() - this->width()) / 2;
+    int y = screenGeometry.y() + (screenGeometry.height() - this->height()) / 2;
+    this->move(x, y);
+
+    loadUserInfo(SettingInfoManager::getInstance().getValue("User","user_name"));
+    switchLanguage(SettingInfoManager::getInstance().getValue("General","language"));
+}
+
+void MainWidget::initSubscribe()
+{
     EventBus::getInstance().subscribe("/config/update_module_config_done",std::bind(
         &MainWidget::onSettingChanged,
         this,
@@ -49,17 +67,30 @@ MainWidget::MainWidget(QWidget *parent)
         &MainWidget::onUserAvatarUpdated,
         this
     ));
-    
-    setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
-    // 居中窗口
-    QScreen *screen = QGuiApplication::primaryScreen();
-    QRect screenGeometry = screen->geometry();
-    int x = screenGeometry.x() + (screenGeometry.width() - this->width()) / 2;
-    int y = screenGeometry.y() + (screenGeometry.height() - this->height()) / 2;
-    this->move(x, y);
-
-    loadUserInfo(SettingInfoManager::getInstance().getValue("User","user_name"));
-    switchLanguage(SettingInfoManager::getInstance().getValue("General","language"));
+    EventBus::getInstance().subscribe("/network/upload_avatar_result",std::bind(
+        &MainWidget::onUploadUserAvatarResult,
+        this,
+        std::placeholders::_1
+    ));
+    EventBus::getInstance().subscribe("/network/update_username_result",std::bind(
+        &MainWidget::onUserNameUpdateResult,
+        this,
+        std::placeholders::_1
+    ));
+    EventBus::getInstance().subscribe("/network/update_user_password_result",[this](bool result){
+        if(result)
+            BubbleMessage::getInstance().show("Update password success!");
+        else
+            BubbleMessage::getInstance().error("Failed to update password");
+    });
+    EventBus::getInstance().subscribe("/network/register_device_result",[this](bool result){
+        if(!result)
+            BubbleMessage::getInstance().error("Failed to register device");
+    });
+    EventBus::getInstance().subscribe("/network/get_device_list_result",[this](bool result){
+        if(!result)
+            BubbleMessage::getInstance().error("Failed to get device list");
+    });
 }
 
 MainWidget::~MainWidget()
@@ -226,6 +257,7 @@ void MainWidget::updateUserNameBtn()
 void MainWidget::loadUserInfo(std::string user_name)
 {
     QString user_name_qstring = QString::fromStdString(user_name);
+    ui->btn_username->setText(user_name_qstring);
     QLabel* label_avatar = ui->label_avatar;
     QPixmap avatar(QString("User/Avatar/") + user_name_qstring);
     QPixmap circular = createCircularPixmap(avatar, label_avatar->width());
@@ -239,25 +271,47 @@ void MainWidget::on_btn_username_clicked()
     std::string current_user_name = UserInfoManager::getInstance().getUserName();
     if(current_user_name == "null")
     {
-        DialogOperator::centerDialog(login_dialog);
-        login_dialog.exec();
+        DialogOperator::centerDialog(*login_dialog);
+        login_dialog->exec();
     }
     else
     {
-        std::cout<<"Personal center"<<std::endl;
+        UserProfileWidget* personal_center = new UserProfileWidget(this);
+        connect(personal_center,&UserProfileWidget::logout,this,[=](){
+            EventBus::getInstance().publish("/config/update_module_config",std::string("User"),std::string("user_name"),std::string("null"), true);
+            loadUserInfo("null");
+            updateUserNameBtn();
+            dynamic_cast<DeviceWidget*>(WidgetManager::getInstance().getWidget(WidgetManager::WidgetType::DeviceWidget))->clearDevices();
+        });
+        personal_center->exec();
+        DialogOperator::centerDialog(*personal_center);
     }
 }
 
 void MainWidget::onEnterLoginDone(QString username, QString password)
 {
-    std::vector<std::string> args = {username.toStdString(), password.toStdString(),UserInfoManager::getInstance().getCurrentUserId()};
-    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::LOGIN, std::move(args));
+    if(UserInfoManager::getInstance().getUserConnectStatus())
+    {
+        std::vector<std::string> args = {username.toStdString(), password.toStdString(),UserInfoManager::getInstance().getCurrentUserId()};
+        EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::LOGIN, std::move(args));
+    }
+    else
+    {
+        BubbleMessage::getInstance().error("Failed to connect User Server");
+    }
 }
 
 void MainWidget::onEnterRegisterDone(QString username, QString password, QString avatar_path)
 {  
-    std::vector<std::string> args = {username.toStdString(), password.toStdString(), avatar_path.toStdString()};
-    EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::REGISTER, std::move(args));
+    if(UserInfoManager::getInstance().getUserConnectStatus())
+    {
+        std::vector<std::string> args = {username.toStdString(), password.toStdString(), avatar_path.toStdString()};
+        EventBus::getInstance().publish("/network/send_to_user_server",UserMsgType::REGISTER, std::move(args));
+    }
+    else
+    {
+        BubbleMessage::getInstance().error("Failed to connect User Server");
+    }
 }
 
 void MainWidget::onLoginResult(bool status)
@@ -291,4 +345,53 @@ void MainWidget::onConnectFromDevice(QString code)
     dynamic_cast<ConnectWidget*>(WidgetManager::getInstance().getWidget(WidgetManager::WidgetType::ConnectWidget))->doConnect(code);
     ui->btn_connection->setChecked(true);
     on_btn_connection_clicked(true);
+}
+
+void MainWidget::onUploadUserAvatarResult(bool status)
+{
+    QMetaObject::invokeMethod(this, [=]() {
+        std::string user_name = UserInfoManager::getInstance().getUserName();
+        if(status)
+        {
+            loadUserInfo(user_name);
+            BubbleMessage::getInstance().show("Upload avatar success!");
+        }
+        else
+        {
+            std::string avatar_path("User/Avatar/" + user_name);
+            std::string tmp_path("User/tmp/"+ user_name);
+
+            QPixmap avatar(QString::fromStdString(tmp_path));
+            QPixmap circular = createCircularPixmap(avatar, ui->label_avatar->width());
+            ui->label_avatar->setPixmap(circular);
+
+            EventBus::getInstance().publish("/config/copy_file", tmp_path, avatar_path, std::function<void()>());
+            BubbleMessage::getInstance().error("Failed to upload avatar");
+        }
+    }, Qt::QueuedConnection);
+}
+
+void MainWidget::onUserNameUpdateResult(bool status)
+{
+    QMetaObject::invokeMethod(this, [=]() {
+        if(status)
+        {
+            std::string avatar_dir("User/Avatar/" + UserInfoManager::getInstance().getUserName());
+            std::string new_avatar_dir("User/Avatar/" + UserInfoManager::getInstance().getChangingUserName());
+
+            EventBus::getInstance().publish("/config/rename_file",avatar_dir, new_avatar_dir,std::function<void()>([this](){
+                UserInfoManager::getInstance().setUserName(UserInfoManager::getInstance().getChangingUserName());
+                UserInfoManager::getInstance().setChangingUserName("");
+                EventBus::getInstance().publish("/config/update_module_config",std::string("User"),std::string("user_name"),UserInfoManager::getInstance().getUserName(), true);
+                QMetaObject::invokeMethod(this, [=]() {
+                    loadUserInfo(UserInfoManager::getInstance().getUserName());
+                }, Qt::QueuedConnection);
+            }));
+            BubbleMessage::getInstance().show("Update user name success!");
+        }
+        else
+        {
+            BubbleMessage::getInstance().error("Failed to update user name");
+        }
+    }, Qt::QueuedConnection);
 }

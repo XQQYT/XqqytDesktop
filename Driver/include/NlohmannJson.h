@@ -51,6 +51,8 @@ public:
     std::shared_ptr<std::string> user_get_device_list(std::string user_name) override;
     std::shared_ptr<std::string> user_update_device_comment(std::string user_name, std::string device_code, std::string new_comment) override;
     std::shared_ptr<std::string> user_delete_device(std::string user_name, std::string device_code) override;
+    std::shared_ptr<std::string> user_update_user_name(std::string user_name, std::string new_username) override;
+    std::shared_ptr<std::string> user_update_user_password(std::string user_name, std::string old_password, std::string new_password) override;
 };
 
 #endif

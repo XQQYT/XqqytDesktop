@@ -50,12 +50,14 @@ void NetworkController::connectToServer()
         {
             websocket_interface->connectToServer([this,code = std::move(user_id)](bool ret){
                 if(ret){
+                    UserInfoManager::getInstance().setSignalConnectStatus(true);
                     startRecvMsg();
                     //发送注册消息
                     sendMsg(*json_factory->ws_register(std::move(code)));
                     std::cout<<"success to connect signal server"<<std::endl;
                 }
                 else{
+                    UserInfoManager::getInstance().setSignalConnectStatus(false);
                     EventBus::getInstance().publish("/network/failed_to_connect_server");
                     std::cout<<"failed to connect signal server"<<std::endl;
                 }
@@ -63,6 +65,7 @@ void NetworkController::connectToServer()
         }
         tcp_interface->connectToServer([this](bool ret){
             if (ret) {
+                UserInfoManager::getInstance().setUserConnectStatus(true);
                 EventBus::getInstance().publish("/network/connect_to_user_server_result", true);
                 dynamic_cast<TcpDriver*>(tcp_interface.get())->recvMsg([this](std::vector<uint8_t> vec, bool is_binary){
                     if (user_server_msg_parser) {
@@ -71,7 +74,8 @@ void NetworkController::connectToServer()
                 });
             }
             else
-            {
+            {   
+                UserInfoManager::getInstance().setUserConnectStatus(false);
                 EventBus::getInstance().publish("/network/connect_to_user_server_result", false);
             }
         });
@@ -194,18 +198,6 @@ void NetworkController::initNetworkSubscribe()
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe("/network/update_device_comment",std::bind(
-        &NetworkController::onDeviceCommentUpdated,
-        this,
-        std::placeholders::_1,
-        std::placeholders::_2
-    ));
-    EventBus::getInstance().subscribe("/network/delete_device",std::bind(
-        &NetworkController::onDeleteDevice,
-        this,
-        std::placeholders::_1
-    ));
-    
 }
 
 
@@ -334,15 +326,24 @@ void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std
             tcp_interface->sendMsg(*json_factory->user_register(args[0],std::move(args[1])));
             tcp_interface->sendFile(MsgBuilderInterface::MessageType::USER_AVATAR,std::move(args[0]), std::move(args[2]));
             break;
+        case UserMsgType::UPDATEAVATAR:
+            tcp_interface->sendFile(MsgBuilderInterface::MessageType::USER_AVATAR,std::move(args[0]), std::move(args[1]));
+            break;
+        case UserMsgType::UPDATEUSERNAME:
+            tcp_interface->sendMsg(*json_factory->user_update_user_name(UserInfoManager::getInstance().getUserName(),std::move(args[0])));
+            break;
+        case UserMsgType::UPDATEPASSWORD:
+            tcp_interface->sendMsg(*json_factory->user_update_user_password(UserInfoManager::getInstance().getUserName(),std::move(args[0]), std::move(args[1])));
+            break;
+        case UserMsgType::UPDATEDEVICECOMMENT:
+            tcp_interface->sendMsg(*json_factory->user_update_device_comment(UserInfoManager::getInstance().getUserName(),std::move(args[0]),std::move(args[1])));
+            break;
+        case UserMsgType::DELETEDEVICE:
+            tcp_interface->sendMsg(*json_factory->user_delete_device(UserInfoManager::getInstance().getUserName(),std::move(args[0])));
+            break;
         default:
-            std::cout<<"unknow msg type"<<std::endl;
+            std::cout<<"unknow msg type "<<static_cast<int>(msg_type)<<std::endl;
     }
-}
-
-void NetworkController::onDeviceCommentUpdated(std::string device_code, std::string new_comment)
-{
-    tcp_interface->sendMsg(*json_factory->user_update_device_comment(UserInfoManager::getInstance().getUserName(),std::move(device_code),
-                            std::move(new_comment)));
 }
 
 void NetworkController::onDeleteDevice(std::string device_code)

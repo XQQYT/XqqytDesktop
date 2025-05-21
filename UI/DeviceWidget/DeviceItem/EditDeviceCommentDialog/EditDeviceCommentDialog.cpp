@@ -33,5 +33,5 @@ void EditDeviceCommentDialog::on_btn_done_clicked()
 
 void EditDeviceCommentDialog::on_btn_cancel_clicked()
 {
-
+    reject();
 }

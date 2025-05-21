@@ -142,7 +142,7 @@ void SettingsWidget::updateModuleConfig(std::string module, std::string key, std
         write_timer->stop();
     }
     write_timer->start(2000);
-    EventBus::getInstance().publish("/config/update_module_config",std::move(module),std::move(key),std::move(value));
+    EventBus::getInstance().publish("/config/update_module_config",std::move(module),std::move(key),std::move(value), false);
 }
 
 void SettingsWidget::publishWrite()

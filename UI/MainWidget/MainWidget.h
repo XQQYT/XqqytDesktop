@@ -12,6 +12,7 @@
 #include "WidgetManager.h"
 #include "LoginDialog.h"
 #include "BubbleMessage.h"
+#include "UserProfileWidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWidget; }
@@ -38,6 +39,7 @@ signals:
     void LoginResult(bool status);
     void RegisterResult(bool status);
 private:
+    void initSubscribe();
     void onSettingChanged(std::string module, std::string key, std::string value);
     void switchLanguage(const std::string language);
     void loadUserInfo(std::string user_name);
@@ -45,11 +47,13 @@ private:
     void onLoginResult(bool status);
     void onRegisterResult(bool status);
     void onUserAvatarUpdated();
+    void onUploadUserAvatarResult(bool status);
+    void onUserNameUpdateResult(bool status);
 private:
     Ui::MainWidget *ui;
     WidgetManager::WidgetType current_widget;
     QPushButton* current_btn;
     QTranslator *translator;
-    LoginDialog login_dialog;
+    LoginDialog* login_dialog;
 };
 #endif // MAINWIDGET_H

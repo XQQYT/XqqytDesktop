@@ -8,6 +8,7 @@
 #include "GeneralLineEditDialog.h"
 #include "ui_GeneralLineEditDialog.h"
 #include "utils.h"
+#include "SettingInfo.h"
 #include <iostream>
 
 GeneralLineEditDialog::GeneralLineEditDialog(QString title, QWidget *parent)
@@ -15,6 +16,7 @@ GeneralLineEditDialog::GeneralLineEditDialog(QString title, QWidget *parent)
     , ui(new Ui::GeneralLineEditDialog)
 {
     ui->setupUi(this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/Dialog/Dialog/GeneralLineEditDialog.qss")),this);
     DialogOperator::centerDialog(*this);
     ui->label_title->setText(title);
 }

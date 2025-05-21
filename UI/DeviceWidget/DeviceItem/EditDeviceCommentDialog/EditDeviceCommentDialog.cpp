@@ -8,6 +8,7 @@
 #include "EditDeviceCommentDialog.h"
 #include "ui_EditDeviceCommentDialog.h"
 #include "utils.h"
+#include "SettingInfo.h"
 #include <iostream>
 
 EditDeviceCommentDialog::EditDeviceCommentDialog(QString devicename, QWidget *parent)
@@ -16,6 +17,7 @@ EditDeviceCommentDialog::EditDeviceCommentDialog(QString devicename, QWidget *pa
     , ui(new Ui::EditDeviceCommentDialog)
 {
     ui->setupUi(this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/DeviceWidget/DeviceItem/EditDeviceCommentDialog/EditDeviceCommentDialog.qss")),this);
     DialogOperator::centerDialog(*this);
     ui->label_device->setText("Editing comment for: " + devicename);
 }

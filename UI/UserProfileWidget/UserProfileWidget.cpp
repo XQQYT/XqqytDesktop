@@ -8,6 +8,7 @@
 #include "UserProfileWidget.h"
 #include "ui_UserProfileWidget.h"
 #include "utils.h"
+#include "SettingInfo.h"
 #include "UserInfo.h"
 #include "EventBus.h"
 #include "GlobalEnum.h"
@@ -23,6 +24,7 @@ UserProfileWidget::UserProfileWidget(QWidget *parent)
     , ui(new Ui::UserProfileWidget)
 {
     ui->setupUi(this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/UserProfileWidget.qss")),this);
     loadUserInfo();
 }
 

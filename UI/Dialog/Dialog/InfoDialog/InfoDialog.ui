@@ -6,80 +6,114 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>0</width>
-    <height>0</height>
+    <width>480</width>
+    <height>320</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Information</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">QPushButton {
-  background-color: #4CAF50;
-  color: white;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border: none;
-}
-
-QPushButton:hover {
-  background-color: #45a049;
-}</string>
-  </property>
-  <layout class="QVBoxLayout" name="mainLayout">
+ 
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+   <property name="leftMargin">
+    <number>24</number>
+   </property>
+   <property name="topMargin">
+    <number>24</number>
+   </property>
+   <property name="rightMargin">
+    <number>24</number>
+   </property>
+   <property name="bottomMargin">
+    <number>24</number>
+   </property>
    <item>
-    <layout class="QVBoxLayout" name="topLayout">
-     <item>
-      <widget class="QLabel" name="label_title">
-       <property name="font">
-        <font>
-         <pointsize>24</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Information</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_content">
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
+    <widget class="QFrame" name="card">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
      </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel#label_content {
-  color: #555555;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 20px;
-  margin: 10px;
-}</string>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
      </property>
-     <property name="text">
-      <string>This is the content of the dialog. You can display more details about the application or instructions here.</string>
+     <property name="lineWidth">
+      <number>0</number>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignTop|Qt::AlignVCenter</set>
-     </property>
+     <layout class="QVBoxLayout" name="cardLayout">
+      <property name="spacing">
+       <number>16</number>
+      </property>
+      <property name="leftMargin">
+       <number>24</number>
+      </property>
+      <property name="topMargin">
+       <number>24</number>
+      </property>
+      <property name="rightMargin">
+       <number>24</number>
+      </property>
+      <property name="bottomMargin">
+       <number>24</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label_title">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Information</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_content">
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>This is the content of the dialog. You can display more details about the application or instructions here.</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="buttonLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="btn_layout"/>
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../../../../Resources/res.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

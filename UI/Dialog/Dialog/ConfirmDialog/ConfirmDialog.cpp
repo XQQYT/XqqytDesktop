@@ -7,12 +7,15 @@
 
 #include "ConfirmDialog.h"
 #include "ui_ConfirmDialog.h"
+#include "utils.h"
+#include "SettingInfo.h"
 
 ConfirmDialog::ConfirmDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::ConfirmDialog)
 {
     ui->setupUi(this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/Dialog/Dialog/ConfirmDialog.qss")),this);
 }
 
 ConfirmDialog::~ConfirmDialog()

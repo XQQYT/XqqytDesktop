@@ -23,7 +23,8 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     remote_widget_alive = false;
     ui->setupUi(this);
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/ConnectWidget.qss")),this);
-    info_dialog.setPargentWidget(this);
+    info_dialog = new InfoDialog(this);
+    info_dialog->setPargentWidget(this);
     initSubscribe();
 
     update_dynamic_key_timer = new QTimer(this);
@@ -232,10 +233,11 @@ void ConnectWidget::onRecvConnectRequestResult(bool status)
     {
         UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::UN_DEFINED);
         QMetaObject::invokeMethod(this, [this]() {
-            reconnect(&info_dialog,&InfoDialog::OK,this,[](){
+            reconnect(info_dialog,&InfoDialog::OK,this,[](){
                 std::cout<<"test"<<std::endl;
             });
-            info_dialog <<"Connection Response"<<"The peer rejected your connection request. Possible reasons include:\n1,Password authentication failed.\n2,The peer explicitly denied the connection."<< InfoDialog::InfoType::OK << InfoDialog::end;
+            (*info_dialog) <<"Connection Response"<<"The peer rejected your connection request. Possible reasons include:\n1,Password authentication failed.\n2,The peer explicitly denied the connection."<< InfoDialog::InfoType::OK << InfoDialog::end;
+            DialogOperator::centerDialog(*info_dialog);
         }, Qt::QueuedConnection);
     }
 }

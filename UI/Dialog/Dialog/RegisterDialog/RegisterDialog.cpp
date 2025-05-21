@@ -79,3 +79,9 @@ void RegisterDialog::onRegisterResult(bool status)
         on_btn_login_clicked();
     }
 }
+
+void RegisterDialog::showEvent(QShowEvent* event)
+{
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/Dialog/Dialog/RegisterDialog.qss")),this);
+    QDialog::showEvent(event);
+}

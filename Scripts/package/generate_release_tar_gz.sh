@@ -69,8 +69,9 @@ fi
 
 # 拷贝 Translations 文件夹
 if [[ -d "Translations" ]]; then
-    echo "Copying Translations folder..."
-    cp -r "Translations" "$PACKAGE_DIR/Translations"
+    echo "Copying .qm files from Translations folder..."
+    mkdir -p "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/Translations"
+    find Translations -type f -name "*.qm" -exec cp {} "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/Translations/" \;
 else
     echo "Translations directory not found: Translations"
 fi

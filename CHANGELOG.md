@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.0.0] - 2025-05-21
+
+### Added
+
+- 增加用户功能，用户登录，注册
+- 增加用户中心，修改头像，用户名，密码
+- 增加从服务器获取设备代码
+- 增加设备列表，管理用户的设备
+- 增加与用户服务器通信加密
+
+### Fixed
+
+- 修复了打包脚本未打包lib目录
+- 修复了消息气泡概率性失效的问题
+- 修复了无法正常居中弹窗的问题
+
+### Updated
+
+- 更新软件架构图到文档
+
 ## [v1.4.0] - 2025-05-14
 
 ### Added

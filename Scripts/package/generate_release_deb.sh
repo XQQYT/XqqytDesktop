@@ -103,10 +103,18 @@ fi
 
 # 拷贝 Translations 文件夹
 if [[ -d "Translations" ]]; then
-    echo "Copying Translations folder..."
-    cp -r "Translations" "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/Translations"
+    echo "Copying .qm files from Translations folder..."
+    mkdir -p "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/Translations"
+    find Translations -type f -name "*.qm" -exec cp {} "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/Translations/" \;
 else
     echo "Translations directory not found: Translations"
+fi
+
+if [[ -d "User" ]]; then
+    echo "Copying User folder..."
+    cp -r "User" "$DEB_TEMPLATE_DIR/opt/XqqytDesktop/"
+else
+    echo "User directory not found: ../../User"
 fi
 
 # 拷贝设置文件

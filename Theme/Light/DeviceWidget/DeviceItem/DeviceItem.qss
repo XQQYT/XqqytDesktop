@@ -14,7 +14,6 @@ QLabel#label_ip {
     font-size: 14px;
     color:rgb(0, 0, 0);
 }
-
 QPushButton {
     background-color: #e0eaf6;
     color: #34495e;

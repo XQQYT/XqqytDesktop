@@ -10,6 +10,7 @@
 #include "utils.h"
 #include <iostream>
 #include "UserInfo.h"
+#include "SettingInfo.h"
 
 LoginDialog::LoginDialog(QWidget *parent)
     : QDialog(parent)
@@ -17,6 +18,8 @@ LoginDialog::LoginDialog(QWidget *parent)
     , ui(new Ui::LoginDialog)
 {
     ui->setupUi(this);
+
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/Dialog/Dialog/LoginDialog.qss")),this);
 
     loading_dialog = new LoadingDialog(this);
     timeout_timer = new QTimer(this);

@@ -7,12 +7,15 @@
 
 #include "ConfirmBeConnectDialog.h"
 #include "ui_ConfirmBeConnectDialog.h"
+#include "utils.h"
+#include "SettingInfo.h"
 
 ConfirmBeConnectDialog::ConfirmBeConnectDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::ConfirmBeConnectDialog)
 {
     ui->setupUi(this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/Dialog/Dialog/ConfirmBeConnectDialog.qss")),this);
 }
 
 ConfirmBeConnectDialog::~ConfirmBeConnectDialog()

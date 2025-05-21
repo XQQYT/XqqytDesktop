@@ -27,5 +27,6 @@ target_include_directories(Dialog PUBLIC
 target_link_libraries(Dialog
     Qt5::Core
     Qt5::Widgets
+    Control
     utils
 )

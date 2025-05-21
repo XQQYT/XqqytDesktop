@@ -11,12 +11,15 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include "BubbleMessage.h"
+#include "SettingInfo.h"
+#include "utils.h"
 
 RegisterDialog::RegisterDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::RegisterDialog)
 {
     ui->setupUi(this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/Dialog/Dialog/RegisterDialog.qss")),this);
 }
 
 RegisterDialog::~RegisterDialog()

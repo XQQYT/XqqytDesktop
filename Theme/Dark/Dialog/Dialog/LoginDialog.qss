@@ -1,0 +1,90 @@
+QDialog {
+    background: #1e1e2f;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+QLabel {
+    color: #cbd5e0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+QLineEdit {
+    background: #2d2d3f;
+    border: 1px solid #4a5568;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 14px;
+    min-width: 250px;
+    color: #e2e8f0;
+}
+
+QLineEdit:focus {
+    border: 1px solid #63b3ed;
+    background: #2d2d3f;
+}
+
+QPushButton {
+    background: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 250px;
+}
+
+QPushButton:hover {
+    background: #3182ce;
+}
+
+QPushButton:pressed {
+    background: #2b6cb0;
+}
+
+#headerLabel {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    color: #edf2f7;
+}
+
+/* 注册按钮的特殊样式 - 看起来像文本链接 */
+#btn_register {
+    background: transparent;
+    color: #a0aec0;
+    font-size: 12px;
+    font-weight: normal;
+    text-decoration: none;
+    min-width: auto;
+    padding: 0;
+    border: none;
+}
+
+#btn_register:hover {
+    color: #63b3ed;
+    text-decoration: underline;
+    background: transparent;
+}
+
+#btn_register:pressed {
+    color: #4299e1;
+    background: transparent;
+}
+
+QCheckBox {
+    color: #cbd5e0;
+    spacing: 5px;
+}
+
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #4299e1;
+    border: 1px solid #4299e1;
+}
+

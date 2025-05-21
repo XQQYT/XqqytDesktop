@@ -1,0 +1,87 @@
+QDialog {
+    background-color: #2c2c2e;
+    border-radius: 12px;
+    border: none;
+    padding: 0;
+}
+
+/* Title styling */
+QLabel#label_title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #f0f0f0;
+    padding: 20px 20px 10px 20px;
+    qproperty-alignment: AlignCenter;
+}
+
+/* Content styling */
+QLabel#label_content {
+    font-size: 15px;
+    color: #c0c0c0;
+    padding: 15px 25px;
+    background-color: #3a3a3c;
+    border-radius: 10px;
+    margin: 0 20px;
+    border: 1px solid #555;
+    qproperty-alignment: AlignCenter;
+    qproperty-wordWrap: true;
+}
+
+/* Button container */
+QWidget#buttonContainer {
+    background-color: #2c2c2e;
+    border-top: 1px solid #444;
+    border-radius: 0 0 12px 12px;
+    padding: 20px;
+}
+
+/* Button styling */
+QPushButton {
+    min-width: 90px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: none;
+}
+
+/* Primary button */
+QPushButton#btn_yes {
+    background-color: #4a8cff;
+    color: white;
+}
+
+QPushButton#btn_yes:hover {
+    background-color: #3a7cdf;
+}
+
+QPushButton#btn_yes:pressed {
+    background-color: #2a6ccd;
+}
+
+/* Secondary button */
+QPushButton#btn_no {
+    background-color: #3a3a3c;
+    color: #cccccc;
+    border: 1px solid #555;
+}
+
+QPushButton#btn_no:hover {
+    background-color: #4a4a4c;
+    color: #ffffff;
+}
+
+QPushButton#btn_no:pressed {
+    background-color: #555;
+}
+
+/* Layout spacing */
+QGridLayout {
+    margin: 0;
+    spacing: 0;
+}
+
+QHBoxLayout {
+    spacing: 12px;
+}
+

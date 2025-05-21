@@ -8,6 +8,8 @@
 #include "InfoDialog.h"
 #include "ui_InfoDialog.h"
 #include <iostream>
+#include "utils.h"
+#include "SettingInfo.h"
 
 InfoDialog::InfoDialog(QWidget *parent)
     : QDialog(parent)
@@ -60,6 +62,7 @@ InfoDialog& InfoDialog::operator<<(const std::any& input)
         addButton(std::any_cast<InfoType>(input));
     }
     else if (input.type() == typeid(exec_trigger)) {
+        applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/Dialog/Dialog/InfoDialog.qss")),this);
         exec();  
     }
     else {
@@ -106,7 +109,7 @@ void InfoDialog::addButton(InfoType type)
     btn->setText(buttonText);
 
     btn->setProperty("type", static_cast<int>(type));
-    ui->btn_layout->addWidget(btn);
+    ui->buttonLayout->addWidget(btn);
 
     connect(btn, &QPushButton::clicked, this, [=]() {
         QVariant prop = btn->property("type");
@@ -141,7 +144,7 @@ void InfoDialog::reset()
     ui->label_content->clear();
     title_content_count = 0;
     QLayoutItem* item = nullptr;
-    while ((item = ui->btn_layout->takeAt(0)) != nullptr) 
+    while ((item = ui->buttonLayout->takeAt(0)) != nullptr) 
     {
         if (QWidget* widget = item->widget()) {
             delete widget;

@@ -1,0 +1,64 @@
+/* Dark Theme Stylesheet */
+QDialog {
+    background: transparent;
+}
+
+#card {
+    background: #2d2d2d;
+    border-radius: 16px;
+    border: 1px solid #3d3d3d;
+}
+
+#label_title {
+    color: #ffffff;
+    padding-bottom: 8px;
+}
+
+#label_content {
+    color: #b0b0b0;
+    padding: 8px 0;
+}
+
+/* Button styling */
+QPushButton {
+    background: #4a90e2;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 24px;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+QPushButton:hover {
+    background: #3a7bc8;
+}
+
+QPushButton:pressed {
+    background: #2a6bb4;
+}
+
+
+/* Scrollbar styling (if your content needs scrolling) */
+QScrollBar:vertical {
+    border: none;
+    background: #252525;
+    width: 8px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #4a4a4a;
+    min-height: 20px;
+    border-radius: 4px;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0;
+    background: none;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+

@@ -10,6 +10,7 @@
 #include "../EditDeviceCommentDialog/EditDeviceCommentDialog.h"
 #include "ConfirmDialog.h"
 #include "utils.h"
+#include "SettingInfo.h"
 #include "UserInfo.h"
 #include <iostream>
 
@@ -20,6 +21,7 @@ MoreDialog::MoreDialog(QString code,QString name, QWidget *parent)
     , ui(new Ui::MoreDialog)
 {
     ui->setupUi(this);
+    applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/DeviceWidget/DeviceItem/MoreDialog/MoreDialog.qss")),this);
     if(UserInfoManager::getInstance().getCurrentUserId() == device_code.toStdString())
     {
         ui->btn_delete->hide();

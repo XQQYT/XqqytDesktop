@@ -1,0 +1,47 @@
+QDialog {
+    background-color: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    color: #1f2937; /* dark gray for text */
+}
+
+QLabel {
+    color: #1f2937;
+}
+
+QLineEdit {
+    background-color: #f9fafb;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px;
+    color: #111827;
+    selection-background-color: #2563eb; /* blue-600 */
+}
+
+QPushButton {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+QPushButton#btn_cancel {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+QPushButton#btn_done {
+    background-color: #2563eb; /* blue-600 */
+    color: white;
+}
+
+QPushButton#btn_cancel:hover {
+    background-color: #d1d5db;
+}
+
+QPushButton#btn_done:hover {
+    background-color: #1d4ed8; /* blue-700 */
+}
+

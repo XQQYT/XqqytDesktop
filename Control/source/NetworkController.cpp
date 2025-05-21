@@ -54,11 +54,12 @@ void NetworkController::connectToServer()
                     startRecvMsg();
                     //发送注册消息
                     sendMsg(*json_factory->ws_register(std::move(code)));
+                    EventBus::getInstance().publish("/network/connect_to_signal_server_result", true);
                     std::cout<<"success to connect signal server"<<std::endl;
                 }
                 else{
                     UserInfoManager::getInstance().setSignalConnectStatus(false);
-                    EventBus::getInstance().publish("/network/failed_to_connect_server");
+                    EventBus::getInstance().publish("/network/connect_to_signal_server_result", false);
                     std::cout<<"failed to connect signal server"<<std::endl;
                 }
             });
@@ -90,10 +91,11 @@ void NetworkController::onReConnectToSignalServer(std::string code)
             startRecvMsg();
             //发送注册消息
             sendMsg(*json_factory->ws_register(std::move(user_id)));
+            EventBus::getInstance().publish("/network/connect_to_signal_server_result", true);
             std::cout<<"success to re-connect signal server"<<std::endl;
         }
         else{
-            EventBus::getInstance().publish("/network/failed_to_connect_server");
+            EventBus::getInstance().publish("/network/connect_to_signal_server_result", false);
             std::cout<<"failed to re-connect server"<<std::endl;
         }
     });
@@ -302,14 +304,10 @@ void NetworkController::onSendLogout()
 
 void NetworkController::onLoginResult(bool status)
 {
-    std::cout<<"NetworkController::onLoginResult"<<std::endl;
-
     if(status)
     {
         tcp_interface->sendMsg(*json_factory->user_get_device_list(UserInfoManager::getInstance().getUserName()));
     }
-    std::cout<<"NetworkController::onLoginResult"<<std::endl;
-
 }
 
 void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std::string> args)

@@ -16,7 +16,7 @@ void initEventBusRegisterEvent()
     EventBus::getInstance().registerEvent("/network/registration_result");
     EventBus::getInstance().registerEvent("/network/target_status");
     EventBus::getInstance().registerEvent("/network/connect_to_target");
-    EventBus::getInstance().registerEvent("/network/failed_to_connect_server");
+    EventBus::getInstance().registerEvent("/network/connect_to_signal_server_result");
     EventBus::getInstance().registerEvent("/network/has_connect_request");
     EventBus::getInstance().registerEvent("/network/send_connect_request_result");
     EventBus::getInstance().registerEvent("/network/recv_connect_request_result");

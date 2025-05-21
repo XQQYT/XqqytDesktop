@@ -8,6 +8,8 @@ TcpDriver::TcpDriver():
     tls_info({nullptr,nullptr})
 {
     addr = {};
+    receive_thread = nullptr;
+    connect_status = false;
 }
 
 TcpDriver::~TcpDriver()
@@ -74,8 +76,7 @@ void TcpDriver::connectToServer(std::function<void(bool)> callback)
     {
         callback(!ret);
     }
-
-
+    connect_status = !ret;
 }
 
 void TcpDriver::sendMsg(std::string msg)
@@ -216,11 +217,15 @@ void TcpDriver::recvMsg(std::function<void(std::vector<uint8_t>,bool)> callback)
 
 void TcpDriver::closeSocket()
 {
-    close(tcp_socket);
+    if(connect_status)
+        close(tcp_socket);
     runing = false;
-    if(receive_thread->joinable())
-        receive_thread->join();
-    delete receive_thread;
+    if(receive_thread)
+    {
+        if(receive_thread->joinable())
+            receive_thread->join();
+        delete receive_thread;
+    }
 }
 
 void TcpDriver::setSecurityInstance(std::shared_ptr<SecurityInterface> instance)

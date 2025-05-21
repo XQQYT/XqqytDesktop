@@ -50,7 +50,7 @@ private:
     void resetUpdateKeyTimer(int64_t last_update_timestamp);
 private:
     void onTargetStatus(bool target_status);
-    void onConnectServerFailed();
+    void onConnectSignalServerResult(bool result);
     void onRegistrationResult(bool result);
     void onConnectRequest(std::string target_id, std::string key);
     void onRecvConnectRequestResult(bool status);

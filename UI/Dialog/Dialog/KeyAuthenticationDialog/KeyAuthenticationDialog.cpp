@@ -23,7 +23,7 @@ KeyAuthenticationDialog::~KeyAuthenticationDialog()
     delete ui;
 }
 
-void KeyAuthenticationDialog::on_btn_connect_clicked()
+void KeyAuthenticationDialog::on_btn_enter_done_clicked()
 {
     if(!ui->lineEdit->text().isEmpty())
     {
@@ -38,11 +38,11 @@ void KeyAuthenticationDialog::on_btn_cancel_clicked()
     this->close();
 }
 
-void KeyAuthenticationDialog::show(std::string target_last_key)
+void KeyAuthenticationDialog::showExec(std::string target_last_key)
 {
     applyStyleSheet(QString::fromStdString(*(SettingInfoManager::getInstance().getCurrentThemeDir()) + std::string("/Dialog/Dialog/KeyAuthenticationDialog.qss")),this);
 
     if(!target_last_key.empty())
         ui->lineEdit->setText(QString::fromStdString(target_last_key));
-    static_cast<QWidget*>(this)->show();
+    dynamic_cast<QDialog*>(this)->exec();
 }

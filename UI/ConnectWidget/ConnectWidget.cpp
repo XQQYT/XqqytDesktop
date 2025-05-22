@@ -31,7 +31,9 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     connect(update_dynamic_key_timer, &QTimer::timeout, this, &ConnectWidget::onTimeToUpdateKey);
     setUpdateKeyTimer();
 
-    connect(&key_authenticate_dialog,&KeyAuthenticationDialog::EnterDone,this,&ConnectWidget::onEnterKeyDone);
+    key_authenticate_dialog = new KeyAuthenticationDialog(this);
+
+    connect(key_authenticate_dialog,&KeyAuthenticationDialog::EnterDone,this,&ConnectWidget::onEnterKeyDone);
 
     connect(ui->lineEdit_target_id, &QLineEdit::textChanged, this, &ConnectWidget::on_textChanged);
     
@@ -167,7 +169,7 @@ void ConnectWidget::onTargetStatus(bool target_status)
         if(target_status)
         {
             std::string establishing_target_id = UserInfoManager::getInstance().getEstablishingTargetId();
-            key_authenticate_dialog.show(SettingInfoManager::getInstance().getValue("ConnectInfo",establishing_target_id));
+            key_authenticate_dialog->showExec(SettingInfoManager::getInstance().getValue("ConnectInfo",establishing_target_id));
         }
         else
         {

@@ -64,7 +64,7 @@ private:
     Ui::ConnectWidget *ui;
     RemoteControlWidget* remote_widget;
     InfoDialog* info_dialog;
-    KeyAuthenticationDialog key_authenticate_dialog;
+    KeyAuthenticationDialog* key_authenticate_dialog;
     bool remote_widget_alive;
     QTimer* update_dynamic_key_timer;
 };

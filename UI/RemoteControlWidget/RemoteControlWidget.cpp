@@ -21,16 +21,20 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
 
     std::string use_gpu = SettingInfoManager::getInstance().getValue("Display","gpu_acceleration");
     if(use_gpu == "0")
+    {
         render_widget = new QImageWidget(this);
+    }
     else
+    {
         render_widget = new OpenGLWidget(this);
-    render_widget = render_widget;
-    QSurfaceFormat format;
-    format.setRenderableType(QSurfaceFormat::OpenGL);
-    format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
-    format.setSwapInterval(1);
 
-    QSurfaceFormat::setDefaultFormat(format);
+        QSurfaceFormat format;
+        format.setRenderableType(QSurfaceFormat::OpenGL);
+        format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+        format.setSwapInterval(1);
+    
+        QSurfaceFormat::setDefaultFormat(format);
+    }
 
     auto layout = this->layout();
     layout->addWidget(render_widget);

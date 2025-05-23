@@ -50,6 +50,8 @@ public:
     virtual std::shared_ptr<std::string> user_delete_device(std::string user_name, std::string device_code) = 0;
     virtual std::shared_ptr<std::string> user_update_user_name(std::string user_name, std::string new_username) = 0;
     virtual std::shared_ptr<std::string> user_update_user_password(std::string user_name, std::string old_password, std::string new_password) = 0;
+
+    virtual std::shared_ptr<std::string> syncfile_add_file(std::string id, std::string filename) = 0;
 };
 
 #endif

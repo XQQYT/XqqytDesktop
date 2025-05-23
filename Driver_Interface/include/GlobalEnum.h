@@ -15,4 +15,9 @@ enum class UserMsgType
     DELETEDEVICE
 };
 
+enum class FileSyncType
+{
+    ADDFILE
+};
+
 #endif //_GLOBALENUM_H

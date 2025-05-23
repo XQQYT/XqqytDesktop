@@ -319,6 +319,18 @@ std::shared_ptr<std::string> NlohmannJson::user_update_user_password(std::string
         return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::syncfile_add_file(std::string id, std::string filename)
+{
+    json result_msg = {
+        {"type", "syncfile_add"},
+        {"content", {
+            {"id", std::move(id)},
+            {"filename", std::move(filename)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
 std::unique_ptr<Parser> NlohmannJson::getParser()
 {
     return std::make_unique<NlohmannJsonParser>();

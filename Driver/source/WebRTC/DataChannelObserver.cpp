@@ -59,6 +59,10 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
             webrtc_instance.display_void(EventBus::EventType::Control_RecvCloseControl);
             std::cout << "Received close_webrtc command, closing connection..." << std::endl;
         } 
+        else if(msg.size() >= 10 && msg.substr(0,10) == "[filesync]")
+        {
+            std::cout<<msg<<std::endl;
+        }
         else if(msg.size() >= 11 && msg.substr(0,11) == "[clipboard]")
         {
             webrtc_instance.clipboard_driver->setClipboardText(msg.substr(11));

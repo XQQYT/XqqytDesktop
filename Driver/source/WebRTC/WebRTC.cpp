@@ -427,18 +427,32 @@ void WebRTC::setCaptureRate(int rate)
 void WebRTC::sendClipboardContent(std::string content)
 {
     if (content.empty()) return;
-
-    if (!data_channel || data_channel->state() != webrtc::DataChannelInterface::kOpen) {
-        std::cerr << "DataChannel is not open\n";
-        return;
-    }
     content.insert(0,"[clipboard]");
-    rtc::CopyOnWriteBuffer buffer(reinterpret_cast<const uint8_t*>(content.data()), content.size());
-    webrtc::DataBuffer data_buffer(buffer, true);
-    data_channel->Send(data_buffer);
+    sendToPeer(std::move(content));
 }
 
 void WebRTC::writeIntoClipboard(std::string str)
 {
   clipboard_driver->setClipboardText(std::move(str));
+}
+
+void WebRTC::sendToPeer(std::string msg)
+{
+  if (msg.empty()) return;
+
+  if (!data_channel || data_channel->state() != webrtc::DataChannelInterface::kOpen) {
+      std::cerr << "DataChannel is not open\n";
+      return;
+  }
+  rtc::CopyOnWriteBuffer buffer(reinterpret_cast<const uint8_t*>(msg.data()), msg.size());
+  webrtc::DataBuffer data_buffer(buffer, true);
+  data_channel->Send(data_buffer);
+  std::cout<<"send"<<msg<<std::endl;
+}
+
+void WebRTC::sendFileSync(std::string msg)
+{
+  if (msg.empty()) return;
+  msg.insert(0,"[filesync]");
+  sendToPeer(std::move(msg));
 }

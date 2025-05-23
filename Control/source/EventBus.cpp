@@ -61,7 +61,7 @@ void EventBus::registerAllEvents() {
         ET::Network_UpdateUserPasswordResult,
         ET::Network_RegisterDeviceResult,
         ET::Network_GetDeviceListResult,
-
+        ET::Network_SyncFileInfo,
         // WebRTC
         ET::WebRTC_InitWebrtcDone,
         ET::WebRTC_RemoteReady,

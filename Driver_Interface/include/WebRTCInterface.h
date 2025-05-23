@@ -52,6 +52,7 @@ public:
     virtual bool getWebRtcReady() = 0;
     virtual void setCaptureRate(int rate) = 0;
     virtual void writeIntoClipboard(std::string str) = 0;
+    virtual void sendFileSync(std::string msg) = 0;
 };
 
 #endif

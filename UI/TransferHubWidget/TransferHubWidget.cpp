@@ -13,6 +13,8 @@
  #include <QTimer>
  #include <QPushButton>
  #include <QPainter>
+ #include "EventBus.h"
+ #include "GlobalEnum.h"
  
  TransferHubWidget::TransferHubWidget(QWidget *parent)
     : QWidget(parent)
@@ -141,7 +143,10 @@ void TransferHubWidget::addFile(bool is_remote,QString& detail, size_t size, boo
    connect(item,&FileItemWidget::fileItemDelete,this,&TransferHubWidget::onDeleteFileItem);     
    
    existing_etails.insert(detail);
+   std::vector<std::string> args = {std::to_string(item->fileid), item->file_name.toStdString()};
+   EventBus::getInstance().publish(EventBus::EventType::Network_SyncFileInfo, FileSyncType::ADDFILE,  std::move(args));
 }
+
 void TransferHubWidget::start()
 {
    if(hoverTimer->isActive())

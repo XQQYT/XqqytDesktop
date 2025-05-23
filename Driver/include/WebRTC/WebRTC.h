@@ -50,6 +50,7 @@ public:
     bool getWebRtcReady() override;
     void setCaptureRate(int rate) override;
     void writeIntoClipboard(std::string str) override;
+    void sendFileSync(std::string msg) override;
 public:
     void display_string(EventBus::EventType event_name,std::string str);
     void display_string_string_string(EventBus::EventType event_name,std::string str1,std::string str2,std::string str3);
@@ -73,6 +74,7 @@ public:
 private:
     void AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index);
     void sendCloseWebRTC();
+    void sendToPeer(std::string msg);
 private:
     webrtc::PeerConnectionInterface::RTCConfiguration configuration;
     rtc::scoped_refptr<webrtc::AudioDeviceModule> adm;

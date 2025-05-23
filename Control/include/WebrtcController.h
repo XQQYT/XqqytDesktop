@@ -7,10 +7,13 @@
 
 #ifndef _WEBRTCCONTROLLER_H
 #define _WEBRTCCONTROLLER_H
+#include <vector>
 #include "EventBus.h"
 #include "WebRTC.h"
 #include "Operator.h"
 #include "Render.h"
+#include "GlobalEnum.h"
+#include "NlohmannJson.h"
 
 class WebrtcController : public Operator{
 public:
@@ -37,8 +40,11 @@ public:
     void onRecvCloseControl();
     void onModuleConfigUpdated(std::string module,std::string key,std::string value);
     void onWriteIntoClipboard(std::string str);
+
+    void onSyncFileInfo(FileSyncType type,std::vector<std::string> args);
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
+    std::unique_ptr<JsonFactory> json_instance;
 };
 
 #endif

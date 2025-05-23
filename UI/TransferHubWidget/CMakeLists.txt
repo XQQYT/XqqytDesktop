@@ -15,4 +15,6 @@ target_include_directories(TransferHubWidget PUBLIC
 
 target_link_libraries(TransferHubWidget 
 Qt5::Widgets
+Control
+Driver_Interface
 )

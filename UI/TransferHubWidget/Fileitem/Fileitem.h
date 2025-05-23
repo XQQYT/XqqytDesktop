@@ -18,6 +18,7 @@ public:
     explicit FileItemWidget(bool is_remote,QString& detail, size_t size = 0, bool is_dir = false, QWidget *parent = nullptr);
     static unsigned int fileid;
     QString detail;
+    QString file_name;
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -37,7 +38,6 @@ private:
     QLabel *textLabel;
 
     unsigned int file_id;
-    QString file_name;
     bool is_remote;
     size_t file_size;
     bool is_dir;

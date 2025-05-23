@@ -13,6 +13,7 @@ static const std::string module_name = "Network";
 WebrtcController::WebrtcController()
 {
     webrtc_instance = std::make_unique<WebRTC>(*this);
+    json_instance = std::make_unique<NlohmannJson>();
     loadSetting();
 }
 
@@ -105,6 +106,12 @@ void WebrtcController::initWebrtcSubscribe()
         &WebrtcController::onWriteIntoClipboard,
         this,
         std::placeholders::_1
+    ));
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_SyncFileInfo,std::bind(
+        &WebrtcController::onSyncFileInfo,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
     ));
 }
 
@@ -214,4 +221,15 @@ void WebrtcController::onRecvCloseControl()
 void WebrtcController::onWriteIntoClipboard(std::string str)
 {
     webrtc_instance->writeIntoClipboard(std::move(str));
+}
+
+void WebrtcController::onSyncFileInfo(FileSyncType type,std::vector<std::string> args)
+{
+    switch (type)
+    {
+        case FileSyncType::ADDFILE:
+            webrtc_instance->sendFileSync(*json_instance->syncfile_add_file(std::move(args[0]), std::move(args[1])));
+            break;
+    }
+
 }

@@ -19,6 +19,7 @@
 #include "InfoDialog.h"
 #include "UserInfo.h"
 #include "KeyAuthenticationDialog.h"
+#include "TransferHubWidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ConnectWidget; }
@@ -67,5 +68,6 @@ private:
     KeyAuthenticationDialog* key_authenticate_dialog;
     bool remote_widget_alive;
     QTimer* update_dynamic_key_timer;
+    TransferHubWidget transferhub_widget;
 };
 #endif // WIDGET_H

@@ -53,11 +53,14 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
     setFPS(config_frame);
     render_count = 0;
     stats_start_time = 0;
+
+    transferhub_widget = new TransferHubWidget(nullptr);
 }
 
 RemoteControlWidget::~RemoteControlWidget()
 {
     delete elapsed_timer;
+    delete transferhub_widget;
     delete ui;
 }
 
@@ -65,6 +68,7 @@ void RemoteControlWidget::closeEvent(QCloseEvent *event)
 {
     std::cout<<"publish close control"<<std::endl;
     EventBus::getInstance().publish(EventBus::EventType::Control_CloseControl);
+    transferhub_widget->stop();
     emit remote_widget_closed();
 }
 
@@ -110,4 +114,11 @@ void RemoteControlWidget::onSettingChanged(std::string module, std::string key, 
             setFPS(QString::fromStdString(value));
         }, Qt::QueuedConnection);
     }
+}
+
+void RemoteControlWidget::showWithTransfer()
+{
+    EventBus::getInstance().publish(EventBus::EventType::Render_SetRenderInstance,dynamic_cast<RenderInterface*>(this));
+    transferhub_widget->start();
+    show();
 }

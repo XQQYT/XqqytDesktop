@@ -42,6 +42,8 @@ ConnectWidget::ConnectWidget(QWidget *parent)
 
 ConnectWidget::~ConnectWidget()
 {
+    if(remote_widget)
+        delete remote_widget;
     delete ui;
 }
 
@@ -251,11 +253,10 @@ void ConnectWidget::onConnectionStatus(bool status)
         if(!remote_widget_alive && UserInfoManager::getInstance().getCurrentRole() == UserInfoManager::Role::Controller)
         {
             QMetaObject::invokeMethod(this, [this]() {
-                std::cout<<"new a remote widget"<<std::endl;
-                remote_widget = new RemoteControlWidget;
-                remote_widget->show();
+                if(!remote_widget)
+                    remote_widget = new RemoteControlWidget;
+                remote_widget->showWithTransfer();
                 connect(remote_widget,&RemoteControlWidget::remote_widget_closed,this,[this](){
-                    std::cout<<"reset remote_widget_alive"<<std::endl;
                     remote_widget_alive = false;
                 });
             }, Qt::QueuedConnection);

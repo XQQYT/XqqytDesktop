@@ -13,6 +13,7 @@ target_include_directories(ConnectWidget PUBLIC
 # 链接 RemoteControlWidget 库
 target_link_libraries(ConnectWidget 
 Dialog
+TransferHubWidget
 RemoteControlWidget 
 Qt5::Widgets 
 Control

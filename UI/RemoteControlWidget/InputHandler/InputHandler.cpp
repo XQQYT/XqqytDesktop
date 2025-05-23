@@ -59,9 +59,7 @@ void InputHandler::handleMouseMoveEvent(QMouseEvent* event)
     packet.x = pos.x();
     packet.y = pos.y();
     packet.wheelDelta = 0;
-    std::cout<<"locale "<<packet.x<<","<<packet.y<<std::endl;
     convertPos(packet);
-    std::cout<<"remote "<<packet.x<<","<<packet.y<<std::endl;
     EventBus::getInstance().publish(EventBus::EventType::MouseEvent_HasEvent,packet);
 }
 
@@ -145,7 +143,6 @@ void InputHandler::sendHoldPackets()
 
 void InputHandler::handleKeyPressEvent(QKeyEvent* event)
 {
-    std::cout<<"keyPressEvent"<<std::endl;
     KeyEventPacket packet;
     packet.key = event->key();
     packet.modifiers = event->modifiers();
@@ -155,7 +152,6 @@ void InputHandler::handleKeyPressEvent(QKeyEvent* event)
 
 void InputHandler::handleKeyReleaseEvent(QKeyEvent* event)
 {
-    std::cout<<"keyReleaseEvent"<<std::endl;
     KeyEventPacket packet;
     packet.key = event->key();
     packet.modifiers = event->modifiers();

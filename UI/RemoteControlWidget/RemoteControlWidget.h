@@ -12,6 +12,7 @@
 #include <QCloseEvent>
 #include <QElapsedTimer>
 #include "RenderWidgetInterface/RenderWidgetInterface.h"
+#include "TransferHubWidget.h"
 
 class OpenGLWidget;
 QT_BEGIN_NAMESPACE
@@ -26,6 +27,7 @@ public:
     RemoteControlWidget(QWidget *parent = nullptr);
     ~RemoteControlWidget();
     void addRenderFrame(VideoFrame&& render_frame) override;
+    void showWithTransfer();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -41,6 +43,7 @@ private:
     RenderWidgetInterface* render_widget_interface;
     Ui::RemoteControlWidget *ui;
     QElapsedTimer* elapsed_timer;
+    TransferHubWidget* transferhub_widget;
     qint64 frame_interval_ms;
     qint64 last_render_time;
     int render_count;

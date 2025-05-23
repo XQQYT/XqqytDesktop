@@ -61,7 +61,7 @@ void EventBus::registerAllEvents() {
         ET::Network_UpdateUserPasswordResult,
         ET::Network_RegisterDeviceResult,
         ET::Network_GetDeviceListResult,
-        ET::Network_SyncFileInfo,
+        
         // WebRTC
         ET::WebRTC_InitWebrtcDone,
         ET::WebRTC_RemoteReady,
@@ -75,6 +75,8 @@ void EventBus::registerAllEvents() {
         ET::WebRTC_SendIceGatherDone,
         ET::WebRTC_RecvIceGatherDone,
         ET::WebRTC_ConnectionStatus,
+        ET::WebRTC_SyncFileInfo,
+        ET::WebRTC_SyncAddFile,
 
         // Render
         ET::Render_SetRenderInstance,

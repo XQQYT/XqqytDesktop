@@ -48,9 +48,6 @@
    ui->gridLayout_2->addWidget(scrollArea);
    gridLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-   QString file_path = "/home/qyt/xqqyt1234567890.txt";
-   addFile(false, file_path);
-   
    hideTimer = new QTimer(this);
 
    hideTimer->setInterval(1200);
@@ -68,14 +65,13 @@
    move(init_x, init_y);
 
    hoverTimer = new QTimer(this);
-   hoverTimer->setInterval(100); // 每 100ms 检查一次鼠标位置
+   hoverTimer->setInterval(100);
 
    connect(hoverTimer, &QTimer::timeout, this, [=]() {
-       QPoint globalPos = QCursor::pos(); // 鼠标全局位置
+       QPoint globalPos = QCursor::pos();
        QScreen *screen = QGuiApplication::primaryScreen();
        QRect screenGeometry = screen->availableGeometry();
 
-       // 顶部中间区域，宽度 = transferhub_widget 宽度，高度 = 100
        QRect hoverZone((screenGeometry.width() - width()) / 2,
                        0,
                        width(),
@@ -84,6 +80,15 @@
        if (hoverZone.contains(globalPos)) {
            moveToShown();
        } 
+   });
+   //接收到远端添加文件
+   EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_SyncAddFile,[=](std::string id, std::string filename, std::string file_size){
+      QMetaObject::invokeMethod(this, [=]() {
+         addFile(true,QString::fromStdString(filename), std::stoi(id), std::stoul(file_size));
+         moveToShown();
+         hideTimer->start();
+      }, Qt::QueuedConnection);
+      
    });
 }
  
@@ -126,14 +131,19 @@ void TransferHubWidget::leaveEvent(QEvent *event)
     hideTimer->start();
 }
  
-void TransferHubWidget::addFile(bool is_remote,QString& detail, size_t size, bool is_dir)
+//本地文件只需传is remote和detail(文件路径)，剩余信息会在file item中读路径获取,detail解析后显示文件名
+//远程文件需要填全，detail则为文件名直接显示
+void TransferHubWidget::addFile(bool is_remote,QString detail,unsigned int input_file_id, size_t file_size)
 {
    if(existing_etails.contains(detail))
+   {
       return;
+   }
+
    int row = cur_count / colCount;
    int col = cur_count % colCount;
 
-   auto *item = new FileItemWidget(is_remote,detail);
+   auto *item = new FileItemWidget(is_remote,detail,input_file_id, file_size);
    gridLayout->addWidget(item, row, col);
 
    cur_count++;
@@ -143,8 +153,9 @@ void TransferHubWidget::addFile(bool is_remote,QString& detail, size_t size, boo
    connect(item,&FileItemWidget::fileItemDelete,this,&TransferHubWidget::onDeleteFileItem);     
    
    existing_etails.insert(detail);
-   std::vector<std::string> args = {std::to_string(item->fileid), item->file_name.toStdString()};
-   EventBus::getInstance().publish(EventBus::EventType::Network_SyncFileInfo, FileSyncType::ADDFILE,  std::move(args));
+   std::vector<std::string> args = {std::to_string(item->fileid - 1), item->file_name.toStdString(), std::to_string(item->file_size)};
+   if(!is_remote)
+      EventBus::getInstance().publish(EventBus::EventType::WebRTC_SyncFileInfo, FileSyncType::ADDFILE,  std::move(args));
 }
 
 void TransferHubWidget::start()
@@ -178,7 +189,7 @@ void TransferHubWidget::dropEvent(QDropEvent *event)
         QString localPath = url.toLocalFile();
         if (!localPath.isEmpty())
         {
-            addFile(false, localPath);
+            addFile(false, std::move(localPath));
         }
     }
 

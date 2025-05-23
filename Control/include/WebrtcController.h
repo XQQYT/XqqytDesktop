@@ -42,6 +42,7 @@ public:
     void onWriteIntoClipboard(std::string str);
 
     void onSyncFileInfo(FileSyncType type,std::vector<std::string> args);
+    void onSyncFileMsg(std::string msg);
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
     std::unique_ptr<JsonFactory> json_instance;

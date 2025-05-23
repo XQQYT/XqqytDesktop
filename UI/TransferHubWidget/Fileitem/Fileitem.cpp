@@ -6,6 +6,7 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QMessageBox>
+#include "UserInfo.h"
 
 unsigned int FileItemWidget::fileid = 0; 
 
@@ -39,39 +40,53 @@ QIcon FileItemWidget::getIcon(const QString& path)
     {
         is_dir = false;
         fileIcon = provider.icon(QFileInfo(path));
+        std::cout<<"set file size "<<file_info.size()<<std::endl;
         file_size = file_info.size();
     }
     file_name = file_info.fileName();
     return fileIcon;
 }
 
-FileItemWidget::FileItemWidget(bool is_remote,QString& detail, size_t size, bool is_dir, QWidget *parent)
+FileItemWidget::FileItemWidget(bool is_remote,QString& detail,unsigned int input_file_id, size_t file_size,QWidget *parent)
     : QWidget(parent),is_remote(is_remote) ,detail(detail)
 {
+    //被控端从1000开始编号
+    if (fileid == 0 && UserInfoManager::getInstance().getCurrentRole() == UserInfoManager::Role::BeControlled) {
+        fileid = 1000;
+    }
+    
     iconLabel = new QLabel;
-    if(!is_remote)
-        iconLabel->setPixmap(getIcon(detail).pixmap(64, 64));
-    else
-        iconLabel->setPixmap(QIcon(":/images/pic/remote_file.png").pixmap(64, 64));
     iconLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
     textLabel = new QLabel(this);
     textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    textLabel->setWordWrap(true);
-    textLabel->setText(file_name);
+    textLabel->setWordWrap(true);  
 
     auto *layout = new QVBoxLayout(this);
     layout->setAlignment(Qt::AlignCenter);
     layout->addWidget(iconLabel);
     layout->addWidget(textLabel);
 
-    file_id = fileid++;
+    if(!is_remote)
+    {
+        iconLabel->setPixmap(getIcon(detail).pixmap(64, 64));
+        textLabel->setText(file_name);
+        file_id = fileid++;
+    }
+    else
+    {
+        iconLabel->setPixmap(QIcon(":/images/pic/remote_file.png").pixmap(64, 64));
+        this->file_size = file_size;
+        textLabel->setText(detail);
+        file_id = input_file_id;
+    }
 
     setCursor(Qt::OpenHandCursor);
     setFixedSize(120, 120);
     setToolTip(
         "<b>FileName:</b> " + file_name +
-        "<br><b>Size:</b> " + QString::number(file_size) + " bytes"
+        "<br><b>Size:</b> " + QString::number(this->file_size) + " bytes" + 
+        "<br><b>id:</b> " + QString::number(file_id)
     );
     
     setStyleSheet("QToolTip { color: white; background-color: rgba(80, 80, 80, 255); }");

@@ -424,6 +424,11 @@ void WebRTC::setCaptureRate(int rate)
   std::cout<<"set capture rate  "<<rate<<std::endl;
 }
 
+void WebRTC::setSyncMsgCallback(std::function<void(std::string)> callback)
+{
+  sync_file_callback = callback;
+}
+
 void WebRTC::sendClipboardContent(std::string content)
 {
     if (content.empty()) return;

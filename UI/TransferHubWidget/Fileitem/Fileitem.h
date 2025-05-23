@@ -15,10 +15,11 @@
 class FileItemWidget : public QWidget {
     Q_OBJECT
 public:
-    explicit FileItemWidget(bool is_remote,QString& detail, size_t size = 0, bool is_dir = false, QWidget *parent = nullptr);
+    explicit FileItemWidget(bool is_remote,QString& detail,unsigned int input_file_id = UINT_MAX, size_t file_size = ULONG_MAX, QWidget *parent = nullptr);
     static unsigned int fileid;
     QString detail;
     QString file_name;
+    size_t file_size;
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -39,7 +40,6 @@ private:
 
     unsigned int file_id;
     bool is_remote;
-    size_t file_size;
     bool is_dir;
     QPoint dragStartPosition;
     QFileIconProvider provider;

@@ -28,7 +28,7 @@ class TransferHubWidget : public QWidget
 public:
     TransferHubWidget(QWidget *parent = nullptr);
     ~TransferHubWidget();
-    void addFile(bool is_remote,QString& detail, size_t size = 0, bool is_dir = false);
+    void addFile(bool is_remote,QString detail,unsigned int input_file_id = UINT_MAX, size_t file_size = ULONG_MAX);
     void start();
     void stop();
 public slots:

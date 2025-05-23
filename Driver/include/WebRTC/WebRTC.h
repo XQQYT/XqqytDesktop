@@ -50,6 +50,7 @@ public:
     bool getWebRtcReady() override;
     void setCaptureRate(int rate) override;
     void writeIntoClipboard(std::string str) override;
+    void setSyncMsgCallback(std::function<void(std::string)> callback) override;
     void sendFileSync(std::string msg) override;
 public:
     void display_string(EventBus::EventType event_name,std::string str);
@@ -69,6 +70,7 @@ public:
     std::unique_ptr<DCO> dco;
     std::unique_ptr<PulseAudioPlayer> audio_player;
     std::unique_ptr<ClipboardInterface> clipboard_driver;
+    std::function<void(std::string)> sync_file_callback;
 
 
 private:
@@ -97,6 +99,7 @@ private:
     bool webrtc_ready;
 
     int webrtc_capture_rate;
+
 };
 
 #endif

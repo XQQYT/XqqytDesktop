@@ -8,6 +8,7 @@
 #ifndef _WEBRTCINTERFACE_H
 #define _WEBRTCINTERFACE_H
 #include <string>
+#include <functional>
 #include "Render.h"
 #include "MouseKeyboardType.h"
 
@@ -52,6 +53,7 @@ public:
     virtual bool getWebRtcReady() = 0;
     virtual void setCaptureRate(int rate) = 0;
     virtual void writeIntoClipboard(std::string str) = 0;
+    virtual void setSyncMsgCallback(std::function<void(std::string)> callback) = 0;
     virtual void sendFileSync(std::string msg) = 0;
 };
 

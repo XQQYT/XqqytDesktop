@@ -13,6 +13,9 @@ static const std::string module_name = "Network";
 WebrtcController::WebrtcController()
 {
     webrtc_instance = std::make_unique<WebRTC>(*this);
+    webrtc_instance->setSyncMsgCallback(
+        std::bind(&WebrtcController::onSyncFileMsg, this, std::placeholders::_1)
+    );
     json_instance = std::make_unique<NlohmannJson>();
     loadSetting();
 }
@@ -107,7 +110,7 @@ void WebrtcController::initWebrtcSubscribe()
         this,
         std::placeholders::_1
     ));
-    EventBus::getInstance().subscribe(EventBus::EventType::Network_SyncFileInfo,std::bind(
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_SyncFileInfo,std::bind(
         &WebrtcController::onSyncFileInfo,
         this,
         std::placeholders::_1,
@@ -228,8 +231,28 @@ void WebrtcController::onSyncFileInfo(FileSyncType type,std::vector<std::string>
     switch (type)
     {
         case FileSyncType::ADDFILE:
-            webrtc_instance->sendFileSync(*json_instance->syncfile_add_file(std::move(args[0]), std::move(args[1])));
+            webrtc_instance->sendFileSync(*json_instance->syncfile_add_file(std::move(args[0]), std::move(args[1]), std::move(args[2])));
             break;
     }
 
+}
+
+void WebrtcController::onSyncFileMsg(std::string msg)
+{
+    std::cout<<msg<<std::endl;
+    auto parser = json_instance->getParser();
+    parser->loadJson(msg);
+    if(parser->contain("type"))
+    {
+        std::string type = parser->getKey("type");
+        if(type == "syncfile_add")
+        {
+            auto content_parser = parser->getObj("content");
+            std::string id = content_parser->getKey("id");
+            std::string file_name = content_parser->getKey("filename");
+            std::string file_size = content_parser->getKey("filesize");
+
+            EventBus::getInstance().publish(EventBus::EventType::WebRTC_SyncAddFile, std::move(id), std::move(file_name),std::move(file_size));
+        } 
+    }
 }

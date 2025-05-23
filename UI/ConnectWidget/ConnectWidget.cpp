@@ -222,8 +222,7 @@ void ConnectWidget::onConnectRequest(std::string target_id, std::string key)
     connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
         EventBus::getInstance().publish(EventBus::EventType::Network_SendConnectRequestResult,target_id,true);
         UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::BeControlled);
-        transferhub_widget = new TransferHubWidget;
-        transferhub_widget->start();
+        TransferHubWidget::getInstance().start();
     });
     connect(&dialog,&ConfirmBeConnectDialog::rejectConnection,this,[=](){
         EventBus::getInstance().publish(EventBus::EventType::Network_SendConnectRequestResult,target_id,false);

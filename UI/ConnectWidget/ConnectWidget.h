@@ -68,6 +68,5 @@ private:
     KeyAuthenticationDialog* key_authenticate_dialog;
     bool remote_widget_alive;
     QTimer* update_dynamic_key_timer;
-    TransferHubWidget* transferhub_widget;
 };
 #endif // WIDGET_H

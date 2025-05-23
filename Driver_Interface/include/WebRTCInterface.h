@@ -9,6 +9,7 @@
 #define _WEBRTCINTERFACE_H
 #include <string>
 #include <functional>
+#include <fstream>
 #include "Render.h"
 #include "MouseKeyboardType.h"
 
@@ -55,6 +56,8 @@ public:
     virtual void writeIntoClipboard(std::string str) = 0;
     virtual void setSyncMsgCallback(std::function<void(std::string)> callback) = 0;
     virtual void sendFileSync(std::string msg) = 0;
+    virtual void sendFile(uint16_t id,const std::string path) = 0;
+    virtual void setFileHolder(std::ofstream* out) = 0;
 };
 
 #endif

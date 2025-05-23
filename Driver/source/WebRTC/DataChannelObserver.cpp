@@ -11,6 +11,10 @@
 #include "MouseKeyboardType.h"
 #include <unordered_map>
 #include "WebRTC.h"
+#include <arpa/inet.h>
+
+static uint16_t file_head_magic = htons(0xABCD);
+static uint16_t file_block_magic = htons(0xABAB);
 
 DCO::DCO(WebRTC& instance)
     :webrtc_instance(instance)
@@ -28,7 +32,17 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
     const uint8_t* data = buffer.data.data();
     size_t size = buffer.data.size();
 
-    if (size == sizeof(MouseEventPacket)) {
+    if(memcmp(data,&file_head_magic,2) == 0)
+    {
+        std::cout<<"is header"<<std::endl;
+        webrtc_instance.file_receiver->hasFileHeader(data, size);
+    } 
+    if(memcmp(data,&file_block_magic,2) == 0)
+    {
+        std::cout<<"is block"<<std::endl;
+        webrtc_instance.file_receiver->hasFileData(data, size);
+    }
+    else if (size == sizeof(MouseEventPacket)) {
         // 处理 MouseEventPacket
         MouseEventPacket packet;
         std::memcpy(&packet, data, sizeof(MouseEventPacket));
@@ -50,7 +64,8 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
         oss << " }";
 
         std::cout << oss.str() << std::endl;
-    } else {
+    }
+    else {
         // 处理字符串消息
         std::string msg(reinterpret_cast<const char*>(data), size); // 直接构造
         if (msg == "_close_webrtc_") 

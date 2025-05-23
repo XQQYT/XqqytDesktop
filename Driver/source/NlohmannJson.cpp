@@ -332,6 +332,17 @@ std::shared_ptr<std::string> NlohmannJson::syncfile_add_file(std::string id, std
         return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::syncfile_get_file(std::string id)
+{
+    json result_msg = {
+        {"type", "syncfile_get_file"},
+        {"content", {
+            {"id", std::move(id)}
+        }}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
 std::unique_ptr<Parser> NlohmannJson::getParser()
 {
     return std::make_unique<NlohmannJsonParser>();

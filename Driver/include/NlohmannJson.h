@@ -55,6 +55,7 @@ public:
     std::shared_ptr<std::string> user_update_user_password(std::string user_name, std::string old_password, std::string new_password) override;
 
     std::shared_ptr<std::string> syncfile_add_file(std::string id, std::string filename, std::string filesize) override;
+    std::shared_ptr<std::string> syncfile_get_file(std::string id) override;
 };
 
 #endif

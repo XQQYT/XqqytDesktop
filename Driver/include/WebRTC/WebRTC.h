@@ -20,6 +20,8 @@
 #include "VideoRender.h"
 #include "PulseAudioPlayer.h"
 #include "Clipboard.h"
+#include "FileSender.h"
+#include "FileReceiver.h"
 
 class WebRTC : public WebRTCInterface
 {
@@ -52,6 +54,10 @@ public:
     void writeIntoClipboard(std::string str) override;
     void setSyncMsgCallback(std::function<void(std::string)> callback) override;
     void sendFileSync(std::string msg) override;
+    void sendToPeer(uint8_t* msg, size_t length);
+    void sendToPeer(std::string msg);
+    void sendFile(uint16_t id,const std::string path) override;
+    void setFileHolder(std::ofstream* out) override;
 public:
     void display_string(EventBus::EventType event_name,std::string str);
     void display_string_string_string(EventBus::EventType event_name,std::string str1,std::string str2,std::string str3);
@@ -71,12 +77,11 @@ public:
     std::unique_ptr<PulseAudioPlayer> audio_player;
     std::unique_ptr<ClipboardInterface> clipboard_driver;
     std::function<void(std::string)> sync_file_callback;
-
-
+    std::unique_ptr<FileSender> file_sender;
+    std::unique_ptr<FileReceiver> file_receiver;
 private:
     void AddIceCandidate(std::string ice_str,std::string sdp_mid,int sdp_mline_index);
     void sendCloseWebRTC();
-    void sendToPeer(std::string msg);
 private:
     webrtc::PeerConnectionInterface::RTCConfiguration configuration;
     rtc::scoped_refptr<webrtc::AudioDeviceModule> adm;

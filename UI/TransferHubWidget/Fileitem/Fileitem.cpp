@@ -7,8 +7,12 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include "UserInfo.h"
+#include "EventBus.h"
+#include "GlobalEnum.h"
+#include <fstream>
 
-unsigned int FileItemWidget::fileid = 0; 
+uint16_t FileItemWidget::fileid = 0; 
+static const QString tmp_path = "/tmp/XqqytDesktop/";
 
 quint64 getFolderSize(const QString &folderPath)
 {
@@ -32,29 +36,26 @@ QIcon FileItemWidget::getIcon(const QString& path)
     QFileInfo file_info(path);
     if(file_info.isDir())
     {
-        is_dir = true;
         fileIcon = provider.icon(QFileIconProvider::Folder);
         file_size = getFolderSize(path);
     }
     else
     {
-        is_dir = false;
         fileIcon = provider.icon(QFileInfo(path));
-        std::cout<<"set file size "<<file_info.size()<<std::endl;
         file_size = file_info.size();
     }
     file_name = file_info.fileName();
     return fileIcon;
 }
 
-FileItemWidget::FileItemWidget(bool is_remote,QString& detail,unsigned int input_file_id, size_t file_size,QWidget *parent)
+FileItemWidget::FileItemWidget(bool is_remote,QString& detail,uint16_t input_file_id, size_t file_size,QWidget *parent)
     : QWidget(parent),is_remote(is_remote) ,detail(detail)
 {
     //被控端从1000开始编号
     if (fileid == 0 && UserInfoManager::getInstance().getCurrentRole() == UserInfoManager::Role::BeControlled) {
         fileid = 1000;
     }
-    
+
     iconLabel = new QLabel;
     iconLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
@@ -168,12 +169,28 @@ void FileItemWidget::onCopy()
 {
     QClipboard *clipboard = QApplication::clipboard();
     QMimeData *mimeData = new QMimeData;
+    QUrl fileUrl;
+    if(is_remote)
+    {
+        fileUrl = QUrl::fromLocalFile(QFileInfo(tmp_path + detail).absoluteFilePath());
+        std::ofstream* out = new std::ofstream((tmp_path + detail).toStdString(), std::ios::binary);
 
-    QUrl fileUrl = QUrl::fromLocalFile(QFileInfo(detail).absoluteFilePath());
+        EventBus::getInstance().publish<std::ofstream*, std::function<void()>>(EventBus::EventType::WebRTC_SetFileHolder, out,
+            [=](){
+            std::vector<std::string> args = {std::to_string(file_id)};
+            EventBus::getInstance().publish(EventBus::EventType::WebRTC_SyncFileInfo, FileSyncType::GETFILE,std::move(args));
+        });
+        std::cout<<"publish WebRTC_SetFileHolder done"<<std::endl;
+    }
+    else
+    {
+        fileUrl = QUrl::fromLocalFile(QFileInfo(detail).absoluteFilePath());
+    }
     mimeData->setUrls({fileUrl});
     mimeData->setData("x-special/gnome-copied-files", QByteArray("copy\n") + fileUrl.toEncoded());
 
     clipboard->setMimeData(mimeData);
+
 }
 
 void FileItemWidget::onOpen()

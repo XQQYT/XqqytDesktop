@@ -15,8 +15,8 @@
 class FileItemWidget : public QWidget {
     Q_OBJECT
 public:
-    explicit FileItemWidget(bool is_remote,QString& detail,unsigned int input_file_id = UINT_MAX, size_t file_size = ULONG_MAX, QWidget *parent = nullptr);
-    static unsigned int fileid;
+    explicit FileItemWidget(bool is_remote,QString& detail,uint16_t input_file_id = UINT16_MAX, size_t file_size = ULONG_MAX, QWidget *parent = nullptr);
+    static uint16_t fileid;
     QString detail;
     QString file_name;
     size_t file_size;
@@ -38,9 +38,8 @@ private:
     QLabel *iconLabel;
     QLabel *textLabel;
 
-    unsigned int file_id;
+    uint16_t file_id;
     bool is_remote;
-    bool is_dir;
     QPoint dragStartPosition;
     QFileIconProvider provider;
 };

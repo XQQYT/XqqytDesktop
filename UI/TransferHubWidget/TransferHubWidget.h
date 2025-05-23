@@ -26,9 +26,13 @@ class TransferHubWidget : public QWidget
     Q_OBJECT
 
 public:
-    TransferHubWidget(QWidget *parent = nullptr);
+    static TransferHubWidget& getInstance()
+    {
+        static TransferHubWidget instance;
+        return instance;
+    }
     ~TransferHubWidget();
-    void addFile(bool is_remote,QString detail,unsigned int input_file_id = UINT_MAX, size_t file_size = ULONG_MAX);
+    void addFile(bool is_remote,QString detail,uint16_t input_file_id = UINT16_MAX, size_t file_size = ULONG_MAX);
     void start();
     void stop();
 public slots:
@@ -43,6 +47,7 @@ protected:
     void dropEvent(QDropEvent *event);
     void dragLeaveEvent(QDragLeaveEvent *event);
 private:
+    TransferHubWidget(QWidget *parent = nullptr);
     Ui::TransferHubWidget *ui;
     QTimer* hideTimer;
     RoundedScrollArea *scrollArea;

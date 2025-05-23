@@ -13,14 +13,31 @@
  #include <QTimer>
  #include <QPushButton>
  #include <QPainter>
+ #include <QDir>
  #include "EventBus.h"
  #include "GlobalEnum.h"
+ #include "TransferFiles.h"
  
+ static const QString tmp_path = "/tmp/XqqytDesktop/";
+
+ void createLocalFile(QString filename) {
+   QFile file(tmp_path+filename);
+
+   if (file.open(QIODevice::WriteOnly)) {
+       file.close();
+   }
+}
+
  TransferHubWidget::TransferHubWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::TransferHubWidget)
  {
     ui->setupUi(this);
+
+    QDir dir(tmp_path);
+    if(!dir.exists())
+      dir.mkdir(tmp_path);
+
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     setAttribute(Qt::WA_TranslucentBackground);
 
@@ -88,8 +105,9 @@
          moveToShown();
          hideTimer->start();
       }, Qt::QueuedConnection);
-      
+      createLocalFile(QString::fromStdString(filename));
    });
+
 }
  
 TransferHubWidget::~TransferHubWidget()
@@ -133,7 +151,7 @@ void TransferHubWidget::leaveEvent(QEvent *event)
  
 //本地文件只需传is remote和detail(文件路径)，剩余信息会在file item中读路径获取,detail解析后显示文件名
 //远程文件需要填全，detail则为文件名直接显示
-void TransferHubWidget::addFile(bool is_remote,QString detail,unsigned int input_file_id, size_t file_size)
+void TransferHubWidget::addFile(bool is_remote,QString detail,uint16_t input_file_id, size_t file_size)
 {
    if(existing_etails.contains(detail))
    {
@@ -153,9 +171,13 @@ void TransferHubWidget::addFile(bool is_remote,QString detail,unsigned int input
    connect(item,&FileItemWidget::fileItemDelete,this,&TransferHubWidget::onDeleteFileItem);     
    
    existing_etails.insert(detail);
-   std::vector<std::string> args = {std::to_string(item->fileid - 1), item->file_name.toStdString(), std::to_string(item->file_size)};
+   
    if(!is_remote)
+   {
+      TransferFilesManager::getInstance().addFileInfo(item->fileid - 1, detail.toStdString());
+      std::vector<std::string> args = {std::to_string(item->fileid - 1), item->file_name.toStdString(), std::to_string(item->file_size)};
       EventBus::getInstance().publish(EventBus::EventType::WebRTC_SyncFileInfo, FileSyncType::ADDFILE,  std::move(args));
+   }
 }
 
 void TransferHubWidget::start()

@@ -17,7 +17,8 @@ enum class UserMsgType
 
 enum class FileSyncType
 {
-    ADDFILE
+    ADDFILE,
+    GETFILE
 };
 
 #endif //_GLOBALENUM_H

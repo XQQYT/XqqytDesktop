@@ -43,7 +43,6 @@ private:
     RenderWidgetInterface* render_widget_interface;
     Ui::RemoteControlWidget *ui;
     QElapsedTimer* elapsed_timer;
-    TransferHubWidget* transferhub_widget;
     qint64 frame_interval_ms;
     qint64 last_render_time;
     int render_count;

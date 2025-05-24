@@ -34,22 +34,22 @@ void FileReceiver::hasFileHeader(const uint8_t* header, uint16_t length)
     memcpy(&net_size, header + 4, sizeof(net_size));
     file_total_size = ntohl(net_size); 
 
-    std::string filename(reinterpret_cast<const char*>(header + 8), 20);
-    size_t null_pos = filename.find('\0');
-    if (null_pos != std::string::npos)
-        filename.erase(null_pos);
-
-    std::cout << "id: " << id << ", size: " << file_total_size << ", filename: " << filename << std::endl;
+    std::cout << "id: " << id << ", size: " << file_total_size << std::endl;
 }
 
 void FileReceiver::hasFileData(const uint8_t* data, size_t length )
 {
-    out->write(reinterpret_cast<const char*>(data), length);
-    receive_size += length;
-    if(receive_size >= file_total_size)
+    if (length < 2) return;
+
+    out->write(reinterpret_cast<const char*>(data + 2), length - 2);
+    receive_size += (length - 2);
+
+    if (receive_size >= file_total_size)
     {
         out->close();
-        delete out;
-        out = nullptr;
+        receive_size = 0;
+        file_total_size = 0;
+        // delete out;
+        // out = nullptr;
     }
 }

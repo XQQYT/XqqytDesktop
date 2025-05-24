@@ -180,7 +180,6 @@ void FileItemWidget::onCopy()
             std::vector<std::string> args = {std::to_string(file_id)};
             EventBus::getInstance().publish(EventBus::EventType::WebRTC_SyncFileInfo, FileSyncType::GETFILE,std::move(args));
         });
-        std::cout<<"publish WebRTC_SetFileHolder done"<<std::endl;
     }
     else
     {

@@ -18,8 +18,7 @@ void FileSender::sendFile(uint16_t id, const std::string file_path)
 {
     auto header = buildHeader(id, file_path);
 
-    // 发送头部（原样发送）
-    size_t total_header_size = 28;
+    size_t total_header_size = 8;
     size_t offset = 0;
     while (offset < total_header_size) {
         size_t chunk_size = std::min<size_t>(50, total_header_size - offset);
@@ -69,23 +68,18 @@ uint32_t getSendFileSize(const std::string& file_path) {
 
 std::unique_ptr<uint8_t[]> FileSender::buildHeader(uint16_t id, const std::string& file_path)
 {
-    std::unique_ptr<uint8_t[]> header(new uint8_t[28]);
+    std::unique_ptr<uint8_t[]> header(new uint8_t[8]);
 
     uint16_t magic = htons(0xABCD);
     uint16_t net_id = htons(id);
     uint32_t file_size = getSendFileSize(file_path.c_str());
     uint32_t net_file_size = htonl(file_size);
-    std::filesystem::path filepath = file_path;
-    std::string filename = filepath.filename().string();
 
     int offset = 0;
 
     memcpy(header.get() + offset, &magic, sizeof(magic)); offset += sizeof(magic);
     memcpy(header.get() + offset, &net_id, sizeof(net_id)); offset += sizeof(net_id);
     memcpy(header.get() + offset, &net_file_size, sizeof(net_file_size)); offset += sizeof(net_file_size);
-
-    memset(header.get() + offset, 0, 20);
-    memcpy(header.get() + offset, filename.data(), 20);
 
     return header;
 }

@@ -5,7 +5,7 @@
  * Year: 2025
  */
 
-#include "DataChannelObserver.h"
+#include "ControlDataChannelObserver.h"
 #include <iostream>
 #include <string>
 #include "MouseKeyboardType.h"
@@ -13,36 +13,23 @@
 #include "WebRTC.h"
 #include <arpa/inet.h>
 
-static uint16_t file_head_magic = htons(0xABCD);
-static uint16_t file_block_magic = htons(0xABAB);
-
-DCO::DCO(WebRTC& instance)
+ControlDCO::ControlDCO(WebRTC& instance)
     :webrtc_instance(instance)
 {
     keyboard_mouse_driver = std::make_unique<X11KeyboardMouseDriver>();
 }
 
-void DCO::OnStateChange()
+void ControlDCO::OnStateChange()
 {
 
 }
 
-void DCO::OnMessage(const webrtc::DataBuffer& buffer)
+void ControlDCO::OnMessage(const webrtc::DataBuffer& buffer)
 {
     const uint8_t* data = buffer.data.data();
     size_t size = buffer.data.size();
 
-    if(memcmp(data,&file_head_magic,2) == 0)
-    {
-        std::cout<<"is header"<<std::endl;
-        webrtc_instance.file_receiver->hasFileHeader(data, size);
-    } 
-    if(memcmp(data,&file_block_magic,2) == 0)
-    {
-        std::cout<<"is block"<<std::endl;
-        webrtc_instance.file_receiver->hasFileData(data, size);
-    }
-    else if (size == sizeof(MouseEventPacket)) {
+    if (size == sizeof(MouseEventPacket)) {
         // 处理 MouseEventPacket
         MouseEventPacket packet;
         std::memcpy(&packet, data, sizeof(MouseEventPacket));
@@ -86,12 +73,12 @@ void DCO::OnMessage(const webrtc::DataBuffer& buffer)
     }
 }
 
-void DCO::OnBufferedAmountChange(uint64_t sent_data_size) 
+void ControlDCO::OnBufferedAmountChange(uint64_t sent_data_size) 
 {
 
 }
    
-bool DCO::IsOkToCallOnTheNetworkThread() 
+bool ControlDCO::IsOkToCallOnTheNetworkThread() 
 { 
     return false; 
 }

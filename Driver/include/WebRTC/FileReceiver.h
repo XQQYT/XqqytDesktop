@@ -1,23 +1,40 @@
-#ifndef FILERECEIVER_H
-#define FILERECEIVER_H
-
-#include <functional>
-#include <stdint.h>
+#pragma once
+#include <queue>
+#include <vector>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
 #include <fstream>
-#include <memory>
+#include <atomic>
+#include <cstdint>
+#include <string>
 
-class FileReceiver
-{
+class FileReceiver {
 public:
     FileReceiver();
     ~FileReceiver();
-    void startReceiveFile(std::shared_ptr<std::ofstream> instance);
-    void hasFileHeader(const uint8_t* header, uint16_t length);
-    void hasFileData(const uint8_t* data, size_t length );
+
+    void start(std::shared_ptr<std::ofstream> output_path);
+    void stop();
+
+    void onHeaderReceived(const uint8_t* data, size_t size);
+    void onDataReceived(const uint8_t* data, size_t size);
+
 private:
+    void processQueue();
+    void processHeader(const std::vector<uint8_t>& data);
+    void processData(const std::vector<uint8_t>& data);
+
+    std::queue<std::vector<uint8_t>> queue;
+    std::mutex mutex;
+    std::condition_variable cv;
+    std::thread worker;
     std::shared_ptr<std::ofstream> out;
+    std::atomic<bool> running;
+
     uint32_t file_total_size;
     uint32_t receive_size;
-};
 
-#endif //FILERECEIVER_H
+    static const uint16_t file_head_magic;
+    static const uint16_t file_block_magic;
+};

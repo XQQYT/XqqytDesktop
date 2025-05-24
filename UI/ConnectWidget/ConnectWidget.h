@@ -19,6 +19,7 @@
 #include "InfoDialog.h"
 #include "UserInfo.h"
 #include "KeyAuthenticationDialog.h"
+#include "TransferHubWidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ConnectWidget; }

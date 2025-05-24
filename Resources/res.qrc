@@ -4,5 +4,6 @@
         <file>pic/share.png</file>
         <file>pic/share_hover.png</file>
         <file>pic/loading.gif</file>
+        <file>pic/remote_file.png</file>
     </qresource>
 </RCC>

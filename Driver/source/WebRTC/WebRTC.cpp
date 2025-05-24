@@ -107,6 +107,9 @@ void WebRTC::initWebRTC(bool is_offer)
   });
   std::cout << "init WebRTC done"<<std::endl;
 
+  file_sender = std::make_unique<FileSender>(*this);
+  file_receiver = std::make_unique<FileReceiver>();
+
   if(!is_offer)
     webrtc_operator.dispatch_void(EventBus::EventType::WebRTC_InitWebrtcDone);
   webrtc_ready = true;
@@ -424,21 +427,63 @@ void WebRTC::setCaptureRate(int rate)
   std::cout<<"set capture rate  "<<rate<<std::endl;
 }
 
+void WebRTC::setSyncMsgCallback(std::function<void(std::string)> callback)
+{
+  sync_file_callback = callback;
+}
+
 void WebRTC::sendClipboardContent(std::string content)
 {
     if (content.empty()) return;
-
-    if (!data_channel || data_channel->state() != webrtc::DataChannelInterface::kOpen) {
-        std::cerr << "DataChannel is not open\n";
-        return;
-    }
     content.insert(0,"[clipboard]");
-    rtc::CopyOnWriteBuffer buffer(reinterpret_cast<const uint8_t*>(content.data()), content.size());
-    webrtc::DataBuffer data_buffer(buffer, true);
-    data_channel->Send(data_buffer);
+    sendToPeer(std::move(content));
 }
 
 void WebRTC::writeIntoClipboard(std::string str)
 {
   clipboard_driver->setClipboardText(std::move(str));
+}
+
+void WebRTC::sendToPeer(std::string msg)
+{
+  if (msg.empty()) return;
+
+  if (!data_channel || data_channel->state() != webrtc::DataChannelInterface::kOpen) {
+      std::cerr << "DataChannel is not open\n";
+      return;
+  }
+  rtc::CopyOnWriteBuffer buffer(reinterpret_cast<const uint8_t*>(msg.data()), msg.size());
+  webrtc::DataBuffer data_buffer(buffer, true);
+  data_channel->Send(data_buffer);
+}
+
+void WebRTC::sendToPeer(uint8_t* msg, size_t length)
+{
+    if (!msg || length == 0) return;
+
+    if (!data_channel || data_channel->state() != webrtc::DataChannelInterface::kOpen) {
+        std::cerr << "DataChannel is not open\n";
+        return;
+    }
+
+    rtc::CopyOnWriteBuffer buffer(msg, length);
+    webrtc::DataBuffer data_buffer(buffer, false);
+    data_channel->Send(data_buffer);
+}
+
+void WebRTC::sendFileSync(std::string msg)
+{
+  if (msg.empty()) return;
+  msg.insert(0,"[filesync]");
+  sendToPeer(std::move(msg));
+}
+
+void WebRTC::sendFile(uint16_t id,const std::string path)
+{
+  file_sender->sendFile(id, path);
+}
+
+void WebRTC::setFileHolder(std::ofstream* out)
+{
+  file_receiver->startReceiveFile(out);
 }

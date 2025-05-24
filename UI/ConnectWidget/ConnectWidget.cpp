@@ -42,6 +42,8 @@ ConnectWidget::ConnectWidget(QWidget *parent)
 
 ConnectWidget::~ConnectWidget()
 {
+    if(remote_widget)
+        delete remote_widget;
     delete ui;
 }
 
@@ -220,7 +222,7 @@ void ConnectWidget::onConnectRequest(std::string target_id, std::string key)
     connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
         EventBus::getInstance().publish(EventBus::EventType::Network_SendConnectRequestResult,target_id,true);
         UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::BeControlled);
-
+        TransferHubWidget::getInstance().start();
     });
     connect(&dialog,&ConfirmBeConnectDialog::rejectConnection,this,[=](){
         EventBus::getInstance().publish(EventBus::EventType::Network_SendConnectRequestResult,target_id,false);
@@ -251,11 +253,10 @@ void ConnectWidget::onConnectionStatus(bool status)
         if(!remote_widget_alive && UserInfoManager::getInstance().getCurrentRole() == UserInfoManager::Role::Controller)
         {
             QMetaObject::invokeMethod(this, [this]() {
-                std::cout<<"new a remote widget"<<std::endl;
-                remote_widget = new RemoteControlWidget;
-                remote_widget->show();
+                if(!remote_widget)
+                    remote_widget = new RemoteControlWidget;
+                remote_widget->showWithTransfer();
                 connect(remote_widget,&RemoteControlWidget::remote_widget_closed,this,[this](){
-                    std::cout<<"reset remote_widget_alive"<<std::endl;
                     remote_widget_alive = false;
                 });
             }, Qt::QueuedConnection);

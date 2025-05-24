@@ -9,6 +9,8 @@ add_library(Driver STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/source/OpensslDriver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/ConfigDriver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/WebRTC.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/FileSender.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/FileReceiver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/DataChannelObserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/PeerConnectionObserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/SdpObserver.cpp

@@ -12,6 +12,7 @@
 #include <QCloseEvent>
 #include <QElapsedTimer>
 #include "RenderWidgetInterface/RenderWidgetInterface.h"
+#include "TransferHubWidget.h"
 
 class OpenGLWidget;
 QT_BEGIN_NAMESPACE
@@ -26,6 +27,7 @@ public:
     RemoteControlWidget(QWidget *parent = nullptr);
     ~RemoteControlWidget();
     void addRenderFrame(VideoFrame&& render_frame) override;
+    void showWithTransfer();
 
 protected:
     void closeEvent(QCloseEvent *event) override;

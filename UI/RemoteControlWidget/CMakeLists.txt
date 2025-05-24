@@ -16,4 +16,4 @@ target_include_directories(RemoteControlWidget PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/QImageWidget
 )
 
-target_link_libraries(RemoteControlWidget Qt5::Widgets Control)
+target_link_libraries(RemoteControlWidget Qt5::Widgets TransferHubWidget Control)

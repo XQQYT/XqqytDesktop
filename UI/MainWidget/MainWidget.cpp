@@ -27,9 +27,9 @@ MainWidget::MainWidget(QWidget *parent)
     connect(this, &MainWidget::LoginResult, login_dialog, &LoginDialog::onLoginResult);
     connect(this, &MainWidget::RegisterResult, &login_dialog->register_dialog, &RegisterDialog::onRegisterResult);
     
-    connect(&WidgetManager::getInstance(),&WidgetManager::transConnectFromDevice,this,&MainWidget::onConnectFromDevice);
-
     initSubscribe();
+
+    connect(&WidgetManager::getInstance(),&WidgetManager::transConnectFromDevice,this,&MainWidget::onConnectFromDevice);
 
     setCurrentWidget(WidgetManager::WidgetType::ConnectWidget);
     // 居中窗口
@@ -198,6 +198,7 @@ void MainWidget::onSettingChanged(std::string module, std::string key, std::stri
     }
     else if(key == "language")
     {
+        std::cout<<"mainwidget"<<std::endl;
         QMetaObject::invokeMethod(this, [=]() {
             switchLanguage((value));
             updateUserNameBtn();

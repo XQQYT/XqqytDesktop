@@ -57,7 +57,7 @@ public:
     void sendToPeer(uint8_t* msg, size_t length);
     void sendToPeer(std::string msg);
     void sendFile(uint16_t id,const std::string path) override;
-    void setFileHolder(std::ofstream* out) override;
+    void setFileHolder(std::shared_ptr<std::ofstream> out) override;
 public:
     void display_string(EventBus::EventType event_name,std::string str);
     void display_string_string_string(EventBus::EventType event_name,std::string str1,std::string str2,std::string str3);

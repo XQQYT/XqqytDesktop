@@ -15,7 +15,7 @@ FileReceiver::~FileReceiver()
 
 }
 
-void FileReceiver::startReceiveFile(std::ofstream* instance)
+void FileReceiver::startReceiveFile(std::shared_ptr<std::ofstream> instance)
 {
     out = instance;
 }
@@ -44,12 +44,13 @@ void FileReceiver::hasFileData(const uint8_t* data, size_t length )
     out->write(reinterpret_cast<const char*>(data + 2), length - 2);
     receive_size += (length - 2);
 
+    std::cout<<receive_size<<" / "<<file_total_size<<std::endl;
     if (receive_size >= file_total_size)
     {
         out->close();
+        out.reset();
+        out = nullptr;
         receive_size = 0;
         file_total_size = 0;
-        // delete out;
-        // out = nullptr;
     }
 }

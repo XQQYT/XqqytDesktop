@@ -483,7 +483,7 @@ void WebRTC::sendFile(uint16_t id,const std::string path)
   file_sender->sendFile(id, path);
 }
 
-void WebRTC::setFileHolder(std::ofstream* out)
+void WebRTC::setFileHolder(std::shared_ptr<std::ofstream> out)
 {
   file_receiver->startReceiveFile(out);
 }

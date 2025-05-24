@@ -5,17 +5,17 @@
  * Year: 2025
  */
 
-#ifndef _DATACHANNELOBSERVER_H
-#define _DATACHANNELOBSERVER_H
+#ifndef _CONTROLDATACHANNELOBSERVER_H
+#define _CONTROLDATACHANNELOBSERVER_H
 
 #include "api/create_peerconnection_factory.h"
 #include "KeyboardMouseDriver/X11KeyboardMouseDriver.h"
 #include <memory>
 
 class WebRTC;
-class DCO : public webrtc::DataChannelObserver {
+class ControlDCO : public webrtc::DataChannelObserver {
     public:
-    DCO(WebRTC& instance);
+    ControlDCO(WebRTC& instance);
      // The data channel state have changed.
      void OnStateChange() override;
      //  A data buffer was successfully received.
@@ -34,7 +34,7 @@ class DCO : public webrtc::DataChannelObserver {
      // should be called on the network thread and this method removed.
      bool IsOkToCallOnTheNetworkThread() override;
    
-     ~DCO() = default;
+     ~ControlDCO() = default;
     private:
       std::unique_ptr<KeyboardMouseInterface> keyboard_mouse_driver; 
       WebRTC& webrtc_instance;

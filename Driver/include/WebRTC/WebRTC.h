@@ -13,7 +13,8 @@
 #include <thread>
 #include <vector>
 #include "PeerConnectionObserver.h"
-#include "DataChannelObserver.h"
+#include "ControlDataChannelObserver.h"
+#include "FileDataChannelObserver.h"
 #include "Operator.h"
 #include "SdpObserver.h"
 #include "DesktopCaptureSource.h"
@@ -72,8 +73,12 @@ public:
     rtc::scoped_refptr<webrtc::PeerConnectionInterface> peer_connection;
     rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> desktop_source;
     std::unique_ptr<VideoRender> video_render;
-    rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel;
-    std::unique_ptr<DCO> dco;
+    rtc::scoped_refptr<webrtc::DataChannelInterface> control_data_channel;
+    rtc::scoped_refptr<webrtc::DataChannelInterface> file_data_channel;
+
+    std::unique_ptr<ControlDCO> control_dco;
+    std::unique_ptr<FileDCO> file_dco;
+
     std::unique_ptr<PulseAudioPlayer> audio_player;
     std::unique_ptr<ClipboardInterface> clipboard_driver;
     std::function<void(std::string)> sync_file_callback;

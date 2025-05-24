@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <arpa/inet.h>
 
+constexpr size_t MAX_BUFFERED_CONTROL_BYTES = 64 * 1024;  // 或根据你的需求设置
+
 FileSender::FileSender(WebRTC& instance)
     :webrtc_instance(instance)
 {
@@ -26,26 +28,29 @@ void FileSender::sendFile(uint16_t id, const std::string file_path)
         offset += chunk_size;
     }
 
-    // 打开文件
     std::ifstream file(file_path, std::ios::binary);
     if (!file.is_open()) {
         std::cerr << "Failed to open file: " << file_path << std::endl;
         return;
     }
 
-    const size_t data_payload_size = 48; // 因为我们加2字节magic，最多48字节数据
+    const size_t data_payload_size = 48;
     uint8_t raw_buffer[data_payload_size];
-    uint8_t send_buffer[50]; // 2字节magic + 48字节数据
-
-    uint16_t magic = htons(0xABAB); // 转大端
+    uint8_t send_buffer[50];
+    uint16_t magic = htons(0xABAB);
 
     while (!file.eof()) {
+        // 检查缓冲区状态
+        while (webrtc_instance.file_data_channel->buffered_amount() > MAX_BUFFERED_CONTROL_BYTES) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10)); // 等待缓冲区释放
+        }
+
         file.read(reinterpret_cast<char*>(raw_buffer), data_payload_size);
         std::streamsize bytes_read = file.gcount();
         if (bytes_read > 0) {
-            memcpy(send_buffer, &magic, sizeof(magic)); // 写magic
-            memcpy(send_buffer + 2, raw_buffer, bytes_read); // 写文件内容
-            webrtc_instance.sendToPeer(send_buffer, bytes_read + 2); // 总长：数据长度 + 2
+            memcpy(send_buffer, &magic, sizeof(magic));
+            memcpy(send_buffer + 2, raw_buffer, bytes_read);
+            webrtc_instance.sendToPeer(send_buffer, bytes_read + 2);
         }
     }
 

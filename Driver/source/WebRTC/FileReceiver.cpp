@@ -6,21 +6,23 @@
 const uint16_t FileReceiver::file_head_magic = htons(0xABCD);
 const uint16_t FileReceiver::file_block_magic = htons(0xABAB);
 
-FileReceiver::FileReceiver() : running(false), file_total_size(0), receive_size(0) {}
+FileReceiver::FileReceiver() : running(false), file_total_size(0), receive_size(0) {
+    out = nullptr;
+}
 
 FileReceiver::~FileReceiver() {
     stop();
 }
 
 void FileReceiver::start(std::shared_ptr<std::ofstream> file_out) {
-    out = file_out; 
-    running = true;
-
-    if(worker.joinable())
-    {
+    std::lock_guard<std::mutex> lock(mutex);
+    if (worker && worker->joinable()) {
+        std::cerr << "FileReceiver is already running.\n";
         return;
     }
-    worker = std::thread(&FileReceiver::processQueue, this);
+    out = file_out;
+    running = true;
+    worker = std::make_unique<std::thread>(&FileReceiver::processQueue, this);
 }
 
 void FileReceiver::stop() {
@@ -29,10 +31,11 @@ void FileReceiver::stop() {
         running = false;
         cv.notify_all();
     }
-    if (worker.joinable()) {
-        worker.join();
+    if (worker && worker->joinable()) {
+        worker->join();
+        worker.reset();
     }
-    if (out->is_open()) {
+    if (out && out->is_open()) {
         out->close();
     }
 }

@@ -44,6 +44,11 @@ WebRTC::WebRTC(Operator& base_operator):
   adm = nullptr;
 }
 
+WebRTC::~WebRTC()
+{
+  closeWebRTC();
+}
+
 void WebRTC::initWebRTC(bool is_offer)
 {
     std::cout << "init WebRTC"<<std::endl;
@@ -89,24 +94,26 @@ void WebRTC::initWebRTC(bool is_offer)
     
     configuration.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
 
-    signaling_thread->PostTask([this](){
-      // 创建音频 track
-      cricket::AudioOptions audio_options;
-      rtc::scoped_refptr<webrtc::AudioSourceInterface> audio_source =
-      peer_connection_factory->CreateAudioSource(audio_options);
-      desktop_audio_track = peer_connection_factory->CreateAudioTrack("desktop_audio_track", audio_source.get());
+    if(!is_offer)
+    {
+      signaling_thread->PostTask([this](){
+        // 创建音频 track
+        cricket::AudioOptions audio_options;
+        rtc::scoped_refptr<webrtc::AudioSourceInterface> audio_source =
+        peer_connection_factory->CreateAudioSource(audio_options);
+        desktop_audio_track = peer_connection_factory->CreateAudioTrack("desktop_audio_track", audio_source.get());
 
-      auto capture_option = webrtc::DesktopCaptureOptions::CreateDefault();
-      std::unique_ptr<webrtc::DesktopCapturer> capturer = webrtc::DesktopCapturer::CreateScreenCapturer(capture_option);
-      if (!capturer) {
-        std::cerr << "Failed to create DesktopCapturer!" << std::endl;
-      } else {
-        std::cout << "DesktopCapturer created successfully!" << std::endl;
-      }
-      desktop_source = rtc::make_ref_counted<DesktopCaptureSource>(std::move(capturer));
-      desktop_video_track = peer_connection_factory->CreateVideoTrack(desktop_source,"desktop_video_track");
-  });
-  std::cout << "init WebRTC done"<<std::endl;
+        auto capture_option = webrtc::DesktopCaptureOptions::CreateDefault();
+        std::unique_ptr<webrtc::DesktopCapturer> capturer = webrtc::DesktopCapturer::CreateScreenCapturer(capture_option);
+        if (!capturer) {
+          std::cerr << "Failed to create DesktopCapturer!" << std::endl;
+        } else {
+          std::cout << "DesktopCapturer created successfully!" << std::endl;
+        }
+        desktop_source = rtc::make_ref_counted<DesktopCaptureSource>(std::move(capturer));
+        desktop_video_track = peer_connection_factory->CreateVideoTrack(desktop_source,"desktop_video_track");
+      });
+    }
 
   file_sender = std::make_unique<FileSender>(*this);
   file_receiver = std::make_unique<FileReceiver>();
@@ -114,6 +121,9 @@ void WebRTC::initWebRTC(bool is_offer)
   if(!is_offer)
     webrtc_operator.dispatch_void(EventBus::EventType::WebRTC_InitWebrtcDone);
   webrtc_ready = true;
+
+  std::cout << "init WebRTC done"<<std::endl;
+
 }
 
 void WebRTC::createSDP(SDPType type)
@@ -371,28 +381,45 @@ void WebRTC::sendCloseWebRTC()
     control_data_channel->Send(data_buffer);
 }
 
-void WebRTC::closeWebRTC()
-{
+void WebRTC::closeWebRTC() {
   std::cout << "Closing WebRTC..." << std::endl;
 
-  if(currentRole == WebRTCInterface::Role::SENDER)
-    sendCloseWebRTC();
-  if(currentRole == WebRTCInterface::Role::RECEIVER)
-    stopCaptureDesktop();
+  if (currentRole == WebRTCInterface::Role::SENDER) {
+      sendCloseWebRTC();
+  }
+
+  if (currentRole == WebRTCInterface::Role::RECEIVER) {
+      stopCaptureDesktop();
+  }
 
   clipboard_driver->stopMonitor();
 
-  if (video_render.get()) {
-    video_render->closeRender();
-    video_render.reset();
-  }
-  if (peer_connection) {
-    peer_connection->Close();
-    peer_connection = nullptr;
+  if (video_render) {
+      video_render->closeRender();
+      video_render.reset();
   }
 
-  control_data_channel = nullptr;
-  file_data_channel = nullptr;
+  if (file_sender) {
+      file_sender.reset();
+  }
+  if (file_receiver) {
+      file_receiver.reset();
+  }
+
+  if (peer_connection) {
+      peer_connection->Close();
+      peer_connection = nullptr;
+  }
+
+  if (control_data_channel) {
+      control_data_channel->UnregisterObserver();
+      control_data_channel = nullptr;
+  }
+  if (file_data_channel) {
+      file_data_channel->UnregisterObserver();
+      file_data_channel = nullptr;
+  }
+
   desktop_video_track = nullptr;
   desktop_audio_track = nullptr;
   desktop_source = nullptr;
@@ -412,12 +439,14 @@ void WebRTC::closeWebRTC()
       network_thread = nullptr;
   }
 
-  currentRole = Role::UN_DEFINED; 
+  currentRole = Role::UN_DEFINED;
   set_sdp_type = SetSDPType::UNDEFINED;
   hasSetRemoteSdp = false;
   ice_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
   peerconnection_status = WebRTCInterface::ConnectionStatus::UN_DEFINED;
   webrtc_ready = false;
+  ice_candidate_list.clear();
+
   std::cout << "WebRTC Closed." << std::endl;
 }
 

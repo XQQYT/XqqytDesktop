@@ -53,7 +53,7 @@ RemoteControlWidget::RemoteControlWidget(QWidget *parent)
     setFPS(config_frame);
     render_count = 0;
     stats_start_time = 0;
-
+    render_is_close = false;
 }
 
 RemoteControlWidget::~RemoteControlWidget()
@@ -67,11 +67,14 @@ void RemoteControlWidget::closeEvent(QCloseEvent *event)
     std::cout<<"publish close control"<<std::endl;
     EventBus::getInstance().publish(EventBus::EventType::Control_CloseControl);
     TransferHubWidget::getInstance().stop();
+    render_is_close = true;
     emit remote_widget_closed();
 }
 
 
 void RemoteControlWidget::addRenderFrame(VideoFrame&& render_frame) {
+    if(render_is_close)
+        return;
     qint64 current_time = elapsed_timer->elapsed();
     if(frame_interval_ms == 0 || current_time - last_render_time >= frame_interval_ms)
     {
@@ -119,4 +122,5 @@ void RemoteControlWidget::showWithTransfer()
     EventBus::getInstance().publish(EventBus::EventType::Render_SetRenderInstance,dynamic_cast<RenderInterface*>(this));
     TransferHubWidget::getInstance().start();
     show();
+    render_is_close = false;
 }

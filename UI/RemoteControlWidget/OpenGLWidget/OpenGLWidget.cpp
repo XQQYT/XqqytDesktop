@@ -26,10 +26,11 @@ OpenGLWidget::~OpenGLWidget()
     if (m_vao) glDeleteVertexArrays(1, &m_vao);
     if (m_vbo) glDeleteBuffers(1, &m_vbo);
     if (m_ebo) glDeleteBuffers(1, &m_ebo);
-    doneCurrent();
     delete m_yTexture;
     delete m_uTexture;
     delete m_vTexture;
+    doneCurrent();
+
     delete input_handler;
 }
 

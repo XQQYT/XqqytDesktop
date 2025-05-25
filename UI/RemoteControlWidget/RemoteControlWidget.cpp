@@ -120,6 +120,7 @@ void RemoteControlWidget::onSettingChanged(std::string module, std::string key, 
 void RemoteControlWidget::showWithTransfer()
 {
     EventBus::getInstance().publish(EventBus::EventType::Render_SetRenderInstance,dynamic_cast<RenderInterface*>(this));
+    TransferHubWidget::getInstance().reset();
     TransferHubWidget::getInstance().start();
     show();
     render_is_close = false;

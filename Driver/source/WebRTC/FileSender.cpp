@@ -12,6 +12,8 @@ constexpr size_t MAX_BUFFERED_CONTROL_BYTES = 64 * 1024;
 FileSender::FileSender(WebRTC& instance)
     :webrtc_instance(instance)
 {
+    file_total_size = 0;
+    send_size = 0;
 }
 
 FileSender::~FileSender()
@@ -55,6 +57,9 @@ void FileSender::sendFile(uint16_t id, const std::string file_path)
                 memcpy(send_buffer, &magic, sizeof(magic));
                 memcpy(send_buffer + 2, raw_buffer, bytes_read);
                 webrtc_instance.sendToPeer(send_buffer, bytes_read + 2);
+                send_size += bytes_read;
+                if(progress_cb)
+                    progress_cb(id, send_size, file_total_size);
             }
         }
 
@@ -84,6 +89,9 @@ std::unique_ptr<uint8_t[]> FileSender::buildHeader(uint16_t id, const std::strin
     uint16_t magic = htons(0xABCD);
     uint16_t net_id = htons(id);
     uint32_t file_size = getSendFileSize(file_path.c_str());
+    send_size = 0;
+    file_total_size = file_size;
+    current_id = id;
     uint32_t net_file_size = htonl(file_size);
 
     int offset = 0;
@@ -93,4 +101,9 @@ std::unique_ptr<uint8_t[]> FileSender::buildHeader(uint16_t id, const std::strin
     memcpy(header.get() + offset, &net_file_size, sizeof(net_file_size)); offset += sizeof(net_file_size);
 
     return header;
+}
+
+void FileSender::setProgressCb(std::function<void(uint16_t,uint32_t,uint32_t)> cb)
+{
+    progress_cb = cb;
 }

@@ -107,11 +107,14 @@
           id_file[id]->setProgress(progress);
           if(receive_size >= totale_size)
           {
-            current_receive_file_id = UINT16_MAX;
-            receive_file_queue.pop();
-            QMetaObject::invokeMethod(this, [=]() {
-            prepareNextReceiveFile();
-            });
+            if(!receive_file_queue.empty())
+            {
+               current_receive_file_id = UINT16_MAX;
+               receive_file_queue.pop();
+               QMetaObject::invokeMethod(this, [=]() {
+               prepareNextReceiveFile();
+               });
+            }
           }
          });
 

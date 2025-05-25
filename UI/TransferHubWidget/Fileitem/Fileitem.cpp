@@ -9,7 +9,6 @@
 #include "UserInfo.h"
 #include "EventBus.h"
 #include "GlobalEnum.h"
-#include <fstream>
 
 uint16_t FileItemWidget::fileid = 0; 
 static const QString tmp_path = "/tmp/XqqytDesktop/";
@@ -173,13 +172,6 @@ void FileItemWidget::onCopy()
     if(is_remote)
     {
         fileUrl = QUrl::fromLocalFile(QFileInfo(tmp_path + detail).absoluteFilePath());
-        auto out = std::make_shared<std::ofstream>((tmp_path + detail).toStdString(), std::ios::binary);
-
-        EventBus::getInstance().publish<std::shared_ptr<std::ofstream>, std::function<void()>>(EventBus::EventType::WebRTC_SetFileHolder, out,
-            [=](){
-            std::vector<std::string> args = {std::to_string(file_id)};
-            EventBus::getInstance().publish(EventBus::EventType::WebRTC_SyncFileInfo, FileSyncType::GETFILE,std::move(args));
-        });
     }
     else
     {

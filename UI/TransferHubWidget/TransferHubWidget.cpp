@@ -17,6 +17,7 @@
  #include "EventBus.h"
  #include "GlobalEnum.h"
  #include "TransferFiles.h"
+ #include <fstream>
  
  static const QString tmp_path = "/tmp/XqqytDesktop/";
 
@@ -106,6 +107,14 @@
          hideTimer->start();
       }, Qt::QueuedConnection);
       createLocalFile(QString::fromStdString(filename));
+      QUrl fileUrl = QUrl::fromLocalFile(QFileInfo(tmp_path + QString::fromStdString(filename)).absoluteFilePath());
+      auto out = std::make_shared<std::ofstream>((tmp_path + QString::fromStdString(filename)).toStdString(), std::ios::binary);
+  
+      EventBus::getInstance().publish<std::shared_ptr<std::ofstream>, std::function<void()>>(EventBus::EventType::WebRTC_SetFileHolder, out,
+         [=](){
+         std::vector<std::string> args = {id};
+         EventBus::getInstance().publish(EventBus::EventType::WebRTC_SyncFileInfo, FileSyncType::GETFILE,std::move(args));
+      });
    });
 
 }

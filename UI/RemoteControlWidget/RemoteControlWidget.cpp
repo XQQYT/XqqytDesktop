@@ -64,10 +64,10 @@ RemoteControlWidget::~RemoteControlWidget()
 
 void RemoteControlWidget::closeEvent(QCloseEvent *event)
 {
+    render_is_close = true;
     std::cout<<"publish close control"<<std::endl;
     EventBus::getInstance().publish(EventBus::EventType::Control_CloseControl);
     TransferHubWidget::getInstance().stop();
-    render_is_close = true;
     emit remote_widget_closed();
 }
 

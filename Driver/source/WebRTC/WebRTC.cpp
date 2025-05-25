@@ -527,3 +527,9 @@ void WebRTC::setFileHolder(std::shared_ptr<std::ofstream> out)
 {
   file_receiver->start(out);
 }
+
+void WebRTC::setReceiveFileProgressCb(std::function<void(uint16_t,uint32_t,uint32_t)> cb)
+{
+  file_receiver->setProgressCb(cb);
+  file_sender->setProgressCb(cb);
+}

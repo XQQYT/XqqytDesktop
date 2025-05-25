@@ -7,7 +7,10 @@ const uint16_t FileReceiver::file_head_magic = htons(0xABCD);
 const uint16_t FileReceiver::file_block_magic = htons(0xABAB);
 
 FileReceiver::FileReceiver() : running(false), file_total_size(0), receive_size(0) {
-    out = nullptr;
+    cur_out = nullptr;
+    next_out = nullptr;
+    file_total_size = 0;
+    receive_size = 0;
 }
 
 FileReceiver::~FileReceiver() {
@@ -16,13 +19,15 @@ FileReceiver::~FileReceiver() {
 
 void FileReceiver::start(std::shared_ptr<std::ofstream> file_out) {
     std::lock_guard<std::mutex> lock(mutex);
-    if (worker && worker->joinable()) {
-        std::cerr << "FileReceiver is already running.\n";
-        return;
-    }
-    out = file_out;
+    if(cur_out)
+        next_out = file_out;
+    else
+        cur_out = file_out;
     running = true;
-    worker = std::make_unique<std::thread>(&FileReceiver::processQueue, this);
+
+    if (!worker) {
+        worker = std::make_unique<std::thread>(&FileReceiver::processQueue, this);
+    }
 }
 
 void FileReceiver::stop() {
@@ -35,8 +40,12 @@ void FileReceiver::stop() {
         worker->join();
         worker.reset();
     }
-    if (out && out->is_open()) {
-        out->close();
+    if (cur_out && cur_out->is_open()) {
+        cur_out->close();
+    }
+
+    if (next_out && next_out->is_open()) {
+        next_out->close();
     }
 }
 
@@ -82,27 +91,42 @@ void FileReceiver::processQueue() {
 }
 
 void FileReceiver::processHeader(const std::vector<uint8_t>& data) {
+    std::cout<<"have file header"<<std::endl;
     uint16_t id;
     memcpy(&id, data.data() + 2, sizeof(id));
-    id = ntohs(id);
+    current_file_id = ntohs(id);
     uint32_t size;
     memcpy(&size, data.data() + 4, sizeof(size));
     file_total_size = ntohl(size);
     receive_size = 0;
-    std::cout << "Receiving file id=" << id << " size=" << file_total_size << "\n";
 }
 
 void FileReceiver::processData(const std::vector<uint8_t>& data) {
-    if (out->is_open()) {
-        out->write(reinterpret_cast<const char*>(data.data() + 2), data.size() - 2);
+    if(!cur_out)
+    {
+        std::cout<<"out is nullptr"<<std::endl;
+    }
+    if (cur_out->is_open()) {
+        cur_out->write(reinterpret_cast<const char*>(data.data() + 2), data.size() - 2);
         receive_size += (data.size() - 2);
-        std::cout << receive_size << "/" << file_total_size << std::endl;
+        if(progress_cb)
+            progress_cb(current_file_id,receive_size, file_total_size);
 
         if (receive_size >= file_total_size) {
             std::cout << "File received completely.\n";
-            out->close();
-            out.reset();
-            out = nullptr;
+            cur_out->close();
+            cur_out.reset();
+            cur_out = nullptr;
+            if(next_out)
+            {
+                cur_out = next_out;
+                next_out = nullptr;
+            }
         }
     }
+}
+
+void FileReceiver::setProgressCb(std::function<void(uint16_t,uint32_t,uint32_t)> cb)
+{
+    progress_cb = cb;
 }

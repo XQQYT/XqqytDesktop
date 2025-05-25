@@ -20,11 +20,14 @@ public:
     QString detail;
     QString file_name;
     size_t file_size;
+    uint16_t getID(){return file_id;}
+    void setProgress(int percent);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 signals:
     void fileItemDelete(FileItemWidget* file_id);
 private:
@@ -42,6 +45,10 @@ private:
     bool is_remote;
     QPoint dragStartPosition;
     QFileIconProvider provider;
+
+    int m_progress = 0;
+    QColor m_progressColor = QColor(0, 150, 255); // 进度条颜色
+
 };
 
 #endif //_FILEITEM_H

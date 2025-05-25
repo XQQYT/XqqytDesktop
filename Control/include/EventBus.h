@@ -222,6 +222,8 @@ enum class EventBus::EventType {
     WebRTC_SyncFileInfo,//发送方
     WebRTC_SyncAddFile,//接收方
     WebRTC_SetFileHolder,
+    WebRTC_ReceiveFileProgess,
+    WebRTC_PeerconnectionStatus,
 
     // Render
     Render_SetRenderInstance,

@@ -38,6 +38,7 @@ public:
     void addFile(bool is_remote,QString detail,uint16_t input_file_id = UINT16_MAX, size_t file_size = ULONG_MAX);
     void start();
     void stop();
+    void reset();
 public slots:
     void moveToShown();
 private slots:

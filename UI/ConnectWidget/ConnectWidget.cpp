@@ -64,6 +64,19 @@ void ConnectWidget::initSubscribe()
     ));
     EventBus::getInstance().subscribe(EventBus::EventType::Network_ConnectToUserServerResult,std::bind(&ConnectWidget::onConnectUserServerResult,this,std::placeholders::_1));
     EventBus::getInstance().subscribe(EventBus::EventType::Network_ReceiveDeviceCode,std::bind(&ConnectWidget::onReceiveDeviceCode,this,std::placeholders::_1));
+    EventBus::getInstance().subscribe(EventBus::EventType::WebRTC_PeerconnectionStatus,[=](bool status){
+        if(UserInfoManager::getInstance().getCurrentRole() == UserInfoManager::Role::BeControlled)
+        {
+            QMetaObject::invokeMethod(this, [status,this]() {
+            TransferHubWidget::getInstance().reset();
+            if(status)
+                TransferHubWidget::getInstance().start();
+            else
+                TransferHubWidget::getInstance().stop();
+            });
+        }
+
+    });
 }
 
 void ConnectWidget::setUpdateKeyTimer()
@@ -222,7 +235,6 @@ void ConnectWidget::onConnectRequest(std::string target_id, std::string key)
     connect(&dialog,&ConfirmBeConnectDialog::acceptConnection,this,[=](){
         EventBus::getInstance().publish(EventBus::EventType::Network_SendConnectRequestResult,target_id,true);
         UserInfoManager::getInstance().setCurrentRole(UserInfoManager::Role::BeControlled);
-        TransferHubWidget::getInstance().start();
     });
     connect(&dialog,&ConfirmBeConnectDialog::rejectConnection,this,[=](){
         EventBus::getInstance().publish(EventBus::EventType::Network_SendConnectRequestResult,target_id,false);

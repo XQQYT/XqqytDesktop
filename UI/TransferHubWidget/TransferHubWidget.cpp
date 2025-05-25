@@ -316,3 +316,30 @@ void TransferHubWidget::onDeleteFileItem(FileItemWidget* item)
       cur_count++;
    }
 }
+
+void TransferHubWidget::reset()
+{
+    if (current_file_stream && current_file_stream->is_open()) {
+        current_file_stream->close();
+    }
+    current_file_stream.reset();
+
+    current_receive_file_id = UINT16_MAX;
+
+    // 清空接收队列
+    std::queue<std::pair<uint16_t, std::string>> empty;
+    std::swap(receive_file_queue, empty);
+
+    // 清空UI中的文件项
+    for (auto& item : file_items) {
+        id_file.remove(item->getID());
+        item->deleteLater();
+    }
+    file_items.clear();
+    existing_etails.clear();
+
+    clearLayout(gridLayout);
+    cur_count = 0;
+
+    std::cout << "TransferHubWidget has been reset." << std::endl;
+}

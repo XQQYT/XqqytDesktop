@@ -116,21 +116,25 @@ void PCO::OnConnectionChange(webrtc::PeerConnectionInterface::PeerConnectionStat
             webrtc_instance.peerconnection_status = WebRTCInterface::ConnectionStatus::SUCCESSED;
             status_has_changed = true;
             std::cout << "✅ PeerConnection 已建立连接" << std::endl;
+            webrtc_instance.dispatch_bool(EventBus::EventType::WebRTC_PeerconnectionStatus,true);
             break;
         case webrtc::PeerConnectionInterface::PeerConnectionState::kDisconnected:
             webrtc_instance.peerconnection_status = WebRTCInterface::ConnectionStatus::FAILED;
             status_has_changed = true;
             std::cout << "⚠️ 连接中断（可恢复）" << std::endl;
+            webrtc_instance.dispatch_bool(EventBus::EventType::WebRTC_PeerconnectionStatus,false);
             break;
         case webrtc::PeerConnectionInterface::PeerConnectionState::kFailed:
             webrtc_instance.peerconnection_status = WebRTCInterface::ConnectionStatus::FAILED;
             status_has_changed = true;
             std::cout << "❌ 连接失败" << std::endl;
+            webrtc_instance.dispatch_bool(EventBus::EventType::WebRTC_PeerconnectionStatus,false);
             break;
         case webrtc::PeerConnectionInterface::PeerConnectionState::kClosed:
             webrtc_instance.peerconnection_status = WebRTCInterface::ConnectionStatus::FAILED;
             status_has_changed = true;
             std::cout << "🔒 连接关闭" << std::endl;
+            webrtc_instance.dispatch_bool(EventBus::EventType::WebRTC_PeerconnectionStatus,false);
             break;
     }
     if(status_has_changed && webrtc_instance.ice_status != WebRTCInterface::ConnectionStatus::UN_DEFINED)

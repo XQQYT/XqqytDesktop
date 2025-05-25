@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.0.0] - 2025-05-25
+
+### Added
+
+- 增加文件中转站，支持上传，复制，移除文件
+- 增加文件中转站支持 同步更新，多端实时保持一致
+- 增加对话框的主题随同设置切换
+
+### Fixed
+
+- 修复了停止远控时，控制端概率性崩溃的问题
+- 修复了对话框与主窗口可分离的问题
+- 修复了部分窗口切换主题失败的问题
+
+### Updated
+
+- WebRTC 通道结构优化：由单一数据通道改为控制通道和文件通道（注意：可能与旧版本不兼容）
+
 ## [v2.0.0] - 2025-05-21
 
 ### Added

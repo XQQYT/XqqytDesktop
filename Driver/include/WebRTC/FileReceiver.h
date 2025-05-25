@@ -28,7 +28,7 @@ private:
     std::queue<std::vector<uint8_t>> queue;
     std::mutex mutex;
     std::condition_variable cv;
-    std::thread worker;
+    std::unique_ptr<std::thread> worker;
     std::shared_ptr<std::ofstream> out;
     std::atomic<bool> running;
 

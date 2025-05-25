@@ -9,6 +9,7 @@
 #define REMOTECONTROLWIDGET_H
 
 #include <QWidget>
+#include <atomic>
 #include <QCloseEvent>
 #include <QElapsedTimer>
 #include "RenderWidgetInterface/RenderWidgetInterface.h"
@@ -28,7 +29,6 @@ public:
     ~RemoteControlWidget();
     void addRenderFrame(VideoFrame&& render_frame) override;
     void showWithTransfer();
-
 protected:
     void closeEvent(QCloseEvent *event) override;
 
@@ -47,5 +47,7 @@ private:
     qint64 last_render_time;
     int render_count;
     int stats_start_time;
+
+   std::atomic<bool> render_is_close;
 };
 #endif // WIDGET_H

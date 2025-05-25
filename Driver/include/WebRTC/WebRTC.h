@@ -36,6 +36,7 @@ public:
     };
 public:
     WebRTC(Operator& base_operator);
+    ~WebRTC();
     void initWebRTC(bool is_offer) override;
     void createSDP(SDPType type) override;
     void setRemoteSDP(std::string remote_sdp, SDPType type) override;

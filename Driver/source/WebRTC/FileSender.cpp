@@ -38,7 +38,7 @@ void FileSender::sendFile(uint16_t id, const std::string file_path)
             return;
         }
 
-        const size_t data_payload_size = 48;
+        const size_t data_payload_size = 48 * 1024;
         uint8_t raw_buffer[data_payload_size];
         uint8_t send_buffer[50];
         uint16_t magic = htons(0xABAB);

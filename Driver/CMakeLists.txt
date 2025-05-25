@@ -11,7 +11,8 @@ add_library(Driver STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/WebRTC.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/FileSender.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/FileReceiver.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/DataChannelObserver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/ControlDataChannelObserver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/FileDataChannelObserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/PeerConnectionObserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/SdpObserver.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/source/WebRTC/DesktopCaptureSource.cpp

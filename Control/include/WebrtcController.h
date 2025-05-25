@@ -44,7 +44,7 @@ public:
 
     void onSyncFileInfo(FileSyncType type,std::vector<std::string> args);
     void onSyncFileMsg(std::string msg);
-    void onSetFileHolder(std::ofstream* out, std::function<void()> callback);
+    void onSetFileHolder(std::shared_ptr<std::ofstream> out, std::function<void()> callback);
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
     std::unique_ptr<JsonFactory> json_instance;

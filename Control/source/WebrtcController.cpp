@@ -233,7 +233,7 @@ void WebrtcController::onWriteIntoClipboard(std::string str)
     webrtc_instance->writeIntoClipboard(std::move(str));
 }
 
-void WebrtcController::onSetFileHolder(std::ofstream* out, std::function<void()> callback)
+void WebrtcController::onSetFileHolder(std::shared_ptr<std::ofstream> out, std::function<void()> callback)
 {
     webrtc_instance->setFileHolder(out);
     callback();

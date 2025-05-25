@@ -102,33 +102,33 @@ void FileItemWidget::mousePressEvent(QMouseEvent *event)
 }
 
 // 鼠标移动距离超过阈值后触发拖动
-void FileItemWidget::mouseMoveEvent(QMouseEvent *event) {
-    if (!(event->buttons() & Qt::LeftButton)) return;
-    if ((event->pos() - dragStartPosition).manhattanLength() < QApplication::startDragDistance()) return;
+// void FileItemWidget::mouseMoveEvent(QMouseEvent *event) {
+//     if (!(event->buttons() & Qt::LeftButton)) return;
+//     if ((event->pos() - dragStartPosition).manhattanLength() < QApplication::startDragDistance()) return;
 
-    QString absolutePath = QFileInfo(detail).absoluteFilePath();
+//     QString absolutePath = QFileInfo(detail).absoluteFilePath();
 
-    QMimeData *mimeData = new QMimeData;
-    QUrl fileUrl = QUrl::fromLocalFile(absolutePath);
+//     QMimeData *mimeData = new QMimeData;
+//     QUrl fileUrl = QUrl::fromLocalFile(absolutePath);
     
-    // Qt 有时自动推导不完全，手动设置
-    mimeData->setUrls({fileUrl});
-    mimeData->setData("text/uri-list", fileUrl.toEncoded());  // 👈 Nautilus 要求这个！
+//     // Qt 有时自动推导不完全，手动设置
+//     mimeData->setUrls({fileUrl});
+//     mimeData->setData("text/uri-list", fileUrl.toEncoded());  // 👈 Nautilus 要求这个！
     
-    QDrag *drag = new QDrag(this);  // this 是你的 FileItemWidget
-    drag->setMimeData(mimeData);
-    drag->setPixmap(*iconLabel->pixmap());
-    drag->setHotSpot(event->pos());
+//     QDrag *drag = new QDrag(this);  // this 是你的 FileItemWidget
+//     drag->setMimeData(mimeData);
+//     drag->setPixmap(*iconLabel->pixmap());
+//     drag->setHotSpot(event->pos());
     
-    Qt::DropAction result = drag->exec(Qt::CopyAction);
-    if (result == Qt::MoveAction) {
-        qDebug() << "文件被移动（剪切）";
-    } else if (result == Qt::CopyAction) {
-        qDebug() << "文件被复制";
-    } else {
-        qDebug() << "拖拽取消或失败";
-    }
-}
+//     Qt::DropAction result = drag->exec(Qt::CopyAction);
+//     if (result == Qt::MoveAction) {
+//         qDebug() << "文件被移动（剪切）";
+//     } else if (result == Qt::CopyAction) {
+//         qDebug() << "文件被复制";
+//     } else {
+//         qDebug() << "拖拽取消或失败";
+//     }
+// }
 
 void FileItemWidget::contextMenuEvent(QContextMenuEvent *event)
 {
@@ -173,9 +173,9 @@ void FileItemWidget::onCopy()
     if(is_remote)
     {
         fileUrl = QUrl::fromLocalFile(QFileInfo(tmp_path + detail).absoluteFilePath());
-        std::ofstream* out = new std::ofstream((tmp_path + detail).toStdString(), std::ios::binary);
+        auto out = std::make_shared<std::ofstream>((tmp_path + detail).toStdString(), std::ios::binary);
 
-        EventBus::getInstance().publish<std::ofstream*, std::function<void()>>(EventBus::EventType::WebRTC_SetFileHolder, out,
+        EventBus::getInstance().publish<std::shared_ptr<std::ofstream>, std::function<void()>>(EventBus::EventType::WebRTC_SetFileHolder, out,
             [=](){
             std::vector<std::string> args = {std::to_string(file_id)};
             EventBus::getInstance().publish(EventBus::EventType::WebRTC_SyncFileInfo, FileSyncType::GETFILE,std::move(args));
@@ -200,4 +200,7 @@ void FileItemWidget::onOpen()
 void FileItemWidget::onDelete()
 {
     emit fileItemDelete(this);
+}
+void FileItemWidget::mouseMoveEvent(QMouseEvent *event) {
+    event->ignore();
 }

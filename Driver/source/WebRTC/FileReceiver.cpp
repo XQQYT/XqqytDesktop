@@ -1,55 +1,105 @@
 #include "FileReceiver.h"
-#include <memory.h>
 #include <iostream>
+#include <cstring>
 #include <arpa/inet.h>
-#include <cstdint>
 
-FileReceiver::FileReceiver()
-{
-    file_total_size = 0;
-    receive_size = 0;
+const uint16_t FileReceiver::file_head_magic = htons(0xABCD);
+const uint16_t FileReceiver::file_block_magic = htons(0xABAB);
+
+FileReceiver::FileReceiver() : running(false), file_total_size(0), receive_size(0) {}
+
+FileReceiver::~FileReceiver() {
+    stop();
 }
 
-FileReceiver::~FileReceiver()
-{
+void FileReceiver::start(std::shared_ptr<std::ofstream> file_out) {
+    out = file_out; 
+    running = true;
 
-}
-
-void FileReceiver::startReceiveFile(std::ofstream* instance)
-{
-    out = instance;
-}
-
-void FileReceiver::hasFileHeader(const uint8_t* header, uint16_t length)
-{
-    for (int i = 0; i < 10; ++i)
-        printf("%02X ", header[i]);
-    printf("\n");
-
-    uint16_t id;
-    memcpy(&id, header + 2, sizeof(id));
-    id = ntohs(id);
-
-    uint32_t net_size;
-    memcpy(&net_size, header + 4, sizeof(net_size));
-    file_total_size = ntohl(net_size); 
-
-    std::cout << "id: " << id << ", size: " << file_total_size << std::endl;
-}
-
-void FileReceiver::hasFileData(const uint8_t* data, size_t length )
-{
-    if (length < 2) return;
-
-    out->write(reinterpret_cast<const char*>(data + 2), length - 2);
-    receive_size += (length - 2);
-
-    if (receive_size >= file_total_size)
+    if(worker.joinable())
     {
+        return;
+    }
+    worker = std::thread(&FileReceiver::processQueue, this);
+}
+
+void FileReceiver::stop() {
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        running = false;
+        cv.notify_all();
+    }
+    if (worker.joinable()) {
+        worker.join();
+    }
+    if (out->is_open()) {
         out->close();
-        receive_size = 0;
-        file_total_size = 0;
-        // delete out;
-        // out = nullptr;
+    }
+}
+
+void FileReceiver::onHeaderReceived(const uint8_t* data, size_t size) {
+    std::vector<uint8_t> header(data, data + size);
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        queue.push(std::move(header));
+    }
+    cv.notify_one();
+}
+
+void FileReceiver::onDataReceived(const uint8_t* data, size_t size) {
+    std::vector<uint8_t> block(data, data + size);
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        queue.push(std::move(block));
+    }
+    cv.notify_one();
+}
+
+void FileReceiver::processQueue() {
+    while (running) {
+        std::unique_lock<std::mutex> lock(mutex);
+        cv.wait(lock, [this]() { return !queue.empty() || !running; });
+
+        while (!queue.empty()) {
+            auto data = std::move(queue.front());
+            queue.pop();
+            lock.unlock();
+
+            if (memcmp(data.data(), &file_head_magic, 2) == 0) {
+                processHeader(data);
+            } else if (memcmp(data.data(), &file_block_magic, 2) == 0) {
+                processData(data);
+            } else {
+                std::cerr << "Unknown data format\n";
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            lock.lock();
+        }
+    }
+}
+
+void FileReceiver::processHeader(const std::vector<uint8_t>& data) {
+    uint16_t id;
+    memcpy(&id, data.data() + 2, sizeof(id));
+    id = ntohs(id);
+    uint32_t size;
+    memcpy(&size, data.data() + 4, sizeof(size));
+    file_total_size = ntohl(size);
+    receive_size = 0;
+    std::cout << "Receiving file id=" << id << " size=" << file_total_size << "\n";
+}
+
+void FileReceiver::processData(const std::vector<uint8_t>& data) {
+    if (out->is_open()) {
+        out->write(reinterpret_cast<const char*>(data.data() + 2), data.size() - 2);
+        receive_size += (data.size() - 2);
+        std::cout << receive_size << "/" << file_total_size << std::endl;
+
+        if (receive_size >= file_total_size) {
+            std::cout << "File received completely.\n";
+            out->close();
+            out.reset();
+            out = nullptr;
+        }
     }
 }

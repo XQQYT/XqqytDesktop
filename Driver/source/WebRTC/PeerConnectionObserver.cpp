@@ -27,8 +27,20 @@ void PCO::OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream
 
 void PCO::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel)
 {
-    webrtc_instance.data_channel = data_channel;
-    webrtc_instance.data_channel->RegisterObserver(webrtc_instance.dco.get());
+    std::string label = data_channel->label();
+    if(label == "control_data_channel")
+    {
+        webrtc_instance.control_data_channel = data_channel;
+        webrtc_instance.control_data_channel->RegisterObserver(webrtc_instance.control_dco.get());
+        std::cout<<"bind Control data channel success"<<std::endl;
+    }
+    else if(label == "file_data_channel")
+    {
+        webrtc_instance.file_data_channel = data_channel;
+        webrtc_instance.file_data_channel->RegisterObserver(webrtc_instance.file_dco.get());
+        std::cout<<"bind File data channel success"<<std::endl;
+    }
+
 }
 
 void PCO::OnRenegotiationNeeded() 

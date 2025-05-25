@@ -10,6 +10,7 @@
 #include <string>
 #include <functional>
 #include <fstream>
+#include <memory>
 #include "Render.h"
 #include "MouseKeyboardType.h"
 
@@ -57,7 +58,7 @@ public:
     virtual void setSyncMsgCallback(std::function<void(std::string)> callback) = 0;
     virtual void sendFileSync(std::string msg) = 0;
     virtual void sendFile(uint16_t id,const std::string path) = 0;
-    virtual void setFileHolder(std::ofstream* out) = 0;
+    virtual void setFileHolder(std::shared_ptr<std::ofstream> out) = 0;
 };
 
 #endif

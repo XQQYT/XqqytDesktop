@@ -29,7 +29,8 @@ WebRTC::WebRTC(Operator& base_operator):
   webrtc_operator(base_operator)
 {
   pco = std::make_unique<PCO>(*this);
-  dco = std::make_unique<DCO>(*this);
+  control_dco = std::make_unique<ControlDCO>(*this);
+  file_dco = std::make_unique<FileDCO>(*this);
   clipboard_driver = std::make_unique<X11ClipboardDriver>(*this);
   sdpo = new rtc::RefCountedObject<SDPO>(*this);
   ssdo = new rtc::RefCountedObject<SSDO>(*this);
@@ -130,9 +131,18 @@ void WebRTC::createSDP(SDPType type)
         return;
       }
       video_render = std::make_unique<VideoRender>();
-      webrtc::DataChannelInit config;
-      data_channel = peer_connection->CreateDataChannel("data_channel", &config);
-      data_channel->RegisterObserver(dco.get());
+
+      webrtc::DataChannelInit control_config;
+      control_config.id = 1;
+
+      webrtc::DataChannelInit file_config;
+      file_config.id = 2;
+
+      control_data_channel = peer_connection->CreateDataChannel("control_data_channel", &control_config);
+      control_data_channel->RegisterObserver(control_dco.get());
+
+      file_data_channel = peer_connection->CreateDataChannel("file_data_channel", &file_config);
+      file_data_channel->RegisterObserver(file_dco.get());
       
       signaling_thread->PostTask([this](){
         webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
@@ -318,39 +328,39 @@ void WebRTC::setRenderInstance(RenderInterface* instance)
 void WebRTC::sendMouseEventPacket(const MouseEventPacket packet)
 {
 
-  if (data_channel->state() == webrtc::DataChannelInterface::kOpen) 
+  if (control_data_channel->state() == webrtc::DataChannelInterface::kOpen) 
   {
     const char* data = reinterpret_cast<const char*>(&packet);
     size_t size = sizeof(packet);
     rtc::CopyOnWriteBuffer buffer(data, size);
     webrtc::DataBuffer data_buffer(buffer, true);
-    data_channel->Send(data_buffer);
+    control_data_channel->Send(data_buffer);
   } else 
   {
-    std::cerr << "DataChannel is not open, state: " << data_channel->state() << std::endl;
+    std::cerr << "DataChannel is not open, state: " << control_data_channel->state() << std::endl;
   }
 }
 
 void WebRTC::sendKeyboardEventPacket(const KeyEventPacket packet)
 {
-  if (data_channel->state() == webrtc::DataChannelInterface::kOpen) 
+  if (control_data_channel->state() == webrtc::DataChannelInterface::kOpen) 
   {
     const char* data = reinterpret_cast<const char*>(&packet);
     size_t size = sizeof(packet);
     rtc::CopyOnWriteBuffer buffer(data, size);
     webrtc::DataBuffer data_buffer(buffer, true);
-    data_channel->Send(data_buffer);
+    control_data_channel->Send(data_buffer);
   } else 
   {
-    std::cerr << "DataChannel is not open, state: " << data_channel->state() << std::endl;
+    std::cerr << "DataChannel is not open, state: " << control_data_channel->state() << std::endl;
   }
 }
 
 void WebRTC::sendCloseWebRTC()
 {
-    if (!data_channel || data_channel->state() != webrtc::DataChannelInterface::kOpen) {
+    if (!control_data_channel || control_data_channel->state() != webrtc::DataChannelInterface::kOpen) {
         std::cerr << "DataChannel is not open or invalid, state: " 
-                  << (data_channel ? std::to_string(data_channel->state()) : "nullptr") 
+                  << (control_data_channel ? std::to_string(control_data_channel->state()) : "nullptr") 
                   << std::endl;
         return;
     }
@@ -358,7 +368,7 @@ void WebRTC::sendCloseWebRTC()
     static constexpr char kCloseMessage[] = "_close_webrtc_";
     rtc::CopyOnWriteBuffer buffer(kCloseMessage, strlen(kCloseMessage));
     webrtc::DataBuffer data_buffer(buffer, true);
-    data_channel->Send(data_buffer);
+    control_data_channel->Send(data_buffer);
 }
 
 void WebRTC::closeWebRTC()
@@ -381,7 +391,8 @@ void WebRTC::closeWebRTC()
     peer_connection = nullptr;
   }
 
-  data_channel = nullptr;
+  control_data_channel = nullptr;
+  file_data_channel = nullptr;
   desktop_video_track = nullptr;
   desktop_audio_track = nullptr;
   desktop_source = nullptr;
@@ -448,27 +459,27 @@ void WebRTC::sendToPeer(std::string msg)
 {
   if (msg.empty()) return;
 
-  if (!data_channel || data_channel->state() != webrtc::DataChannelInterface::kOpen) {
+  if (!control_data_channel || control_data_channel->state() != webrtc::DataChannelInterface::kOpen) {
       std::cerr << "DataChannel is not open\n";
       return;
   }
   rtc::CopyOnWriteBuffer buffer(reinterpret_cast<const uint8_t*>(msg.data()), msg.size());
   webrtc::DataBuffer data_buffer(buffer, true);
-  data_channel->Send(data_buffer);
+  control_data_channel->Send(data_buffer);
 }
 
 void WebRTC::sendToPeer(uint8_t* msg, size_t length)
 {
     if (!msg || length == 0) return;
 
-    if (!data_channel || data_channel->state() != webrtc::DataChannelInterface::kOpen) {
+    if (!file_data_channel|| file_data_channel->state() != webrtc::DataChannelInterface::kOpen) {
         std::cerr << "DataChannel is not open\n";
         return;
     }
 
     rtc::CopyOnWriteBuffer buffer(msg, length);
     webrtc::DataBuffer data_buffer(buffer, false);
-    data_channel->Send(data_buffer);
+    file_data_channel->Send(data_buffer);
 }
 
 void WebRTC::sendFileSync(std::string msg)
@@ -483,7 +494,7 @@ void WebRTC::sendFile(uint16_t id,const std::string path)
   file_sender->sendFile(id, path);
 }
 
-void WebRTC::setFileHolder(std::ofstream* out)
+void WebRTC::setFileHolder(std::shared_ptr<std::ofstream> out)
 {
-  file_receiver->startReceiveFile(out);
+  file_receiver->start(out);
 }

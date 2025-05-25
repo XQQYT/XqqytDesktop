@@ -59,6 +59,7 @@ public:
     virtual void sendFileSync(std::string msg) = 0;
     virtual void sendFile(uint16_t id,const std::string path) = 0;
     virtual void setFileHolder(std::shared_ptr<std::ofstream> out) = 0;
+    virtual void setReceiveFileProgressCb(std::function<void(uint16_t,uint32_t,uint32_t)> cb) = 0;
 };
 
 #endif

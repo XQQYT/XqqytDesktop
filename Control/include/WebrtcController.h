@@ -45,6 +45,9 @@ public:
     void onSyncFileInfo(FileSyncType type,std::vector<std::string> args);
     void onSyncFileMsg(std::string msg);
     void onSetFileHolder(std::shared_ptr<std::ofstream> out, std::function<void()> callback);
+
+private:
+    void onReceiveProgress(uint16_t id ,uint32_t received_size, uint32_t total_size);
 private:
     std::unique_ptr<WebRTCInterface> webrtc_instance;
     std::unique_ptr<JsonFactory> json_instance;

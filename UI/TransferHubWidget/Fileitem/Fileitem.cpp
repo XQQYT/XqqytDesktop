@@ -9,6 +9,7 @@
 #include "UserInfo.h"
 #include "EventBus.h"
 #include "GlobalEnum.h"
+#include <QPainter>
 
 uint16_t FileItemWidget::fileid = 0; 
 static const QString tmp_path = "/tmp/XqqytDesktop/";
@@ -67,11 +68,13 @@ FileItemWidget::FileItemWidget(bool is_remote,QString& detail,uint16_t input_fil
     layout->addWidget(iconLabel);
     layout->addWidget(textLabel);
 
+    QString tooltip_file_name;
     if(!is_remote)
     {
         iconLabel->setPixmap(getIcon(detail).pixmap(64, 64));
         textLabel->setText(file_name);
         file_id = fileid++;
+        tooltip_file_name = file_name;
     }
     else
     {
@@ -79,12 +82,13 @@ FileItemWidget::FileItemWidget(bool is_remote,QString& detail,uint16_t input_fil
         this->file_size = file_size;
         textLabel->setText(detail);
         file_id = input_file_id;
+        tooltip_file_name = detail;
     }
 
     setCursor(Qt::OpenHandCursor);
     setFixedSize(120, 120);
     setToolTip(
-        "<b>FileName:</b> " + file_name +
+        "<b>FileName:</b> " + tooltip_file_name +
         "<br><b>Size:</b> " + QString::number(this->file_size) + " bytes" + 
         "<br><b>id:</b> " + QString::number(file_id)
     );
@@ -195,4 +199,37 @@ void FileItemWidget::onDelete()
 }
 void FileItemWidget::mouseMoveEvent(QMouseEvent *event) {
     event->ignore();
+}
+
+void FileItemWidget::setProgress(int percent) {
+    m_progress = qBound(0, percent, 100);
+    update();
+}
+
+void FileItemWidget::paintEvent(QPaintEvent *event) {
+    QWidget::paintEvent(event);
+    if(m_progress == 100)
+    {
+        return;
+    }
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    painter.setBrush(QColor(0, 0, 0, 0));
+    painter.drawRect(rect());
+
+    int margin = 10;
+    int progressHeight = 8;
+    QRect progressBgRect(margin, height() - margin - progressHeight, 
+                           width() - 2 * margin, progressHeight);
+    painter.setBrush(QColor(100, 100, 100));
+    painter.drawRoundedRect(progressBgRect, 3, 3);
+
+    QRect progressRect(progressBgRect);
+    progressRect.setWidth(progressBgRect.width() * m_progress / 100);
+    painter.setBrush(m_progressColor);
+    painter.drawRoundedRect(progressRect, 3, 3);
+
+    painter.setPen(Qt::white);
+    painter.drawText(rect(), Qt::AlignCenter, QString::number(m_progress) + "%");
 }

@@ -78,6 +78,7 @@ void EventBus::registerAllEvents() {
         ET::WebRTC_SyncFileInfo,
         ET::WebRTC_SyncAddFile,
         ET::WebRTC_SetFileHolder,
+        ET::WebRTC_ReceiveFileProgess,
 
         // Render
         ET::Render_SetRenderInstance,

@@ -139,7 +139,12 @@ void WebrtcController::onModuleConfigUpdated(std::string module,std::string key,
 void WebrtcController::onInitWebrtc(std::string, bool status)
 {
     if(status)
+    {
         webrtc_instance->initWebRTC(false);
+        webrtc_instance->setReceiveFileProgressCb(
+            std::bind(&WebrtcController::onReceiveProgress, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+        );
+    }
 }
 
 void WebrtcController::onReady()
@@ -153,7 +158,13 @@ void WebrtcController::onReady()
 void WebrtcController::onRecvConnectRequestResult(bool status)
 {
     if(status)
+    {
         webrtc_instance->initWebRTC(true);
+        webrtc_instance->setReceiveFileProgressCb(
+            std::bind(&WebrtcController::onReceiveProgress, this, std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
+        );
+    }
+
 }
 
 void WebrtcController::onSetRemoteSDPOfferDone()
@@ -278,4 +289,9 @@ void WebrtcController::onSyncFileMsg(std::string msg)
             webrtc_instance->sendFile(std::stoul(id), path);
         }
     }
+}
+
+void WebrtcController::onReceiveProgress(uint16_t id, uint32_t received_size, uint32_t total_size)
+{
+    EventBus::getInstance().publish(EventBus::EventType::WebRTC_ReceiveFileProgess,id,received_size,total_size);
 }

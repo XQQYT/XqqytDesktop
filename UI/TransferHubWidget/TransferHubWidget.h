@@ -15,6 +15,9 @@
 #include "RoundedScrollArea/RoundedScrollArea.h"
 #include <QList>
 #include <QSet>
+#include <QMap>
+#include <queue>
+#include <fstream>
 #include "Fileitem/Fileitem.h"
 
 QT_BEGIN_NAMESPACE
@@ -48,6 +51,7 @@ protected:
     void dragLeaveEvent(QDragLeaveEvent *event);
 private:
     TransferHubWidget(QWidget *parent = nullptr);
+    void prepareNextReceiveFile();
     Ui::TransferHubWidget *ui;
     QTimer* hideTimer;
     RoundedScrollArea *scrollArea;
@@ -62,6 +66,11 @@ private:
     int init_y;
 
     QList<FileItemWidget*> file_items;
+    QMap<uint16_t, FileItemWidget*> id_file;
     QSet<QString> existing_etails;
+    std::queue<std::pair<uint16_t,std::string>> receive_file_queue;
+    uint16_t current_receive_file_id;
+    std::shared_ptr<std::ofstream> current_file_stream;
+
 };
 #endif // TRANSFERHUBWIDGET_H

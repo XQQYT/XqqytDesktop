@@ -1,7 +1,10 @@
 #include "TcpDriver.h"
 #include <iostream>
 #include <memory.h>
+#include <endian.h>  // Linux下支持字节序转换
+#include <arpa/inet.h>  // htons/ntohs
 #include "GlobalEnum.h"
+#include <iomanip>
 
 TcpDriver::TcpDriver():
     msg_builder(std::make_unique<UserServerMsgBuilder>(security_instance)),
@@ -191,6 +194,39 @@ void TcpDriver::recvMsg(std::function<void(std::vector<uint8_t>,bool)> callback)
                         callback(std::move(result_vec),parsed.is_binary);
 
                     }
+                }
+                else if (peek_buffer[0] == 0xAF && peek_buffer[1] == 0xAF)
+                {
+                    constexpr int MIN_HEADER_SIZE = 2 + 4;  // 魔数 + size
+                    uint8_t header_buf[MIN_HEADER_SIZE] = {0};
+                    uint32_t header_received = 0;
+
+                    // 先接收最小报文头
+                    while (header_received < MIN_HEADER_SIZE) {
+                        int n = recv(tcp_socket, header_buf + header_received, MIN_HEADER_SIZE - header_received, 0);
+                        if (n <= 0) {
+                            throw std::runtime_error("Header recv error");
+                        }
+                        header_received += n;
+                    }
+
+                    // 提取 size
+                    uint32_t size_net;
+                    memcpy(&size_net, header_buf + 2, sizeof(size_net));
+                    uint32_t payload_len = ntohl(size_net);  // size = type + subtype + payload
+
+                    // 检查总长度
+                    std::vector<uint8_t> payload_buf(payload_len);
+                    uint32_t received_payload = 0;
+
+                    while (received_payload < payload_len) {
+                        int n = recv(tcp_socket, payload_buf.data() + received_payload, payload_len - received_payload, 0);
+                        if (n <= 0) {
+                            throw std::runtime_error("Payload recv error");
+                        }
+                        received_payload += n;
+                    }
+                    callback(std::move(payload_buf), true);  // true代表是二进制消息
                 }
                 else
                 {

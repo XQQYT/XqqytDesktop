@@ -84,3 +84,17 @@ void DeviceListStrategy::execute(std::unique_ptr<Parser> parser, Operator& contr
     }
 
 }
+
+void LastestVersionStrategy::execute(std::unique_ptr<Parser> parser, Operator& controll_instance)
+{
+    if(parser->contain("version") && parser->contain("description") && parser->contain("date"))
+    {
+        std::string version = parser->getKey("version");
+        std::string description = parser->getKey("description");
+        std::string date = parser->getKey("date");
+        controll_instance.dispatch_string_string_string(EventBus::EventType::Network_LastestVersionResult,std::move(version),
+            std::move(description),std::move(date));
+    }
+
+}
+

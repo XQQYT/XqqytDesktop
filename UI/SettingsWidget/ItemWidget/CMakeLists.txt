@@ -22,4 +22,6 @@ target_include_directories(ItemWidget PUBLIC
 target_link_libraries(ItemWidget 
 Qt5::Widgets
 utils
+Dialog
+utils
 )

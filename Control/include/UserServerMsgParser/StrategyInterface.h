@@ -9,7 +9,8 @@
 #include "Operator.h"
 
 enum class UserServerMsgType : uint16_t {
-    USER_AVATAR = 0xAEAE            
+    USER_AVATAR = 0xAEAE,
+    VERSION_PACKAGE = 0xBEBE         
 };
 
 class Strategy {

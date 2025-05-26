@@ -15,7 +15,7 @@ LoadingDialog::LoadingDialog(QWidget *parent)
     , ui(new Ui::LoadingDialog)
 {
     ui->setupUi(this);
-
+    ui->progressBar->hide();
     // 设置无边框 + 背景透明
     setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground); 
@@ -36,4 +36,10 @@ LoadingDialog::~LoadingDialog()
 {
     delete movie;
     delete ui;
+}
+
+void LoadingDialog::setProgress(int progress)
+{
+    ui->progressBar->show();   
+    ui->progressBar->setValue(progress);
 }

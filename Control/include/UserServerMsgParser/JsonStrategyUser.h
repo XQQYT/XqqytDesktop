@@ -32,4 +32,11 @@ public:
     ~DeviceListStrategy(){}
 };
 
+class LastestVersionStrategy : public JsonStrategy
+{
+public:
+    void execute(std::unique_ptr<Parser> parser, Operator& controll_instance) override;
+    ~LastestVersionStrategy(){}
+};
+
 #endif  //_JSONSTRATEGY_H

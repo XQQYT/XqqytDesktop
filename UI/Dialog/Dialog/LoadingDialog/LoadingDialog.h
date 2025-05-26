@@ -22,6 +22,7 @@ class LoadingDialog : public QDialog
 public:
     LoadingDialog(QWidget *parent = nullptr);
     ~LoadingDialog();
+    void setProgress(int progress);
 signals:
 
 private:

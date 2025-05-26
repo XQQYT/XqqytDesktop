@@ -27,6 +27,7 @@ ConnectWidget::ConnectWidget(QWidget *parent)
     info_dialog->setPargentWidget(this);
     initSubscribe();
 
+    //初始化更新动态密钥的定时器
     update_dynamic_key_timer = new QTimer(this);
     connect(update_dynamic_key_timer, &QTimer::timeout, this, &ConnectWidget::onTimeToUpdateKey);
     setUpdateKeyTimer();

@@ -29,6 +29,7 @@ public:
     void dispatch_string_string(EventBus::EventType event_name,std::string str1,std::string str2) override;
     void dispatch_string_string_string(EventBus::EventType event_name, std::string str1, std::string str2, std::string str3) override;
     void dispatch_bool(EventBus::EventType event_name,bool status) override;
+    void dispatch_uint32_uint32(EventBus::EventType event_name, uint32_t received_size, uint32_t total_size) override;
 //NetworkController
 public:
     NetworkController();
@@ -56,6 +57,8 @@ public:
 private:
     void onGetTargetStatus(std::string target_id);
     void onConnectToTarget(std::string target_id, std::string key);
+    void onGetLastestVersion();
+    void onGetVersionPackage();
 private:
     std::shared_ptr<NetworkInterface> websocket_interface;
     std::unique_ptr<NetworkInterface> tcp_interface;

@@ -205,6 +205,10 @@ enum class EventBus::EventType {
     Network_UpdateUserPasswordResult,
     Network_RegisterDeviceResult,
     Network_GetDeviceListResult,
+    Network_GetLastestVersion,
+    Network_LastestVersionResult,
+    Network_GetVersionPackage,
+    Network_VersionPackageProgress,
 
     // WebRTC
     WebRTC_InitWebrtcDone,

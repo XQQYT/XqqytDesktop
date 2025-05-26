@@ -200,6 +200,14 @@ void NetworkController::initNetworkSubscribe()
         this,
         std::placeholders::_1
     ));
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_GetLastestVersion,std::bind(
+        &NetworkController::onGetLastestVersion,
+        this
+    ));
+    EventBus::getInstance().subscribe(EventBus::EventType::Network_GetVersionPackage,std::bind(
+        &NetworkController::onGetVersionPackage,
+        this
+    ));
 }
 
 
@@ -250,6 +258,11 @@ void NetworkController::dispatch_string_string_string(EventBus::EventType event_
 void NetworkController::dispatch_bool(EventBus::EventType event_name,bool status)
 {
     EventBus::getInstance().publish(event_name,status);
+}
+
+void NetworkController::dispatch_uint32_uint32(EventBus::EventType event_name,uint32_t received_size, uint32_t total_size)
+{
+    EventBus::getInstance().publish(event_name,received_size,total_size);
 }
 
 void NetworkController::onCreateSDPOffer(std::string sdp_str)
@@ -346,4 +359,14 @@ void NetworkController::onSendToUserServer(UserMsgType msg_type, std::vector<std
 void NetworkController::onDeleteDevice(std::string device_code)
 {
     tcp_interface->sendMsg(*json_factory->user_delete_device(UserInfoManager::getInstance().getUserName(),std::move(device_code)));
+}
+
+void NetworkController::onGetLastestVersion()
+{
+    tcp_interface->sendMsg(*json_factory->user_get_lastest_version());
+}
+
+void NetworkController::onGetVersionPackage()
+{
+    tcp_interface->sendMsg(*json_factory->user_get_version_package());
 }

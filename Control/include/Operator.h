@@ -21,6 +21,7 @@ public:
     virtual void dispatch_string_string(EventBus::EventType event_name,std::string str1,std::string str2){};
     virtual void dispatch_string_string_string(EventBus::EventType event_name, std::string str1, std::string str2, std::string str3){};
     virtual void dispatch_bool(EventBus::EventType event_name,bool status){};
+    virtual void dispatch_uint32_uint32(EventBus::EventType event_name, uint32_t received_size, uint32_t total_size) {}
 };
 
 

@@ -9,6 +9,7 @@ add_library(Dialog STATIC
     Dialog/RegisterDialog/RegisterDialog.cpp
     Dialog/KeyAuthenticationDialog/KeyAuthenticationDialog.cpp
     Dialog/GeneralLineEditDialog/GeneralLineEditDialog.cpp
+    Dialog/UpdateDialog/UpdateDialog.cpp
 )
 
 target_include_directories(Dialog PUBLIC
@@ -22,6 +23,7 @@ target_include_directories(Dialog PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Dialog/RegisterDialog
     ${CMAKE_CURRENT_SOURCE_DIR}/Dialog/KeyAuthenticationDialog
     ${CMAKE_CURRENT_SOURCE_DIR}/Dialog/GeneralLineEditDialog
+    ${CMAKE_CURRENT_SOURCE_DIR}/Dialog/UpdateDialog
 )
 
 target_link_libraries(Dialog

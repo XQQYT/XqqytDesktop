@@ -343,6 +343,24 @@ std::shared_ptr<std::string> NlohmannJson::syncfile_get_file(std::string id)
         return std::make_shared<std::string>(result_msg.dump());
 }
 
+std::shared_ptr<std::string> NlohmannJson::user_get_lastest_version()
+{
+    json result_msg = {
+        {"type", "get_lastest_version"},
+        {"content", {{"xqqyt","xqqyt"}}}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
+std::shared_ptr<std::string> NlohmannJson::user_get_version_package()
+{
+    json result_msg = {
+        {"type", "get_version_package"},
+        {"content", {{"xqqyt","xqqyt"}}}
+    };
+        return std::make_shared<std::string>(result_msg.dump());
+}
+
 std::unique_ptr<Parser> NlohmannJson::getParser()
 {
     return std::make_unique<NlohmannJsonParser>();

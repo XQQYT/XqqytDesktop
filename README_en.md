@@ -1,11 +1,6 @@
 # XqqytDesktop
 
-## File Structure
-
-- **[UI]**: A directory that contains all UI-related files. Each widget has its own directory, containing `.h`, `.cpp`, and `.ui` files.
-- **[Control]**: A directory that contains classes responsible for managing the data flow between the UI and the driver.
-- **[Driver]**: A directory that contains the driver classes for database, network, configuration files, and local files. In the future, I plan to add QoS (Quality of Service) and stream control to this directory.
-- **[main.cpp]**: The entry point of the program. It will initialize and start the project.
+[Click here to view the project documentation](https://deepwiki.com/XQQYT/XqqytDesktop)
 
 ## How to Build & Run
 
@@ -24,7 +19,7 @@ Before building, please ensure the following dependencies are installed:
 
 If Qt is installed in a custom location (e.g., not in the default system path), you need to specify the Qt installation path in the CMakeLists.txt file.
 
-Open the CMakeLists.txt file in the root of project and edit the CMAKE_PREFIX_PATH variable to point to the directory where Qt is installed. For example:ss
+Open the CMakeLists.txt file in the root of project and edit the CMAKE_PREFIX_PATH variable to point to the directory where Qt is installed. For example:
 
 ```bash
 set(CMAKE_PREFIX_PATH "/path/to/your/Qt/installation")
@@ -33,10 +28,6 @@ Replace /path/to/your/Qt/installation with the actual path to your Qt installati
 
 This ensures that CMake can find your Qt installation and use it during the build process.
 
-```bash
-sudo apt update
-sudo apt install qtbase5-dev cmake
-```
 #### Install Optional Tools (if needed):
 
 ```bash
@@ -47,28 +38,29 @@ sudo apt install qttools5-dev-tools
 Clone the repository (if not done already):
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/XQQYT/XqqytDesktop.git
 cd XqqytDesktop
 ```
-Create a build directory:
+Run the build.sh:
 
 ```bash
-mkdir build
-cd build
+bash build.sh
 ```
-Generate the build files with CMake:
 
-```bash
-cmake ..
-```
-Compile the project:
+#### Run the application:
+##### X11 Graphics System Required
+XqqytDesktop only supports the X11 graphics system.
 
-```bash
-make -j$(nproc)
-```
--j$(nproc) will automatically use all available CPU cores for faster compilation.
+If you are currently using Wayland or another non-X11 display server, the application may not function correctly or may fail to start.
 
-Run the application:
+How to Switch to X11 (Ubuntu GNOME)
+1. At the login screen, click your username but do not enter your password yet.
+
+2. Click the gear icon in the bottom right corner.
+
+3. Select "Ubuntu on Xorg" or "GNOME on X11".
+
+4. Then enter your password and log in.
 
 ```bash
 ./XqqytDesktop

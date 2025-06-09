@@ -1,5 +1,6 @@
 # XqqytDesktop
-
+- [User Server](https://github.com/XQQYT/Xqqyt_UserServer)
+- [Signal Server](https://github.com/XQQYT/Xqqyt_SignalServer)
 - [中文文档](./README_zh.md)
 
 - [Click here to view the project documentation](https://deepwiki.com/XQQYT/XqqytDesktop)

@@ -1,6 +1,8 @@
 # XqqytDesktop
 
-[Click here to view the project documentation](https://deepwiki.com/XQQYT/XqqytDesktop)
+- [中文文档](./README_zh.md)
+
+- [Click here to view the project documentation](https://deepwiki.com/XQQYT/XqqytDesktop)
 
 ## How to Build & Run
 

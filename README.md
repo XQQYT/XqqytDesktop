@@ -3,6 +3,7 @@
 - [Signal Server](https://github.com/XQQYT/Xqqyt_SignalServer)
 - [中文文档](./README_zh.md)
 
+- [Click here to view demo video](https://www.bilibili.com/video/BV1cKTRzWEj1/?vd_source=af81440a64836b1a33af1a82ed3c8609)
 - [Click here to view the project documentation](https://deepwiki.com/XQQYT/XqqytDesktop)
 
 ## How to Build & Run
